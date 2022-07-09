@@ -2,6 +2,7 @@
     "cSpell.words": [
         "APPWINDOW",
         "DBLCLKS",
+        "DIRECTX",
         "ERASEBKGND",
         "HICON",
         "HINSTANCE",
@@ -27,6 +28,7 @@
         "NONCONVERT",
         "NUMLOCK",
         "NUMPAD",
+        "OPENGL",
         "RBUTTONDOWN",
         "RBUTTONUP",
         "RCONTROL",
@@ -46,6 +48,10 @@
     ],
     "files.associations": {
         "platform.h": "c",
-        "application.h": "c"
+        "application.h": "c",
+        "*.ini": "c",
+        "logger.h": "c",
+        "defines.h": "c",
+        "vmemory.h": "c"
     }
 }

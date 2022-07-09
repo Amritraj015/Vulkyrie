@@ -43,7 +43,6 @@ int main(void)
         V_INFO("Application did not shutdown gracefully!");
         return 2;
     }
-    application_run();
 
     shutdown_memory();
 
