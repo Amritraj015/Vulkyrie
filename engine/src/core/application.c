@@ -60,8 +60,8 @@ b8 application_create(game *game_instance)
     }
 
     event_register(EVENT_CODE_APPLICATION_QUIT, 0, application_on_event);
-    event_register(EVENT_CODE_KEY_PRESSED, 0, application_on_event);
-    event_register(EVENT_CODE_KEY_RELEASED, 0, application_on_event);
+    event_register(EVENT_CODE_KEY_PRESSED, 0, application_on_key);
+    event_register(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
 
     if (!platform_startup(
             &app_state.platform,
@@ -126,8 +126,8 @@ b8 application_run()
     app_state.is_running = FALSE;
 
     event_unregister(EVENT_CODE_APPLICATION_QUIT, 0, application_on_event);
-    event_unregister(EVENT_CODE_KEY_PRESSED, 0, application_on_event);
-    event_unregister(EVENT_CODE_KEY_RELEASED, 0, application_on_event);
+    event_unregister(EVENT_CODE_KEY_PRESSED, 0, application_on_key);
+    event_unregister(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
     event_shutdown();
     input_shutdown();
 
