@@ -1,0 +1,38 @@
+{
+    "cSpell.words": [
+        "APPWINDOW",
+        "DBLCLKS",
+        "ERASEBKGND",
+        "HICON",
+        "HINSTANCE",
+        "HWND",
+        "ICONEXCLAMATION",
+        "LBUTTONDOWN",
+        "LBUTTONUP",
+        "LPARAM",
+        "LPDWORD",
+        "lpfn",
+        "LRESULT",
+        "MAXIMIZEBOX",
+        "MBUTTONDOWN",
+        "MBUTTONUP",
+        "MINIMIZEBOX",
+        "MOUSEWHEEL",
+        "RBUTTONDOWN",
+        "RBUTTONUP",
+        "SHOWMAXIMIZED",
+        "SHOWMINNOACTIVE",
+        "SHOWNOACTIVATE",
+        "SYSKEYDOWN",
+        "SYSKEYUP",
+        "SYSMENU",
+        "THICKFRAME",
+        "Vulkyrie",
+        "WNDCLASSA",
+        "WPARAM"
+    ],
+    "files.associations": {
+        "platform.h": "c",
+        "application.h": "c"
+    }
+}
