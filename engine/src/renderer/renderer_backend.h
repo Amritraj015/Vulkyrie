@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer_types.ini"
+#include "renderer_types.inl"
 
 struct platform_state;
 

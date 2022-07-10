@@ -38,10 +38,12 @@
         "SHOWMAXIMIZED",
         "SHOWMINNOACTIVE",
         "SHOWNOACTIVATE",
+        "swapchain",
         "SYSKEYDOWN",
         "SYSKEYUP",
         "SYSMENU",
         "THICKFRAME",
+        "VKAPI",
         "Vulkyrie",
         "WNDCLASSA",
         "WPARAM"
@@ -52,6 +54,8 @@
         "*.ini": "c",
         "logger.h": "c",
         "defines.h": "c",
-        "vmemory.h": "c"
+        "vmemory.h": "c",
+        "renderer_backend.h": "c",
+        "renderer_types.inl": "c"
     }
 }
