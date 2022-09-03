@@ -8,7 +8,7 @@ namespace Vkr
         const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
         void *userData);
 
-    VulkanRenderer::VulkanRenderer(std::shared_ptr<Platform> platform)
+    VulkanRenderer::VulkanRenderer(const std::shared_ptr<Platform> &platform)
     {
         mPlatform = platform;
     }

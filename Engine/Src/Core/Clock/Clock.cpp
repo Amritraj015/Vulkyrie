@@ -2,7 +2,7 @@
 
 namespace Vkr
 {
-    Clock::Clock(std::shared_ptr<Platform> platform)
+    Clock::Clock(const std::shared_ptr<Platform> &platform)
     {
         mPlatform = platform;
     }

@@ -13,7 +13,7 @@ namespace Vkr
         std::shared_ptr<Platform> mPlatform;
 
     public:
-        explicit Clock(std::shared_ptr<Platform> platform);
+        explicit Clock(const std::shared_ptr<Platform> &platform);
 
         inline f64 GetStartTime() const { return mStartTime; }
         inline f64 GetElapsedTime() const { return mElapsed; }

@@ -14,12 +14,11 @@ namespace Vkr
 
     class RendererClient
     {
-
     public:
         CONSTRUCTOR_LOG(RendererClient)
         DESTRUCTOR_LOG(RendererClient)
 
-        StatusCode Initialize(std::shared_ptr<Platform> platform, RendererType rendererType, const char *appName = "Vulkyrie Engine");
+        StatusCode Initialize(const std::shared_ptr<Platform> &platform, RendererType rendererType, const char *appName = "Vulkyrie Engine");
 
         StatusCode Terminate();
 

@@ -11,7 +11,7 @@ namespace Vkr
     class VulkanRenderer : public Renderer
     {
     public:
-        VulkanRenderer(std::shared_ptr<Platform> platform);
+        VulkanRenderer(const std::shared_ptr<Platform> &platform);
         DESTRUCTOR_LOG(VulkanRenderer);
 
         StatusCode Initialize(const char *appName) override;

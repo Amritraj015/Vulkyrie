@@ -5,7 +5,7 @@
 
 namespace Vkr
 {
-    StatusCode RendererClient::Initialize(std::shared_ptr<Platform> platform, RendererType rendererType, const char *appName)
+    StatusCode RendererClient::Initialize(const std::shared_ptr<Platform> &platform, RendererType rendererType, const char *appName)
     {
         switch (rendererType)
         {

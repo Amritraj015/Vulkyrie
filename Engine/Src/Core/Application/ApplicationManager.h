@@ -68,7 +68,7 @@ namespace Vkr
         static bool OnMouseMoved(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
 
     public:
-        explicit ApplicationManager(std::shared_ptr<Platform> platform);
+        explicit ApplicationManager(const std::shared_ptr<Platform> &platform);
         DESTRUCTOR_LOG(ApplicationManager)
 
         // Initializes the application.

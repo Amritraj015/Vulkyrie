@@ -7,7 +7,7 @@
 
 namespace Vkr
 {
-    ApplicationManager::ApplicationManager(std::shared_ptr<Platform> platform)
+    ApplicationManager::ApplicationManager(const std::shared_ptr<Platform> &platform)
     {
         mPlatform = platform;
     }
@@ -93,14 +93,14 @@ namespace Vkr
         StatusCode statusCode = EventSystemManager::UnregisterAllEvents();
         ENSURE_SUCCESS(statusCode, "An error occurred while unregistering events.")
 
-        statusCode = Logger::ShutdownLogging();
-        ENSURE_SUCCESS(statusCode, "An error occurred while shutting down the logging system.")
-
         statusCode = mpRendererClient->Terminate();
         ENSURE_SUCCESS(statusCode, "An error occurred while terminating the renderer.")
 
         statusCode = mPlatform->CloseWindow();
         ENSURE_SUCCESS(statusCode, "An error occurred while shutting down platform.")
+
+        statusCode = Logger::ShutdownLogging();
+        ENSURE_SUCCESS(statusCode, "An error occurred while shutting down the logging system.")
 
         return statusCode;
     }
@@ -204,9 +204,9 @@ namespace Vkr
                     u64 remainingMilliSecs = (remainingSeconds * 1000);
 
                     // If there is time left, give it back to the OS.
-                    //					char limitFrames = false;
+                    // char limitFrames = false;
 
-                    //					if (remainingMilliSecs > 0 && limitFrames) {
+                    // if (remainingMilliSecs > 0 && limitFrames) {
                     if (remainingMilliSecs > 0)
                     {
                         mPlatform->Sleep(remainingMilliSecs - 1);
