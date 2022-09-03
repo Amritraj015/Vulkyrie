@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Renderers/Renderer.h"
+#include "Renderers/Renderer.h"
 
 namespace Vkr
 {
@@ -11,8 +11,8 @@ namespace Vkr
 
         StatusCode Initialize(const char *appName) override;
         StatusCode Shutdown() override;
-        void OnResize(unsigned short width, unsigned short height) override;
-        StatusCode BeginFrame(float deltaTime) override;
-        StatusCode EndFrame(float deltaTime) override;
+        void OnResize(u16 width, u16 height) override;
+        StatusCode BeginFrame(f32 deltaTime) override;
+        StatusCode EndFrame(f32 deltaTime) override;
     };
 }

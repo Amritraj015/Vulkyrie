@@ -1,19 +1,28 @@
 #include "Clock.h"
-#include "Core/Platform/Platform.h"
 
-namespace Vkr {
-	void Clock::Start() {
-		mStartTime = Platform::GetAbsoluteTime();
-		mElapsed = 0;
-	}
+namespace Vkr
+{
+    Clock::Clock(std::shared_ptr<Platform> platform)
+    {
+        mPlatform = platform;
+    }
 
-	void Clock::Update() {
-		if (mStartTime != 0) {
-			mElapsed = Platform::GetAbsoluteTime() - mStartTime;
-		}
-	}
+    void Clock::Start()
+    {
+        mStartTime = mPlatform->GetAbsoluteTime();
+        mElapsed = 0;
+    }
 
-	void Clock::Stop() {
-		mStartTime = 0;
-	}
+    void Clock::Update()
+    {
+        if (mStartTime != 0)
+        {
+            mElapsed = mPlatform->GetAbsoluteTime() - mStartTime;
+        }
+    }
+
+    void Clock::Stop()
+    {
+        mStartTime = 0;
+    }
 }

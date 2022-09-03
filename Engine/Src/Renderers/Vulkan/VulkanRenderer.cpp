@@ -1,5 +1,4 @@
 #include "VulkanRenderer.h"
-#include "Core/Platform/Platform.h"
 
 namespace Vkr
 {
@@ -8,6 +7,11 @@ namespace Vkr
         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
         const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
         void *userData);
+
+    VulkanRenderer::VulkanRenderer(std::shared_ptr<Platform> platform)
+    {
+        mPlatform = platform;
+    }
 
     StatusCode VulkanRenderer::Initialize(const char *appName)
     {
@@ -83,7 +87,7 @@ namespace Vkr
 
         // The list of validation layers required.
         requiredValidationLayerNames.reserve(1);
-        requiredValidationLayerNames.emplace_back("VK_LAYER_KHRONOS_validation");
+        //        requiredValidationLayerNames.emplace_back("VK_LAYER_KHRONOS_validation");
 
         u32 availableLayersCount = 0;
 
@@ -128,14 +132,14 @@ namespace Vkr
 #if defined(_DEBUG)
         VDEBUG("Creating Vulkan debugger...");
 
-        unsigned int log_severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+        u32 logSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
         // | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
 
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
         debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugCreateInfo.messageSeverity = log_severity;
+        debugCreateInfo.messageSeverity = logSeverity;
         debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
         debugCreateInfo.pfnUserCallback = VulkanDebugCallback;
 
@@ -148,7 +152,7 @@ namespace Vkr
 
         // Create Surface
         VDEBUG("Creating Vulkan surface.");
-        StatusCode statusCode = Platform::CreateVulkanSurface(this);
+        StatusCode statusCode = mPlatform->CreateVulkanSurface(&mInstance, mAllocator, &surface);
         ENSURE_SUCCESS(statusCode, "Failed to create platform surface!")
         VDEBUG("Vulkan surface created.");
 
@@ -257,7 +261,7 @@ namespace Vkr
             // }
 
             queueCreateInfos[i].flags = 0;
-            queueCreateInfos[i].pNext = 0;
+            queueCreateInfos[i].pNext = nullptr;
             f32 queuePriority = 1.0f;
             queueCreateInfos[i].pQueuePriorities = &queuePriority;
         }
@@ -278,7 +282,7 @@ namespace Vkr
 
         // Deprecated and ignored, so pass nothing.
         deviceCreateInfo.enabledLayerCount = 0;
-        deviceCreateInfo.ppEnabledLayerNames = 0;
+        deviceCreateInfo.ppEnabledLayerNames = nullptr;
 
         // Create the device.
         VK_CHECK(vkCreateDevice(mDevice.physicalDevice, &deviceCreateInfo, mAllocator, &mDevice.logicalDevice));
@@ -447,7 +451,7 @@ namespace Vkr
         VINFO("Graphics | Present | Compute | Transfer | Name");
         u8 minTransferScore = 255;
 
-        for (u32 i = 0; i < queueFamilyCount; ++i)
+        for (i32 i = 0; i < queueFamilyCount; ++i)
         {
             u8 currentTransferScore = 0;
 
@@ -493,7 +497,7 @@ namespace Vkr
         // present.
         if (outQueueFamilyInfo->presentFamilyIndex == -1)
         {
-            for (u32 i = 0; i < queueFamilyCount; ++i)
+            for (i32 i = 0; i < queueFamilyCount; ++i)
             {
                 VkBool32 supportsPresent = VK_FALSE;
                 VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &supportsPresent));
@@ -545,7 +549,7 @@ namespace Vkr
             }
 
             // Device extensions.
-            if (requirements->deviceExtensionNames.size() != 0)
+            if (!requirements->deviceExtensionNames.empty())
             {
                 u32 availableExtensionCount = 0;
                 VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &availableExtensionCount, nullptr));
@@ -596,7 +600,7 @@ namespace Vkr
         VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &mDevice.swapchainSupport.capabilities));
 
         // Surface formats
-        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &mDevice.swapchainSupport.formatCount, 0));
+        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &mDevice.swapchainSupport.formatCount, nullptr));
 
         if (mDevice.swapchainSupport.formatCount != 0)
         {
@@ -606,7 +610,7 @@ namespace Vkr
         }
 
         // Present modes
-        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &mDevice.swapchainSupport.presentationCount, 0));
+        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &mDevice.swapchainSupport.presentationCount, nullptr));
 
         if (mDevice.swapchainSupport.presentationCount != 0)
         {
@@ -639,11 +643,10 @@ namespace Vkr
 
         // Physical devices are not destroyed.
         VINFO("Releasing physical device resources...");
-        mDevice.physicalDevice = 0;
+        mDevice.physicalDevice = nullptr;
 
         mDevice.swapchainSupport.formats = nullptr;
         mDevice.swapchainSupport.presentModes = nullptr;
-
         mDevice.swapchainSupport.capabilities = {};
 
         mDevice.graphicsQueueIndex = -1;
@@ -749,7 +752,7 @@ namespace Vkr
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        // Setup the queue family indices
+        // Set up the queue family indices
         if (mDevice.graphicsQueueIndex != mDevice.presentQueueIndex)
         {
             u32 queueFamilyIndices[] = {
@@ -863,15 +866,15 @@ namespace Vkr
     void VulkanRenderer::Present(VkSemaphore renderCompleteSemaphore, u32 presentImageIndex)
     {
         // Return the image to the swapchain for presentation.
-        VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-        present_info.waitSemaphoreCount = 1;
-        present_info.pWaitSemaphores = &renderCompleteSemaphore;
-        present_info.swapchainCount = 1;
-        present_info.pSwapchains = &mSwapchain.handle;
-        present_info.pImageIndices = &presentImageIndex;
-        present_info.pResults = 0;
+        VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = &renderCompleteSemaphore;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &mSwapchain.handle;
+        presentInfo.pImageIndices = &presentImageIndex;
+        presentInfo.pResults = nullptr;
 
-        VkResult result = vkQueuePresentKHR(mDevice.presentQueue, &present_info);
+        VkResult result = vkQueuePresentKHR(mDevice.presentQueue, &presentInfo);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
         {
             // Swapchain is out of date, suboptimal or a frame-buffer resize has occurred. Trigger swapchain recreation.
@@ -954,7 +957,7 @@ namespace Vkr
         // Create view
         if (createView)
         {
-            outImage->view = 0;
+            outImage->view = nullptr;
             CreateImageView(format, outImage, viewAspectFlags);
         }
     }
@@ -982,26 +985,26 @@ namespace Vkr
         if (image->view)
         {
             vkDestroyImageView(mDevice.logicalDevice, image->view, mAllocator);
-            image->view = 0;
+            image->view = nullptr;
         }
         if (image->memory)
         {
             vkFreeMemory(mDevice.logicalDevice, image->memory, mAllocator);
-            image->memory = 0;
+            image->memory = nullptr;
         }
         if (image->handle)
         {
             vkDestroyImage(mDevice.logicalDevice, image->handle, mAllocator);
-            image->handle = 0;
+            image->handle = nullptr;
         }
     }
 
-    i32 VulkanRenderer::FindMemoryIndex(u32 typeFilter, u32 propertyFlags)
+    i32 VulkanRenderer::FindMemoryIndex(u32 typeFilter, u32 propertyFlags) const
     {
         VkPhysicalDeviceMemoryProperties memoryProperties;
         vkGetPhysicalDeviceMemoryProperties(mDevice.physicalDevice, &memoryProperties);
 
-        for (u32 i = 0; i < memoryProperties.memoryTypeCount; ++i)
+        for (i32 i = 0; i < memoryProperties.memoryTypeCount; ++i)
         {
             // Check each memory type to see if its bit is set to 1.
             if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)

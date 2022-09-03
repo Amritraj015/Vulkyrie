@@ -1,6 +1,5 @@
 #include "ApplicationManager.h"
-#include "Core/Platform/Platform.h"
-#include "Core/Input/Key.h"
+#include "Platform/Platform.h"
 #include "Core/Event/Keyboard/KeyEvent.h"
 #include "Core/Event/Mouse/MouseMovedEvent.h"
 #include "Core/Event/Mouse/MouseButtonEvent.h"
@@ -8,6 +7,11 @@
 
 namespace Vkr
 {
+    ApplicationManager::ApplicationManager(std::shared_ptr<Platform> platform)
+    {
+        mPlatform = platform;
+    }
+
     bool ApplicationManager::OnKeyPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (KeyEvent *)event;
@@ -39,8 +43,7 @@ namespace Vkr
     bool ApplicationManager::OnMouseScrolled(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (MouseScrolledEvent *)event;
-        VINFO("Mouse scrolled '%s' at: (x: %f, y: %f)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(),
-              ev->GetYOffset());
+        VINFO("Mouse scrolled '%s' at: (x: %f, y: %f)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
         return true;
     }
 
@@ -53,7 +56,7 @@ namespace Vkr
 
     StatusCode ApplicationManager::InitializeSubsystems()
     {
-        StatusCode statusCode = InitializeLogging();
+        StatusCode statusCode = Logger::InitializeLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while initializing the logging system.")
 
         statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, ApplicationManager::OnKeyPress);
@@ -74,12 +77,12 @@ namespace Vkr
         statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, ApplicationManager::OnMouseMoved);
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseMoved` event.")
 
-        statusCode = Platform::Initialize(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
+        statusCode = mPlatform->CreateWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
         ENSURE_SUCCESS(statusCode, "Error occurred while initializing platform.")
 
         // Renderer startup
-        mpRendererCLient = std::make_unique<RendererClient>();
-        statusCode = mpRendererCLient->Initialize(mpApp->rendererType, mpApp->name);
+        mpRendererClient = std::make_unique<RendererClient>();
+        statusCode = mpRendererClient->Initialize(mPlatform, mpApp->rendererType, mpApp->name);
         ENSURE_SUCCESS(statusCode, "Failed to initialize renderer.")
 
         return statusCode;
@@ -90,13 +93,13 @@ namespace Vkr
         StatusCode statusCode = EventSystemManager::UnregisterAllEvents();
         ENSURE_SUCCESS(statusCode, "An error occurred while unregistering events.")
 
-        statusCode = ShutdownLogging();
+        statusCode = Logger::ShutdownLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while shutting down the logging system.")
 
-        statusCode = mpRendererCLient->Terminate();
+        statusCode = mpRendererClient->Terminate();
         ENSURE_SUCCESS(statusCode, "An error occurred while terminating the renderer.")
 
-        statusCode = Platform::Terminate();
+        statusCode = mPlatform->CloseWindow();
         ENSURE_SUCCESS(statusCode, "An error occurred while shutting down platform.")
 
         return statusCode;
@@ -146,7 +149,7 @@ namespace Vkr
         }
 
         // Initialize Clock.
-        mpCLock = std::make_unique<Clock>();
+        mpCLock = std::make_unique<Clock>(mPlatform);
         mpCLock->Start();
         mpCLock->Update();
 
@@ -157,7 +160,7 @@ namespace Vkr
 
         while (mRunning)
         {
-            if (!Platform::PollEvents())
+            if (!mPlatform->PollForEvents())
             {
                 mRunning = false;
             }
@@ -169,16 +172,16 @@ namespace Vkr
 
                 const f64 currentTime = mpCLock->GetElapsedTime();
                 const f64 delta = currentTime - mLastTime;
-                const f64 frameStartTime = Platform::GetAbsoluteTime();
+                const f64 frameStartTime = mPlatform->GetAbsoluteTime();
 
-                if (!mpApp->Update((float)delta))
+                if (!mpApp->Update((f32)delta))
                 {
                     VFATAL("Game update failed.");
                     mRunning = false;
                     break;
                 }
 
-                if (!mpApp->Render((float)delta))
+                if (!mpApp->Render((f32)delta))
                 {
                     VFATAL("Game render failed.");
                     mRunning = false;
@@ -191,7 +194,7 @@ namespace Vkr
                 // renderer_draw_frame(&packet);
 
                 // Figure out how long the frame took and, if below
-                f64 frameEndTime = Platform::GetAbsoluteTime();
+                f64 frameEndTime = mPlatform->GetAbsoluteTime();
                 f64 frameElapsedTime = frameEndTime - frameStartTime;
                 runningTime += frameElapsedTime;
                 f64 remainingSeconds = targetFrameSeconds - frameElapsedTime;
@@ -206,7 +209,7 @@ namespace Vkr
                     //					if (remainingMilliSecs > 0 && limitFrames) {
                     if (remainingMilliSecs > 0)
                     {
-                        Platform::Sleep(remainingMilliSecs - 1);
+                        mPlatform->Sleep(remainingMilliSecs - 1);
                     }
 
                     frameCount++;

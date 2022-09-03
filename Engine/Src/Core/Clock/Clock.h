@@ -1,18 +1,22 @@
 #pragma once
 
 #include "Defines.h"
+#include "Platform/Platform.h"
 
 namespace Vkr
 {
     class Clock
     {
     private:
-        f64 mStartTime;
-        f64 mElapsed;
+        f64 mStartTime{};
+        f64 mElapsed{};
+        std::shared_ptr<Platform> mPlatform;
 
     public:
-        CONSTRUCTOR_LOG(Clock)
-        DESTRUCTOR_LOG(Clock)
+        explicit Clock(std::shared_ptr<Platform> platform);
+
+        inline f64 GetStartTime() const { return mStartTime; }
+        inline f64 GetElapsedTime() const { return mElapsed; }
 
         // Starts the provided clock. Resets elapsed time.
         void Start();
@@ -23,9 +27,5 @@ namespace Vkr
 
         // Stops the provided clock. Does not reset elapsed time.
         void Stop();
-
-        inline f64 GetStartTime() const { return mStartTime; }
-
-        inline double GetElapsedTime() const { return mElapsed; }
     };
 }

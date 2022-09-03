@@ -1,16 +1,16 @@
 #include "RendererClient.h"
-#include "Vulkan/VulkanRenderer.h"
-#include "OpenGL/OpenGLRenderer.h"
-#include "DiretX/DirectXRenderer.h"
+#include "Renderers/Vulkan/VulkanRenderer.h"
+#include "Renderers/OpenGL/OpenGLRenderer.h"
+#include "Renderers/DiretX/DirectXRenderer.h"
 
 namespace Vkr
 {
-    StatusCode RendererClient::Initialize(RendererType rendererType, const char *appName)
+    StatusCode RendererClient::Initialize(std::shared_ptr<Platform> platform, RendererType rendererType, const char *appName)
     {
         switch (rendererType)
         {
         case RendererType::Vulkan:
-            renderer = std::make_unique<VulkanRenderer>();
+            renderer = std::make_unique<VulkanRenderer>(platform);
             break;
         case RendererType::OpenGL:
             renderer = std::make_unique<OpenGLRenderer>();
@@ -19,7 +19,7 @@ namespace Vkr
             renderer = std::make_unique<DirectXRenderer>();
             break;
         default:
-            renderer = std::make_unique<VulkanRenderer>();
+            renderer = std::make_unique<VulkanRenderer>(platform);
             break;
         }
 

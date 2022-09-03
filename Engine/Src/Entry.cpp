@@ -1,6 +1,7 @@
 #include <Vulkyrie.h>
 #include "Defines.h"
 #include "Core/Application/ApplicationManager.h"
+#include "Platform/LinuxPlatform.h"
 
 #if defined(_DEBUG)
 // void *operator new(size_t size)
@@ -18,9 +19,16 @@
         return to_underlying(statusCode);                     \
     }
 
+std::shared_ptr<Vkr::Platform> GetPlatform()
+{
+#if defined(VPLATFORM_LINUX)
+    return std::make_shared<Vkr::LinuxPlatform>();
+#endif
+}
+
 int main(int argc, char **argv)
 {
-    std::unique_ptr<Vkr::ApplicationManager> appManager = std::make_unique<Vkr::ApplicationManager>();
+    auto appManager = std::make_unique<Vkr::ApplicationManager>(GetPlatform());
 
     // Initialize the application.
     Vkr::StatusCode statusCode = appManager->InitializeApplication(GetApplication());

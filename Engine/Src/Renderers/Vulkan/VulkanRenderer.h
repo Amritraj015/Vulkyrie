@@ -1,17 +1,18 @@
 #pragma once
-#include "Core/Renderers/Renderer.h"
+#include "Renderers/Renderer.h"
 #include "VulkanDevice.h"
 #include "QueueFamilyInfo.h"
 #include "DeviceRequirements.h"
 #include "VulkanSwapchain.h"
+#include "Platform/Platform.h"
 
 namespace Vkr
 {
     class VulkanRenderer : public Renderer
     {
     public:
-        CONSTRUCTOR_LOG(VulkanRenderer)
-        DESTRUCTOR_LOG(VulkanRenderer)
+        VulkanRenderer(std::shared_ptr<Platform> platform);
+        DESTRUCTOR_LOG(VulkanRenderer);
 
         StatusCode Initialize(const char *appName) override;
         StatusCode Shutdown() override;
@@ -21,21 +22,22 @@ namespace Vkr
 
         inline VkInstance GetInstance() const { return mInstance; }
         inline VkAllocationCallbacks *GetAllocator() const { return mAllocator; }
-        VkSurfaceKHR surface;
 
     private:
-        VkInstance mInstance;              // Vulkan Instance
-        VkAllocationCallbacks *mAllocator; // Custom memory allocator
-        VulkanDevice mDevice;              // Vulkan Devices metadata
-        VulkanSwapchain mSwapchain;        // Vulkan swapchain metadata.
-        u32 mFrameBufferWidth;             // The frame-buffer's current width.
-        u32 mFrameBufferHeight;            // The frame-buffer's current height.
-        u32 mImageIndex;
-        u32 mCurrentFrame;
-        i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags);
+        std::shared_ptr<Platform> mPlatform; // Underlying platform instance.
+        VkSurfaceKHR surface{};              // Vulkan Surface KHR
+        VkInstance mInstance{};              // Vulkan Instance
+        VkAllocationCallbacks *mAllocator{}; // Custom memory allocator
+        VulkanDevice mDevice;                // Vulkan Devices metadata
+        VulkanSwapchain mSwapchain{};        // Vulkan swapchain metadata.
+        u32 mFrameBufferWidth{};             // The frame-buffer's current width.
+        u32 mFrameBufferHeight{};            // The frame-buffer's current height.
+        u32 mImageIndex{};
+        u32 mCurrentFrame{};
+        i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
 #if defined(_DEBUG)
-        VkDebugUtilsMessengerEXT mDebugMessenger;
+        VkDebugUtilsMessengerEXT mDebugMessenger{};
 #endif
 
         StatusCode CreateDevice();

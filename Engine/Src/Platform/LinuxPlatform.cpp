@@ -1,4 +1,4 @@
-#include "Platform.h"
+#include "LinuxPlatform.h"
 
 #if defined(VPLATFORM_LINUX)
 #include "Core/Event/Registrar/EventSystemManager.h"
@@ -9,13 +9,13 @@
 
 namespace Vkr
 {
-    Key TranslateKeycode(KeySym x_keycode);
-
-    Platform Platform::sInstance;
-
-    StatusCode Platform::Initialize(const char *windowName, i32 x, i32 y, u16 width, u16 height)
+    LinuxPlatform::LinuxPlatform()
     {
-        if (sInstance.mInitialized)
+    }
+
+    StatusCode LinuxPlatform::CreateWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height)
+    {
+        if (mInitialized)
         {
             VWARN("Platform has already been initialized!")
             return StatusCode::PlatformAlreadyInitialized;
@@ -25,58 +25,58 @@ namespace Vkr
         // connection = xcb_connect(NULL, NULL);
 
         // Connect to X
-        sInstance.mpDisplay = XOpenDisplay(NULL);
+        mpDisplay = XOpenDisplay(NULL);
 
         // Turn off key repeats.
-        XAutoRepeatOff(sInstance.mpDisplay);
+        XAutoRepeatOff(mpDisplay);
 
         // Retrieve the connection from the display.
-        sInstance.mConnection = XGetXCBConnection(sInstance.mpDisplay);
+        mConnection = XGetXCBConnection(mpDisplay);
 
-        if (xcb_connection_has_error(sInstance.mConnection))
+        if (xcb_connection_has_error(mConnection))
         {
             VFATAL("Failed to connect to X server via XCB.");
             return StatusCode::XcbConnectionHasError;
         }
 
         /* Get the first screen */
-        const xcb_setup_t *setup = xcb_get_setup(sInstance.mConnection);
+        const xcb_setup_t *setup = xcb_get_setup(mConnection);
         xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
-        sInstance.mScreen = iter.data;
+        mScreen = iter.data;
 
         // Allocate a XID for the window to be created.
-        sInstance.mWindow = xcb_generate_id(sInstance.mConnection);
+        mWindow = xcb_generate_id(mConnection);
 
         // Register event types.
         // XCB_CW_BACK_PIXEL = filling then window bg with a single color
         // XCB_CW_EVENT_MASK is required.
-        unsigned int mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+        u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
 
         // Values to be sent over XCB (bg color, events)
-        unsigned int values[2] = {sInstance.mScreen->black_pixel,
-                                  XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS |
-                                      XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
-                                      XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
-                                      XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
-                                      XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+        u32 values[2] = {mScreen->black_pixel,
+                         XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS |
+                             XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
+                             XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
+                             XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
+                             XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
         /* Create the window */
-        xcb_create_window(sInstance.mConnection,          /* Connection          */
-                          XCB_COPY_FROM_PARENT,           /* depth (same as root)*/
-                          sInstance.mWindow,              /* window Id           */
-                          sInstance.mScreen->root,        /* parent window       */
-                          x, y,                           /* x, y                */
-                          width, height,                  /* width, height       */
-                          10,                             /* border_width        */
-                          XCB_WINDOW_CLASS_INPUT_OUTPUT,  /* class               */
-                          sInstance.mScreen->root_visual, /* visual              */
-                          mask, values);                  /* masks, not used yet */
+        xcb_create_window(mConnection,                   /* Connection          */
+                          XCB_COPY_FROM_PARENT,          /* depth (same as root)*/
+                          mWindow,                       /* window Id           */
+                          mScreen->root,                 /* parent window       */
+                          x, y,                          /* x, y                */
+                          width, height,                 /* width, height       */
+                          10,                            /* border_width        */
+                          XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class               */
+                          mScreen->root_visual,          /* visual              */
+                          mask, values);                 /* masks, not used yet */
 
         // Change the title
         xcb_change_property(
-            sInstance.mConnection,
+            mConnection,
             XCB_PROP_MODE_REPLACE,
-            sInstance.mWindow,
+            mWindow,
             XCB_ATOM_WM_NAME,
             XCB_ATOM_STRING,
             8, // data should be viewed 8 bits at a time
@@ -86,34 +86,34 @@ namespace Vkr
         // Tell the server to notify when the window manager
         // attempts to destroy the window.
         xcb_intern_atom_cookie_t wm_delete_cookie = xcb_intern_atom(
-            sInstance.mConnection,
+            mConnection,
             0,
             strlen("WM_DELETE_WINDOW"),
             "WM_DELETE_WINDOW");
 
         xcb_intern_atom_cookie_t wm_protocols_cookie = xcb_intern_atom(
-            sInstance.mConnection,
+            mConnection,
             0,
             strlen("WM_PROTOCOLS"),
             "WM_PROTOCOLS");
 
         xcb_intern_atom_reply_t *wm_delete_reply = xcb_intern_atom_reply(
-            sInstance.mConnection,
+            mConnection,
             wm_delete_cookie,
-            NULL);
+            nullptr);
 
         xcb_intern_atom_reply_t *wm_protocols_reply = xcb_intern_atom_reply(
-            sInstance.mConnection,
+            mConnection,
             wm_protocols_cookie,
-            NULL);
+            nullptr);
 
-        sInstance.mDeleteWin = wm_delete_reply->atom;
-        sInstance.mProtocols = wm_protocols_reply->atom;
+        mDeleteWin = wm_delete_reply->atom;
+        mProtocols = wm_protocols_reply->atom;
 
         xcb_change_property(
-            sInstance.mConnection,
+            mConnection,
             XCB_PROP_MODE_REPLACE,
-            sInstance.mWindow,
+            mWindow,
             wm_protocols_reply->atom,
             4,
             32,
@@ -121,10 +121,10 @@ namespace Vkr
             &wm_delete_reply->atom);
 
         /* Map the window on the screen */
-        xcb_map_window(sInstance.mConnection, sInstance.mWindow);
+        xcb_map_window(mConnection, mWindow);
 
         /* Make sure commands are sent before we pause so that the window gets shown */
-        int stream_result = xcb_flush(sInstance.mConnection);
+        int stream_result = xcb_flush(mConnection);
 
         if (stream_result <= 0)
         {
@@ -132,33 +132,33 @@ namespace Vkr
             return StatusCode::XcbFlushError;
         }
 
-        sInstance.mInitialized = true;
+        mInitialized = true;
 
         return StatusCode::Successful;
     }
 
-    StatusCode Platform::Terminate()
+    StatusCode LinuxPlatform::CloseWindow()
     {
         // Turn key repeats back on since this is global for the OS... just... wow.
-        XAutoRepeatOn(sInstance.mpDisplay);
+        XAutoRepeatOn(mpDisplay);
 
         // Destroy Window.
-        xcb_destroy_window(sInstance.mConnection, sInstance.mWindow);
+        xcb_destroy_window(mConnection, mWindow);
 
         // Disconnect from the X server.
-        // xcb_disconnect(sInstance.mConnection);
+        // xcb_disconnect(mConnection);
 
-        sInstance.mInitialized = false;
+        mInitialized = false;
 
         return StatusCode::Successful;
     }
 
-    bool Platform::PollEvents()
+    bool LinuxPlatform::PollForEvents()
     {
         xcb_generic_event_t *event;
         bool quit = false;
 
-        while ((event = xcb_poll_for_event(sInstance.mConnection)))
+        while ((event = xcb_poll_for_event(mConnection)))
         {
             if (quit)
             {
@@ -172,11 +172,14 @@ namespace Vkr
             case XCB_KEY_RELEASE:
             {
                 // xcb_key_press_event_t and xcb_key_press_release_t are the sane
-                xcb_key_press_event_t *kp = (xcb_key_press_event_t *)event;
+                auto *kp = (xcb_key_press_event_t *)event;
                 bool pressed = event->response_type == XCB_KEY_PRESS;
 
-                Key key = TranslateKeycode(XkbKeycodeToKeysym(sInstance.mpDisplay, (KeyCode)kp->detail, 0,
-                                                              kp->detail & ShiftMask ? 1 : 0));
+                Key key = TranslateKeycode(XkbKeycodeToKeysym(
+                    mpDisplay,
+                    (KeyCode)kp->detail,
+                    0,
+                    kp->detail & ShiftMask ? 1 : 0));
 
                 KeyEvent kEvent(key, pressed);
                 EventSystemManager::Dispatch(&kEvent, SenderType::Platform);
@@ -186,7 +189,7 @@ namespace Vkr
             case XCB_BUTTON_PRESS:
             case XCB_BUTTON_RELEASE:
             {
-                xcb_button_press_event_t *bp = (xcb_button_press_event_t *)event;
+                auto *bp = (xcb_button_press_event_t *)event;
                 bool pressed = event->response_type == XCB_BUTTON_PRESS;
                 MouseButton mouseButton = MouseButton::Unknown;
 
@@ -213,8 +216,7 @@ namespace Vkr
                 {
                     if (pressed)
                     {
-                        MouseScrolledEvent mEvent(mouseButton == MouseButton::ScrollWheelUp, bp->event_x,
-                                                  bp->event_y);
+                        MouseScrolledEvent mEvent(mouseButton == MouseButton::ScrollWheelUp, bp->event_x, bp->event_y);
                         EventSystemManager::Dispatch(&mEvent, SenderType::Platform);
                     }
                 }
@@ -228,7 +230,7 @@ namespace Vkr
             }
             case XCB_MOTION_NOTIFY:
             {
-                xcb_motion_notify_event_t *mv = (xcb_motion_notify_event_t *)event;
+                auto *mv = (xcb_motion_notify_event_t *)event;
 
                 // MouseMovedEvent event(mv->event_x, mv->event_y);
                 // EventSystemManager::Dispatch(&event, SenderType::Platform);
@@ -238,26 +240,26 @@ namespace Vkr
             case XCB_ENTER_NOTIFY:
             case XCB_LEAVE_NOTIFY:
             {
-                xcb_leave_notify_event_t *el = (xcb_leave_notify_event_t *)event;
+                auto *el = (xcb_leave_notify_event_t *)event;
                 bool entered = el->response_type == XCB_ENTER_NOTIFY;
 
                 if (entered)
                 {
-                    VINFO("Mouse entered window %u, at coordinates (%u, %u)", el->event, el->event_x, el->event_y)
+                    // VINFO("Mouse entered window %u, at coordinates (%u, %u)", el->event, el->event_x, el->event_y)
                 }
                 else
                 {
-                    VINFO("Mouse left window %u, at coordinates (%u, %u)", el->event, el->event_x, el->event_y)
+                    // VINFO("Mouse left window %u, at coordinates (%u, %u)", el->event, el->event_x, el->event_y)
                 }
 
                 break;
             }
             case XCB_EXPOSE:
             {
-                xcb_expose_event_t *ex = (xcb_expose_event_t *)event;
+                auto *ex = (xcb_expose_event_t *)event;
 
-                VINFO("Window %u exposed. Region to be redrawn at location (%u, %u), with dimension (%u, %u)",
-                      ex->window, ex->x, ex->y, ex->width, ex->height)
+                // VINFO("Window %u exposed. Region to be redrawn at location (%u, %u), with dimension (%u, %u)",
+                //   ex->window, ex->x, ex->y, ex->width, ex->height)
                 break;
             }
             case XCB_CONFIGURE_NOTIFY:
@@ -268,10 +270,10 @@ namespace Vkr
             }
             case XCB_CLIENT_MESSAGE:
             {
-                xcb_client_message_event_t *cm = (xcb_client_message_event_t *)event;
+                auto *cm = (xcb_client_message_event_t *)event;
 
                 // Close the window.
-                if (cm->data.data32[0] == sInstance.mDeleteWin)
+                if (cm->data.data32[0] == mDeleteWin)
                 {
                     quit = true;
                 }
@@ -281,7 +283,7 @@ namespace Vkr
             default:
             {
                 /* Unknown event type, ignore it */
-                VINFO("Unknown event: %u", event->response_type);
+                // VINFO("Unknown event: %u", event->response_type);
                 break;
             }
             }
@@ -292,49 +294,32 @@ namespace Vkr
         return !quit;
     }
 
-    StatusCode Platform::CreateVulkanSurface(VulkanRenderer *renderer)
+    StatusCode LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
         VkXcbSurfaceCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-        createInfo.connection = sInstance.mConnection;
-        createInfo.window = sInstance.mWindow;
+        createInfo.connection = mConnection;
+        createInfo.window = mWindow;
 
-        // VkResult result = vkCreateXcbSurfaceKHR(renderer->GetInstance(), &createInfo, renderer->GetAllocator(), &sInstance.surface);
-        VkResult result = vkCreateXcbSurfaceKHR(renderer->GetInstance(), &createInfo, renderer->GetAllocator(), &renderer->surface);
+        VkResult result = vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface);
 
         if (result != VK_SUCCESS)
         {
             VFATAL("Vulkan surface creation failed.");
-            return StatusCode::VulkanSurfaceCreationFailed;
+            return StatusCode::VulkanXcbSurfaceCreationFailed;
         }
-
-        // renderer->surface = sInstance.surface;
 
         return StatusCode::Successful;
     }
 
-    void Platform::ConsoleWrite(const char *message, u8 color)
-    {
-        // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
-        const char *color_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
-        printf("\033[%sm%s\033[0m", color_strings[color], message);
-    }
-
-    void Platform::ConsoleWriteError(const char *message, u8 color)
-    {
-        // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
-        const char *color_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
-        printf("\033[%sm%s\033[0m", color_strings[color], message);
-    }
-
-    f64 Platform::GetAbsoluteTime()
+    f64 LinuxPlatform::GetAbsoluteTime()
     {
         struct timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         return now.tv_sec + now.tv_nsec * 0.000000001;
     }
 
-    void Platform::Sleep(u64 ms)
+    void LinuxPlatform::Sleep(u64 ms)
     {
 #if _POSIX_C_SOURCE >= 199309L
         struct timespec ts;
@@ -350,7 +335,7 @@ namespace Vkr
 #endif
     }
 
-    Key TranslateKeycode(KeySym x_keycode)
+    Key LinuxPlatform::TranslateKeycode(KeySym x_keycode)
     {
         switch (x_keycode)
         {

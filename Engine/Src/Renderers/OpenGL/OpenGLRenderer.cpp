@@ -12,16 +12,16 @@ namespace Vkr
         return StatusCode::Successful;
     }
 
-    void OpenGLRenderer::OnResize(unsigned short width, unsigned short height)
+    void OpenGLRenderer::OnResize(u16 width, u16 height)
     {
     }
 
-    StatusCode OpenGLRenderer::BeginFrame(float deltaTime)
+    StatusCode OpenGLRenderer::BeginFrame(f32 deltaTime)
     {
         return StatusCode::Successful;
     }
 
-    StatusCode OpenGLRenderer::EndFrame(float deltaTime)
+    StatusCode OpenGLRenderer::EndFrame(f32 deltaTime)
     {
         return StatusCode::Successful;
     }

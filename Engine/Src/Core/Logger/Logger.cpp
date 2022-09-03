@@ -1,9 +1,8 @@
 #include "Logger.h"
-#include "Core/Platform/Platform.h"
 
 namespace Vkr
 {
-    StatusCode InitializeLogging()
+    StatusCode Logger::InitializeLogging()
     {
         // TODO: create log file.
         VCREATE("Logger");
@@ -11,7 +10,7 @@ namespace Vkr
         return StatusCode::Successful;
     }
 
-    StatusCode ShutdownLogging()
+    StatusCode Logger::ShutdownLogging()
     {
         // TODO: cleanup logging/write queued entries.
         VDESTROY("Logger");
@@ -19,7 +18,7 @@ namespace Vkr
         return StatusCode::Successful;
     }
 
-    void LogOutput(LogLevel level, const char *message, ...)
+    void Logger::LogOutput(LogLevel level, const char *message, ...)
     {
         const char *level_strings[6] = {"[FATAL]: ", "[ERROR]: ", "[WARN]:  ", "[INFO]:  ", "[DEBUG]: ", "[TRACE]: "};
         bool is_error = level < LogLevel::Warn;
@@ -40,23 +39,19 @@ namespace Vkr
         va_end(arg_ptr);
 
         char out_message2[32000];
-        const unsigned char levelIndex = to_underlying(level);
+        const u8 levelIndex = to_underlying(level);
         sprintf(out_message2, "%s%s\n", level_strings[levelIndex], out_message);
 
-        // platform-specific output.
+        // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
+        const char *color_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
+
         if (is_error)
         {
-            Platform::ConsoleWriteError(out_message2, levelIndex);
+            printf("\033[%sm%s\033[0m", color_strings[levelIndex], out_message2);
         }
         else
         {
-            Platform::ConsoleWrite(out_message2, levelIndex);
+            printf("\033[%sm%s\033[0m", color_strings[levelIndex], out_message2);
         }
-    }
-
-    void ReportAssertionFailure(const char *expression, const char *message, const char *file, i32 line)
-    {
-        LogOutput(LogLevel::Fatal, "Assertion Failure: %s, message: '%s', in file: %s, line: %d\n", expression, message,
-                  file, line);
     }
 }

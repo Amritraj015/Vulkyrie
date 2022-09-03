@@ -12,16 +12,16 @@ namespace Vkr
         return StatusCode::Successful;
     }
 
-    void DirectXRenderer::OnResize(unsigned short width, unsigned short height)
+    void DirectXRenderer::OnResize(u16 width, u16 height)
     {
     }
 
-    StatusCode DirectXRenderer::BeginFrame(float deltaTime)
+    StatusCode DirectXRenderer::BeginFrame(f32 deltaTime)
     {
         return StatusCode::Successful;
     }
 
-    StatusCode DirectXRenderer::EndFrame(float deltaTime)
+    StatusCode DirectXRenderer::EndFrame(f32 deltaTime)
     {
         return StatusCode::Successful;
     }

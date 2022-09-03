@@ -1,14 +1,15 @@
 #pragma once
 
 #include "Defines.h"
-#include <Renderers/RendererType.h>
 #include "Renderer.h"
+#include "Platform/Platform.h"
+#include "Renderers/RendererType.h"
 
 namespace Vkr
 {
     struct RendererPacket
     {
-        float deltaTime;
+        f32 deltaTime;
     };
 
     class RendererClient
@@ -18,7 +19,7 @@ namespace Vkr
         CONSTRUCTOR_LOG(RendererClient)
         DESTRUCTOR_LOG(RendererClient)
 
-        StatusCode Initialize(RendererType rendererType, const char *appName = "Vulkyrie Engine");
+        StatusCode Initialize(std::shared_ptr<Platform> platform, RendererType rendererType, const char *appName = "Vulkyrie Engine");
 
         StatusCode Terminate();
 
@@ -29,8 +30,8 @@ namespace Vkr
     private:
         std::unique_ptr<Renderer> renderer;
 
-        StatusCode BeginFrame(float deltaTime);
+        StatusCode BeginFrame(f32 deltaTime);
 
-        StatusCode EndFrame(float deltaTime);
+        StatusCode EndFrame(f32 deltaTime);
     };
 }
