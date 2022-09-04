@@ -13,7 +13,7 @@ namespace Vkr{
         f64 mClockFrequency;
         LARGE_INTEGER mStartTime;
 
-        static LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
+        static LRESULT CALLBACK ProcessMessage(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
 
     public:
         PlatformWindows();

@@ -29,28 +29,28 @@ namespace Vkr
     bool ApplicationManager::OnMouseButtonPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (MouseButtonEvent *)event;
-        VINFO("Mouse Button: '%i' pressed at (x: %f, y: %f)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
+        VINFO("Mouse Button: '%i' pressed at (x: %i, y: %i)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
         return true;
     }
 
     bool ApplicationManager::OnMouseButtonRelease(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (MouseButtonEvent *)event;
-        VINFO("Mouse Button: '%i' released at (x: %f, y: %f)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
+        VINFO("Mouse Button: '%i' released at (x: %i, y: %i)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
         return true;
     }
 
     bool ApplicationManager::OnMouseScrolled(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (MouseScrolledEvent *)event;
-        VINFO("Mouse scrolled '%s' at: (x: %f, y: %f)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
+        VINFO("Mouse scrolled '%s' at: (x: %i, y: %i)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
         return true;
     }
 
     bool ApplicationManager::OnMouseMoved(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
     {
         auto *ev = (MouseMovedEvent *)event;
-        VINFO("Mouse moved to: (x: %f, y: %f)", ev->GetX(), ev->GetY());
+        VINFO("Mouse moved to: (x: %i, y: %i)", ev->GetX(), ev->GetY());
         return true;
     }
 

@@ -25,7 +25,7 @@ namespace Vkr{
         WNDCLASSA wc;
         memset(&wc, 0, sizeof(wc));
         wc.style = CS_DBLCLKS; // Get double-clicks
-        wc.lpfnWndProc = PlatformWindows::win32_process_message;
+        wc.lpfnWndProc = PlatformWindows::ProcessMessage;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = mHInstance;
@@ -152,7 +152,7 @@ namespace Vkr{
         extensions.emplace_back("VK_KHR_win32_surface");
     }
 
-    LRESULT CALLBACK PlatformWindows::win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param)
+    LRESULT CALLBACK PlatformWindows::ProcessMessage(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param)
     {
         switch (msg)
         {
@@ -197,8 +197,8 @@ namespace Vkr{
                 i32 xPosition = GET_X_LPARAM(l_param);
                 i32 yPosition = GET_Y_LPARAM(l_param);
 
-//                MouseMovedEvent event(xPosition,yPosition);
-//                EventSystemManager::Dispatch(&event, SenderType::Platform);
+                // MouseMovedEvent event(xPosition,yPosition);
+                // EventSystemManager::Dispatch(&event, SenderType::Platform);
 
                 break;
             }
@@ -225,6 +225,7 @@ namespace Vkr{
             {
                 bool pressed = msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN;
                 MouseButton mouseButton = MouseButton::Unknown;
+
                 i32 xPosition = GET_X_LPARAM(l_param);
                 i32 yPosition = GET_Y_LPARAM(l_param);
 
