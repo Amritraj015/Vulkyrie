@@ -50,19 +50,19 @@ namespace Vkr
         StatusCode TerminateSubsystems();
 
         // Event handler to handle key press and release events.
-        bool OnKeyPress(SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnKeyPress(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle mouse button press and release events.
-        bool OnMouseButtonPress(SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnMouseButtonPress(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle mouse scroll events.
-        bool OnMouseScrolled(SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnMouseScrolled(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle mouse move events.
-        bool OnMouseMoved(SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnMouseMoved(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle window close events.
-        bool OnWindowClose(SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnWindowClose(const SenderType senderType, const ListenerType listenerType, Event *event);
 
     public:
         explicit ApplicationManager(const std::shared_ptr<Platform> &platform);

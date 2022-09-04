@@ -7,7 +7,6 @@
 
 namespace Vkr
 {
-
 #define BIND_CALLBACK_FUNCTION(function) std::bind(&function, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 
     ApplicationManager::ApplicationManager(const std::shared_ptr<Platform> &platform)
@@ -15,35 +14,35 @@ namespace Vkr
         mPlatform = platform;
     }
 
-    bool ApplicationManager::OnKeyPress(SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnKeyPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (KeyEvent *)event;
         VINFO("Key %s - KeyCode: '%c', Type: '%i'", ev->IsKeyPressed() ? "pressed": "released", ev->GetKeyCode(), ev->GetEventType());
         return true;
     }
 
-    bool ApplicationManager::OnMouseButtonPress(SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseButtonPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseButtonEvent *)event;
         VINFO("Mouse Button: '%i' %s at (x: %i, y: %i)", ev->GetMouseButton(), ev->IsButtonPressed() ? "pressed" : "released", ev->GetMouseX(), ev->GetMouseY());
         return true;
     }
 
-    bool ApplicationManager::OnMouseScrolled(SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseScrolled(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseScrolledEvent *)event;
         VINFO("Mouse scrolled '%s' at: (x: %i, y: %i)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
         return true;
     }
 
-    bool ApplicationManager::OnMouseMoved(SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseMoved(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseMovedEvent *)event;
         VINFO("Mouse moved to: (x: %i, y: %i)", ev->GetX(), ev->GetY());
         return true;
     }
     
-    bool ApplicationManager::OnWindowClose(SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnWindowClose(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         mRunning = false;
         return true;
