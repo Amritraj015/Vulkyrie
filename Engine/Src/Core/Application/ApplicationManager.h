@@ -26,7 +26,7 @@ namespace Vkr
         bool mRunning = false;
 
         // Width of the window.
-        u16 width{};
+        u16 mWidth{};
 
         // Height of the window.
         u16 mHeight{};

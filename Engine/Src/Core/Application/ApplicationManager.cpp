@@ -131,7 +131,7 @@ namespace Vkr
             return StatusCode::ClientAppInitializationFailed;
         }
 
-        mpApp->OnResize(width, mHeight);
+        mpApp->OnResize(mWidth, mHeight);
 
         mInitialized = true;
 
@@ -212,12 +212,6 @@ namespace Vkr
 
                     frameCount++;
                 }
-
-                // NOTE: Input update/state copying should always be handled
-                // after any input should be recorded; I.E. before this line.
-                // As a safety, input is the last thing to be updated before
-                // this frame ends.
-                // input_update(delta);
 
                 // Update last time
                 mLastTime = currentTime;
