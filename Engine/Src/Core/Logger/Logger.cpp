@@ -1,5 +1,6 @@
 #include "Logger.h"
 
+
 namespace Vkr
 {
     StatusCode Logger::InitializeLogging()
@@ -21,7 +22,6 @@ namespace Vkr
     void Logger::LogOutput(LogLevel level, const char *message, ...)
     {
         const char *level_strings[6] = {"[FATAL]: ", "[ERROR]: ", "[WARN]:  ", "[INFO]:  ", "[DEBUG]: ", "[TRACE]: "};
-        bool is_error = level < LogLevel::Warn;
 
         // Technically imposes a 32k character limit on a single log entry, but...
         // DON'T DO THAT!
@@ -45,13 +45,6 @@ namespace Vkr
         // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
         const char *color_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
 
-        if (is_error)
-        {
-            printf("\033[%sm%s\033[0m", color_strings[levelIndex], out_message2);
-        }
-        else
-        {
-            printf("\033[%sm%s\033[0m", color_strings[levelIndex], out_message2);
-        }
+        printf("\033[%sm%s\033[0m", color_strings[levelIndex], out_message2);
     }
 }

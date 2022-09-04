@@ -18,7 +18,7 @@ namespace Vkr
         // Information about the application.
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.apiVersion = VK_API_VERSION_1_2;
+        appInfo.apiVersion = VK_API_VERSION_1_3;
         appInfo.pApplicationName = appName;
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "Vulkyrie";
@@ -32,7 +32,7 @@ namespace Vkr
         std::vector<const char *> instanceExtensions;
         instanceExtensions.reserve(3);
         instanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-        instanceExtensions.emplace_back("VK_KHR_xcb_surface");
+        mPlatform->GetRequiredVulkanExtensions(instanceExtensions);
 
 #if defined(_DEBUG)
         instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

@@ -77,7 +77,7 @@ namespace Vkr
         statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, ApplicationManager::OnMouseMoved);
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseMoved` event.")
 
-        statusCode = mPlatform->CreateWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
+        statusCode = mPlatform->CreateNewWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
         ENSURE_SUCCESS(statusCode, "Error occurred while initializing platform.")
 
         // Renderer startup
@@ -209,7 +209,7 @@ namespace Vkr
                     // if (remainingMilliSecs > 0 && limitFrames) {
                     if (remainingMilliSecs > 0)
                     {
-                        mPlatform->Sleep(remainingMilliSecs - 1);
+                        mPlatform->SleepForDuration(remainingMilliSecs - 1);
                     }
 
                     frameCount++;

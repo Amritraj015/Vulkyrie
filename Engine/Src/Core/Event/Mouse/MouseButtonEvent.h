@@ -8,7 +8,7 @@ namespace Vkr
     class MouseButtonEvent : public Event
     {
     public:
-        MouseButtonEvent(const MouseButton button, const bool pressed, const f32 mouseX, const f32 mouseY)
+        MouseButtonEvent(const MouseButton button, const bool pressed, const i32 mouseX, const i32 mouseY)
             : mButton(button), pressed(pressed), mMouseX(mouseX), mMouseY(mouseY) {}
 
         virtual int GetCategoryFlags() const override
@@ -18,12 +18,12 @@ namespace Vkr
 
         virtual EventType GetEventType() const override { return pressed ? EventType::MouseButtonPressed : EventType::MouseButtonReleased; }
         inline MouseButton GetMouseButton() const { return mButton; }
-        inline f32 GetMouseX() const { return mMouseX; }
-        inline f32 GetMouseY() const { return mMouseY; }
+        inline i32 GetMouseX() const { return mMouseX; }
+        inline i32 GetMouseY() const { return mMouseY; }
 
     private:
         const MouseButton mButton;
         const bool pressed;
-        const f32 mMouseX, mMouseY;
+        const i32 mMouseX, mMouseY;
     };
 }

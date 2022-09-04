@@ -7,11 +7,11 @@ namespace Vkr
     class MouseMovedEvent : public Event
     {
     public:
-        MouseMovedEvent(const f32 x, const f32 y)
+        MouseMovedEvent(const i32 x, const i32 y)
             : mMouseX(x), mMouseY(y) {}
 
-        f32 GetX() const { return mMouseX; }
-        f32 GetY() const { return mMouseY; }
+        i32 GetX() const { return mMouseX; }
+        i32 GetY() const { return mMouseY; }
 
         virtual int GetCategoryFlags() const override
         {
@@ -21,6 +21,6 @@ namespace Vkr
         virtual EventType GetEventType() const override { return EventType::MouseMoved; }
 
     private:
-        const f32 mMouseX, mMouseY;
+        const i32 mMouseX, mMouseY;
     };
 }

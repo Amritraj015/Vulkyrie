@@ -45,12 +45,37 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define VPLATFORM_WINDOWS 1
 
+
+#include <cstdarg>
+#include <windows.h>
+#include <windowsx.h> // param input extraction
+
 #ifndef _WIN64
 #error "64-bit is required on Windows!"
 #endif
 #elif defined(__linux__) || defined(__gnu_linux__)
 // Linux OS
 #define VPLATFORM_LINUX 1
+
+
+// For surface creation
+#define VK_USE_PLATFORM_XCB_KHR
+// #define VK_USE_PLATFORM_WAYLAND_KHR
+
+#include <xcb/xcb.h>
+#include <X11/keysym.h>
+#include <X11/XKBlib.h> // sudo apt-get install libx11-dev
+#include <X11/Xlib.h>
+#include <X11/Xlib-xcb.h> // sudo apt-get install libxkbcommon-x11-dev
+#include <sys/time.h>
+
+#if _POSIX_C_SOURCE >= 199309L
+
+#include <time.h> // nanosleep
+
+#else
+#include <unistd.h> // usleep
+#endif
 
 #if defined(__ANDROID__)
 #define VPLATFORM_ANDROID 1
@@ -113,28 +138,6 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #include <unordered_map>
 #include <unordered_set>
 
-#if VPLATFORM_LINUX == 1
-// For surface creation
-#define VK_USE_PLATFORM_XCB_KHR
-// #define VK_USE_PLATFORM_WAYLAND_KHR
-
-#include <xcb/xcb.h>
-#include <X11/keysym.h>
-#include <X11/XKBlib.h> // sudo apt-get install libx11-dev
-#include <X11/Xlib.h>
-#include <X11/Xlib-xcb.h> // sudo apt-get install libxkbcommon-x11-dev
-#include <sys/time.h>
-
-#endif
-
 #include <vulkan/vulkan.h>
-
-#if _POSIX_C_SOURCE >= 199309L
-
-#include <time.h> // nanosleep
-
-#else
-#include <unistd.h> // usleep
-#endif
 
 #include "Utilities.h"

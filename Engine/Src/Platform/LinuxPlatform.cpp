@@ -294,6 +294,10 @@ namespace Vkr
         return !quit;
     }
 
+    void PlatformWindows::GetRequiredVulkanExtensions(std::vector<const char *> &extensions) {
+        extensions.emplace_back("VK_KHR_xcb_surface");
+    }
+
     StatusCode LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
         VkXcbSurfaceCreateInfoKHR createInfo = {};
@@ -305,7 +309,7 @@ namespace Vkr
 
         if (result != VK_SUCCESS)
         {
-            VFATAL("Vulkan surface creation failed.");
+            VFATAL("Vulkan XCB surface creation failed.");
             return StatusCode::VulkanXcbSurfaceCreationFailed;
         }
 

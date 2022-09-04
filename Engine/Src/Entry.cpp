@@ -2,6 +2,7 @@
 #include "Defines.h"
 #include "Core/Application/ApplicationManager.h"
 #include "Platform/LinuxPlatform.h"
+#include "Platform/PlatformWindows.h"
 
 #if defined(_DEBUG)
 // void *operator new(size_t size)
@@ -23,6 +24,8 @@ std::shared_ptr<Vkr::Platform> GetPlatform()
 {
 #if defined(VPLATFORM_LINUX)
     return std::make_shared<Vkr::LinuxPlatform>();
+#elif defined(VPLATFORM_WINDOWS)
+    return std::make_shared<Vkr::PlatformWindows>();
 #endif
 }
 
