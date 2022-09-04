@@ -31,6 +31,7 @@ namespace Vkr
         bool PollForEvents() override;
         f64 GetAbsoluteTime() override;
         void Sleep(u64 duration) override;
+        void AddRequiredVulkanExtensions(std::vector<const char *> &extensions) override;
         StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
     };
 }

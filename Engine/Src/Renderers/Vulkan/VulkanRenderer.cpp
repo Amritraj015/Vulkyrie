@@ -32,7 +32,7 @@ namespace Vkr
         std::vector<const char *> instanceExtensions;
         instanceExtensions.reserve(3);
         instanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-        mPlatform->GetRequiredVulkanExtensions(instanceExtensions);
+        mPlatform->AddRequiredVulkanExtensions(instanceExtensions);
 
 #if defined(_DEBUG)
         instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -305,7 +305,7 @@ namespace Vkr
         if (physicalDeviceCount == 0)
         {
             VFATAL("No devices which support Vulkan were found.");
-            return StatusCode::NoDevicesWithVulkanSupport;
+            return StatusCode::VulkanNoDevicesWithVulkanSupport;
         }
 
         VkPhysicalDevice physicalDevices[physicalDeviceCount];
@@ -440,7 +440,7 @@ namespace Vkr
             if (properties->deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
                 VINFO("Device is not a discrete GPU, and one is required. Skipping.");
-                return StatusCode::DiscreteGpuRequired;
+                return StatusCode::VulkanDiscreteGpuRequired;
             }
         }
 
@@ -553,7 +553,7 @@ namespace Vkr
                 mDevice.swapchainSupport.presentModes = nullptr;
 
                 VINFO("Required swapchain support not present, skipping device.");
-                return StatusCode::RequiredSwapchainNotSupported;
+                return StatusCode::VulkanRequiredSwapchainNotSupported;
             }
 
             // Device extensions.
@@ -592,14 +592,14 @@ namespace Vkr
             if (requirements->samplerAnisotropy && !features->samplerAnisotropy)
             {
                 VINFO("Device does not support samplerAnisotropy, skipping.");
-                return StatusCode::SamplerAnisotropyNotSupported;
+                return StatusCode::VulkanSamplerAnisotropyNotSupported;
             }
 
             // Device meets all requirements.
             return StatusCode::Successful;
         }
 
-        return StatusCode::PhysicalDeviceDoesNotMeetRequirements;
+        return StatusCode::VulkanPhysicalDeviceDoesNotMeetRequirements;
     }
 
     void VulkanRenderer::QuerySwapchainSupport(VkPhysicalDevice physicalDevice)

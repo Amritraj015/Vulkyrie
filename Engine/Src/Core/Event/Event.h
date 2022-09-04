@@ -11,7 +11,7 @@ namespace Vkr
         virtual ~Event() = default;
         bool handled = false;
 
-        virtual EventType GetEventType() const = 0;
-        virtual int GetCategoryFlags() const = 0;
+        [[nodiscard]] virtual EventType GetEventType() const = 0;
+        [[nodiscard]] virtual int GetCategoryFlags() const = 0;
     };
 }

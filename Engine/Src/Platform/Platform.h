@@ -37,7 +37,10 @@ namespace Vkr
          */
         virtual void SleepForDuration(u64 duration) = 0;
 
-        virtual void GetRequiredVulkanExtensions(std::vector<const char*> &extensions) = 0;
+        /** Adds required Vulkan extensions for the underlying platform.
+         * @param extensions A std::vector<const char *> where the required extensions will be added.
+         */
+        virtual void AddRequiredVulkanExtensions(std::vector<const char*> &extensions) = 0;
 
         /**
          * Creates Vulkan surface.

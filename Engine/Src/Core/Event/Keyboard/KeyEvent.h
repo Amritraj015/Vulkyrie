@@ -12,14 +12,14 @@ namespace Vkr
     public:
         KeyEvent(Key keycode, bool pressed) : keycode(keycode), pressed(pressed) {}
 
-        virtual int GetCategoryFlags() const override
+        [[nodiscard]] inline int GetCategoryFlags() const override
         {
             return to_underlying(EventCategory::Keyboard) | to_underlying(EventCategory::Input);
         }
 
-        virtual EventType GetEventType() const override { return pressed ? EventType::KeyPressed : EventType::KeyReleased; }
-        inline Key GetKeyCode() const { return keycode; }
-        inline bool IsKeyPressed() const { return pressed; }
+        [[nodiscard]] inline EventType GetEventType() const override { return pressed ? EventType::KeyPressed : EventType::KeyReleased; }
+        [[nodiscard]] inline Key GetKeyCode() const { return keycode; }
+        [[nodiscard]] inline bool IsKeyPressed() const { return pressed; }
 
     private:
         bool pressed;

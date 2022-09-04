@@ -14,9 +14,7 @@
 #include <vulkan/vulkan_win32.h>
 
 namespace Vkr {
-    PlatformWindows::PlatformWindows() {
-
-    }
+    PlatformWindows::PlatformWindows() = default;
 
     StatusCode PlatformWindows::CreateNewWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height) {
         mHInstance = GetModuleHandleA(0);
@@ -145,7 +143,7 @@ namespace Vkr {
         return StatusCode::Successful;
     }
 
-    void PlatformWindows::GetRequiredVulkanExtensions(std::vector<const char *> &extensions) {
+    void PlatformWindows::AddRequiredVulkanExtensions(std::vector<const char *> &extensions) {
         extensions.emplace_back("VK_KHR_win32_surface");
     }
 

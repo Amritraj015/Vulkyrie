@@ -294,7 +294,7 @@ namespace Vkr
         return !quit;
     }
 
-    void PlatformWindows::GetRequiredVulkanExtensions(std::vector<const char *> &extensions) {
+    void LinuxPlatform::AddRequiredVulkanExtensions(std::vector<const char *> &extensions) {
         extensions.emplace_back("VK_KHR_xcb_surface");
     }
 

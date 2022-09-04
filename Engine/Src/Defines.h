@@ -124,7 +124,7 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 
 // #include <stdlib.h>
 // #include <stdio.h>
-#include <string.h>
+#include <cstring>
 
 #include <iostream>
 #include <memory>
