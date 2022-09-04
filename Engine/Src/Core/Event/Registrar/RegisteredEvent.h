@@ -5,11 +5,11 @@
 
 namespace Vkr
 {
-#define EVENT_CALLBACK_FUNCTION std::function<bool(EventType, SenderType, ListenerType, Event *)>
+#define EVENT_CALLBACK_FUNCTION std::function<bool(SenderType, ListenerType, Event *)>
 
     struct RegisteredEvent
     {
-        RegisteredEvent(EventType type, ListenerType listenerType, EVENT_CALLBACK_FUNCTION callbackFn)
+        RegisteredEvent(EventType type, ListenerType listenerType, EVENT_CALLBACK_FUNCTION &callbackFn)
             : eventType(type), listenerType(listenerType), callback(callbackFn)
         {
         }

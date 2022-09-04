@@ -20,6 +20,7 @@ namespace Vkr
         inline MouseButton GetMouseButton() const { return mButton; }
         inline i32 GetMouseX() const { return mMouseX; }
         inline i32 GetMouseY() const { return mMouseY; }
+        inline bool IsButtonPressed() const { return pressed; }
 
     private:
         const MouseButton mButton;

@@ -50,7 +50,7 @@ namespace Vkr
             {
                 if (ev.eventType == event->GetEventType())
                 {
-                    handled = ev.callback(ev.eventType, senderType, listenerType, event);
+                    handled = ev.callback(senderType, listenerType, event);
 
                     if (handled && !event->handled)
                         event->handled = handled;
@@ -63,7 +63,7 @@ namespace Vkr
             {
                 if (ev.eventType == event->GetEventType() && ev.listenerType == listenerType)
                 {
-                    handled = ev.callback(ev.eventType, senderType, listenerType, event);
+                    handled = ev.callback(senderType, listenerType, event);
 
                     if (handled && !event->handled)
                         event->handled = handled;

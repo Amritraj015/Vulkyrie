@@ -1,7 +1,10 @@
 #pragma once
 
-enum class ListenerType
-{
-    All,
-    Application
-};
+namespace Vkr {
+    enum class ListenerType
+    {
+        All,
+        Application
+    };
+}
+

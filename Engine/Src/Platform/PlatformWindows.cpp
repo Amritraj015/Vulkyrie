@@ -9,6 +9,7 @@
 #include "Core/Event/Mouse/MouseMovedEvent.h"
 #include "Core/Event/Mouse/MouseButtonEvent.h"
 #include "Core/Event/Mouse/MouseScrolledEvent.h"
+#include "Core/Event/Application/WindowCloseEvent.h"
 
 #include <vulkan/vulkan_win32.h>
 
@@ -159,9 +160,11 @@ namespace Vkr{
             case WM_ERASEBKGND:
                 // Notify the OS that erasing will be handled by the application to prevent flicker.
                 return 1;
-            case WM_CLOSE:
-                // TODO: Fire an event for the application to quit.
-                return 0;
+            case WM_CLOSE: {
+                WindowCloseEvent event{};
+                EventSystemManager::Dispatch(&event, SenderType::Platform);
+                break;
+            }
             case WM_DESTROY:
                 PostQuitMessage(0);
                 return 0;
