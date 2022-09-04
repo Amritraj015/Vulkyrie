@@ -20,6 +20,7 @@ namespace Vkr
     void Logger::LogOutput(LogLevel level, const char *message, ...)
     {
         const char *levelStrings[6] = {"[FATAL]: ", "[ERROR]: ", "[WARN]:  ", "[INFO]:  ", "[DEBUG]: ", "[TRACE]: "};
+        // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
         const char *colorStrings[6] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
 
         // Technically imposes a 32k character limit on a single log entry, but...
@@ -39,8 +40,6 @@ namespace Vkr
 
         const u8 levelIndex = to_underlying(level);
         sprintf(outMessage2, "%s%s\n", levelStrings[levelIndex], outMessage);
-
-        // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
 
         printf("\033[%sm%s\033[0m", colorStrings[levelIndex], outMessage2);
     }
