@@ -694,7 +694,7 @@ namespace Vkr
 
         // Choose a swap surface format.
         bool found = false;
-        for (u32 i = 0; mDevice.swapchainSupport.formatCount; ++i)
+        for (u32 i = 0; i < mDevice.swapchainSupport.formatCount; ++i)
         {
             // Preferred formats
             if (mDevice.swapchainSupport.formats[i].format == VK_FORMAT_B8G8R8A8_UNORM && mDevice.swapchainSupport.formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -711,7 +711,7 @@ namespace Vkr
         }
 
         VkPresentModeKHR presentationMode = VK_PRESENT_MODE_FIFO_KHR;
-        for (u32 i = 0; mDevice.swapchainSupport.presentationCount; ++i)
+        for (u32 i = 0; i < mDevice.swapchainSupport.presentationCount; ++i)
         {
             if (mDevice.swapchainSupport.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
             {
