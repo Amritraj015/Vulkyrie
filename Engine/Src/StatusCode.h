@@ -24,7 +24,7 @@ namespace Vkr
         VulkanPhysicalDeviceDoesNotMeetRequirements, // Vulkan - Physical device does not meet requirements.
         VulkanSamplerAnisotropyNotSupported,         // Vulkan - Sampler Anisotropy is not supported.
         VulkanRequiredSwapchainNotSupported,         // Vulkan - Required swapchain not supported
-        VulkanRequiredExtensionNotFound,             // Vulkan - RequiredExtensionNotFound
-        VulkanNoPhysicalDeviceMeetsRequirements      // Vulkan - NoPhysicalDeviceMeetsRequirements
+        VulkanRequiredExtensionNotFound,             // Vulkan - Required extension not found
+        VulkanNoPhysicalDeviceMeetsRequirements      // Vulkan - No physical device meets requirements
     };
 }
