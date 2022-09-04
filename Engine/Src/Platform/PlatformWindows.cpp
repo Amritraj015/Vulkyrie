@@ -1,4 +1,7 @@
 #include "PlatformWindows.h"
+
+#if defined(VPLATFORM_WINDOWS)
+
 #include "Core/Input/Key.h"
 #include "Core/Input/MouseButton.h"
 #include "Core/Event/Registrar/EventSystemManager.h"
@@ -252,3 +255,5 @@ namespace Vkr{
         return DefWindowProcA(hwnd, msg, w_param, l_param);
     }
 }
+
+#endif

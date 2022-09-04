@@ -2,6 +2,8 @@
 #include "Platform.h"
 #include "Defines.h"
 
+#if defined(VPLATFORM_WINDOWS)
+
 namespace Vkr{
     class PlatformWindows : public Platform {
     private:
@@ -29,3 +31,5 @@ namespace Vkr{
         StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
     };
 }
+
+#endif
