@@ -1,7 +1,9 @@
 #pragma once
 
-enum class SenderType
-{
-    Anonymous,
-    Platform
-};
+namespace Vkr {
+    enum class SenderType
+    {
+        Anonymous,
+        Platform
+    };
+}

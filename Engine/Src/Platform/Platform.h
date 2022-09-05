@@ -12,16 +12,16 @@ namespace Vkr
 
         virtual ~Platform() = default;
 
-        /** Initializes the Platform instance.
+        /** Creates a new Application window.
          * @param windowName Name for the Window.
          * @param x X-coordinate for the window.
          * @param y Y-coordinate for the window.
          * @param width Width of the window to be created.
          * @param height Height of the window to be crated.
          */
-        virtual StatusCode CreateWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height) = 0;
+        virtual StatusCode CreateNewWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height) = 0;
 
-        /** Terminates the Platform instance. */
+        /** Closes the application window. */
         virtual StatusCode CloseWindow() = 0;
 
         /** Polls for events on the platform specific window. */
@@ -30,12 +30,17 @@ namespace Vkr
         /* Gets the absolute time from the underlying platform. */
         virtual f64 GetAbsoluteTime() = 0;
 
-        /** Sleep on the thread for the provided ms. This blocks the main thread.
+        /** SleepForDuration on the thread for the provided ms. This blocks the main thread.
          * Should only be used for giving time back to the OS for unused update power.
          * Therefore it is not exported.
-         * @param duration Sleep duration.
+         * @param duration SleepForDuration duration.
          */
-        virtual void Sleep(u64 duration) = 0;
+        virtual void SleepForDuration(u64 duration) = 0;
+
+        /** Adds required Vulkan extensions for the underlying platform.
+         * @param extensions A std::vector<const char *> where the required extensions will be added.
+         */
+        virtual void AddRequiredVulkanExtensions(std::vector<const char*> &extensions) = 0;
 
         /**
          * Creates Vulkan surface.

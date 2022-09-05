@@ -7,50 +7,44 @@
 
 namespace Vkr
 {
+#define BIND_CALLBACK_FUNCTION(function) std::bind(&function, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+
     ApplicationManager::ApplicationManager(const std::shared_ptr<Platform> &platform)
     {
         mPlatform = platform;
     }
 
-    bool ApplicationManager::OnKeyPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnKeyPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
-        auto *ev = (KeyEvent *)event;
-        VINFO("Key pressed - KeyCode: '%c', Type: '%i'", ev->GetKeyCode(), ev->GetEventType());
+        auto ev = (KeyEvent *)event;
+        VINFO("Key %s - KeyCode: '%c', Type: '%i'", ev->IsKeyPressed() ? "pressed": "released", ev->GetKeyCode(), ev->GetEventType());
         return true;
     }
 
-    bool ApplicationManager::OnKeyRelease(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseButtonPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
-        auto *ev = (KeyEvent *)event;
-        VINFO("Key released - KeyCode: '%c', Type: '%i'", ev->GetKeyCode(), ev->GetEventType());
+        auto ev = (MouseButtonEvent *)event;
+        VINFO("Mouse Button: '%i' %s at (x: %i, y: %i)", ev->GetMouseButton(), ev->IsButtonPressed() ? "pressed" : "released", ev->GetMouseX(), ev->GetMouseY());
         return true;
     }
 
-    bool ApplicationManager::OnMouseButtonPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseScrolled(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
-        auto *ev = (MouseButtonEvent *)event;
-        VINFO("Mouse Button: '%i' pressed at (x: %f, y: %f)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
+        auto ev = (MouseScrolledEvent *)event;
+        VINFO("Mouse scrolled '%s' at: (x: %i, y: %i)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
         return true;
     }
 
-    bool ApplicationManager::OnMouseButtonRelease(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
+    bool ApplicationManager::OnMouseMoved(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
-        auto *ev = (MouseButtonEvent *)event;
-        VINFO("Mouse Button: '%i' released at (x: %f, y: %f)", ev->GetMouseButton(), ev->GetMouseX(), ev->GetMouseY());
+        auto ev = (MouseMovedEvent *)event;
+        VINFO("Mouse moved to: (x: %i, y: %i)", ev->GetX(), ev->GetY());
         return true;
     }
-
-    bool ApplicationManager::OnMouseScrolled(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
+    
+    bool ApplicationManager::OnWindowClose(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
-        auto *ev = (MouseScrolledEvent *)event;
-        VINFO("Mouse scrolled '%s' at: (x: %f, y: %f)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
-        return true;
-    }
-
-    bool ApplicationManager::OnMouseMoved(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event)
-    {
-        auto *ev = (MouseMovedEvent *)event;
-        VINFO("Mouse moved to: (x: %f, y: %f)", ev->GetX(), ev->GetY());
+        mRunning = false;
         return true;
     }
 
@@ -59,25 +53,28 @@ namespace Vkr
         StatusCode statusCode = Logger::InitializeLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while initializing the logging system.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, ApplicationManager::OnKeyPress);
+        statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyPressed` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::KeyReleased, ListenerType::Application, ApplicationManager::OnKeyRelease);
+        statusCode = EventSystemManager::RegisterEvent(EventType::KeyReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyReleased` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonPressed, ListenerType::Application, ApplicationManager::OnMouseButtonPress);
+        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseButtonPressed` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonReleased, ListenerType::Application, ApplicationManager::OnMouseButtonRelease);
+        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseButtonReleased` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseScrolled, ListenerType::Application, ApplicationManager::OnMouseScrolled);
+        statusCode = EventSystemManager::RegisterEvent(EventType::MouseScrolled, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseScrolled));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseScrolled` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, ApplicationManager::OnMouseMoved);
+        statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseMoved));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseMoved` event.")
 
-        statusCode = mPlatform->CreateWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
+        statusCode = EventSystemManager::RegisterEvent(EventType::WindowClose, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnWindowClose));
+        ENSURE_SUCCESS(statusCode, "An error occurred while registering `WindowClose` event.")
+
+        statusCode = mPlatform->CreateNewWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
         ENSURE_SUCCESS(statusCode, "Error occurred while initializing platform.")
 
         // Renderer startup
@@ -133,7 +130,7 @@ namespace Vkr
             return StatusCode::ClientAppInitializationFailed;
         }
 
-        mpApp->OnResize(width, mHeight);
+        mpApp->OnResize(mWidth, mHeight);
 
         mInitialized = true;
 
@@ -209,17 +206,11 @@ namespace Vkr
                     // if (remainingMilliSecs > 0 && limitFrames) {
                     if (remainingMilliSecs > 0)
                     {
-                        mPlatform->Sleep(remainingMilliSecs - 1);
+                        mPlatform->SleepForDuration(remainingMilliSecs - 1);
                     }
 
                     frameCount++;
                 }
-
-                // NOTE: Input update/state copying should always be handled
-                // after any input should be recorded; I.E. before this line.
-                // As a safety, input is the last thing to be updated before
-                // this frame ends.
-                // input_update(delta);
 
                 // Update last time
                 mLastTime = currentTime;

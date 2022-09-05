@@ -26,7 +26,7 @@ namespace Vkr
         bool mRunning = false;
 
         // Width of the window.
-        u16 width{};
+        u16 mWidth{};
 
         // Height of the window.
         u16 mHeight{};
@@ -49,23 +49,20 @@ namespace Vkr
         // Terminates core subsystems for the engine.
         StatusCode TerminateSubsystems();
 
-        // Event handler to handle key press events.
-        static bool OnKeyPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
+        // Event handler to handle key press and release events.
+        bool OnKeyPress(const SenderType senderType, const ListenerType listenerType, Event *event);
 
-        // Event handler to handle key release events.
-        static bool OnKeyRelease(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
-
-        // Event handler to handle mouse button press events.
-        static bool OnMouseButtonPress(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
-
-        // Event handler to handle mouse button release events.
-        static bool OnMouseButtonRelease(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
+        // Event handler to handle mouse button press and release events.
+        bool OnMouseButtonPress(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle mouse scroll events.
-        static bool OnMouseScrolled(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnMouseScrolled(const SenderType senderType, const ListenerType listenerType, Event *event);
 
         // Event handler to handle mouse move events.
-        static bool OnMouseMoved(EventType eventType, SenderType senderType, ListenerType listenerType, Event *event);
+        bool OnMouseMoved(const SenderType senderType, const ListenerType listenerType, Event *event);
+
+        // Event handler to handle window close events.
+        bool OnWindowClose(const SenderType senderType, const ListenerType listenerType, Event *event);
 
     public:
         explicit ApplicationManager(const std::shared_ptr<Platform> &platform);

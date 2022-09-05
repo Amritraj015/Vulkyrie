@@ -23,7 +23,6 @@ namespace Vkr
         static StatusCode InitializeLogging();
         static StatusCode ShutdownLogging();
         static void LogOutput(LogLevel level, const char *message, ...);
-        static void ReportAssertionFailure(const char *expression, const char *message, const char *file, i32 line);
     };
 
 // Logs a fatal-level message.

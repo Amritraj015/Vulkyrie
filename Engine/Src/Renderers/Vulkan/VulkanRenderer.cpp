@@ -18,7 +18,7 @@ namespace Vkr
         // Information about the application.
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.apiVersion = VK_API_VERSION_1_2;
+        appInfo.apiVersion = VK_API_VERSION_1_3;
         appInfo.pApplicationName = appName;
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "Vulkyrie";
@@ -32,7 +32,7 @@ namespace Vkr
         std::vector<const char *> instanceExtensions;
         instanceExtensions.reserve(3);
         instanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-        instanceExtensions.emplace_back("VK_KHR_xcb_surface");
+        mPlatform->AddRequiredVulkanExtensions(instanceExtensions);
 
 #if defined(_DEBUG)
         instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -294,7 +294,6 @@ namespace Vkr
         vkGetDeviceQueue(mDevice.logicalDevice, mDevice.transferQueueIndex, 0, &mDevice.transferQueue);
 
         VDEBUG("Queues obtained.");
-        VDEBUG("Vulkan device created.");
         return statusCode;
     }
 
@@ -306,7 +305,7 @@ namespace Vkr
         if (physicalDeviceCount == 0)
         {
             VFATAL("No devices which support Vulkan were found.");
-            return StatusCode::NoDevicesWithVulkanSupport;
+            return StatusCode::VulkanNoDevicesWithVulkanSupport;
         }
 
         VkPhysicalDevice physicalDevices[physicalDeviceCount];
@@ -346,38 +345,43 @@ namespace Vkr
 
             if (result == StatusCode::Successful)
             {
-                VINFO("Selected device: '%s'.", properties.deviceName);
+                VINFO("----------------------------------------------------------------");
+                VINFO("| Selected device:\t\t | %s \t|", properties.deviceName);
+                VINFO("----------------------------------------------------------------");
+                
                 // GPU type, etc.
                 switch (properties.deviceType)
                 {
-                default:
                 case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                    VINFO("GPU type is Unknown.");
+                    VINFO("| GPU type:\t\t\t | Unknown \t\t\t|");
                     break;
                 case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                    VINFO("GPU type is Integrated.");
+                    VINFO("| GPU type:\t\t\t | Integrated \t\t\t|");
                     break;
                 case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                    VINFO("GPU type is Discrete.");
+                    VINFO("| GPU type:\t\t\t | Discrete \t\t\t|");
                     break;
                 case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                    VINFO("GPU type is Virtual.");
+                    VINFO("| GPU type:\t\t\t | Virtual \t\t\t|");
                     break;
                 case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                    VINFO("GPU type is CPU.");
+                    VINFO("| GPU type:\t\t\t | CPU \t\t\t|");
                     break;
                 }
 
-                VINFO("GPU Driver version: %d.%d.%d",
+                VINFO("----------------------------------------------------------------");
+                VINFO("| GPU Driver version:\t\t | %d.%d.%d \t\t\t|",
                       VK_VERSION_MAJOR(properties.driverVersion),
                       VK_VERSION_MINOR(properties.driverVersion),
                       VK_VERSION_PATCH(properties.driverVersion));
 
+                VINFO("----------------------------------------------------------------");
                 // Vulkan API version.
-                VINFO("Vulkan API version: %d.%d.%d",
+                VINFO("| Vulkan API version:\t\t | %d.%d.%d \t\t\t|",
                       VK_VERSION_MAJOR(properties.apiVersion),
                       VK_VERSION_MINOR(properties.apiVersion),
                       VK_VERSION_PATCH(properties.apiVersion));
+                VINFO("----------------------------------------------------------------");
 
                 // Memory information
                 for (u32 j = 0; j < memory.memoryHeapCount; ++j)
@@ -385,12 +389,13 @@ namespace Vkr
                     f32 memorySizeGib = (((f32)memory.memoryHeaps[j].size) / 1024.0f / 1024.0f / 1024.0f);
                     if (memory.memoryHeaps[j].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
                     {
-                        VINFO("Local GPU memory: %.2f GiB", memorySizeGib);
+                        VINFO("| Local GPU memory:\t\t | %.2f GiB \t\t\t|", memorySizeGib);
                     }
                     else
                     {
-                        VINFO("Shared System memory: %.2f GiB", memorySizeGib);
+                        VINFO("| Shared System memory:\t | %.2f GiB \t\t\t|", memorySizeGib);
                     }
+                    VINFO("----------------------------------------------------------------");
                 }
 
                 mDevice.physicalDevice = physicalDevices[i];
@@ -403,7 +408,6 @@ namespace Vkr
                 mDevice.properties = properties;
                 mDevice.features = features;
                 mDevice.memory = memory;
-                break;
             }
         }
 
@@ -413,8 +417,6 @@ namespace Vkr
             VERROR("No physical devices were found which meet the requirements.");
             return StatusCode::VulkanNoPhysicalDeviceMeetsRequirements;
         }
-
-        VINFO("Physical device selected.");
 
         return StatusCode::Successful;
     }
@@ -438,7 +440,7 @@ namespace Vkr
             if (properties->deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
                 VINFO("Device is not a discrete GPU, and one is required. Skipping.");
-                return StatusCode::DiscreteGpuRequired;
+                return StatusCode::VulkanDiscreteGpuRequired;
             }
         }
 
@@ -530,11 +532,17 @@ namespace Vkr
             (!requirements->compute || (requirements->compute && outQueueFamilyInfo->computeFamilyIndex != -1)) &&
             (!requirements->transfer || (requirements->transfer && outQueueFamilyInfo->transferFamilyIndex != -1)))
         {
-            VINFO("Device meets queue requirements.");
-            VTRACE("Graphics Family Index: %i", outQueueFamilyInfo->graphicsFamilyIndex);
-            VTRACE("Present Family Index:  %i", outQueueFamilyInfo->presentFamilyIndex);
-            VTRACE("Transfer Family Index: %i", outQueueFamilyInfo->transferFamilyIndex);
-            VTRACE("Compute Family Index:  %i", outQueueFamilyInfo->computeFamilyIndex);
+            VTRACE("----------------------------------------");
+            VINFO("| Device meets queue requirements.\t|");
+            VTRACE("----------------------------------------");
+            VTRACE("| Graphics Family Index:\t| %i \t|", outQueueFamilyInfo->graphicsFamilyIndex);
+            VTRACE("----------------------------------------");
+            VTRACE("| Present Family Index:\t| %i \t|", outQueueFamilyInfo->presentFamilyIndex);
+            VTRACE("----------------------------------------");
+            VTRACE("| Transfer Family Index:\t| %i \t|", outQueueFamilyInfo->transferFamilyIndex);
+            VTRACE("----------------------------------------");
+            VTRACE("| Compute Family Index:\t| %i \t|", outQueueFamilyInfo->computeFamilyIndex);
+            VTRACE("----------------------------------------");
 
             // Query swapchain support.
             QuerySwapchainSupport(device);
@@ -545,7 +553,7 @@ namespace Vkr
                 mDevice.swapchainSupport.presentModes = nullptr;
 
                 VINFO("Required swapchain support not present, skipping device.");
-                return StatusCode::RequiredSwapchainNotSupported;
+                return StatusCode::VulkanRequiredSwapchainNotSupported;
             }
 
             // Device extensions.
@@ -584,14 +592,14 @@ namespace Vkr
             if (requirements->samplerAnisotropy && !features->samplerAnisotropy)
             {
                 VINFO("Device does not support samplerAnisotropy, skipping.");
-                return StatusCode::SamplerAnisotropyNotSupported;
+                return StatusCode::VulkanSamplerAnisotropyNotSupported;
             }
 
             // Device meets all requirements.
             return StatusCode::Successful;
         }
 
-        return StatusCode::PhysicalDeviceDoesNotMeetRequirements;
+        return StatusCode::VulkanPhysicalDeviceDoesNotMeetRequirements;
     }
 
     void VulkanRenderer::QuerySwapchainSupport(VkPhysicalDevice physicalDevice)
@@ -694,7 +702,7 @@ namespace Vkr
 
         // Choose a swap surface format.
         bool found = false;
-        for (u32 i = 0; mDevice.swapchainSupport.formatCount; ++i)
+        for (u32 i = 0; i < mDevice.swapchainSupport.formatCount; ++i)
         {
             // Preferred formats
             if (mDevice.swapchainSupport.formats[i].format == VK_FORMAT_B8G8R8A8_UNORM && mDevice.swapchainSupport.formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -711,7 +719,7 @@ namespace Vkr
         }
 
         VkPresentModeKHR presentationMode = VK_PRESENT_MODE_FIFO_KHR;
-        for (u32 i = 0; mDevice.swapchainSupport.presentationCount; ++i)
+        for (u32 i = 0; i < mDevice.swapchainSupport.presentationCount; ++i)
         {
             if (mDevice.swapchainSupport.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
             {
