@@ -5,8 +5,10 @@
 
 #if defined(VPLATFORM_WINDOWS)
 
-namespace Vkr {
-    class PlatformWindows : public Platform {
+namespace Vkr
+{
+    class PlatformWindows : public Platform
+    {
     private:
         bool mInitialized = false;
         HINSTANCE mHInstance{};
@@ -24,7 +26,7 @@ namespace Vkr {
 
         void operator=(PlatformWindows const &) = delete;
 
-        StatusCode CreateNewWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height) override;
+        StatusCode CreateNewWindow(const char *windowName, i16 x, i16 y, u16 width, u16 height) override;
 
         StatusCode CloseWindow() override;
 
@@ -36,7 +38,7 @@ namespace Vkr {
 
         void AddRequiredVulkanExtensions(std::vector<const char *> &extensions) override;
 
-        StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
+        void CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
     };
 }
 

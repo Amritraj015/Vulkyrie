@@ -40,14 +40,16 @@ namespace Vkr
         VkDebugUtilsMessengerEXT mDebugMessenger{};
 #endif
 
-        StatusCode CreateDevice();
+        StatusCode CreateLogicalDevice();
         StatusCode SelectPhysicalDevice();
+
         StatusCode PhysicalDeviceMeetsRequirements(
             VkPhysicalDevice device,
             const VkPhysicalDeviceProperties *properties,
             const VkPhysicalDeviceFeatures *features,
             const DeviceRequirements *requirements,
             QueueFamilyInfo *outQueueFamilyInfo);
+
         void QuerySwapchainSupport(VkPhysicalDevice physicalDevice);
         StatusCode DestroyDevice();
         bool DetectDepthFormat();

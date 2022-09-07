@@ -17,8 +17,6 @@ namespace Vkr
         AppAlreadyInitialized,                       // Application already initialized.
         VulkanRequiredValidationLayersMissing,       // Required vulkan validation layer(s) missing.
         VulkanInstanceExtensionNotFound,             // Vulkan - instance extension not found.
-        VulkanXcbSurfaceCreationFailed,              // Vulkan - XCB surface creation failed.
-        VulkanWin32SurfaceCreationFailed,            // Vulkan - Win32 surface creation failed.
         VulkanNoDevicesWithVulkanSupport,            // Vulkan - No device could be found that supports Vulkan
         VulkanDiscreteGpuRequired,                   // Vulkan - Discrete GPU Required.
         VulkanPhysicalDeviceDoesNotMeetRequirements, // Vulkan - Physical device does not meet requirements.

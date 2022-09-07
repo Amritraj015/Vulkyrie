@@ -23,10 +23,7 @@ namespace Vkr
             break;
         }
 
-        StatusCode statusCode = renderer->Initialize(appName);
-        ENSURE_SUCCESS(statusCode, "Renderer backend failed to initialize.")
-
-        return statusCode;
+        return renderer->Initialize(appName);
     }
 
     StatusCode RendererClient::Terminate()

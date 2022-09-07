@@ -7,7 +7,7 @@
 
 namespace Vkr
 {
-#define BIND_CALLBACK_FUNCTION(function) std::bind(&function, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+#define BIND_CALLBACK_FUNCTION(function) std::bind(&ApplicationManager::function, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 
     ApplicationManager::ApplicationManager(const std::shared_ptr<Platform> &platform)
     {
@@ -17,28 +17,28 @@ namespace Vkr
     bool ApplicationManager::OnKeyPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (KeyEvent *)event;
-        VINFO("Key %s - KeyCode: '%c', Type: '%i'", ev->IsKeyPressed() ? "pressed": "released", ev->GetKeyCode(), ev->GetEventType());
+        VINFO("Key %s - KeyCode: '%c', Type: '%i'", ev->IsKeyPressed() ? "pressed": "released", ev->GetKeyCode(), ev->GetEventType())
         return true;
     }
 
     bool ApplicationManager::OnMouseButtonPress(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseButtonEvent *)event;
-        VINFO("Mouse Button: '%i' %s at (x: %i, y: %i)", ev->GetMouseButton(), ev->IsButtonPressed() ? "pressed" : "released", ev->GetMouseX(), ev->GetMouseY());
+        VINFO("Mouse Button: '%i' %s at (x: %i, y: %i)", ev->GetMouseButton(), ev->IsButtonPressed() ? "pressed" : "released", ev->GetMouseX(), ev->GetMouseY())
         return true;
     }
 
     bool ApplicationManager::OnMouseScrolled(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseScrolledEvent *)event;
-        VINFO("Mouse scrolled '%s' at: (x: %i, y: %i)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset());
+        VINFO("Mouse scrolled '%s' at: (x: %i, y: %i)", ev->GetDirection() ? "Up" : "Down", ev->GetXOffset(), ev->GetYOffset())
         return true;
     }
 
     bool ApplicationManager::OnMouseMoved(const SenderType senderType, const ListenerType listenerType, Event *event)
     {
         auto ev = (MouseMovedEvent *)event;
-        VINFO("Mouse moved to: (x: %i, y: %i)", ev->GetX(), ev->GetY());
+        VINFO("Mouse moved to: (x: %i, y: %i)", ev->GetX(), ev->GetY())
         return true;
     }
     
@@ -53,7 +53,7 @@ namespace Vkr
         StatusCode statusCode = Logger::InitializeLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while initializing the logging system.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
+        statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(ApplicationManager::OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyPressed` event.")
 
         statusCode = EventSystemManager::RegisterEvent(EventType::KeyReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
@@ -79,10 +79,7 @@ namespace Vkr
 
         // Renderer startup
         mpRendererClient = std::make_unique<RendererClient>();
-        statusCode = mpRendererClient->Initialize(mPlatform, mpApp->rendererType, mpApp->name);
-        ENSURE_SUCCESS(statusCode, "Failed to initialize renderer.")
-
-        return statusCode;
+        return mpRendererClient->Initialize(mPlatform, mpApp->rendererType, mpApp->name);
     }
 
     StatusCode ApplicationManager::TerminateSubsystems()
@@ -106,13 +103,13 @@ namespace Vkr
     {
         if (mInitialized)
         {
-            VERROR("Application has already been initialized");
+            VERROR("Application has already been initialized")
             return StatusCode::AppAlreadyInitialized;
         }
 
         if (pApp == nullptr)
         {
-            VERROR("A valid application instance is required for initialization");
+            VERROR("A valid application instance is required for initialization")
             return StatusCode::InvalidApplicationInstance;
         }
 
@@ -121,12 +118,12 @@ namespace Vkr
         mSuspended = false;
 
         StatusCode statusCode = InitializeSubsystems();
-        ENSURE_SUCCESS(statusCode, "Error occurred while initializing core subsystems.")
+		RETURN_ON_FAIL(statusCode)
 
         // Initialize client application.
         if (!mpApp->Initialize())
         {
-            VFATAL("Game failed to initialize");
+            VFATAL("Game failed to initialize")
             return StatusCode::ClientAppInitializationFailed;
         }
 
@@ -141,7 +138,7 @@ namespace Vkr
     {
         if (!mInitialized)
         {
-            VERROR("Please initialize the application before running.");
+            VERROR("Please initialize the application before running.")
             return StatusCode::AppNotInitialized;
         }
 
@@ -173,14 +170,14 @@ namespace Vkr
 
                 if (!mpApp->Update((f32)delta))
                 {
-                    VFATAL("Game update failed.");
+                    VFATAL("Game update failed.")
                     mRunning = false;
                     break;
                 }
 
                 if (!mpApp->Render((f32)delta))
                 {
-                    VFATAL("Game render failed.");
+                    VFATAL("Game render failed.")
                     mRunning = false;
                     break;
                 }

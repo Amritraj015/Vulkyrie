@@ -10,10 +10,10 @@ namespace Vkr
         virtual ~Application() = default;
 
         // Starting position of the window on x-axis, if applicable.
-        unsigned short startX{};
+        short startX{};
 
         // Starting position of the window on y-axis, if applicable.
-        unsigned short startY{};
+        short startY{};
 
         // Starting width of the window, if applicable.
         unsigned short width{};

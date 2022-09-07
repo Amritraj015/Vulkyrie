@@ -19,7 +19,7 @@ namespace Vkr
          * @param width Width of the window to be created.
          * @param height Height of the window to be crated.
          */
-        virtual StatusCode CreateNewWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height) = 0;
+        virtual StatusCode CreateNewWindow(const char *windowName, i16 x, i16 y, u16 width, u16 height) = 0;
 
         /** Closes the application window. */
         virtual StatusCode CloseWindow() = 0;
@@ -40,13 +40,13 @@ namespace Vkr
         /** Adds required Vulkan extensions for the underlying platform.
          * @param extensions A std::vector<const char *> where the required extensions will be added.
          */
-        virtual void AddRequiredVulkanExtensions(std::vector<const char*> &extensions) = 0;
+        virtual void AddRequiredVulkanExtensions(std::vector<const char *> &extensions) = 0;
 
         /**
          * Creates Vulkan surface.
          * @param renderer A pointer to the vulkan renderer.
          */
-        virtual StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) = 0;
+        virtual void CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) = 0;
 
     protected:
         Platform() {}

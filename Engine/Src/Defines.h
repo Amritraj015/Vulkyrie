@@ -45,8 +45,6 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define VPLATFORM_WINDOWS 1
 
-
-#include <cstdarg>
 #include <windows.h>
 #include <windowsx.h> // param input extraction
 
@@ -125,6 +123,7 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 // #include <stdlib.h>
 // #include <stdio.h>
 #include <cstring>
+#include <cstdarg>
 
 #include <iostream>
 #include <memory>

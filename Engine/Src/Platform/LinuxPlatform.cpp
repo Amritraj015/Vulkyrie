@@ -6,14 +6,16 @@
 #include "Core/Event/Mouse/MouseMovedEvent.h"
 #include "Core/Event/Mouse/MouseButtonEvent.h"
 #include "Core/Event/Mouse/MouseScrolledEvent.h"
+#include "Core/Event/Application/WindowCloseEvent.h"
 
 namespace Vkr
 {
-    LinuxPlatform::LinuxPlatform()
+    LinuxPlatform::~LinuxPlatform()
     {
+        CleanUp();
     }
 
-    StatusCode LinuxPlatform::CreateWindow(const char *windowName, i32 x, i32 y, u16 width, u16 height)
+    StatusCode LinuxPlatform::CreateNewWindow(const char *windowName, i16 x, i16 y, u16 width, u16 height)
     {
         if (mInitialized)
         {
@@ -25,7 +27,7 @@ namespace Vkr
         // connection = xcb_connect(NULL, NULL);
 
         // Connect to X
-        mpDisplay = XOpenDisplay(NULL);
+        mpDisplay = XOpenDisplay(nullptr);
 
         // Turn off key repeats.
         XAutoRepeatOff(mpDisplay);
@@ -139,16 +141,7 @@ namespace Vkr
 
     StatusCode LinuxPlatform::CloseWindow()
     {
-        // Turn key repeats back on since this is global for the OS... just... wow.
-        XAutoRepeatOn(mpDisplay);
-
-        // Destroy Window.
-        xcb_destroy_window(mConnection, mWindow);
-
-        // Disconnect from the X server.
-        // xcb_disconnect(mConnection);
-
-        mInitialized = false;
+        CleanUp();
 
         return StatusCode::Successful;
     }
@@ -275,6 +268,8 @@ namespace Vkr
                 // Close the window.
                 if (cm->data.data32[0] == mDeleteWin)
                 {
+                    WindowCloseEvent event{};
+                    EventSystemManager::Dispatch(&event, SenderType::Platform);
                     quit = true;
                 }
 
@@ -294,36 +289,31 @@ namespace Vkr
         return !quit;
     }
 
-    void LinuxPlatform::AddRequiredVulkanExtensions(std::vector<const char *> &extensions) {
-        extensions.emplace_back("VK_KHR_xcb_surface");
+    void LinuxPlatform::AddRequiredVulkanExtensions(std::vector<const char *> &extensions)
+    {
+        extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
     }
 
-    StatusCode LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
+    void LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
         VkXcbSurfaceCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
         createInfo.connection = mConnection;
         createInfo.window = mWindow;
 
-        VkResult result = vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface);
-
-        if (result != VK_SUCCESS)
-        {
-            VFATAL("Vulkan XCB surface creation failed.");
-            return StatusCode::VulkanXcbSurfaceCreationFailed;
-        }
-
-        return StatusCode::Successful;
+        VK_CHECK(vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface));
     }
 
     f64 LinuxPlatform::GetAbsoluteTime()
     {
-        struct timespec now;
+        struct timespec now
+        {
+        };
         clock_gettime(CLOCK_MONOTONIC, &now);
         return now.tv_sec + now.tv_nsec * 0.000000001;
     }
 
-    void LinuxPlatform::Sleep(u64 ms)
+    void LinuxPlatform::SleepForDuration(u64 ms)
     {
 #if _POSIX_C_SOURCE >= 199309L
         struct timespec ts;
@@ -339,9 +329,9 @@ namespace Vkr
 #endif
     }
 
-    Key LinuxPlatform::TranslateKeycode(KeySym x_keycode)
+    Key LinuxPlatform::TranslateKeycode(KeySym xKeycode)
     {
-        switch (x_keycode)
+        switch (xKeycode)
         {
         case XK_BackSpace:
             return Key::Backspace;
@@ -646,6 +636,20 @@ namespace Vkr
         default:
             return Key::Unknown;
         }
+    }
+
+    void LinuxPlatform::CleanUp()
+    {
+        // Turn key repeats back on since this is global for the OS... just... wow.
+        XAutoRepeatOn(mpDisplay);
+
+        // Destroy Window.
+        xcb_destroy_window(mConnection, mWindow);
+
+        // Disconnect from the X server.
+        // xcb_disconnect(mConnection);
+
+        mInitialized = false;
     }
 }
 

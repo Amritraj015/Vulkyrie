@@ -12,12 +12,12 @@
 // }
 #endif
 
-#define CHECK_APPLICATION_STATUS(statusCode, message)         \
-    if (statusCode != Vkr::StatusCode::Successful)            \
-    {                                                         \
-        const char *spErrorTemplate = "Status Code: %i - %s"; \
-        VFATAL(spErrorTemplate, statusCode, message);         \
-        return to_underlying(statusCode);                     \
+#define CHECK_APPLICATION_STATUS(statusCode, message)       \
+    if (statusCode != Vkr::StatusCode::Successful)          \
+    {                                                       \
+        const char *spErrorTemplate = "Exit Code: %i - %s"; \
+        VFATAL(spErrorTemplate, statusCode, message);       \
+        return to_underlying(statusCode);                   \
     }
 
 std::shared_ptr<Vkr::Platform> GetPlatform()
