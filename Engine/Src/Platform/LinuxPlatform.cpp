@@ -29,7 +29,7 @@ namespace Vkr
         // Connect to X
         mpDisplay = XOpenDisplay(nullptr);
 
-        // Turn off key repeats.
+        // Turn key repeats off.
         XAutoRepeatOff(mpDisplay);
 
         // Retrieve the connection from the display.

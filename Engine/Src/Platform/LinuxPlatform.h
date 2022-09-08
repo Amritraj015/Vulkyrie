@@ -6,7 +6,7 @@
 
 namespace Vkr
 {
-    class LinuxPlatform : public Platform
+    class LinuxPlatform final : public Platform
     {
     private:
         bool mInitialized = false;

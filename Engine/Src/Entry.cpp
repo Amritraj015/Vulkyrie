@@ -20,26 +20,24 @@
         return to_underlying(statusCode);                   \
     }
 
-std::shared_ptr<Vkr::Platform> GetPlatform()
-{
+std::shared_ptr<Vkr::Platform> GetPlatform() {
 #if defined(VPLATFORM_LINUX)
-    return std::make_shared<Vkr::LinuxPlatform>();
+	return std::make_shared<Vkr::LinuxPlatform>();
 #elif defined(VPLATFORM_WINDOWS)
-    return std::make_shared<Vkr::PlatformWindows>();
+	return std::make_shared<Vkr::PlatformWindows>();
 #endif
 }
 
-int main(int argc, char **argv)
-{
-    auto appManager = std::make_unique<Vkr::ApplicationManager>(GetPlatform());
+int main(int argc, char **argv) {
+	auto appManager = std::make_unique<Vkr::ApplicationManager>(GetPlatform());
 
-    // Initialize the application.
-    Vkr::StatusCode statusCode = appManager->InitializeApplication(GetApplication());
-    CHECK_APPLICATION_STATUS(statusCode, "Failed to initialize the application!")
+	// Initialize the application.
+	Vkr::StatusCode statusCode = appManager->InitializeApplication(GetApplication());
+	CHECK_APPLICATION_STATUS(statusCode, "Failed to initialize the application!")
 
-    // Run the application.
-    statusCode = appManager->RunApplication();
-    CHECK_APPLICATION_STATUS(statusCode, "Application did not shutdown gracefully!")
+	// Run the application.
+	statusCode = appManager->RunApplication();
+	CHECK_APPLICATION_STATUS(statusCode, "Application did not shutdown gracefully!")
 
-    return to_underlying(Vkr::StatusCode::Successful);
+	return to_underlying(Vkr::StatusCode::Successful);
 }

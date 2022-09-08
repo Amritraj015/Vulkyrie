@@ -210,50 +210,29 @@ namespace Vkr
 
         VINFO("Creating logical device...")
         // NOTE: Do not create additional queues for shared indices.
-        bool presentSharesGraphicsQueue = mDevice.graphicsQueueIndex == mDevice.presentQueueIndex;
-        bool transferSharesGraphicsQueue = mDevice.graphicsQueueIndex == mDevice.transferQueueIndex;
+        // This is why std::set is being used on the following line.
+        std::unordered_set<i32> queueFamilyIndices = {mDevice.graphicsQueueIndex, mDevice.presentQueueIndex, mDevice.transferQueueIndex};
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        queueCreateInfos.reserve(queueFamilyIndices.size());
 
-        u32 indexCount = 1;
-        if (!presentSharesGraphicsQueue)
+        for (const auto &index : queueFamilyIndices)
         {
-            indexCount++;
-        }
-
-        if (!transferSharesGraphicsQueue)
-        {
-            indexCount++;
-        }
-
-        u32 indices[indexCount];
-        u8 index = 0;
-        indices[index++] = mDevice.graphicsQueueIndex;
-
-        if (!presentSharesGraphicsQueue)
-        {
-            indices[index++] = mDevice.presentQueueIndex;
-        }
-
-        if (!transferSharesGraphicsQueue)
-        {
-            indices[index++] = mDevice.transferQueueIndex;
-        }
-
-        VkDeviceQueueCreateInfo queueCreateInfos[indexCount];
-        for (u32 i = 0; i < indexCount; ++i)
-        {
-            queueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            queueCreateInfos[i].queueFamilyIndex = indices[i];
-            queueCreateInfos[i].queueCount = 1;
+            VkDeviceQueueCreateInfo info = {};
+            info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            info.queueFamilyIndex = index;
+            info.queueCount = 1;
 
             // TODO: Enable this for a future enhancement.
             // if (indices[i] == mDevice.graphicsQueueIndex) {
-            //     queueCreateInfos[i].queueCount = 2;
+            //     info.queueCount = 2;
             // }
 
-            queueCreateInfos[i].flags = 0;
-            queueCreateInfos[i].pNext = nullptr;
+            info.flags = 0;
+            info.pNext = nullptr;
             f32 queuePriority = 1.0f;
-            queueCreateInfos[i].pQueuePriorities = &queuePriority;
+            info.pQueuePriorities = &queuePriority;
+
+            queueCreateInfos.emplace_back(info);
         }
 
         // Request device features.
@@ -263,8 +242,8 @@ namespace Vkr
 
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.queueCreateInfoCount = indexCount;
-        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
+        deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         deviceCreateInfo.enabledExtensionCount = 1;
         const char *extensionNames[1] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -519,11 +498,8 @@ namespace Vkr
             // Query swapchain support.
             QuerySwapchainSupport(device);
 
-            if (mDevice.swapchainSupport.formatCount < 1 || mDevice.swapchainSupport.presentationCount < 1)
+            if (mDevice.swapchainSupport.formats.empty() || mDevice.swapchainSupport.presentModes.empty())
             {
-                mDevice.swapchainSupport.formats = nullptr;
-                mDevice.swapchainSupport.presentModes = nullptr;
-
                 VINFO("Required swapchain support not present, skipping device.")
                 return StatusCode::VulkanRequiredSwapchainNotSupported;
             }
@@ -581,23 +557,23 @@ namespace Vkr
         VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &mDevice.swapchainSupport.capabilities))
 
         // Surface formats
-        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &mDevice.swapchainSupport.formatCount, nullptr))
+        u32 formatCount = 0;
+        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr))
 
-        if (mDevice.swapchainSupport.formatCount != 0)
+        if (formatCount != 0)
         {
-            // mDevice.swapchainSupport.formats.reserve(formatsCount);
-            mDevice.swapchainSupport.formats = new VkSurfaceFormatKHR[mDevice.swapchainSupport.formatCount];
-            VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &mDevice.swapchainSupport.formatCount, mDevice.swapchainSupport.formats))
+            mDevice.swapchainSupport.formats.resize(formatCount);
+            VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, mDevice.swapchainSupport.formats.data()))
         }
 
         // Present modes
-        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &mDevice.swapchainSupport.presentationCount, nullptr))
+        u32 presentationCount = 0;
+        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentationCount, nullptr))
 
-        if (mDevice.swapchainSupport.presentationCount != 0)
+        if (presentationCount != 0)
         {
-            // mDevice.swapchainSupport.presentModes.reserve(mDevice.swapchainSupport.presentationCount);
-            mDevice.swapchainSupport.presentModes = new VkPresentModeKHR[mDevice.swapchainSupport.presentationCount];
-            VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &mDevice.swapchainSupport.presentationCount, mDevice.swapchainSupport.presentModes))
+            mDevice.swapchainSupport.presentModes.resize(presentationCount);
+            VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentationCount, mDevice.swapchainSupport.presentModes.data()))
         }
     }
 
@@ -626,8 +602,6 @@ namespace Vkr
         VINFO("Releasing physical device resources...")
         mDevice.physicalDevice = nullptr;
 
-        mDevice.swapchainSupport.formats = nullptr;
-        mDevice.swapchainSupport.presentModes = nullptr;
         mDevice.swapchainSupport.capabilities = {};
 
         mDevice.graphicsQueueIndex = -1;
@@ -675,12 +649,12 @@ namespace Vkr
 
         // Choose a swap surface format.
         bool found = false;
-        for (u32 i = 0; i < mDevice.swapchainSupport.formatCount; ++i)
+        for (const auto &f : mDevice.swapchainSupport.formats)
         {
             // Preferred formats
-            if (mDevice.swapchainSupport.formats[i].format == VK_FORMAT_B8G8R8A8_UNORM && mDevice.swapchainSupport.formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            if (f.format == VK_FORMAT_B8G8R8A8_UNORM && f.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
-                mSwapchain.imageFormat = mDevice.swapchainSupport.formats[i];
+                mSwapchain.imageFormat = f;
                 found = true;
                 break;
             }
@@ -692,11 +666,11 @@ namespace Vkr
         }
 
         VkPresentModeKHR presentationMode = VK_PRESENT_MODE_FIFO_KHR;
-        for (u32 i = 0; i < mDevice.swapchainSupport.presentationCount; ++i)
+        for (const auto &p : mDevice.swapchainSupport.presentModes)
         {
-            if (mDevice.swapchainSupport.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            if (p == VK_PRESENT_MODE_MAILBOX_KHR)
             {
-                presentationMode = mDevice.swapchainSupport.presentModes[i];
+                presentationMode = p;
                 break;
             }
         }
@@ -714,9 +688,9 @@ namespace Vkr
         VkExtent2D min = mDevice.swapchainSupport.capabilities.minImageExtent;
         VkExtent2D max = mDevice.swapchainSupport.capabilities.maxImageExtent;
         swapchainExtent.width = VCLAMP(swapchainExtent.width, min.width, max.width)
-                                    swapchainExtent.height = VCLAMP(swapchainExtent.height, min.height, max.height)
+		swapchainExtent.height = VCLAMP(swapchainExtent.height, min.height, max.height)
 
-            u32 image_count = mDevice.swapchainSupport.capabilities.minImageCount + 1;
+        u32 image_count = mDevice.swapchainSupport.capabilities.minImageCount + 1;
         if (mDevice.swapchainSupport.capabilities.maxImageCount > 0 && image_count > mDevice.swapchainSupport.capabilities.maxImageCount)
         {
             image_count = mDevice.swapchainSupport.capabilities.maxImageCount;
