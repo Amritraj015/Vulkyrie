@@ -126,7 +126,7 @@ namespace Vkr
         xcb_map_window(mConnection, mWindow);
 
         /* Make sure commands are sent before we pause so that the window gets shown */
-        int stream_result = xcb_flush(mConnection);
+        i32 stream_result = xcb_flush(mConnection);
 
         if (stream_result <= 0)
         {
@@ -296,11 +296,12 @@ namespace Vkr
 
     void LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
-        VkXcbSurfaceCreateInfoKHR createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-        createInfo.connection = mConnection;
-        createInfo.window = mWindow;
+        VkXcbSurfaceCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;	// Vulkan XCB Surface creation structure.
+        createInfo.connection = mConnection;								// Connection to the X-server.
+        createInfo.window = mWindow;										// A handle to the window.
 
+		// Ensure that the Surface is created successfully.
         VK_CHECK(vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface));
     }
 

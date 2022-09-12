@@ -10,8 +10,8 @@ namespace Vkr
         u8 maxFramesInFlight;
         VkSwapchainKHR handle;
         u32 imageCount;
-        VkImage *images;
-        VkImageView *views;
+        std::vector<VkImage> images;
+        std::vector<VkImageView> views;
         VulkanImage depthAttachment;
     };
 }

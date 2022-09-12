@@ -14,7 +14,7 @@ namespace Vkr
         [[nodiscard]] inline i32 GetYOffset() const { return mYOffset; }
         [[nodiscard]] inline bool GetDirection() const { return direction; }
 
-        [[nodiscard]] inline int GetCategoryFlags() const override
+        [[nodiscard]] inline i32 GetCategoryFlags() const override
         {
             return to_underlying(EventCategory::Mouse) | to_underlying(EventCategory::Input);
         }

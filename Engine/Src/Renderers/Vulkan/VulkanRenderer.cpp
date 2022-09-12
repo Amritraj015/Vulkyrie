@@ -2,6 +2,8 @@
 
 namespace Vkr
 {
+#define LOG_DONE VINFO("\tDone.")
+
     VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
@@ -17,18 +19,19 @@ namespace Vkr
     {
         // Information about the application.
         VkApplicationInfo appInfo = {};
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.apiVersion = VK_API_VERSION_1_3;
-        appInfo.pApplicationName = appName;
-        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = "Vulkyrie";
-        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;			// Vulkan Structure Type.
+        appInfo.apiVersion = VK_API_VERSION_1_3;					// Vulkan API version to use.
+        appInfo.pApplicationName = appName;							// Application Name.
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);		// Application Version.
+        appInfo.pEngineName = "Vulkyrie";							// Engine version.
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);			// Engine version.
 
         // Create vulkan instance.
         VkInstanceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;	// Vulkan Instance create info Structure type.
+        createInfo.pApplicationInfo = &appInfo;						// Application creation info.
 
+		// Required instance extensions.
         std::vector<const char *> instanceExtensions;
         instanceExtensions.reserve(3);
         instanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -38,27 +41,32 @@ namespace Vkr
         instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-        // Get all supported extensions.
+		// Supported extensions count.
         u32 extensionCount = 0;
+		// Get supported extension count.
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        VkExtensionProperties extensions[extensionCount];
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
+		// Initialize array to hols a list of supported instance extensions.
+		VkExtensionProperties extensions[extensionCount];
+		// Populate the array of supported instance extensions.
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 
+		// Check if required extensions are supported or not.
         for (const auto &reqExt : instanceExtensions)
         {
-            VDEBUG("Searching for required extension: %s", reqExt)
+            VDEBUG("Searching for required instance extension: %s.", reqExt)
             bool found = false;
 
             for (const auto &extension : extensions)
             {
                 if (strcmp(reqExt, extension.extensionName) == 0)
                 {
-                    VINFO("\tFound extension: %s", extension.extensionName)
                     found = true;
+					VINFO("\tFound.")
                     break;
                 }
             }
 
+			// Exit if required extensions are not supported.
             if (!found)
             {
                 VFATAL("Required extension is missing: %s", reqExt)
@@ -66,31 +74,32 @@ namespace Vkr
             }
         }
 
-        createInfo.enabledExtensionCount = instanceExtensions.size();
-        createInfo.ppEnabledExtensionNames = instanceExtensions.data();
+        createInfo.enabledExtensionCount = instanceExtensions.size();		// Enabled extension count.
+        createInfo.ppEnabledExtensionNames = instanceExtensions.data();		// Enabled extension names.
 
         // If validation should be done, get a list of the required validation layer names
         // and make sure they exist. Validation layers should only be enabled on non-release builds.
 
 #if defined(_DEBUG)
-        VDEBUG("Validation layers enabled. Enumerating...")
-
         // Validation layers.
-        // The list of validation layers required.
+        // The list of required validation layers for the engine.
         std::vector<const char *> requiredValidationLayerNames;
         requiredValidationLayerNames.reserve(1);
         requiredValidationLayerNames.emplace_back("VK_LAYER_KHRONOS_validation");
-        u32 availableLayersCount = 0;
 
-        // Obtain a list of available validation layers
+		// Available validation layer count.
+		u32 availableLayersCount = 0;
+        // Get the number of available validation layers.
         VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayersCount, nullptr))
-        VkLayerProperties availableLayers[availableLayersCount];
+        // Initialize an array to hold the validation layers.
+		VkLayerProperties availableLayers[availableLayersCount];
+		// Obtain a list of available validation layers;
         VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayersCount, availableLayers))
 
         // Verify all required layers are available.
         for (const auto &layer : requiredValidationLayerNames)
         {
-            VDEBUG("Searching for layer: %s...", layer)
+            VDEBUG("Searching for validation layer: %s.", layer)
             bool found = false;
 
             for (const auto &availableLayer : availableLayers)
@@ -98,11 +107,12 @@ namespace Vkr
                 if (strcmp(layer, availableLayer.layerName) == 0)
                 {
                     found = true;
-                    VINFO("\tFound layer: %s", layer)
+                    VINFO("\tFound.")
                     break;
                 }
             }
 
+			// Exit if required validation layers are not supported.
             if (!found)
             {
                 VFATAL("Required validation layer is missing: %s", layer)
@@ -110,18 +120,18 @@ namespace Vkr
             }
         }
 
-        createInfo.enabledLayerCount = requiredValidationLayerNames.size();
-        createInfo.ppEnabledLayerNames = requiredValidationLayerNames.data();
-
-        VDEBUG("All required validation layers are present.")
+        createInfo.enabledLayerCount = requiredValidationLayerNames.size();			// Enabled validation layer count.
+        createInfo.ppEnabledLayerNames = requiredValidationLayerNames.data();		// Enabled validation layer names.
 #endif
 
+		// Create Vulkan instance and ensure that it is created successfully.
+        VDEBUG("Creating Vulkan instance.")
         VK_CHECK(vkCreateInstance(&createInfo, mAllocator, &mInstance))
-        VDEBUG("Vulkan instance created successfully.")
+		LOG_DONE
 
         // Debugger
 #if defined(_DEBUG)
-        VDEBUG("Creating Vulkan debugger...")
+        VDEBUG("Creating Vulkan debugger.")
 
         u32 logSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -131,20 +141,22 @@ namespace Vkr
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
         debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         debugCreateInfo.messageSeverity = logSeverity;
-        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+				| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
+				| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
         debugCreateInfo.pfnUserCallback = VulkanDebugCallback;
 
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstance, "vkCreateDebugUtilsMessengerEXT");
 
         VASSERT_MSG(func, "Failed to create debug messenger!")
         VK_CHECK(func(mInstance, &debugCreateInfo, mAllocator, &mDebugMessenger))
-        VINFO("\tVulkan debugger created.")
+        LOG_DONE
 #endif
 
-        // Create Surface
+        // Create Vulkan Surface.
         VDEBUG("Creating Vulkan surface.")
         mPlatform->CreateVulkanSurface(&mInstance, mAllocator, &surface);
-        VDEBUG("Vulkan surface created.")
+        LOG_DONE
 
         // Create vulkan device.
         StatusCode statusCode = CreateLogicalDevice();
@@ -161,30 +173,33 @@ namespace Vkr
         // Destroy in the opposite order of creation.
 
         // Swapchain
-        VDEBUG("Destroying Swapchain...")
+        VDEBUG("Destroying Swapchain.")
         DestroySwapchain();
+		LOG_DONE
 
-        VDEBUG("Destroying Vulkan device...")
         DestroyDevice();
 
-        VDEBUG("Destroying Vulkan surface...")
-        if (surface)
+        if (surface != nullptr)
         {
+        	VDEBUG("Destroying Vulkan surface.")
             vkDestroySurfaceKHR(mInstance, surface, mAllocator);
             surface = nullptr;
+			LOG_DONE
         }
 
 #if defined(_DEBUG)
         if (mDebugMessenger)
         {
-            VDEBUG("Destroying Vulkan debugger...")
+            VDEBUG("Destroying Vulkan debugger.")
             auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstance, "vkDestroyDebugUtilsMessengerEXT");
             func(mInstance, mDebugMessenger, mAllocator);
+			LOG_DONE
         }
 #endif
 
-        VDEBUG("Destroying Vulkan instance...")
+        VDEBUG("Destroying Vulkan instance.")
         vkDestroyInstance(mInstance, mAllocator);
+		LOG_DONE
 
         return StatusCode::Successful;
     }
@@ -208,7 +223,7 @@ namespace Vkr
         StatusCode statusCode = SelectPhysicalDevice();
         ENSURE_SUCCESS(statusCode, "Failed to create device!")
 
-        VINFO("Creating logical device...")
+        VDEBUG("Creating logical device.")
         // NOTE: Do not create additional queues for shared indices.
         // This is why std::set is being used on the following line.
         std::unordered_set<i32> queueFamilyIndices = {mDevice.graphicsQueueIndex, mDevice.presentQueueIndex, mDevice.transferQueueIndex};
@@ -218,9 +233,9 @@ namespace Vkr
         for (const auto &index : queueFamilyIndices)
         {
             VkDeviceQueueCreateInfo info = {};
-            info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            info.queueFamilyIndex = index;
-            info.queueCount = 1;
+            info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;				// Queue creation structure.
+            info.queueFamilyIndex = index;											// Queue family index.
+            info.queueCount = 1;													// Queue count.
 
             // TODO: Enable this for a future enhancement.
             // if (indices[i] == mDevice.graphicsQueueIndex) {
@@ -238,16 +253,16 @@ namespace Vkr
         // Request device features.
         // TODO: should be config driven
         VkPhysicalDeviceFeatures deviceFeatures = {};
-        deviceFeatures.samplerAnisotropy = VK_TRUE; // Request anisotropy
+        deviceFeatures.samplerAnisotropy = VK_TRUE; 								// Request anisotropy
 
         VkDeviceCreateInfo deviceCreateInfo = {};
-        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
-        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-        deviceCreateInfo.enabledExtensionCount = 1;
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;				// Logical device creation structure.
+        deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();			// Queue create info count.
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();				// Queue create info.
+        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;						// Device features to enable.
+        deviceCreateInfo.enabledExtensionCount = 1;									// Enabled extensions count.
         const char *extensionNames[1] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-        deviceCreateInfo.ppEnabledExtensionNames = extensionNames;
+        deviceCreateInfo.ppEnabledExtensionNames = extensionNames;					// Enabled extension name.
 
         // Deprecated and ignored, so pass nothing.
         deviceCreateInfo.enabledLayerCount = 0;
@@ -255,34 +270,40 @@ namespace Vkr
 
         // Create logical device.
         VK_CHECK(vkCreateDevice(mDevice.physicalDevice, &deviceCreateInfo, mAllocator, &mDevice.logicalDevice))
-        VDEBUG("Logical device created.")
+        LOG_DONE
 
-        // Get queues.
+        // Get handles to queues.
+		VDEBUG("Obtaining handles to queues.")
         vkGetDeviceQueue(mDevice.logicalDevice, mDevice.graphicsQueueIndex, 0, &mDevice.graphicsQueue);
         vkGetDeviceQueue(mDevice.logicalDevice, mDevice.presentQueueIndex, 0, &mDevice.presentQueue);
         vkGetDeviceQueue(mDevice.logicalDevice, mDevice.transferQueueIndex, 0, &mDevice.transferQueue);
+		LOG_DONE
 
-        VDEBUG("Queues obtained.")
         return statusCode;
     }
 
     StatusCode VulkanRenderer::SelectPhysicalDevice()
     {
+		// Initialize a variable to hold number of available physical devices that support Vulkan.
         u32 physicalDeviceCount = 0;
+		// Get the number of physical devices that support Vulkan.
         VK_CHECK(vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr))
 
+		// If there are no physical devices that support Vulkan, then exit with failure.
         if (physicalDeviceCount == 0)
         {
             VFATAL("No devices which support Vulkan were found.")
             return StatusCode::VulkanNoDevicesWithVulkanSupport;
         }
 
+		// Else, initialize an array to hold the list of physical devices.
         VkPhysicalDevice physicalDevices[physicalDeviceCount];
+		// Get the list of supported physical devices.
         VK_CHECK(vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices))
 
         // TODO: These requirements should probably be driven by engine
         // configuration.
-        DeviceRequirements requirements = {};
+        DeviceRequirements requirements{};
         requirements.graphics = true;
         requirements.present = true;
         requirements.transfer = true;
@@ -293,57 +314,54 @@ namespace Vkr
         requirements.deviceExtensionNames.reserve(1);
         requirements.deviceExtensionNames.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
+		// Try to select the most appropriate device.
         for (const auto &device : physicalDevices)
         {
             VkPhysicalDeviceProperties properties;
-            vkGetPhysicalDeviceProperties(device, &properties);
+            vkGetPhysicalDeviceProperties(device, &properties);			// Get device physical properties.
 
             VkPhysicalDeviceFeatures features;
-            vkGetPhysicalDeviceFeatures(device, &features);
+            vkGetPhysicalDeviceFeatures(device, &features);					// Get physical device features.
 
             VkPhysicalDeviceMemoryProperties memory;
-            vkGetPhysicalDeviceMemoryProperties(device, &memory);
+            vkGetPhysicalDeviceMemoryProperties(device, &memory);	// Get memory information
 
-            QueueFamilyInfo queueInfo = {};
-            StatusCode statusCode = PhysicalDeviceMeetsRequirements(device, &properties, &features, &requirements, &queueInfo);
+            QueueFamilyInfo outQueueFamilyInfo{};
+			PhysicalDeviceInfo deviceInfo{};
+			deviceInfo.features = &features;
+			deviceInfo.properties = &properties;
+			deviceInfo.requirements = &requirements;
+
+			// Check if physical device meets requirements.
+            StatusCode statusCode = PhysicalDeviceMeetsRequirements(device, deviceInfo, &outQueueFamilyInfo);
 
             if (statusCode == StatusCode::Successful)
             {
-                VINFO("| Selected device:\t\t | %s \t|", properties.deviceName)
+#if defined(_DEBUG)
+                VDEBUG("Selected device: %s", properties.deviceName)
 
                 // GPU type, etc.
                 switch (properties.deviceType)
                 {
-                case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                    VINFO("| GPU type:\t\t\t | Unknown \t\t\t|")
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                    VINFO("| GPU type:\t\t\t | Integrated \t\t\t|")
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                    VINFO("| GPU type:\t\t\t | Discrete \t\t\t|")
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                    VINFO("| GPU type:\t\t\t | Virtual \t\t\t|")
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                    VINFO("| GPU type:\t\t\t | CPU \t\t\t|")
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
-                    VINFO("| GPU type:\t\t\t | Unknown \t\t\t|")
-                    break;
+					case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+						VINFO("\tGPU type: Integrated")
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+						VINFO("\tGPU type: Discrete")
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+						VINFO("\tGPU type: Virtual")
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_CPU:
+						VINFO("\tGPU type: CPU")
+						break;
+					default:
+						VINFO("\tGPU type: Unknown")
+						break;
                 }
 
-                VINFO("| GPU Driver version:\t\t | %d.%d.%d \t\t\t|",
-                      VK_VERSION_MAJOR(properties.driverVersion),
-                      VK_VERSION_MINOR(properties.driverVersion),
-                      VK_VERSION_PATCH(properties.driverVersion))
-
-                // Vulkan API version.
-                VINFO("| Vulkan API version:\t\t | %d.%d.%d \t\t\t|",
-                      VK_VERSION_MAJOR(properties.apiVersion),
-                      VK_VERSION_MINOR(properties.apiVersion),
-                      VK_VERSION_PATCH(properties.apiVersion))
+                VINFO("\tGPU Driver version: %d.%d.%d", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion))
+                VINFO("\tVulkan API version: %d.%d.%d", VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion))
 
                 // Memory information
                 for (u32 j = 0; j < memory.memoryHeapCount; ++j)
@@ -351,18 +369,19 @@ namespace Vkr
                     f32 memorySizeGib = (((f32)memory.memoryHeaps[j].size) / 1024.0f / 1024.0f / 1024.0f);
                     if (memory.memoryHeaps[j].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
                     {
-                        VINFO("| Local GPU memory:\t\t | %.2f GiB \t\t\t|", memorySizeGib)
+                        VINFO("\tLocal GPU memory: %.2f GiB", memorySizeGib)
                     }
                     else
                     {
-                        VINFO("| Shared System memory:\t | %.2f GiB \t\t\t|", memorySizeGib)
+                        VINFO("\tShared System memory: %.2f GiB", memorySizeGib)
                     }
                 }
+#endif
 
                 mDevice.physicalDevice = device;
-                mDevice.graphicsQueueIndex = queueInfo.graphicsFamilyIndex;
-                mDevice.presentQueueIndex = queueInfo.presentFamilyIndex;
-                mDevice.transferQueueIndex = queueInfo.transferFamilyIndex;
+                mDevice.graphicsQueueIndex = outQueueFamilyInfo.graphicsFamilyIndex;
+                mDevice.presentQueueIndex = outQueueFamilyInfo.presentFamilyIndex;
+                mDevice.transferQueueIndex = outQueueFamilyInfo.transferFamilyIndex;
                 // NOTE: set compute index here if needed.
 
                 // Keep a copy of properties, features and memory info for later use.
@@ -370,6 +389,8 @@ namespace Vkr
                 mDevice.features = features;
                 mDevice.memory = memory;
 
+				// We've found and selected a suitable device,
+				// Stop iterating over physical devices.
                 break;
             }
         }
@@ -384,27 +405,26 @@ namespace Vkr
         return StatusCode::Successful;
     }
 
-    StatusCode VulkanRenderer::PhysicalDeviceMeetsRequirements(
-        VkPhysicalDevice device,
-        const VkPhysicalDeviceProperties *properties,
-        const VkPhysicalDeviceFeatures *features,
-        const DeviceRequirements *requirements,
-        QueueFamilyInfo *outQueueFamilyInfo)
+    StatusCode VulkanRenderer::PhysicalDeviceMeetsRequirements(VkPhysicalDevice device, const PhysicalDeviceInfo &deviceInfo, QueueFamilyInfo *outQueueFamilyInfo)
     {
         // Discrete GPU?
-        if (requirements->discreteGpu)
+        if (deviceInfo.requirements->discreteGpu)
         {
-            if (properties->deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            if (deviceInfo.properties->deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
                 VINFO("Device is not a discrete GPU, and one is required. Skipping.")
                 return StatusCode::VulkanDiscreteGpuRequired;
             }
         }
 
+		// Initialize variable to hold queue family count.
         u32 queueFamilyCount = 0;
+		// Get queue family count.
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-        VkQueueFamilyProperties queueFamilies[queueFamilyCount];
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
+        // Initialize queue supported families array.
+		VkQueueFamilyProperties queueFamilies[queueFamilyCount];
+        // Get supported queue families.
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
 
         // Look at each queue and see what queues it supports
         VINFO("Graphics | Present | Compute | Transfer | Name")
@@ -452,8 +472,7 @@ namespace Vkr
         }
 
         // If a present queue hasn't been found, iterate again and take the first one.
-        // This should only happen if there is a queue that supports graphics but NOT
-        // present.
+        // This should only happen if there is a queue that supports graphics but NOT present.
         if (outQueueFamilyInfo->presentFamilyIndex == -1)
         {
             for (i32 i = 0; i < queueFamilyCount; ++i)
@@ -464,8 +483,7 @@ namespace Vkr
                 {
                     outQueueFamilyInfo->presentFamilyIndex = i;
 
-                    // If they differ, bleat about it and move on. This is just here for troubleshooting
-                    // purposes.
+                    // If they differ, bleat about it and move on. This is just here for troubleshooting purposes.
                     if (outQueueFamilyInfo->presentFamilyIndex != outQueueFamilyInfo->graphicsFamilyIndex)
                     {
                         VWARN("Warning: Different queue index used for present vs graphics: %u.", i)
@@ -481,19 +499,19 @@ namespace Vkr
               outQueueFamilyInfo->presentFamilyIndex != -1,
               outQueueFamilyInfo->computeFamilyIndex != -1,
               outQueueFamilyInfo->transferFamilyIndex != -1,
-              properties->deviceName)
+			  deviceInfo.properties->deviceName)
 
         if (
-            (!requirements->graphics || (requirements->graphics && outQueueFamilyInfo->graphicsFamilyIndex != -1)) &&
-            (!requirements->present || (requirements->present && outQueueFamilyInfo->presentFamilyIndex != -1)) &&
-            (!requirements->compute || (requirements->compute && outQueueFamilyInfo->computeFamilyIndex != -1)) &&
-            (!requirements->transfer || (requirements->transfer && outQueueFamilyInfo->transferFamilyIndex != -1)))
+				(!deviceInfo.requirements->graphics || (deviceInfo.requirements->graphics && outQueueFamilyInfo->graphicsFamilyIndex != -1)) &&
+				(!deviceInfo.requirements->present || (deviceInfo.requirements->present && outQueueFamilyInfo->presentFamilyIndex != -1)) &&
+				(!deviceInfo.requirements->compute || (deviceInfo.requirements->compute && outQueueFamilyInfo->computeFamilyIndex != -1)) &&
+				(!deviceInfo.requirements->transfer || (deviceInfo.requirements->transfer && outQueueFamilyInfo->transferFamilyIndex != -1)))
         {
-            VINFO("| Device meets queue requirements.\t|")
-            VTRACE("| Graphics Family Index:\t| %i \t|", outQueueFamilyInfo->graphicsFamilyIndex)
-            VTRACE("| Present Family Index:\t| %i \t|", outQueueFamilyInfo->presentFamilyIndex)
-            VTRACE("| Transfer Family Index:\t| %i \t|", outQueueFamilyInfo->transferFamilyIndex)
-            VTRACE("| Compute Family Index:\t| %i \t|", outQueueFamilyInfo->computeFamilyIndex)
+            VINFO("Device meets queue requirements.")
+            VINFO("\tGraphics Family Index: %i", outQueueFamilyInfo->graphicsFamilyIndex)
+            VINFO("\tPresent Family Index: %i", outQueueFamilyInfo->presentFamilyIndex)
+            VINFO("\tTransfer Family Index: %i", outQueueFamilyInfo->transferFamilyIndex)
+            VINFO("\tCompute Family Index: %i", outQueueFamilyInfo->computeFamilyIndex)
 
             // Query swapchain support.
             QuerySwapchainSupport(device);
@@ -505,7 +523,7 @@ namespace Vkr
             }
 
             // Device extensions.
-            if (!requirements->deviceExtensionNames.empty())
+            if (!deviceInfo.requirements->deviceExtensionNames.empty())
             {
                 u32 availableExtensionCount = 0;
                 VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &availableExtensionCount, nullptr))
@@ -515,7 +533,7 @@ namespace Vkr
                     VkExtensionProperties availableExtensions[availableExtensionCount];
                     VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &availableExtensionCount, availableExtensions))
 
-                    for (const auto &devExtName : requirements->deviceExtensionNames)
+                    for (const auto &devExtName : deviceInfo.requirements->deviceExtensionNames)
                     {
                         bool found = false;
 
@@ -538,7 +556,7 @@ namespace Vkr
             }
 
             // Sampler anisotropy
-            if (requirements->samplerAnisotropy && !features->samplerAnisotropy)
+            if (deviceInfo.requirements->samplerAnisotropy && !deviceInfo.features->samplerAnisotropy)
             {
                 VINFO("Device does not support samplerAnisotropy, skipping.")
                 return StatusCode::VulkanSamplerAnisotropyNotSupported;
@@ -584,26 +602,24 @@ namespace Vkr
         mDevice.presentQueue = nullptr;
         mDevice.transferQueue = nullptr;
 
-        // VINFO("Destroying command pools...");
+        // VINFO("Destroying command pools.");
         // vkDestroyCommandPool(
         //     mDevice.logicalDevice,
         //     mDevice.graphics_command_pool,
         //     mAllocator);
 
         // Destroy logical device
-        VINFO("Destroying logical device...")
         if (mDevice.logicalDevice != nullptr)
         {
+        	VDEBUG("Destroying logical device.")
             vkDestroyDevice(mDevice.logicalDevice, mAllocator);
             mDevice.logicalDevice = nullptr;
+			LOG_DONE
         }
 
         // Physical devices are not destroyed.
-        VINFO("Releasing physical device resources...")
         mDevice.physicalDevice = nullptr;
-
         mDevice.swapchainSupport.capabilities = {};
-
         mDevice.graphicsQueueIndex = -1;
         mDevice.presentQueueIndex = -1;
         mDevice.transferQueueIndex = -1;
@@ -644,6 +660,7 @@ namespace Vkr
 
     void VulkanRenderer::CreateSwapchain(u32 width, u32 height)
     {
+		VDEBUG("Creating swapchain.")
         VkExtent2D swapchainExtent = {width, height};
         mSwapchain.maxFramesInFlight = 2;
 
@@ -690,24 +707,28 @@ namespace Vkr
         swapchainExtent.width = VCLAMP(swapchainExtent.width, min.width, max.width)
 		swapchainExtent.height = VCLAMP(swapchainExtent.height, min.height, max.height)
 
-        u32 image_count = mDevice.swapchainSupport.capabilities.minImageCount + 1;
-        if (mDevice.swapchainSupport.capabilities.maxImageCount > 0 && image_count > mDevice.swapchainSupport.capabilities.maxImageCount)
+        u32 imageCount = mDevice.swapchainSupport.capabilities.minImageCount + 1;
+        if (mDevice.swapchainSupport.capabilities.maxImageCount > 0 && imageCount > mDevice.swapchainSupport.capabilities.maxImageCount)
         {
-            image_count = mDevice.swapchainSupport.capabilities.maxImageCount;
+			imageCount = mDevice.swapchainSupport.capabilities.maxImageCount;
         }
 
         // Swapchain create info
-        VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+        VkSwapchainCreateInfoKHR swapchainCreateInfo{};
         swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchainCreateInfo.surface = surface;
-        swapchainCreateInfo.minImageCount = image_count;
-        swapchainCreateInfo.imageFormat = mSwapchain.imageFormat.format;
-        swapchainCreateInfo.imageColorSpace = mSwapchain.imageFormat.colorSpace;
-        swapchainCreateInfo.imageExtent = swapchainExtent;
-        swapchainCreateInfo.imageArrayLayers = 1;
-        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainCreateInfo.surface = surface;														// Swapchain surface.
+        swapchainCreateInfo.minImageCount = imageCount;												// Minimum images in the swapchain.
+        swapchainCreateInfo.imageFormat = mSwapchain.imageFormat.format;							// Swapchain format.
+        swapchainCreateInfo.imageColorSpace = mSwapchain.imageFormat.colorSpace;					// Swapchain color space
+        swapchainCreateInfo.imageExtent = swapchainExtent;											// Swapchain image extents.
+        swapchainCreateInfo.imageArrayLayers = 1;													// Number of extensions used by each image in the chain.
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;						// What attachment image will be used as.
+		swapchainCreateInfo.preTransform = mDevice.swapchainSupport.capabilities.currentTransform;	// Transform to perform on swapchain images.
+		swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;						// How to handle blending images withe external graphics (e.g. other windows.)
+		swapchainCreateInfo.presentMode = presentationMode;											// Swapchain presentation mode.
+		swapchainCreateInfo.clipped = VK_TRUE;														// Whether to clip parts of images tat are behind other windows.
 
-        // Set up the queue family indices
+		// Set up the queue family indices
         if (mDevice.graphicsQueueIndex != mDevice.presentQueueIndex)
         {
             u32 queueFamilyIndices[] = {
@@ -715,9 +736,9 @@ namespace Vkr
                 (u32)mDevice.presentQueueIndex,
             };
 
-            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            swapchainCreateInfo.queueFamilyIndexCount = 2;
-            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;						// Image share handling.
+            swapchainCreateInfo.queueFamilyIndexCount = 2;											// Number of queues to share images between.
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;							// Array of queues to share images between.
         }
         else
         {
@@ -726,13 +747,11 @@ namespace Vkr
             swapchainCreateInfo.pQueueFamilyIndices = nullptr;
         }
 
-        swapchainCreateInfo.preTransform = mDevice.swapchainSupport.capabilities.currentTransform;
-        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        swapchainCreateInfo.presentMode = presentationMode;
-        swapchainCreateInfo.clipped = VK_TRUE;
-        swapchainCreateInfo.oldSwapchain = nullptr;
+		// If old swapchain has been destroyed and this one replaces it,
+		// then link the old one to quickly hand over responsibilities.
+		swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        VK_CHECK(vkCreateSwapchainKHR(mDevice.logicalDevice, &swapchainCreateInfo, mAllocator, &mSwapchain.handle))
+		VK_CHECK(vkCreateSwapchainKHR(mDevice.logicalDevice, &swapchainCreateInfo, mAllocator, &mSwapchain.handle))
 
         // Start with a zero frame index.
         mCurrentFrame = 0;
@@ -742,24 +761,24 @@ namespace Vkr
 
         VK_CHECK(vkGetSwapchainImagesKHR(mDevice.logicalDevice, mSwapchain.handle, &mSwapchain.imageCount, nullptr))
 
-        mSwapchain.images = new VkImage[mSwapchain.imageCount];
-        mSwapchain.views = new VkImageView[mSwapchain.imageCount];
+        mSwapchain.images.resize(mSwapchain.imageCount);
+        mSwapchain.views.resize(mSwapchain.imageCount);
 
-        VK_CHECK(vkGetSwapchainImagesKHR(mDevice.logicalDevice, mSwapchain.handle, &mSwapchain.imageCount, mSwapchain.images))
+        VK_CHECK(vkGetSwapchainImagesKHR(mDevice.logicalDevice, mSwapchain.handle, &mSwapchain.imageCount, mSwapchain.images.data()))
 
         // Views
         for (u32 i = 0; i < mSwapchain.imageCount; ++i)
         {
             VkImageViewCreateInfo viewInfo = {};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = mSwapchain.images[i];
-            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewInfo.format = mSwapchain.imageFormat.format;
-            viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            viewInfo.subresourceRange.baseMipLevel = 0;
-            viewInfo.subresourceRange.levelCount = 1;
-            viewInfo.subresourceRange.baseArrayLayer = 0;
-            viewInfo.subresourceRange.layerCount = 1;
+            viewInfo.image = mSwapchain.images[i];										// Image to create view for.
+            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;									// TYpe of image for e.g. 1D, 2D, 3D etc.
+            viewInfo.format = mSwapchain.imageFormat.format;							// Format of the image data.
+            viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;			// Which aspect of image to view.
+            viewInfo.subresourceRange.baseMipLevel = 0;									// Start mipmap level to view from.
+            viewInfo.subresourceRange.levelCount = 1;									// Number of mipmap levels to view.
+            viewInfo.subresourceRange.baseArrayLayer = 0;								// Start array levels to view from.
+            viewInfo.subresourceRange.layerCount = 1;									// Number of array levels to view.
 
             VK_CHECK(vkCreateImageView(mDevice.logicalDevice, &viewInfo, mAllocator, &mSwapchain.views[i]))
         }
@@ -772,19 +791,19 @@ namespace Vkr
         }
 
         // Create depth image and its view.
-        CreateImage(
-            VK_IMAGE_TYPE_2D,
-            swapchainExtent.width,
-            swapchainExtent.height,
-            mDevice.depthFormat,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            true,
-            VK_IMAGE_ASPECT_DEPTH_BIT,
-            &mSwapchain.depthAttachment);
+		ImageInfo imageInfo{};
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.width = swapchainExtent.width;
+		imageInfo.height = swapchainExtent.height;
+		imageInfo.format = mDevice.depthFormat;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageInfo.memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		imageInfo.createView = true;
+		imageInfo.viewAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+        CreateImage(imageInfo, &mSwapchain.depthAttachment);
 
-        VINFO("Swapchain created successfully.")
+        LOG_DONE
     }
 
     void VulkanRenderer::RecreateSwapchain(u32 width, u32 height)
@@ -855,38 +874,27 @@ namespace Vkr
         vkDestroySwapchainKHR(mDevice.logicalDevice, mSwapchain.handle, mAllocator);
     }
 
-    void VulkanRenderer::CreateImage(
-        VkImageType imageType,
-        u32 width,
-        u32 height,
-        VkFormat format,
-        VkImageTiling tiling,
-        VkImageUsageFlags usage,
-        VkMemoryPropertyFlags memoryFlags,
-        bool createView,
-        VkImageAspectFlags viewAspectFlags,
-        VulkanImage *outImage)
+    void VulkanRenderer::CreateImage(const ImageInfo &imageInfo, VulkanImage *outImage)
     {
-
         // Copy params
-        outImage->width = width;
-        outImage->height = height;
+        outImage->width = imageInfo.width;
+        outImage->height = imageInfo.height;
 
         // Creation info.
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.extent.width = width;
-        imageCreateInfo.extent.height = height;
-        imageCreateInfo.extent.depth = 1; // TODO: Support configurable depth.
-        imageCreateInfo.mipLevels = 4;    // TODO: Support mip mapping
-        imageCreateInfo.arrayLayers = 1;  // TODO: Support number of layers in the image.
-        imageCreateInfo.format = format;
-        imageCreateInfo.tiling = tiling;
+        imageCreateInfo.extent.width = imageInfo.width;
+        imageCreateInfo.extent.height = imageInfo.height;
+        imageCreateInfo.extent.depth = 1; 								// TODO: Support configurable depth.
+        imageCreateInfo.mipLevels = 4;    								// TODO: Support mip mapping
+        imageCreateInfo.arrayLayers = 1;  								// TODO: Support number of layers in the image.
+        imageCreateInfo.format = imageInfo.format;
+        imageCreateInfo.tiling = imageInfo.tiling;
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageCreateInfo.usage = usage;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;         // TODO: Configurable sample count.
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // TODO: Configurable sharing mode.
+        imageCreateInfo.usage = imageInfo.usage;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;         		// TODO: Configurable sample count.
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; 		// TODO: Configurable sharing mode.
 
         VK_CHECK(vkCreateImage(mDevice.logicalDevice, &imageCreateInfo, mAllocator, &outImage->handle))
 
@@ -894,7 +902,7 @@ namespace Vkr
         VkMemoryRequirements memoryRequirements;
         vkGetImageMemoryRequirements(mDevice.logicalDevice, outImage->handle, &memoryRequirements);
 
-        i32 memoryType = FindMemoryIndex(memoryRequirements.memoryTypeBits, memoryFlags);
+        i32 memoryType = FindMemoryIndex(memoryRequirements.memoryTypeBits, imageInfo.memoryFlags);
         if (memoryType == -1)
         {
             VERROR("Required memory type not found. Image not valid.")
@@ -910,10 +918,10 @@ namespace Vkr
         VK_CHECK(vkBindImageMemory(mDevice.logicalDevice, outImage->handle, outImage->memory, 0)) // TODO: configurable memory offset.
 
         // Create view
-        if (createView)
+        if (imageInfo.createView)
         {
             outImage->view = nullptr;
-            CreateImageView(format, outImage, viewAspectFlags);
+            CreateImageView(imageInfo.format, outImage, imageInfo.viewAspectFlags);
         }
     }
 
@@ -972,7 +980,19 @@ namespace Vkr
         return -1;
     }
 
-    VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
+	void VulkanRenderer::CreateGraphicsPipeline() {
+		auto vertexShaderCode = readFile("/");
+		auto fragmentShaderCode = readFile("/");
+
+		// Build Shader module to link to the graphics pipeline.
+
+	}
+
+	void VulkanRenderer::CreateShaderModule(const std::vector<char> &code) {
+
+	}
+
+	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
         const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
@@ -980,20 +1000,21 @@ namespace Vkr
     {
         switch (messageSeverity)
         {
-        default:
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            VERROR(callbackData->pMessage)
-            break;
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            VWARN(callbackData->pMessage)
-            break;
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            VINFO(callbackData->pMessage)
-            break;
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            VTRACE(callbackData->pMessage)
-            break;
-        }
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+				VERROR(callbackData->pMessage)
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+				VWARN(callbackData->pMessage)
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+				VINFO(callbackData->pMessage)
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+				VTRACE(callbackData->pMessage)
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+				break;
+		}
 
         return VK_FALSE;
     }

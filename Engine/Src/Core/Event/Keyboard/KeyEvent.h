@@ -12,7 +12,7 @@ namespace Vkr
     public:
         KeyEvent(Key keycode, bool pressed) : keycode(keycode), pressed(pressed) {}
 
-        [[nodiscard]] inline int GetCategoryFlags() const override
+        [[nodiscard]] inline i32 GetCategoryFlags() const override
         {
             return to_underlying(EventCategory::Keyboard) | to_underlying(EventCategory::Input);
         }

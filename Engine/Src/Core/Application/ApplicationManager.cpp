@@ -52,29 +52,29 @@ namespace Vkr
     {
         StatusCode statusCode = Logger::InitializeLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while initializing the logging system.")
-
-        statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(ApplicationManager::OnKeyPress));
+		
+		statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyPressed` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::KeyReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
+		statusCode = EventSystemManager::RegisterEvent(EventType::KeyReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyReleased` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
+		statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseButtonPressed` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
+		statusCode = EventSystemManager::RegisterEvent(EventType::MouseButtonReleased, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseButtonPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseButtonReleased` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseScrolled, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseScrolled));
+		statusCode = EventSystemManager::RegisterEvent(EventType::MouseScrolled, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseScrolled));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseScrolled` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseMoved));
+		statusCode = EventSystemManager::RegisterEvent(EventType::MouseMoved, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnMouseMoved));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `MouseMoved` event.")
 
-        statusCode = EventSystemManager::RegisterEvent(EventType::WindowClose, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnWindowClose));
+		statusCode = EventSystemManager::RegisterEvent(EventType::WindowClose, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnWindowClose));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `WindowClose` event.")
 
-        statusCode = mPlatform->CreateNewWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
+		statusCode = mPlatform->CreateNewWindow(mpApp->name, mpApp->startX, mpApp->startY, mpApp->width, mpApp->height);
         ENSURE_SUCCESS(statusCode, "Error occurred while initializing platform.")
 
         // Renderer startup

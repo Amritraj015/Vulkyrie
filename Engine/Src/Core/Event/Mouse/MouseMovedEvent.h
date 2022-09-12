@@ -13,7 +13,7 @@ namespace Vkr
         [[nodiscard]] inline i32 GetX() const { return mMouseX; }
         [[nodiscard]] inline i32 GetY() const { return mMouseY; }
 
-        [[nodiscard]] inline int GetCategoryFlags() const override
+        [[nodiscard]] inline i32 GetCategoryFlags() const override
         {
             return to_underlying(EventCategory::Mouse) | to_underlying(EventCategory::Input);
         }

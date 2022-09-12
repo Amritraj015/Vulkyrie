@@ -16,10 +16,6 @@ typedef signed long long i64;
 typedef float f32;
 typedef double f64;
 
-// Boolean types
-typedef int b32;
-typedef char b8;
-
 // Properly define static assertions.
 #if defined(__clang__) || defined(__gcc__)
 #define STATIC_ASSERT _Static_assert
@@ -44,7 +40,6 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define VPLATFORM_WINDOWS 1
-
 #include <windows.h>
 #include <windowsx.h> // param input extraction
 
@@ -55,8 +50,7 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 // Linux OS
 #define VPLATFORM_LINUX 1
 
-
-// For surface creation
+// For Vulkan surface creation
 #define VK_USE_PLATFORM_XCB_KHR
 // #define VK_USE_PLATFORM_WAYLAND_KHR
 
@@ -88,13 +82,14 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 // Apple platforms
 #define VPLATFORM_APPLE 1
 #include <TargetConditionals.h>
+
 #if TARGET_IPHONE_SIMULATOR
 // iOS Simulator
 #define VPLATFORM_IOS 1
 #define VPLATFORM_IOS_SIMULATOR 1
 #elif TARGET_OS_IPHONE
-#define VPLATFORM_IOS 1
 // iOS device
+#define VPLATFORM_IOS 1
 #elif TARGET_OS_MAC
 // Other kinds of Mac OS
 #else
@@ -120,8 +115,6 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #endif
 #endif
 
-// #include <stdlib.h>
-// #include <stdio.h>
 #include <cstring>
 #include <cstdarg>
 

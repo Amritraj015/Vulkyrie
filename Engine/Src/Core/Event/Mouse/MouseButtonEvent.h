@@ -11,7 +11,7 @@ namespace Vkr
         MouseButtonEvent(const MouseButton button, const bool pressed, const i32 mouseX, const i32 mouseY)
             : mButton(button), pressed(pressed), mMouseX(mouseX), mMouseY(mouseY) {}
 
-        [[nodiscard]] inline int GetCategoryFlags() const override
+        [[nodiscard]] inline i32 GetCategoryFlags() const override
         {
             return to_underlying(EventCategory::Mouse) | to_underlying(EventCategory::Input) | to_underlying(EventCategory::MouseButton);
         }

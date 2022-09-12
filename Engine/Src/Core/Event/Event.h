@@ -12,6 +12,6 @@ namespace Vkr
         bool handled = false;
 
         [[nodiscard]] virtual EventType GetEventType() const = 0;
-        [[nodiscard]] virtual int GetCategoryFlags() const = 0;
+        [[nodiscard]] virtual i32 GetCategoryFlags() const = 0;
     };
 }

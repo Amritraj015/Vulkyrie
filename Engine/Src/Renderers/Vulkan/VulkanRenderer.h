@@ -4,6 +4,8 @@
 #include "QueueFamilyInfo.h"
 #include "DeviceRequirements.h"
 #include "VulkanSwapchain.h"
+#include "ImageInfo.h"
+#include "PhysicalDeviceInfo.h"
 #include "Platform/Platform.h"
 
 namespace Vkr
@@ -11,7 +13,7 @@ namespace Vkr
     class VulkanRenderer : public Renderer
     {
     public:
-        VulkanRenderer(const std::shared_ptr<Platform> &platform);
+        explicit VulkanRenderer(const std::shared_ptr<Platform> &platform);
         DESTRUCTOR_LOG(VulkanRenderer);
 
         StatusCode Initialize(const char *appName) override;
@@ -20,21 +22,19 @@ namespace Vkr
         StatusCode BeginFrame(f32 deltaTime) override;
         StatusCode EndFrame(f32 deltaTime) override;
 
-        inline VkInstance GetInstance() const { return mInstance; }
-        inline VkAllocationCallbacks *GetAllocator() const { return mAllocator; }
 
     private:
-        std::shared_ptr<Platform> mPlatform; // Underlying platform instance.
-        VkSurfaceKHR surface{};              // Vulkan Surface KHR
-        VkInstance mInstance{};              // Vulkan Instance
-        VkAllocationCallbacks *mAllocator{}; // Custom memory allocator
-        VulkanDevice mDevice;                // Vulkan Devices metadata
-        VulkanSwapchain mSwapchain{};        // Vulkan swapchain metadata.
-        u32 mFrameBufferWidth{};             // The frame-buffer's current width.
-        u32 mFrameBufferHeight{};            // The frame-buffer's current height.
+        std::shared_ptr<Platform> mPlatform; 		// Underlying platform instance.
+        VkSurfaceKHR surface{};              		// Vulkan Surface KHR
+        VkInstance mInstance{};              		// Vulkan Instance
+        VkAllocationCallbacks *mAllocator{}; 		// Custom memory allocator
+        VulkanDevice mDevice;                		// Vulkan Devices metadata
+        VulkanSwapchain mSwapchain{};        		// Vulkan swapchain metadata.
+        u32 mFrameBufferWidth{};             		// The frame-buffer's current width.
+        u32 mFrameBufferHeight{};            		// The frame-buffer's current height.
         u32 mImageIndex{};
         u32 mCurrentFrame{};
-        i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
+        [[nodiscard]] i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
 #if defined(_DEBUG)
         VkDebugUtilsMessengerEXT mDebugMessenger{};
@@ -42,13 +42,7 @@ namespace Vkr
 
         StatusCode CreateLogicalDevice();
         StatusCode SelectPhysicalDevice();
-
-        StatusCode PhysicalDeviceMeetsRequirements(
-            VkPhysicalDevice device,
-            const VkPhysicalDeviceProperties *properties,
-            const VkPhysicalDeviceFeatures *features,
-            const DeviceRequirements *requirements,
-            QueueFamilyInfo *outQueueFamilyInfo);
+        StatusCode PhysicalDeviceMeetsRequirements(VkPhysicalDevice device, const PhysicalDeviceInfo &deviceInfo, QueueFamilyInfo *outQueueFamilyInfo);
 
         void QuerySwapchainSupport(VkPhysicalDevice physicalDevice);
         StatusCode DestroyDevice();
@@ -60,18 +54,11 @@ namespace Vkr
         void Present(VkSemaphore renderCompleteSemaphore, u32 presentImageIndex);
         void DestroySwapchain();
 
-        void CreateImage(
-            VkImageType imageType,
-            u32 width,
-            u32 height,
-            VkFormat format,
-            VkImageTiling tiling,
-            VkImageUsageFlags usage,
-            VkMemoryPropertyFlags memoryFlags,
-            bool createView,
-            VkImageAspectFlags viewAspectFlags,
-            VulkanImage *outImage);
+        void CreateImage(const ImageInfo &imageInfo, VulkanImage *outImage);
         void CreateImageView(VkFormat format, VulkanImage *image, VkImageAspectFlags aspectFlags);
         void DestroyImage(VulkanImage *image);
+
+		void CreateGraphicsPipeline();
+		void CreateShaderModule(const std::vector<char> &code);
     };
 }
