@@ -52,7 +52,7 @@ namespace Vkr
     {
         StatusCode statusCode = Logger::InitializeLogging();
         ENSURE_SUCCESS(statusCode, "An error occurred while initializing the logging system.")
-		
+
 		statusCode = EventSystemManager::RegisterEvent(EventType::KeyPressed, ListenerType::Application, BIND_CALLBACK_FUNCTION(OnKeyPress));
         ENSURE_SUCCESS(statusCode, "An error occurred while registering `KeyPressed` event.")
 

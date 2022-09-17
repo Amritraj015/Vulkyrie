@@ -9,8 +9,7 @@
 
 #define BIT(x) (1 << x)
 
-#define VCLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max \
-                                                                      : value;
+#define VCLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max : value;
 
 // NOTE: DO NOT PASS FUNCTIONS into this macro or else it "could" get executed multiple times.
 #define ENSURE_SUCCESS(statusCode, message, ...) \
@@ -35,7 +34,7 @@ constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept
     return static_cast<typename std::underlying_type<E>::type>(e);
 }
 
-static std::vector<char> readFile(const std::string &fileName) {
+static std::vector<char> ReadFile(const std::string &fileName) {
 	// Open file stream.
 	// std::ios::binary tells stream to read file as binary.
 	// std::ios::ate tells stream to start reading from the end of the file.

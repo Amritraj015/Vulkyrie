@@ -137,13 +137,19 @@ namespace Vkr
         return (f64)nowTime.QuadPart * mClockFrequency;
     }
 
-    void PlatformWindows::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
+    StatusCode PlatformWindows::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
         VkWin32SurfaceCreateInfoKHR createInfo = {VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR};
         createInfo.hinstance = mHInstance;
         createInfo.hwnd = mHwnd;
 
-        VK_CHECK(vkCreateWin32SurfaceKHR(*instance, &createInfo, allocator, surface))
+        VkResult result = vkCreateWin32SurfaceKHR(*instance, &createInfo, allocator, surface);
+
+		if (result != VK_SUCCESS) {
+			return StatusCode::VulkanFailedToCreateWindowsSurface;
+		}
+
+		return StatusCode::SuccessFul;
     }
 
     void PlatformWindows::AddRequiredVulkanExtensions(std::vector<const char *> &extensions)

@@ -38,7 +38,7 @@ namespace Vkr
 
         void AddRequiredVulkanExtensions(std::vector<const char *> &extensions) override;
 
-        void CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
+        StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
     };
 }
 

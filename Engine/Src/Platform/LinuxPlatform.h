@@ -33,7 +33,7 @@ namespace Vkr
         f64 GetAbsoluteTime() override;
         void SleepForDuration(u64 duration) override;
         void AddRequiredVulkanExtensions(std::vector<const char *> &extensions) override;
-        void CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
+		StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) override;
     };
 }
 

@@ -294,7 +294,7 @@ namespace Vkr
         extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
     }
 
-    void LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
+    StatusCode LinuxPlatform::CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface)
     {
         VkXcbSurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;	// Vulkan XCB Surface creation structure.
@@ -302,8 +302,13 @@ namespace Vkr
         createInfo.window = mWindow;										// A handle to the window.
 
 		// Ensure that the Surface is created successfully.
-        VK_CHECK(vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface));
-    }
+        VkResult result = vkCreateXcbSurfaceKHR(*instance, &createInfo, allocator, surface);
+    	if (result != VK_SUCCESS) {
+			return StatusCode::VulkanFailedToCreateXcbSurface;
+		}
+
+		return StatusCode::Successful;
+	}
 
     f64 LinuxPlatform::GetAbsoluteTime()
     {

@@ -46,9 +46,9 @@ namespace Vkr
          * Creates Vulkan surface.
          * @param renderer A pointer to the vulkan renderer.
          */
-        virtual void CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) = 0;
+        virtual StatusCode CreateVulkanSurface(VkInstance *instance, VkAllocationCallbacks *allocator, VkSurfaceKHR *surface) = 0;
 
     protected:
-        Platform() {}
+        Platform() = default;
     };
 }
