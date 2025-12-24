@@ -3,10 +3,11 @@
 #include <vulkyrie.h>
 
 namespace Pong {
-    class PongApplication : public Vulkyrie::Core::VulkyrieApplication {
+    class PongApplication : public Vulkyrie::Core::Application {
         public:
-            PongApplication(Vulkyrie::Core::VulkyrieWindowProps windowProps, Vulkyrie::Core::VulkyrieAppConfig config) 
-                : Vulkyrie::Core::VulkyrieApplication(windowProps, config) { }
+            PongApplication(Vulkyrie::Core::WindowProps windowProps, Vulkyrie::Core::ApplicationConfig config)
+                : Vulkyrie::Core::Application(windowProps, config) {
+            }
 
             ~PongApplication() override = default;
 

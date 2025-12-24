@@ -1,24 +1,20 @@
 #pragma once
 
 #include "core/status_codes.h"
-#include "core/vulkyrie_application.h"
+#include "core/application.h"
 #include "platform_base.h"
 
 namespace Vulkyrie::Platform {
-    using Vulkyrie::Core::VulkyrieApplication;
-    using Vulkyrie::Core::StatusCode;
-    using Vulkyrie::Platform::PlatformBase;
-
     class ApplicationManager {
         public:
-            explicit ApplicationManager(PlatformBase *platform, VulkyrieApplication *application);
-            StatusCode BootstrapApplication();
+            explicit ApplicationManager(Vulkyrie::Platform::PlatformBase *platform, Vulkyrie::Core::Application *application);
+            Vulkyrie::Core::StatusCode BootstrapApplication();
 
         private:
-            PlatformBase *_platform;
-            VulkyrieApplication *_application;
+            Vulkyrie::Platform::PlatformBase *_platform;
+            Vulkyrie::Core::Application *_application;
 
-            StatusCode InitializeSubSystems();
-            StatusCode TerminateSubSystems();
+            Vulkyrie::Core::StatusCode InitializeSubSystems();
+            Vulkyrie::Core::StatusCode TerminateSubSystems();
     };
-}; // namespace Engine
+}; // namespace Vulkyrie::Platform

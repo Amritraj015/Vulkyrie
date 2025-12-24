@@ -1,4 +1,3 @@
-#include <print>
 #include "file_log_sink.h"
 
 namespace Vulkyrie::Core {
@@ -20,8 +19,43 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    void FileLogSink::LogMessage(const char *message) {
-        std::println(_logFile, "{}", message);
+    void FileLogSink::LogMessage(LogLevel logLevel, const char *fmt, va_list args) {
+        if (nullptr == _logFile) return;
+
+        char buffer[LOG_BUFFER_SIZE];
+
+        const char *logPrefix;
+        switch (logLevel) {
+        case LogLevel::Fatal:
+            logPrefix = "FATAL";
+            break;
+        case LogLevel::Error:
+            logPrefix = "ERROR";
+            break;
+        case LogLevel::Warn:
+            logPrefix = "WARN";
+            break;
+        case LogLevel::Info:
+            logPrefix = "INFO";
+            break;
+        case LogLevel::Debug:
+            logPrefix = "DEBUG";
+            break;
+        case LogLevel::Trace:
+            logPrefix = "TRACE";
+            break;
+        default:
+            logPrefix = "UNKNOWN";
+            break;
+        }
+
+        int offset = std::snprintf(buffer, LOG_BUFFER_SIZE, "[%s]: ", logPrefix);
+
+        std::vsnprintf(buffer + offset, LOG_BUFFER_SIZE - offset, fmt, args);
+
+        std::fputs(buffer, _logFile);
+        std::fputc('\n', _logFile);
+        std::fflush(_logFile);
     }
 
     StatusCode FileLogSink::Dispose() {

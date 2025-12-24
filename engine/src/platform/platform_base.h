@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/status_codes.h"
-#include "core/vulkyrie_window_props.h"
+#include "core/window_props.h"
 
 namespace Vulkyrie::Platform {
     class PlatformBase {
@@ -13,7 +13,7 @@ namespace Vulkyrie::Platform {
             /** Creates a new window for the application.
              * @param props The window properties.
              */
-            virtual Vulkyrie::Core::StatusCode CreateNewWindow(Vulkyrie::Core::VulkyrieWindowProps props) = 0;
+            virtual Vulkyrie::Core::StatusCode CreateNewWindow(Vulkyrie::Core::WindowProps props) = 0;
 
             /** Closes the application window. */
             virtual Vulkyrie::Core::StatusCode CloseWindow() = 0;
@@ -31,4 +31,4 @@ namespace Vulkyrie::Platform {
         protected:
             PlatformBase() = default;
     };
-} // namespace Vulkyrie
+} // namespace Vulkyrie::Platform

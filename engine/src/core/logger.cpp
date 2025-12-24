@@ -8,23 +8,26 @@ namespace Vulkyrie::Core {
 
     StatusCode Logger::InitializeLogger(LoggerType loggerType) {
         switch (loggerType) {
-            case LoggerType::Console:
-                _logSink = std::make_unique<ConsoleLogSink>();
-                break;
-            case LoggerType::File:
-                _logSink = std::make_unique<FileLogSink>();
-                break;
-            default:
-                return StatusCode::UnsupportedLoggerType;
+        case LoggerType::Console:
+            _logSink = std::make_unique<ConsoleLogSink>();
+            break;
+        case LoggerType::File:
+            _logSink = std::make_unique<FileLogSink>();
+            break;
+        default:
+            return StatusCode::UnsupportedLoggerType;
         }
 
         return _logSink->Initialize();
     }
 
-    void Logger::Log(const char *message) {
-        if (_logSink != nullptr) {
-            _logSink->LogMessage(message);
-        }
+    void Logger::Log(LogLevel logLevel, const char *fmt, ...) {
+        if (nullptr == _logSink) return;
+
+        va_list args;
+        va_start(args, fmt);
+        _logSink->LogMessage(logLevel, fmt, args);
+        va_end(args);
     }
 
     StatusCode Logger::TerminateLogger() {

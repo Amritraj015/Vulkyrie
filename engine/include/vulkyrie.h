@@ -1,6 +1,6 @@
 #pragma once
 
 #include "core/status_codes.h"
-#include "core/vulkyrie_application.h"
+#include "core/application.h"
 
-extern Vulkyrie::Core::VulkyrieApplication *CreateVulkyrieApplication();
+extern Vulkyrie::Core::Application *CreateApplication();

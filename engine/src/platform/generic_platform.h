@@ -10,11 +10,11 @@ namespace Vulkyrie::Platform {
             GenericPlatform() = default;
             ~GenericPlatform() override = default;
 
-            Vulkyrie::Core::StatusCode CreateNewWindow(Vulkyrie::Core::VulkyrieWindowProps props) override;
+            Vulkyrie::Core::StatusCode CreateNewWindow(Vulkyrie::Core::WindowProps props) override;
             Vulkyrie::Core::StatusCode CloseWindow() override;
             // bool PollForEvents() override;
             // void SleepForDuration(u64 duration) override;
-        
+
         private:
             GLFWwindow *window;
             GLuint VBO, VAO, shaderProgram;

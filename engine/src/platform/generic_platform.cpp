@@ -4,11 +4,11 @@
 
 namespace Vulkyrie::Platform {
     void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-    void window_close_callback(GLFWwindow* window);
-    void window_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void window_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-    void window_scroll_callback(GLFWwindow* window, double offsetX, double offsetY);
-    void window_mouse_move_callback(GLFWwindow* window, double positionX, double positionY);
+    void window_close_callback(GLFWwindow *window);
+    void window_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+    void window_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
+    void window_scroll_callback(GLFWwindow *window, double offsetX, double offsetY);
+    void window_mouse_move_callback(GLFWwindow *window, double positionX, double positionY);
 
     const char *vertexShaderSource = "#version 330 core\n"
                                      "layout(location = 0) in vec3 aPos;\n"
@@ -30,12 +30,12 @@ namespace Vulkyrie::Platform {
         0.0f,  0.5f,  0.0f  // top
     };
 
-    Vulkyrie::Core::StatusCode GenericPlatform::CreateNewWindow(Vulkyrie::Core::VulkyrieWindowProps props) {
+    Vulkyrie::Core::StatusCode GenericPlatform::CreateNewWindow(Vulkyrie::Core::WindowProps props) {
         // glfw: initialize and configure
         // ------------------------------
         glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // glfw window creation
@@ -66,7 +66,7 @@ namespace Vulkyrie::Platform {
             return Vulkyrie::Core::StatusCode::FailedToCreateWindow;
         }
 
-        gladLoadGL();                    // load OpenGL functions
+        gladLoadGL();                                // load OpenGL functions
         glViewport(0, 0, props.width, props.height); // set the viewport
 
         GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -145,57 +145,54 @@ namespace Vulkyrie::Platform {
         glViewport(0, 0, width, height);
     }
 
-    void window_close_callback(GLFWwindow* window) {
+    void window_close_callback(GLFWwindow *window) {
         Vulkyrie::Events::WindowCloseEvent event;
         // VTRACE("Window close event triggered");
     }
 
-    void window_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    void window_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         switch (action) {
-            case GLFW_PRESS:
-            {
-                // VTRACE("Key Pressed: {}", key);
+        case GLFW_PRESS: {
+            // VTRACE("Key Pressed: {}", key);
 
-                // std::cout << "Key Pressed: " << key << std::endl;
+            // std::cout << "Key Pressed: " << key << std::endl;
 
-                if (key == GLFW_KEY_ESCAPE) {
-                    glfwSetWindowShouldClose(window, true);
-                }
-                break;
+            if (key == GLFW_KEY_ESCAPE) {
+                glfwSetWindowShouldClose(window, true);
             }
-            case GLFW_RELEASE:
-            {
-                // VTRACE("Key Released: {}", key);
-                break;
-            }
-            case GLFW_REPEAT:
-            {
-                // VTRACE("Key Repeated: {}", key);
-                break;
-            }
-            default:
-                break;
+            break;
+        }
+        case GLFW_RELEASE: {
+            VTRACE("Key Released: %i", key);
+            break;
+        }
+        case GLFW_REPEAT: {
+            // VTRACE("Key Repeated: {}", key);
+            break;
+        }
+        default:
+            break;
         }
     }
 
-    void window_mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    void window_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
         switch (action) {
-            case GLFW_PRESS:
-                // VTRACE("Mouse Button Pressed: {}", button);
-                break;
-            case GLFW_RELEASE:
-                // VTRACE("Mouse Button Released: {}", button);
-                break;
-            default:
-                break;
+        case GLFW_PRESS:
+            // VTRACE("Mouse Button Pressed: {}", button);
+            break;
+        case GLFW_RELEASE:
+            // VTRACE("Mouse Button Released: {}", button);
+            break;
+        default:
+            break;
         }
     }
 
-    void window_scroll_callback(GLFWwindow* window, double offsetX, double offsetY) {
+    void window_scroll_callback(GLFWwindow *window, double offsetX, double offsetY) {
         // VTRACE("Mouse Scrolled - X offset: {}, Y offset: {}", offsetX, offsetY);
     }
 
-    void window_mouse_move_callback(GLFWwindow* window, double positionX, double positionY) {
+    void window_mouse_move_callback(GLFWwindow *window, double positionX, double positionY) {
         // VTRACE("Mouse Moved to Position - X: {}, Y: {}", positionX, positionY);
     }
-} // namespace Vulkyrie
+} // namespace Vulkyrie::Platform

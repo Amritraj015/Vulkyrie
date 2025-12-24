@@ -2,7 +2,9 @@
 #include "core/logger.h"
 
 namespace Vulkyrie::Platform {
-    ApplicationManager::ApplicationManager(PlatformBase *platform, VulkyrieApplication *application)
+    using Vulkyrie::Core::StatusCode;
+
+    ApplicationManager::ApplicationManager(PlatformBase *platform, Vulkyrie::Core::Application *application)
         : _platform(platform), _application(application) {
     }
 
@@ -28,16 +30,16 @@ namespace Vulkyrie::Platform {
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
-        VINFO("Application name              | {}", _application->windowProps.title)
-        VINFO("Window Height requested       | {}", _application->windowProps.height)
-        VINFO("Window Width requested        | {}", _application->windowProps.width)
-        VINFO("Window Starting X position    | {}", _application->windowProps.startX)
-        VINFO("Window Starting Y position    | {}", _application->windowProps.startY)
+        VINFO("Application name              | %s", _application->windowProps.title)
+        VINFO("Window Height requested       | %i", _application->windowProps.height)
+        VINFO("Window Width requested        | %i", _application->windowProps.width)
+        VINFO("Window Starting X position    | %i", _application->windowProps.startX)
+        VINFO("Window Starting Y position    | %i", _application->windowProps.startY)
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")
-        VINFO("Logger Type                   | {}", std::to_underlying(_application->config.loggerType))
-        VINFO("Graphics API                  | {}", std::to_underlying(_application->config.graphicsApi))
+        VINFO("Logger Type                   | %i", std::to_underlying(_application->config.loggerType))
+        VINFO("Graphics API                  | %i", std::to_underlying(_application->config.graphicsApi))
         VINFO("*****************************************************************************************")
 
         // Create the window for this application.

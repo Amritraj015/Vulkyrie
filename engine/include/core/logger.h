@@ -1,17 +1,17 @@
 #pragma once
 
-#include "defines.h"
 #include "status_codes.h"
 #include "logger_type.h"
+#include "log_level.h"
 #include "log_sink.h"
 
 // Enable log levels based on build configuration.
 // FATAL and ERROR level logs are always enabled.
 #if defined(VULKYRIE_DEBUG)
-    #define V_LOG_WARN_ENABLED
-    #define V_LOG_INFO_ENABLED
-    #define V_LOG_DEBUG_ENABLED
-    #define V_LOG_TRACE_ENABLED
+#define V_LOG_WARN_ENABLED
+#define V_LOG_INFO_ENABLED
+#define V_LOG_DEBUG_ENABLED
+#define V_LOG_TRACE_ENABLED
 #endif
 
 namespace Vulkyrie::Core {
@@ -23,40 +23,45 @@ namespace Vulkyrie::Core {
 
             static StatusCode InitializeLogger(LoggerType loggerType);
 
-            static void Log(const char *message);
+            static void Log(LogLevel logLevel, const char *fmt, ...);
 
             static StatusCode TerminateLogger();
 
         private:
             static std::unique_ptr<LogSink> _logSink;
     };
-}
-
+} // namespace Vulkyrie::Core
 
 // Logs a fatal message.
-#define VFATAL(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[41m[FATAL] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
-#define VERROR(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[31m[ERROR] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
+#define VFATAL(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Fatal, fmt, ##__VA_ARGS__);
 
+// Logs an error message.
+#define VERROR(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Error, fmt, ##__VA_ARGS__);
+
+// Logs a warning message if warning level logs are enabled else noop.
 #if defined(V_LOG_WARN_ENABLED)
-    #define VWARN(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[33m[WARN] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
+#define VWARN(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Warn, fmt, ##__VA_ARGS__);
 #else
-    #define VWARN(message, ...)
+#define VWARN(fmt, ...)
 #endif
 
+// Logs an info message if info level logs are enabled else noop.
 #if defined(V_LOG_INFO_ENABLED)
-    #define VINFO(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[32m[INFO] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
+#define VINFO(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Info, fmt, ##__VA_ARGS__);
 #else
-    #define VINFO(message, ...)
+#define VINFO(fmt, ...)
 #endif
 
+// Logs a debug message if debug level logs are enabled else noop.
 #if defined(V_LOG_DEBUG_ENABLED)
-    #define VDEBUG(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[34m[DEBUG] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
+#define VDEBUG(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Debug, fmt, ##__VA_ARGS__);
 #else
-    #define VDEBUG(message, ...)
+#define VDEBUG(fmt, ...)
 #endif
 
+// Logs a trace message if trace level logs are enabled else noop.
 #if defined(V_LOG_TRACE_ENABLED)
-    #define VTRACE(message, ...) Vulkyrie::Core::Logger::Log(std::format("\033[00m[TRACE] {}\033[0m", std::format(message, ##__VA_ARGS__)).c_str());
+#define VTRACE(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Trace, fmt, ##__VA_ARGS__);
 #else
-    #define VTRACE(message, ...)
+#define VTRACE(fmt, ...)
 #endif

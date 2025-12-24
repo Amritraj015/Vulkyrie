@@ -3,10 +3,11 @@
 #include <vulkyrie.h>
 
 namespace Asteroids {
-    class AsteroidsApplication : public Vulkyrie::Core::VulkyrieApplication {
+    class AsteroidsApplication : public Vulkyrie::Core::Application {
         public:
-            AsteroidsApplication(Vulkyrie::Core::VulkyrieWindowProps windowProps, Vulkyrie::Core::VulkyrieAppConfig config)
-                : Vulkyrie::Core::VulkyrieApplication(windowProps, config) { }
+            AsteroidsApplication(Vulkyrie::Core::WindowProps windowProps, Vulkyrie::Core::ApplicationConfig config)
+                : Vulkyrie::Core::Application(windowProps, config) {
+            }
 
             ~AsteroidsApplication() override = default;
 
