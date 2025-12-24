@@ -1,0 +1,54 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "CMake: Configure",
+			"command": "cmake",
+			"args": [
+				"-S",
+				".",
+				"-B",
+				"build"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "CMake: Build",
+			"command": "cmake",
+			"args": [
+				"--build",
+				"build"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"dependsOn": ["CMake: Configure"]
+		},
+		{
+			"type": "shell",
+			"label": "CMake: Clean",
+			"command": "cmake",
+			"args": [
+				"--build",
+				"build",
+				"--target",
+				"clean"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Run Pong",
+			"command": "${workspaceFolder}/build/pong/pong",
+			"group": "test",
+			"problemMatcher": [],
+			"dependsOn": ["CMake: Build"]
+		}
+	]
+}

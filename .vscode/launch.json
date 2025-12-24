@@ -1,0 +1,72 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Pong",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/games/pong/pong",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "linux": {
+                "program": "${workspaceFolder}/build/games/pong/pong",
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/games/pong/pong.exe",
+                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Launch Asteroids",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/games/asteroids/asteroids",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "linux": {
+                "program": "${workspaceFolder}/build/games/asteroids/asteroids",
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/games/asteroids/asteroids.exe",
+                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
