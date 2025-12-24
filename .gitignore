@@ -38,3 +38,7 @@
 # Zig build files
 zig-out/
 .zig-cache/
+
+# Visual Studio
+.vs/
+out/
