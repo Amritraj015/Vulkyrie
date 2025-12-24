@@ -4,7 +4,8 @@
         "glfw",
         "OPENGL",
         "vulky",
-        "Vulkyrie"
+        "Vulkyrie",
+        "MSVC"
     ],
     "version": "0.2",
     "language": "en"
