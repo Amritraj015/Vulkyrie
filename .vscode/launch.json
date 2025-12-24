@@ -20,8 +20,8 @@
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/games/pong/pong.exe",
-                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe"
+                "program": "${workspaceFolder}/build/games/pong/Debug/pong.exe",
+                "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
                 {
@@ -52,8 +52,8 @@
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/games/asteroids/asteroids.exe",
-                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe"
+                "program": "${workspaceFolder}/build/games/asteroids/Debug/asteroids.exe",
+                "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
                 {

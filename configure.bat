@@ -1,0 +1,1 @@
+cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH="C:\ProgramData\mingw64\mingw64\bin\gcc.exe" -DCMAKE_CXX_COMPILER:FILEPATH="C:\ProgramData\mingw64\mingw64\bin\g++.exe" "-B./build" -G Ninja
