@@ -19,5 +19,8 @@ namespace Vulkyrie::Core {
 
             // The title for the window.
             const char *title;
+
+            // Enable or disable VSync.
+            bool vsync = true;
     };
 } // namespace Vulkyrie::Core

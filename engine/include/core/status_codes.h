@@ -10,6 +10,7 @@ namespace Vulkyrie::Core {
         FailedToInitializeLogger,   // Failed to initialize logger error.
         UnsupportedLoggerType,      // Unsupported logger type error.
         FailedToCreateWindow,       // Failed to create window error.
+        FailedToInitializeGLAD,     // Failed to initialize GLAD error.
         // WaylandCannotConnectToDisplay,     // Linux (Wayland) connect to display.
         // WaylandCannotFindCompositor,       // Linux (Wayland) cannot find compositor.
         // WaylandCannotCreateSurface,        // Linux (Wayland) cannot create surface.

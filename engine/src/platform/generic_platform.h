@@ -17,6 +17,5 @@ namespace Vulkyrie::Platform {
 
         private:
             GLFWwindow *window;
-            GLuint VBO, VAO, shaderProgram;
     };
 } // namespace Vulkyrie::Platform

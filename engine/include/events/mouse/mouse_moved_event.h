@@ -6,14 +6,14 @@
 namespace Vulkyrie::Events {
     class MouseMovedEvent : public Event {
         public:
-            MouseMovedEvent(const i32 x, const i32 y) : _mouseX(x), _mouseY(y) {
+            MouseMovedEvent(const f64 x, const f64 y) : _mouseX(x), _mouseY(y) {
             }
 
-            [[nodiscard]] inline i32 GetX() const {
+            [[nodiscard]] inline f64 GetX() const {
                 return _mouseX;
             }
 
-            [[nodiscard]] inline i32 GetY() const {
+            [[nodiscard]] inline f64 GetY() const {
                 return _mouseY;
             }
 
@@ -26,7 +26,7 @@ namespace Vulkyrie::Events {
             }
 
         private:
-            const i32 _mouseX, _mouseY;
+            const f64 _mouseX, _mouseY;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
 } // namespace Vulkyrie::Events

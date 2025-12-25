@@ -4,21 +4,22 @@
 
 namespace Vulkyrie::Events {
     enum class EventType : u8 {
-        None = 0,                 // No event.
-        WindowClose = 1,          // Window close event.
-        WindowResize = 2,         // Window resize event.
-        WindowFocus = 3,          // Window focus event.
-        WindowLostFocus = 4,      // Window lost focus event.
-        WindowMoved = 5,          // Window moved event.
-        AppTick = 6,              // Application tick event.
-        AppUpdate = 7,            // Application update event.
-        AppRender = 8,            // Application render event.
-        AppShutDown = 9,          // Application shutdown event.
-        KeyPressed = 10,          // Keyboard button pressed event.
-        KeyReleased = 11,         // Keyboard button released event.
-        MouseButtonPressed = 12,  // Mouse button pressed event.
-        MouseButtonReleased = 13, // Mouse button released event.
-        MouseMoved = 14,          // Mouse moved event.
-        MouseScrolled = 15,       // Mouse scrolled event.
+        None = 0,            // No event.
+        WindowClose,         // Window close event.
+        WindowResize,        // Window resize event.
+        WindowFocus,         // Window focus event.
+        WindowLostFocus,     // Window lost focus event.
+        WindowMoved,         // Window moved event.
+        AppTick,             // Application tick event.
+        AppUpdate,           // Application update event.
+        AppRender,           // Application render event.
+        AppShutDown,         // Application shutdown event.
+        KeyPressed,          // Keyboard button pressed event.
+        KeyReleased,         // Keyboard button released event.
+        KeyTyped,            // Keyboard button typed event.
+        MouseButtonPressed,  // Mouse button pressed event.
+        MouseButtonReleased, // Mouse button released event.
+        MouseMoved,          // Mouse moved event.
+        MouseScrolled,       // Mouse scrolled event.
     };
 }

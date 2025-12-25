@@ -7,7 +7,7 @@
 namespace Vulkyrie::Core {
     class Application {
         public:
-            Application(WindowProps windowProps, ApplicationConfig config) : windowProps(windowProps), config(config) {
+            Application(const WindowProps &windowProps, const ApplicationConfig &config) : windowProps(windowProps), config(config) {
             }
             virtual ~Application() = default;
 
