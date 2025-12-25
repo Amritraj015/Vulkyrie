@@ -2,7 +2,7 @@
 
 #include "window_props.h"
 #include "application_config.h"
-#include "layer/layer.h"
+#include "core/layer.h"
 
 namespace Vulkyrie::Core {
     class Application {
@@ -18,6 +18,6 @@ namespace Vulkyrie::Core {
             ApplicationConfig config;
 
             // Layers associated with the application.
-            std::vector<std::unique_ptr<Vulkyrie::Layer::Layer>> layers;
+            std::vector<std::unique_ptr<Vulkyrie::Core::Layer>> layers;
     };
 } // namespace Vulkyrie::Core

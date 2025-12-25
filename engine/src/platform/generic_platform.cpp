@@ -1,6 +1,7 @@
 #include "generic_platform.h"
 #include "core/logger.h"
-#include "events/application/window_close.h"
+#include "events/application/window_close_event.h"
+#include "events/application/window_resize_event.h"
 #include "events/mouse/mouse_moved_event.h"
 #include "events/mouse/mouse_button_pressed.h"
 #include "events/mouse/mouse_button_released.h"
@@ -8,6 +9,7 @@
 #include "events/keyboard/key_char_event.h"
 #include "events/keyboard/key_pressed_event.h"
 #include "events/keyboard/key_released_event.h"
+#include "events/event_dispatcher.h"
 
 namespace Vulkyrie::Platform {
     inline Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode);
@@ -48,12 +50,18 @@ namespace Vulkyrie::Platform {
             // make sure the viewport matches the new window dimensions; note that width and
             // height will be significantly larger than specified on retina displays.
             glViewport(0, 0, width, height);
+
+            Vulkyrie::Events::WindowResizeEvent event(width, height);
+
+            // TODO: Dispatch the event.
+            Vulkyrie::Events::EventDispatcher dispatcher(event);
         });
 
         glfwSetWindowCloseCallback(window, [](GLFWwindow *window) {
             Vulkyrie::Events::WindowCloseEvent event;
-
+            
             // TODO: Dispatch the event.
+            Vulkyrie::Events::EventDispatcher dispatcher(event);
         });
 
         glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -70,17 +78,22 @@ namespace Vulkyrie::Platform {
                     }
 
                     // TODO: Dispatch the event.
+                    Vulkyrie::Events::EventDispatcher dispatcher(event);
                     break;
                 }
                 case GLFW_RELEASE: {
                     Vulkyrie::Events::KeyReleasedEvent event(code);
+
                     // TODO: Dispatch the event.
+                    Vulkyrie::Events::EventDispatcher dispatcher(event);
                     break;
                 }
                 case GLFW_REPEAT: {
                     Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers, true);
+
                     // TODO: Dispatch the event.
+                    Vulkyrie::Events::EventDispatcher dispatcher(event);
                     break;
                 }
                 default:
@@ -92,6 +105,9 @@ namespace Vulkyrie::Platform {
 		{
             Vulkyrie::Events::KeyCode keycode = ConvertGLFWKeyCodeToVulkyrieKeyCode(codepoint);
 			Vulkyrie::Events::KeyCharEvent event(keycode);
+
+            // TODO: Dispatch the event.
+            Vulkyrie::Events::EventDispatcher dispatcher(event);
 		});
 
         glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) {
@@ -101,12 +117,16 @@ namespace Vulkyrie::Platform {
                 case GLFW_PRESS: {
                     Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
                     Vulkyrie::Events::MouseButtonPressedEvent event(mouseButton, modifiers);
+
                     // TODO: Dispatch the event.
+                    Vulkyrie::Events::EventDispatcher dispatcher(event);
                     break;
                 }
                 case GLFW_RELEASE: {
                     Vulkyrie::Events::MouseButtonReleasedEvent event(mouseButton);
+
                     // TODO: Dispatch the event.
+                    Vulkyrie::Events::EventDispatcher dispatcher(event);
                     break;
                 }
             }
@@ -116,12 +136,14 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::MouseScrolledEvent event(offsetX, offsetY);
 
             // TODO: Dispatch the event.
+            Vulkyrie::Events::EventDispatcher dispatcher(event);
         });
 
         glfwSetCursorPosCallback(window, [](GLFWwindow *window, double positionX, double positionY) {
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // TODO: Dispatch the event.
+            Vulkyrie::Events::EventDispatcher dispatcher(event);
         });
 
         glfwSwapInterval(props.vsync ? 1 : 0);
@@ -129,7 +151,9 @@ namespace Vulkyrie::Platform {
         // GLAD: load all OpenGL function pointers
         // ---------------------------------------
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+
             VFATAL("Failed to initialize GLAD");
+
             return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
         }
 
