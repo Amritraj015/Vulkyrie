@@ -1,10 +1,9 @@
 #include "vulkyrie.h"
-#include "platform/platform_factory.h"
 #include "platform/application_manager.h"
 
 #if defined(VULKYRIE_DEBUG)
 // #include "core/logger.h"
-//
+
 // void *operator new(size_t size) {
 //     VDEBUG("Allocating: %zu bytes", size);
 //     return malloc(size);
@@ -12,12 +11,12 @@
 #endif
 
 int main(int argc, char **argv) {
-    // Detect the current platform.
-    auto platform = Vulkyrie::Platform::DetectPlatform();
+    // Initialize the logger sub-system.
+    auto statusCode = Vulkyrie::Core::Logger::InitializeLogger(Vulkyrie::Core::LoggerType::Console);
 
-    // If the platform is not supported, return an unsupported platform error.
-    if (nullptr == platform) {
-        return std::to_underlying(Vulkyrie::Core::StatusCode::UnsupportedPlatform);
+    // If logger initialization failed, return the error code.
+    if (statusCode != Vulkyrie::Core::StatusCode::Successful) {
+        return std::to_underlying(statusCode);
     }
 
     // Initialize the Vulkyrie Application.
@@ -29,7 +28,7 @@ int main(int argc, char **argv) {
     }
 
     // Create an instance of Application Manager.
-    Vulkyrie::Platform::ApplicationManager applicationManager(platform, application);
+    Vulkyrie::Platform::ApplicationManager applicationManager(*application);
 
     // Bootstrap the application.
     // This is a blocking call until the application is closed.
@@ -38,6 +37,6 @@ int main(int argc, char **argv) {
     // Clean up the application instance.
     delete application;
 
-    // Return success status code.
-    return std::to_underlying(status);
+    // Terminate the logger sub-system and return its status code.
+    return std::to_underlying(Vulkyrie::Core::Logger::TerminateLogger());
 }

@@ -9,7 +9,11 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::KeyTyped;
+                return EventType::KeyChar;
+            }
+
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("KeyCharEvent: {}", std::to_underlying(GetKeyCode()));
             }
     };
 }

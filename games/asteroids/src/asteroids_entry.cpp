@@ -10,7 +10,7 @@ Vulkyrie::Core::Application *CreateApplication() {
 
     Vulkyrie::Core::ApplicationConfig appConfig;
     appConfig.graphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
-    appConfig.loggerType = Vulkyrie::Core::LoggerType::Console;
+    // appConfig.loggerType = Vulkyrie::Core::LoggerType::Console;
 
     return new Asteroids::AsteroidsApplication(windowProps, appConfig);
 }

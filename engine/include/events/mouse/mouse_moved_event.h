@@ -25,6 +25,10 @@ namespace Vulkyrie::Events {
                 return EventType::MouseMoved;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("MouseMovedEvent: ({}, {})", _mouseX, _mouseY);
+            }
+
         private:
             const f64 _mouseX, _mouseY;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);

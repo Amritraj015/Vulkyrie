@@ -18,6 +18,11 @@ namespace Vulkyrie::Events {
                 return _button;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("MouseButtonEvent: {}", std::to_underlying(GetMouseButton()));
+            }
+
+
         private:
             const MouseButton _button;
             const static i32 _categoryFlags =

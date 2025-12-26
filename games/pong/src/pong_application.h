@@ -9,7 +9,7 @@ namespace Pong {
                 : Vulkyrie::Core::Application(windowProps, config) {
             }
 
-            ~PongApplication() override = default;
+            ~PongApplication();
 
             // Additional Pong-specific methods and members can be added here
     };

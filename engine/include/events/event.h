@@ -1,16 +1,36 @@
 #pragma once
 
-#include "enums/event_type.h"
 #include "defines.h"
+#include "enums/event_type.h"
 
 namespace Vulkyrie::Events {
-    /* Base event class that needs to be inherited by every event in the engine. */
+    /** @brief Base event class that needs to be inherited by every event in the engine. */
     class Event {
         public:
             virtual ~Event() = default;
+
+            /** @brief Indicates whether the event has been handled. */
             bool handled = false;
 
-            [[nodiscard]] virtual EventType GetEventType() const = 0;
-            [[nodiscard]] virtual i32 GetCategoryFlags() const = 0;
+            /** @brief Gets the event type. */
+            [[nodiscard]] inline virtual EventType GetEventType() const = 0;
+
+            /** @brief Gets the category flags for this vent. */
+            [[nodiscard]] inline virtual i32 GetCategoryFlags() const = 0;
+
+            /** @brief Checks if the event is in a specific category.
+             * @param[in] category The category to check against.
+             * @return True if the event is in the specified category, false otherwise.
+             */
+            [[nodiscard]] inline bool IsInCategory(i32 category) const {
+                return GetCategoryFlags() & category;
+            }
+
+            /** @brief Converts the event to a string representation.
+             * @return A string representation of the event.
+             */
+            [[nodiscard]] inline virtual std::string ToString() const {
+                return "Event";
+            }
     };
 } // namespace Vulkyrie::Events

@@ -26,6 +26,10 @@ namespace Vulkyrie::Events {
                 return EventType::MouseScrolled;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("MouseScrolledEvent: ({}, {})", _offsetX, _offsetY);
+            }
+
         private:
             const i32 _offsetX, _offsetY;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);

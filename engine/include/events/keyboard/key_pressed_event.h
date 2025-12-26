@@ -22,6 +22,13 @@ namespace Vulkyrie::Events {
                 return _modifiers;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("KeyPressedEvent: {} (repeats: {}, modifiers: {})",
+                                   std::to_underlying(GetKeyCode()),
+                                   _isRepeat ? "true" : "false",
+                                   std::to_underlying(_modifiers));
+            }
+
         private:
             const bool _isRepeat;
             const KeyModifier _modifiers;

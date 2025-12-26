@@ -10,5 +10,9 @@ namespace Vulkyrie::Events {
             [[nodiscard]] inline EventType GetEventType() const override {
                 return EventType::MouseButtonReleased;
             }
+
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("MouseButtonReleasedEvent: {}", std::to_underlying(GetMouseButton()));
+            }
     };
 }

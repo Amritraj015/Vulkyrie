@@ -27,6 +27,10 @@ namespace Vulkyrie::Events {
                 return EventType::WindowResize;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("WindowResizeEvent: {}x{}", _width, _height);
+            }
+
         private:
             const u32 _width, _height;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);

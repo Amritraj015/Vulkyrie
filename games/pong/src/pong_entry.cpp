@@ -1,4 +1,6 @@
 #include "pong_application.h"
+#include "pong_overlay_layer.h"
+#include "pong_game_layer.h"
 
 Vulkyrie::Core::Application *CreateApplication() {
     Vulkyrie::Core::WindowProps windowProps;
@@ -10,7 +12,11 @@ Vulkyrie::Core::Application *CreateApplication() {
 
     Vulkyrie::Core::ApplicationConfig appConfig;
     appConfig.graphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
-    appConfig.loggerType = Vulkyrie::Core::LoggerType::Console;
+    // appConfig.loggerType = Vulkyrie::Core::LoggerType::Console;
 
-    return new Pong::PongApplication(windowProps, appConfig);
+    Pong::PongApplication *pongApp = new Pong::PongApplication(windowProps, appConfig);
+    pongApp->PushLayer<Pong::PongGameLayer>("Pong Game Layer");
+    pongApp->PushOverlay<Pong::PongOverlayLayer>("Pong Overlay Layer");
+
+    return pongApp;
 }

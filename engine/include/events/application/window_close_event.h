@@ -14,6 +14,10 @@ namespace Vulkyrie::Events {
                 return _categoryFlags;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return "WindowCloseEvent";
+            }
+
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };

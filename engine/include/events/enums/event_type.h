@@ -5,6 +5,7 @@
 namespace Vulkyrie::Events {
     enum class EventType : u8 {
         None = 0,            // No event.
+        WindowCreated,       // Window created event.
         WindowClose,         // Window close event.
         WindowResize,        // Window resize event.
         WindowFocus,         // Window focus event.
@@ -16,7 +17,7 @@ namespace Vulkyrie::Events {
         AppShutDown,         // Application shutdown event.
         KeyPressed,          // Keyboard button pressed event.
         KeyReleased,         // Keyboard button released event.
-        KeyTyped,            // Keyboard button typed event.
+        KeyChar,             // Keyboard button typed event.
         MouseButtonPressed,  // Mouse button pressed event.
         MouseButtonReleased, // Mouse button released event.
         MouseMoved,          // Mouse moved event.

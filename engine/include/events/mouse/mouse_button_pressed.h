@@ -17,6 +17,12 @@ namespace Vulkyrie::Events {
                 return _modifiers;
             }
 
+            [[nodiscard]] inline std::string ToString() const override {
+                return std::format("MouseButtonPressedEvent: {} (modifiers: {})",
+                                   std::to_underlying(GetMouseButton()),
+                                   std::to_underlying(_modifiers));
+            }
+
         private:
             const KeyModifier _modifiers;
     };

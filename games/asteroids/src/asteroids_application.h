@@ -9,7 +9,7 @@ namespace Asteroids {
                 : Vulkyrie::Core::Application(windowProps, config) {
             }
 
-            ~AsteroidsApplication() override = default;
+            ~AsteroidsApplication();
 
             // Additional methods and members specific to Asteroids can be added here.
     };
