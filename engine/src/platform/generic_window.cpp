@@ -180,10 +180,10 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
-            GenericWindow& windowUserPointer = *(GenericWindow *)glfwGetWindowUserPointer(window);
+            Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
             // Dispatch the event.
-            // windowUserPointer.eventCallbackFn(event);
+            app.RaiseEvent(event);
         });
 
         // GLAD: load all OpenGL function pointers

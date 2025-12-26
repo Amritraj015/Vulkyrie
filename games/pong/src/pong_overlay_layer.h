@@ -25,7 +25,8 @@ namespace Pong {
             }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
-
+                VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+                event.handled = true;
             }
     };
 }

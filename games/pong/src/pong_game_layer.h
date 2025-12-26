@@ -20,7 +20,7 @@ namespace Pong {
             void OnRender() override {}
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
-                VINFO("Event received in layer: %s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+                VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
             }
     };
 }
