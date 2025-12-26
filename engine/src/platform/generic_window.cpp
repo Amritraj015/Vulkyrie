@@ -6,13 +6,27 @@
 #include "events/mouse/mouse_button_pressed.h"
 #include "events/mouse/mouse_button_released.h"
 #include "events/mouse/mouse_scrolled_event.h"
-#include "events/keyboard/key_char_event.h"
+// #include "events/keyboard/key_char_event.h"
 #include "events/keyboard/key_pressed_event.h"
 #include "events/keyboard/key_released_event.h"
 
 namespace Vulkyrie::Platform {
+    /** @brief Converts a GLFW key code to a Vulkyrie key code.
+     * @param glfwKeyCode The GLFW key code to convert.
+     * @returns The corresponding Vulkyrie key code.
+     */
     inline Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode);
+
+    /** @brief Converts a GLFW mouse button to a Vulkyrie mouse button.
+     * @param glfwMouseButton The GLFW mouse button to convert.
+     * @returns The corresponding Vulkyrie mouse button.
+     */
     inline Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton);
+
+    /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
+     * @param glfwMods The GLFW modifier flags.
+     * @returns The corresponding Vulkyrie key modifiers.
+     */
     inline Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods);
 
     constexpr static int shiftModifierAsInt = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
@@ -34,11 +48,14 @@ namespace Vulkyrie::Platform {
         // GLFW window creation
         _window = glfwCreateWindow(appRef.windowProps.width, appRef.windowProps.height, appRef.windowProps.title, nullptr, nullptr);
 
+        // Check if window creation failed.
         if (nullptr == _window) {
             VFATAL("Failed to create GLFW window");
 
+            // Terminate GLFW.
             glfwTerminate();
 
+            // Return an error code.
             return Vulkyrie::Core::StatusCode::FailedToCreateWindow;
         }
 
@@ -60,7 +77,7 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::WindowResizeEvent event(width, height);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -70,7 +87,7 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::WindowCloseEvent event;
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -85,7 +102,7 @@ namespace Vulkyrie::Platform {
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -101,7 +118,7 @@ namespace Vulkyrie::Platform {
                     Vulkyrie::Events::KeyReleasedEvent event(code);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -113,7 +130,7 @@ namespace Vulkyrie::Platform {
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers, true);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -145,7 +162,7 @@ namespace Vulkyrie::Platform {
                     Vulkyrie::Events::MouseButtonPressedEvent event(mouseButton, modifiers);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -156,7 +173,7 @@ namespace Vulkyrie::Platform {
                     Vulkyrie::Events::MouseButtonReleasedEvent event(mouseButton);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -170,7 +187,7 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::MouseScrolledEvent event(offsetX, offsetY);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -180,7 +197,7 @@ namespace Vulkyrie::Platform {
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -196,7 +213,6 @@ namespace Vulkyrie::Platform {
         // load OpenGL functions
         gladLoadGL();
 
-
         // set the viewport
         glViewport(0, 0, appRef.windowProps.width, appRef.windowProps.height);
 
@@ -204,7 +220,7 @@ namespace Vulkyrie::Platform {
         glClear(GL_COLOR_BUFFER_BIT);            // clear the color buffer
         glfwSwapBuffers(_window);
 
-        // Game/Render loop. 
+        // Game/Render loop.
         while (!glfwWindowShouldClose(_window)) {
             glfwPollEvents();
 

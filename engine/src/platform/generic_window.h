@@ -10,7 +10,7 @@ namespace Vulkyrie::Platform {
             GenericWindow(const Vulkyrie::Core::Application &application);
             ~GenericWindow() = default;
 
-            /** Creates a new window for the application.  */
+            /** Creates a new window for the application. */
             Vulkyrie::Core::StatusCode Create() override;
 
             /** Closes the application window. */

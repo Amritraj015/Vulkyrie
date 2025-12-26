@@ -11,3 +11,4 @@ SortIncludes: false
 NamespaceIndentation: All
 ColumnLimit: 140
 Cpp11BracedListStyle: false
+IndentCaseLabels: true

@@ -2,7 +2,6 @@
 
 #include "core/status_codes.h"
 #include "core/application.h"
-#include "events/event.h"
 
 namespace Vulkyrie::Platform {
     class Window {
@@ -13,16 +12,20 @@ namespace Vulkyrie::Platform {
 
             virtual ~Window() = default;
 
-            /** @brief Creates a new window for the application. */
+            /** @brief Creates a new window for the application.
+             * @returns Vulkyrie::Core::StatusCode indicating success or failure.
+             * */
             virtual Vulkyrie::Core::StatusCode Create() = 0;
 
-            /** @brief Closes the application window. */
+            /** @brief Closes the application window.
+             * @returns Vulkyrie::Core::StatusCode indicating success or failure.
+             * */
             virtual Vulkyrie::Core::StatusCode Close() = 0;
 
             /** @brief Reference to the application instance. */
             const Vulkyrie::Core::Application &appRef;
 
         protected:
-            Window(const Vulkyrie::Core::Application &appRef) : appRef(appRef) { };
+            Window(const Vulkyrie::Core::Application &appRef) : appRef(appRef) {};
     };
 } // namespace Vulkyrie::Platform

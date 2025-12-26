@@ -8,7 +8,8 @@ namespace Vulkyrie::Core {
     class Application {
         public:
             Application(const WindowProps &windowProps, const ApplicationConfig &config)
-                : windowProps(windowProps), config(config), _layerInsertIndex(0) { }
+                : windowProps(windowProps), config(config), _layerInsertIndex(0), _running(true) {
+            }
             ~Application();
 
             /** @brief Window properties for the application. */
@@ -17,7 +18,13 @@ namespace Vulkyrie::Core {
             /** @brief The application configuration. */
             ApplicationConfig config;
 
+            /** @brief Raises an event to be handled by the application layers.
+             * @param event The event to raise.
+             */
             void RaiseEvent(Vulkyrie::Events::Event &event) const;
+
+            /** @brief Terminates the application and cleans up resources. */
+            void Terminate();
 
             /** @brief Pushes a new layer onto the layer stack.
              * @param TLayer The type of layer to push.
@@ -116,17 +123,50 @@ namespace Vulkyrie::Core {
                 return false;
             }
 
-            auto begin() { return _layers.begin(); }
-            auto end() { return _layers.end(); }
-            auto begin() const { return _layers.begin(); }
-            auto end() const { return _layers.end(); }
+            /** @brief Gets a layer of the specified type from the layer stack.
+             * @param TLayer The type of layer to get.
+             * @returns A pointer to the layer if found, nullptr otherwise.
+             */
+            template <typename TLayer>
+                requires(std::is_base_of_v<Layer, TLayer>)
+            TLayer *GetLayer() {
+                for (const auto &layer : _layers) {
+                    if (auto casted = dynamic_cast<TLayer *>(layer.get())) {
+                        return casted;
+                    }
+                }
 
-            auto rbegin() { return _layers.rbegin(); }
-            auto rend() { return _layers.rend(); }
-            auto rbegin() const { return _layers.rbegin(); }
-            auto rend() const { return _layers.rend(); }
+                return nullptr;
+            }
+
+            auto begin() {
+                return _layers.begin();
+            }
+            auto end() {
+                return _layers.end();
+            }
+            auto begin() const {
+                return _layers.begin();
+            }
+            auto end() const {
+                return _layers.end();
+            }
+
+            auto rbegin() {
+                return _layers.rbegin();
+            }
+            auto rend() {
+                return _layers.rend();
+            }
+            auto rbegin() const {
+                return _layers.rbegin();
+            }
+            auto rend() const {
+                return _layers.rend();
+            }
 
         private:
+            bool _running;
             /** @brief The layers in the stack. */
             std::vector<std::unique_ptr<Layer>> _layers;
 

@@ -2,7 +2,7 @@
 
 namespace Vulkyrie::Core {
     Application::~Application() {
-        for (auto& layer : _layers) {
+        for (auto &layer : _layers) {
             layer->OnDetach();
         }
     }
@@ -17,5 +17,9 @@ namespace Vulkyrie::Core {
             // Else, pass the event to the layer.
             (*it)->OnEvent(event);
         }
+    }
+
+    void Application::Terminate() {
+        _running = false;
     }
 } // namespace Vulkyrie::Core
