@@ -20,38 +20,24 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
+    static constexpr std::string_view fileLogPrefixes[] = {
+        "[FATAL]: ",
+        "[ERROR]: ",
+        "[WARN]: ",
+        "[INFO]: ",
+        "[DEBUG]: ",
+        "[TRACE]: "
+    };
+
     void FileLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
         if (nullptr == _logFile) return;
 
         char buffer[LOG_BUFFER_SIZE];
 
-        std::string_view logPrefix;
-        switch (logLevel) {
-        case LogLevel::Fatal:
-            logPrefix = "FATAL";
-            break;
-        case LogLevel::Error:
-            logPrefix = "ERROR";
-            break;
-        case LogLevel::Warn:
-            logPrefix = "WARN";
-            break;
-        case LogLevel::Info:
-            logPrefix = "INFO";
-            break;
-        case LogLevel::Debug:
-            logPrefix = "DEBUG";
-            break;
-        case LogLevel::Trace:
-            logPrefix = "TRACE";
-            break;
-        default:
-            logPrefix = "UNKNOWN";
-            break;
-        }
+        const std::string_view logPrefix = fileLogPrefixes[static_cast<size_t>(logLevel)];
 
-        auto it = std::format_to(buffer, "[{}]: ", logPrefix);
-        auto result = std::vformat_to(it, fmt, args);
+        const auto it = std::format_to(buffer, "{}: ", logPrefix);
+        const auto result = std::vformat_to(it, fmt, args);
 
         std::fwrite(buffer, 1, result - buffer, _logFile);
         std::fputc('\n', _logFile);

@@ -20,6 +20,6 @@ namespace Vulkyrie::Core {
             virtual void Dispose() { }
 
         protected:
-            static constexpr u16 LOG_BUFFER_SIZE = 4096;
+            static constexpr u16 LOG_BUFFER_SIZE = 512;
     };
 } // namespace Vulkyrie::Core

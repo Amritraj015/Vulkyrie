@@ -2,34 +2,22 @@
 #include "defines.h"
 
 namespace Vulkyrie::Core {
+    static constexpr std::string_view consoleLogPrefixes[] = {
+        "\033[41m[FATAL]: ",
+        "\033[31m[ERROR]: ",
+        "\033[33m[WARN]: ",
+        "\033[32m[INFO]: ",
+        "\033[34m[DEBUG]: ",
+        "\033[90m[TRACE]: "
+    };
+
     void ConsoleLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
         char buffer[LOG_BUFFER_SIZE];
 
-        std::string_view logPrefix;
+        const std::string_view logPrefix = consoleLogPrefixes[static_cast<size_t>(logLevel)];
 
-        switch (logLevel) {
-        case LogLevel::Fatal:
-            logPrefix = "\033[41m[FATAL]: ";
-            break;
-        case LogLevel::Error:
-            logPrefix = "\033[31m[ERROR]: ";
-            break;
-        case LogLevel::Warn:
-            logPrefix = "\033[33m[WARN]: ";
-            break;
-        case LogLevel::Info:
-            logPrefix = "\033[32m[INFO]: ";
-            break;
-        case LogLevel::Debug:
-            logPrefix = "\033[34m[DEBUG]: ";
-            break;
-        case LogLevel::Trace:
-            logPrefix = "\033[30m[TRACE]: ";
-            break;
-        }
-
-        auto it = std::copy(logPrefix.begin(), logPrefix.end(), buffer);
-        auto result = std::vformat_to(it, fmt, args);
+        const auto it = std::ranges::copy(logPrefix, buffer).out;
+        const auto result = std::vformat_to(it, fmt, args);
 
         FILE *out = (logLevel == LogLevel::Error || logLevel == LogLevel::Fatal) ? stderr : stdout;
 
