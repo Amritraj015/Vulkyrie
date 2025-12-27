@@ -21,10 +21,10 @@ Then you can run the project by running the executables under
 - Pong Application.
 ```
 (On Linux)
-build/games/pong/pong
+cd build/games/pong && pong
 
 (On Windows)
-build/games/pong/Debug/pong.exe
+cd build/games/pong/Debug && ./pong.exe
 ```
 
 - Asteroids Application.
