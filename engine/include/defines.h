@@ -74,6 +74,8 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #include <functional>
 
 #include <string>
+#include <string_view>
+#include <format>
 #include <sstream>
 #include <vector>
 #include <array>

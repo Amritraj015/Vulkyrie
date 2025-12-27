@@ -20,7 +20,7 @@ namespace Pong {
             void OnRender() override {}
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
-                VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+                VINFO("{} - Event",  _layerName.c_str());
 
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
                 dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {

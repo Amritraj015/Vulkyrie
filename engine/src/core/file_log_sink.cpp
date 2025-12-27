@@ -20,12 +20,12 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    void FileLogSink::LogMessage(LogLevel logLevel, const char *fmt, va_list args) {
+    void FileLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
         if (nullptr == _logFile) return;
 
         char buffer[LOG_BUFFER_SIZE];
 
-        const char *logPrefix;
+        std::string_view logPrefix;
         switch (logLevel) {
         case LogLevel::Fatal:
             logPrefix = "FATAL";
@@ -50,11 +50,10 @@ namespace Vulkyrie::Core {
             break;
         }
 
-        int offset = std::snprintf(buffer, LOG_BUFFER_SIZE, "[%s]: ", logPrefix);
+        auto it = std::format_to(buffer, "[{}]: ", logPrefix);
+        auto result = std::vformat_to(it, fmt, args);
 
-        std::vsnprintf(buffer + offset, LOG_BUFFER_SIZE - offset, fmt, args);
-
-        std::fputs(buffer, _logFile);
+        std::fwrite(buffer, 1, result - buffer, _logFile);
         std::fputc('\n', _logFile);
         std::fflush(_logFile);
     }

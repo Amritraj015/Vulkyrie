@@ -14,7 +14,7 @@ namespace Vulkyrie::Core {
                 return StatusCode::Successful;
             }
 
-            virtual void LogMessage(LogLevel logLevel, const char *fmt, va_list args);
+            virtual void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) = 0;
 
             /** Terminates the logger. */
             virtual void Dispose() { }

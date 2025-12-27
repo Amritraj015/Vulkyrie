@@ -1,12 +1,12 @@
 #include "vulkyrie.h"
 
 #if defined(VULKYRIE_DEBUG)
-// #include "core/logger.h"
+#include "core/logger.h"
 
-// void *operator new(size_t size) {
-//     VDEBUG("Allocating: %zu bytes", size);
-//     return malloc(size);
-// }
+void *operator new(size_t size) {
+    VDEBUG("Allocating: {} bytes", size);
+    return std::malloc(size);
+}
 #endif
 
 int main(int argc, char **argv) {

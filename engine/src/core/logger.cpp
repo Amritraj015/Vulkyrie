@@ -21,15 +21,6 @@ namespace Vulkyrie::Core {
         return _logSink->Initialize();
     }
 
-    void Logger::Log(LogLevel logLevel, const char *fmt, ...) {
-        if (nullptr == _logSink) return;
-
-        va_list args;
-        va_start(args, fmt);
-        _logSink->LogMessage(logLevel, fmt, args);
-        va_end(args);
-    }
-
     void Logger::TerminateLogger() {
         if (_logSink != nullptr) {
             _logSink->Dispose();

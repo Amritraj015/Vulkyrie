@@ -23,7 +23,11 @@ namespace Vulkyrie::Core {
 
             static StatusCode InitializeLogger(LoggerType loggerType);
 
-            static void Log(LogLevel logLevel, const char *fmt, ...);
+            template<typename... Args>
+            static void Log(LogLevel logLevel, std::string_view fmt, Args&&... args) {
+                if (nullptr == _logSink) return;
+                _logSink->LogMessage(logLevel, fmt, std::make_format_args(args...));
+            }
 
             static void TerminateLogger();
 

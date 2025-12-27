@@ -1,10 +1,11 @@
-#include "core/log_sink.h"
+#include "console_log_sink.h"
+#include "defines.h"
 
 namespace Vulkyrie::Core {
-    void LogSink::LogMessage(LogLevel logLevel, const char *fmt, va_list args) {
+    void ConsoleLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
         char buffer[LOG_BUFFER_SIZE];
 
-        const char *logPrefix;
+        std::string_view logPrefix;
 
         switch (logLevel) {
         case LogLevel::Fatal:
@@ -27,13 +28,12 @@ namespace Vulkyrie::Core {
             break;
         }
 
-        int offset = std::snprintf(buffer, LOG_BUFFER_SIZE, "%s", logPrefix);
-
-        std::vsnprintf(buffer + offset, LOG_BUFFER_SIZE - offset, fmt, args);
+        auto it = std::copy(logPrefix.begin(), logPrefix.end(), buffer);
+        auto result = std::vformat_to(it, fmt, args);
 
         FILE *out = (logLevel == LogLevel::Error || logLevel == LogLevel::Fatal) ? stderr : stdout;
 
-        std::fputs(buffer, out);
+        std::fwrite(buffer, 1, result - buffer, out);
         std::fputs("\033[0m\n", out);
         std::fflush(out);
     }
