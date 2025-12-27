@@ -71,14 +71,14 @@ namespace Vulkyrie::Renderer {
             glGetShaderiv(vertexShaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the compilation error message.
-            char infoLog[maxLength];
-            glGetShaderInfoLog(vertexShaderHandle, maxLength, &maxLength, infoLog);
+            std::vector<char> infoLog(maxLength);
+            glGetShaderInfoLog(vertexShaderHandle, maxLength, &maxLength, &infoLog[0]);
 
             // At this point we can delete the vertex shader.
             glDeleteShader(vertexShaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile vertex shader: %s - Error: %s", _vertexShaderPath.c_str(), infoLog)
+            VERROR("Failed to compile vertex shader: %s - Error: %s", _vertexShaderPath.c_str(), infoLog.data())
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -102,15 +102,15 @@ namespace Vulkyrie::Renderer {
             glGetShaderiv(fragmentShaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the compilation error message.
-            char infoLog[maxLength];
-            glGetShaderInfoLog(fragmentShaderHandle, maxLength, &maxLength, infoLog);
+            std::vector<char> infoLog(maxLength);
+            glGetShaderInfoLog(fragmentShaderHandle, maxLength, &maxLength, &infoLog[0]);
 
             // At this point we can, delete both the vertex and fragment shaders.
             glDeleteShader(vertexShaderHandle);
             glDeleteShader(fragmentShaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile fragment shader: %s - Error: %s", _fragmentShaderPath.c_str(), infoLog);
+            VERROR("Failed to compile fragment shader: %s - Error: %s", _fragmentShaderPath.c_str(), infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -141,11 +141,11 @@ namespace Vulkyrie::Renderer {
         // If linking failed, then we need to log an error and exit.
         if (GL_FALSE == success) {
             // Get the linking error length.
-            GLint maxLength = 0;
+            i32 maxLength = 0;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the linking error message.
-            std::vector<GLchar> infoLog(maxLength);
+            std::vector<char> infoLog(maxLength);
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             // Log the linking error.

@@ -223,8 +223,8 @@ namespace Vulkyrie::Core {
         // VINFO("Total vertex attributes allowed: %i", nrAttributes)
 
         Vulkyrie::Renderer::GraphicsShader graphicsShader(
-            "./assets/triangle.vert.glsl",
-            "./assets/triangle.frag.glsl"
+            "assets/triangle.vert.glsl",
+            "assets/triangle.frag.glsl"
         );
 
         // Check if shader program creation failed.

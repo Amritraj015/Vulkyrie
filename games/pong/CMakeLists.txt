@@ -20,3 +20,5 @@ add_custom_target(copy_assets ALL
             ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
             $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
+
+add_dependencies(${PROJECT_NAME} copy_assets)

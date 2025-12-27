@@ -38,7 +38,7 @@ namespace Vulkyrie::Renderer {
             glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the compilation error message.
-            char infoLog[maxLength];
+            std::vector<char> infoLog(maxLength);
             glGetShaderInfoLog(shaderHandle, maxLength, &maxLength, &infoLog[0]);
 
             // Delete the shader as it is no longer needed.
@@ -68,7 +68,7 @@ namespace Vulkyrie::Renderer {
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the linking error message.
-            char infoLog[maxLength];
+            std::vector<char> infoLog(maxLength);
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             // Delete the program and shader as they are no longer needed.
@@ -76,7 +76,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(shaderHandle);
 
             // Log an error and return.
-            VERROR("An error occurred while linking compute shader program: %s", infoLog);
+            VERROR("An error occurred while linking compute shader program: %s", infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;
