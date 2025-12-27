@@ -50,7 +50,7 @@ namespace Vulkyrie::Renderer {
 
         private:
             /** @brief A handle to the shader program. */
-            u32 _shaderProgram, _oldShaderProgram;
+            u32 _shaderProgram;
 
             /** @brief Indicates whether the shader is valid (compiled and linked successfully). */
             bool _isValid;

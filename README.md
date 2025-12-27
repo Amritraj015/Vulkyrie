@@ -6,7 +6,7 @@
 ## How to build from source
 
 Make sure you have the following prerequisites installed.
-- A C/C++ compiler, __(GCC v15.2.0+ or MSVC v19+ is recommended)__.
+- A C/C++ compiler, __(GCC v15.2.0+ or MSVC v19+ or Clang v20+ is recommended)__.
 - [Ninja](https://github.com/ninja-build/ninja/releases/tag/v1.13.2)
 
 Run the following commands from the root project directory:

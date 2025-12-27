@@ -28,27 +28,10 @@ namespace Vulkyrie::Renderer {
 
             /** @brief Binds the compute shader program for use. */
             inline void Use() const;
-
-
-// void setBool(const std::string &name, bool value) const
-// {         
-//     glUniform1i(glGetUniformLocation(_shaderProgram, name.c_str()), (int)value); 
-// }
-// void setInt(const std::string &name, int value) const
-// { 
-//     glUniform1i(glGetUniformLocation(_shaderProgram, name.c_str()), value); 
-// }
-// void setFloat(const std::string &name, float value) const
-// { 
-//     glUniform1f(glGetUniformLocation(_shaderProgram, name.c_str()), value); 
-// } 
-
-
-
         
         private:
             /** @brief A handle to the compute shader program. */
-            u32 _shaderProgram, _oldShaderProgram;
+            u32 _shaderProgram;
 
             /** @brief Indicates whether the compute shader is valid (compiled successfully). */
             bool _isValid;

@@ -6,7 +6,7 @@
 namespace Vulkyrie::Renderer {
     ComputeShader::ComputeShader(const std::filesystem::path &computeShaderPath)
         : _computeShaderPath(computeShaderPath) {
-        _shaderProgram = _oldShaderProgram = Create();
+        _shaderProgram = Create();
     }
 
     ComputeShader::~ComputeShader() {
@@ -15,6 +15,23 @@ namespace Vulkyrie::Renderer {
 
     inline void ComputeShader::Use() const {
         glUseProgram(_shaderProgram);
+    }
+
+    u32 ComputeShader::Reload() {
+        // Create a new compute shader program.
+        u32 newShaderProgram = Create();
+
+        // Return old shader handle if compilation failed
+        if (newShaderProgram == 0) return _shaderProgram;
+
+        // Delete the old compute shader program.
+        glDeleteProgram(_shaderProgram);
+
+        // Update the shader program handle.
+        _shaderProgram = newShaderProgram;
+
+        // Return the new compute shader program's handle.
+        return _shaderProgram;
     }
 
     u32 ComputeShader::Create() {
@@ -45,7 +62,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(shaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile compile shader: %s - Error: %s", _computeShaderPath.c_str(), infoLog)
+            VERROR("Failed to compile compile shader: %s - Error: %s", _computeShaderPath.c_str(), infoLog.data())
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -94,22 +111,4 @@ namespace Vulkyrie::Renderer {
         // Return the shader program handle.
         return program;
     }
-
-    u32 ComputeShader::Reload() {
-        // Create a new compute shader program.
-        _shaderProgram = Create();
-
-        // Return old shader if compilation failed
-        if (_shaderProgram == 0) return _shaderProgram;
-
-        // Delete the old compute shader program.
-        glDeleteProgram(_oldShaderProgram);
-
-        // Update the old shader program handle.
-        _shaderProgram = _shaderProgram;
-
-        // Return the new compute shader program's handle.
-        return _shaderProgram;
-    }
-
 }

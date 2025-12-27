@@ -6,7 +6,7 @@
 namespace Vulkyrie::Renderer {
     GraphicsShader::GraphicsShader(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath)
         : _vertexShaderPath(vertexShaderPath), _fragmentShaderPath(fragmentShaderPath) {
-        _shaderProgram = _oldShaderProgram = Create(vertexShaderPath, fragmentShaderPath);
+        _shaderProgram = Create(vertexShaderPath, fragmentShaderPath);
     }
 
     GraphicsShader::~GraphicsShader() {
@@ -31,16 +31,16 @@ namespace Vulkyrie::Renderer {
 
     u32 GraphicsShader::Reload() {
         // Create a new shader program.
-        _shaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);
+        u32 newShaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);
 
-        // Return old shader if compilation failed
-        if (_shaderProgram == 0) return _shaderProgram;
+        // Return old shader program handle if compilation failed.
+        if (newShaderProgram == 0) return _shaderProgram;
 
         // Delete the old shader program.
-        glDeleteProgram(_oldShaderProgram);
+        glDeleteProgram(_shaderProgram);
 
-        // Update the old shader program handle.
-        _shaderProgram = _shaderProgram;
+        // Update the shader program handle.
+        _shaderProgram = newShaderProgram;
 
         // Return the new shader program's handle.
         return _shaderProgram;

@@ -10,11 +10,11 @@ namespace Vulkyrie::Events {
             WindowCreatedEvent() = default;
             ~WindowCreatedEvent() = default;
 
-            [[nodiscard]] inline virtual EventType GetEventType() const {
+            [[nodiscard]] inline virtual EventType GetEventType() const override {
                 return GetStaticEventType();
             }
 
-            [[nodiscard]] inline virtual i32 GetCategoryFlags() const {
+            [[nodiscard]] inline virtual i32 GetCategoryFlags() const override {
                 return _categoryFlags;
             }
 
