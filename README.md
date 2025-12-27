@@ -21,7 +21,7 @@ Then you can run the project by running the executables under
 - Pong Application.
 ```
 (On Linux)
-cd build/games/pong && pong
+cd build/games/pong && ./pong
 
 (On Windows)
 cd build/games/pong/Debug && ./pong.exe
