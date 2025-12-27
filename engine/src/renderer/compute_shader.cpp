@@ -5,7 +5,7 @@
 
 namespace Vulkyrie::Renderer {
     ComputeShader::ComputeShader(const std::filesystem::path &computeShaderPath)
-        : _computeShaderPath(computeShaderPath) {
+        : _computeShaderPath(computeShaderPath), _isValid(false) {
         _shaderProgram = Create();
     }
 

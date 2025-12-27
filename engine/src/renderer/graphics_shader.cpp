@@ -5,7 +5,7 @@
 
 namespace Vulkyrie::Renderer {
     GraphicsShader::GraphicsShader(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath)
-        : _vertexShaderPath(vertexShaderPath), _fragmentShaderPath(fragmentShaderPath) {
+        : _vertexShaderPath(vertexShaderPath), _fragmentShaderPath(fragmentShaderPath), _isValid(false) {
         _shaderProgram = Create(vertexShaderPath, fragmentShaderPath);
     }
 
