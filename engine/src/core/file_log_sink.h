@@ -8,7 +8,7 @@ namespace Vulkyrie::Core {
         public:
             StatusCode Initialize() override;
             void LogMessage(LogLevel logLevel, const char *fmt, va_list args) override;
-            StatusCode Dispose() override;
+            void Dispose() override;
             ~FileLogSink() override;
 
         private:

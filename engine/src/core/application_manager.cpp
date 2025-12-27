@@ -1,12 +1,16 @@
-#include "application_manager.h"
+#include "core/application_manager.h"
 #include "core/logger.h"
-#include "platform/generic_window.h"
+#include "core/generic_window.h"
 
-namespace Vulkyrie::Platform {
+namespace Vulkyrie::Core {
     using Vulkyrie::Core::StatusCode;
 
+    ApplicationManager *ApplicationManager::_instance = nullptr;
+
     ApplicationManager::ApplicationManager(const Vulkyrie::Core::Application &application)
-        : _application(application), _window(std::make_unique<GenericWindow>(application)) { }
+        : _application(application), _window(std::make_shared<GenericWindow>(application)) {
+        _instance = this;
+    }
 
     StatusCode ApplicationManager::BootstrapApplication() {
         StatusCode statusCode = InitializeSubSystems();
@@ -46,6 +50,10 @@ namespace Vulkyrie::Platform {
         return StatusCode::Successful;
     }
 
+    void ApplicationManager::ToggleWireframeMode(bool enable) {
+        _instance->_window->ToggleWireframeMode(enable);
+    }
+
     StatusCode ApplicationManager::TerminateSubSystems() {
         // Close the application window.
         _window->Close();
@@ -53,4 +61,4 @@ namespace Vulkyrie::Platform {
         // Return a successful status code.
         return StatusCode::Successful;
     }
-}; // namespace Vulkyrie::Platform
+}; // namespace Vulkyrie::Core

@@ -21,6 +21,18 @@ namespace Pong {
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+
+                Vulkyrie::Events::EventDispatcher dispatcher(event);
+                dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {
+                    if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
+                        VINFO("J key pressed in game layer!");
+                        // VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+
+                        return true;
+                    }
+
+                    return false;
+                });
             }
     };
 }

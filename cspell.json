@@ -2,10 +2,13 @@
     "flagWords": [],
     "words": [
         "glfw",
+        "Integerv",
+        "MSVC",
         "OPENGL",
+        "Programiv",
+        "Shaderiv",
         "vulky",
-        "Vulkyrie",
-        "MSVC"
+        "Vulkyrie"
     ],
     "version": "0.2",
     "language": "en"

@@ -1,5 +1,4 @@
 #include "vulkyrie.h"
-#include "platform/application_manager.h"
 
 #if defined(VULKYRIE_DEBUG)
 // #include "core/logger.h"
@@ -28,7 +27,7 @@ int main(int argc, char **argv) {
     }
 
     // Create an instance of Application Manager.
-    Vulkyrie::Platform::ApplicationManager applicationManager(*application);
+    Vulkyrie::Core::ApplicationManager applicationManager(*application);
 
     // Bootstrap the application.
     // This is a blocking call until the application is closed.
@@ -37,6 +36,9 @@ int main(int argc, char **argv) {
     // Clean up the application instance.
     delete application;
 
+    // Terminate the logger sub-system.
+    Vulkyrie::Core::Logger::TerminateLogger();
+
     // Terminate the logger sub-system and return its status code.
-    return std::to_underlying(Vulkyrie::Core::Logger::TerminateLogger());
+    return std::to_underlying(status);
 }

@@ -25,7 +25,7 @@ namespace Vulkyrie::Core {
 
             static void Log(LogLevel logLevel, const char *fmt, ...);
 
-            static StatusCode TerminateLogger();
+            static void TerminateLogger();
 
         private:
             static std::unique_ptr<LogSink> _logSink;

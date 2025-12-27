@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/status_codes.h"
-#include "core/application.h"
+#include "status_codes.h"
+#include "application.h"
 
-namespace Vulkyrie::Platform {
+namespace Vulkyrie::Core {
     class Window {
         public:
             // Deleted copy constructor and assignment operator to prevent copies.
@@ -22,10 +22,15 @@ namespace Vulkyrie::Platform {
              * */
             virtual Vulkyrie::Core::StatusCode Close() = 0;
 
+            /** @brief Toggles wireframe rendering mode.
+             * @param enable True to enable wireframe mode, false to disable.
+             */
+            virtual void ToggleWireframeMode(bool enable) = 0;
+
             /** @brief Reference to the application instance. */
             const Vulkyrie::Core::Application &appRef;
 
         protected:
             Window(const Vulkyrie::Core::Application &appRef) : appRef(appRef) {};
     };
-} // namespace Vulkyrie::Platform
+} // namespace Vulkyrie::Core

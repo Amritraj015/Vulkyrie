@@ -11,7 +11,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::KeyPressed;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline bool IsRepeat() const {
@@ -27,6 +27,13 @@ namespace Vulkyrie::Events {
                                    std::to_underlying(GetKeyCode()),
                                    _isRepeat ? "true" : "false",
                                    std::to_underlying(_modifiers));
+            }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::KeyPressed;
             }
 
         private:

@@ -30,11 +30,9 @@ namespace Vulkyrie::Core {
         va_end(args);
     }
 
-    StatusCode Logger::TerminateLogger() {
+    void Logger::TerminateLogger() {
         if (_logSink != nullptr) {
-            return _logSink->Dispose();
+            _logSink->Dispose();
         }
-
-        return StatusCode::Successful;
     }
 } // namespace Vulkyrie::Core

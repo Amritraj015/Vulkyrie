@@ -24,11 +24,18 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::WindowResize;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline std::string ToString() const override {
                 return std::format("WindowResizeEvent: {}x{}", _width, _height);
+            }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::WindowResize;
             }
 
         private:

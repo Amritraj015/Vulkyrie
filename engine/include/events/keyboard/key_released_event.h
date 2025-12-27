@@ -9,11 +9,18 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::KeyReleased;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline std::string ToString() const override {
                 return std::format("KeyReleasedEvent: {}", std::to_underlying(GetKeyCode()));
+            }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::KeyReleased;
             }
     };
 }

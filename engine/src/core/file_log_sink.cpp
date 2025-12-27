@@ -7,6 +7,7 @@ namespace Vulkyrie::Core {
         }
 
         delete _logFile;
+        _logFile = nullptr;
     };
 
     StatusCode FileLogSink::Initialize() {
@@ -58,11 +59,12 @@ namespace Vulkyrie::Core {
         std::fflush(_logFile);
     }
 
-    StatusCode FileLogSink::Dispose() {
+    void FileLogSink::Dispose() {
         if (nullptr != _logFile) {
             std::fclose(_logFile);
         }
 
-        return StatusCode::Successful;
+        delete _logFile;
+        _logFile = nullptr;
     }
 } // namespace Vulkyrie::Core

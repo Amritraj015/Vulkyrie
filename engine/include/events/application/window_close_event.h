@@ -7,7 +7,7 @@ namespace Vulkyrie::Events {
     class WindowCloseEvent : public Event {
         public:
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::WindowClose;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
@@ -16,6 +16,13 @@ namespace Vulkyrie::Events {
 
             [[nodiscard]] inline std::string ToString() const override {
                 return "WindowCloseEvent";
+            }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::WindowClose;
             }
 
         private:

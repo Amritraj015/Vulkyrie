@@ -32,5 +32,12 @@ namespace Vulkyrie::Events {
             [[nodiscard]] inline virtual std::string ToString() const {
                 return "Event";
             }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            // [[nodiscard]] static inline EventType GetStaticEventType() {
+            //     return EventType::None;
+            // }
     };
 } // namespace Vulkyrie::Events

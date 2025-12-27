@@ -10,7 +10,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::MouseButtonPressed;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline KeyModifier GetModifiers() const {
@@ -22,6 +22,14 @@ namespace Vulkyrie::Events {
                                    std::to_underlying(GetMouseButton()),
                                    std::to_underlying(_modifiers));
             }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::MouseButtonPressed;
+            }
+
 
         private:
             const KeyModifier _modifiers;

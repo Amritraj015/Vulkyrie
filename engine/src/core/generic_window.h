@@ -1,22 +1,22 @@
 #pragma once
 
-#include "window.h"
+#include "core/window.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace Vulkyrie::Platform {
+namespace Vulkyrie::Core {
     class GenericWindow final : public Window {
         public:
             GenericWindow(const Vulkyrie::Core::Application &application);
             ~GenericWindow() = default;
 
-            /** Creates a new window for the application. */
             Vulkyrie::Core::StatusCode Create() override;
 
-            /** Closes the application window. */
             Vulkyrie::Core::StatusCode Close() override;
+
+            void ToggleWireframeMode(bool enable) override;
 
         private:
             GLFWwindow *_window;
     };
-} // namespace Vulkyrie::Platform
+} // namespace Vulkyrie::Core

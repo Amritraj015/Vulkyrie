@@ -14,3 +14,9 @@ target_compile_definitions(${PROJECT_NAME}
         VULKYRIE_EXPORTS
         VULKYRIE_DEBUG
 )
+
+add_custom_target(copy_assets ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+)

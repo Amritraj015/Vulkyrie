@@ -3,14 +3,18 @@
 #include "events/application/window_close_event.h"
 #include "events/application/window_resize_event.h"
 #include "events/mouse/mouse_moved_event.h"
-#include "events/mouse/mouse_button_pressed.h"
-#include "events/mouse/mouse_button_released.h"
+#include "events/mouse/mouse_button_pressed_event.h"
+#include "events/mouse/mouse_button_released_event.h"
 #include "events/mouse/mouse_scrolled_event.h"
-// #include "events/keyboard/key_char_event.h"
 #include "events/keyboard/key_pressed_event.h"
 #include "events/keyboard/key_released_event.h"
 
-namespace Vulkyrie::Platform {
+// TODO: Remove these.
+#include "renderer/graphics_shader.h"
+#include <cmath>
+
+
+namespace Vulkyrie::Core {
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
      * @param glfwKeyCode The GLFW key code to convert.
      * @returns The corresponding Vulkyrie key code.
@@ -210,30 +214,89 @@ namespace Vulkyrie::Platform {
             return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
         }
 
-        // load OpenGL functions
-        gladLoadGL();
-
         // set the viewport
         glViewport(0, 0, appRef.windowProps.width, appRef.windowProps.height);
 
-        glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // set clear color
-        glClear(GL_COLOR_BUFFER_BIT);            // clear the color buffer
-        glfwSwapBuffers(_window);
+        // int nrAttributes;
+        // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+
+        // VINFO("Total vertex attributes allowed: %i", nrAttributes)
+
+        Vulkyrie::Renderer::GraphicsShader graphicsShader(
+            "./assets/triangle.vert.glsl",
+            "./assets/triangle.frag.glsl"
+        );
+
+        // Check if shader program creation failed.
+        if (!graphicsShader.IsValid()) {
+            // Log a fatal error.
+            VFATAL("Failed to create graphics shader");
+
+            // Return an error code to represent failure to compile shader program.
+            return Vulkyrie::Core::StatusCode::FailedToCompileShaderProgram;
+        }
+
+        f32 vertices[] = {
+            // positions         // colors
+            0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+            0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
+        };
+
+        u32 vao, vbo;
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+
+        glBindVertexArray(vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        i32 vertexColorLocation = glGetUniformLocation(graphicsShader.GetShaderProgram(), "ourColor");
 
         // Game/Render loop.
         while (!glfwWindowShouldClose(_window)) {
-            glfwPollEvents();
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT); // clear the color buffer
 
-            // glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // set clear color
-            // glClear(GL_COLOR_BUFFER_BIT);            // clear the color buffer
+            // Use the graphics shader program.
+            graphicsShader.Use();
 
-            // glfwSwapBuffers(window);
+            // float timeValue = glfwGetTime();
+            // float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+            // float redValue = (cos(timeValue) / 2.0f) + 0.1f;
+            // float blueValue = (sin(timeValue) / 2.0f) + 1.3f;
+            // glUniform4f(vertexColorLocation, redValue, greenValue, blueValue, 1.0f);
+
+            glBindVertexArray(vao);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            glfwSwapBuffers(_window);
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------
+            glfwPollEvents();
         }
 
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
+
         return Vulkyrie::Core::StatusCode::Successful;
+    }
+
+    void GenericWindow::ToggleWireframeMode(bool enable) {
+        if (enable) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
     }
 
     Vulkyrie::Core::StatusCode GenericWindow::Close() {
@@ -542,4 +605,4 @@ namespace Vulkyrie::Platform {
                 return Vulkyrie::Events::KeyCode::Unknown;
         }
     }
-} // namespace Vulkyrie::Platform
+} // namespace Vulkyrie::Core

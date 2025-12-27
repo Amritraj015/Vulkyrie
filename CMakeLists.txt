@@ -44,5 +44,5 @@ add_subdirectory(vulky-cli)
 # -------------------------------------
 # Games based on the Vulkyrie engine
 # -------------------------------------
-add_subdirectory(games/asteroids)
+# add_subdirectory(games/asteroids)
 add_subdirectory(games/pong)

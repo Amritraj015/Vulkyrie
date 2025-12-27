@@ -17,9 +17,7 @@ namespace Vulkyrie::Core {
             virtual void LogMessage(LogLevel logLevel, const char *fmt, va_list args);
 
             /** Terminates the logger. */
-            virtual StatusCode Dispose() {
-                return StatusCode::Successful;
-            }
+            virtual void Dispose() { }
 
         protected:
             static constexpr u16 LOG_BUFFER_SIZE = 4096;

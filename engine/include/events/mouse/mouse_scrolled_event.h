@@ -23,11 +23,18 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
-                return EventType::MouseScrolled;
+                return GetStaticEventType();
             }
 
             [[nodiscard]] inline std::string ToString() const override {
                 return std::format("MouseScrolledEvent: ({}, {})", _offsetX, _offsetY);
+            }
+
+            /** @brief Gets the static event type for this event class.
+             * @return The static event type.
+             */
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::MouseScrolled;
             }
 
         private:

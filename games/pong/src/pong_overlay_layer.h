@@ -25,8 +25,23 @@ namespace Pong {
             }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
-                VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
-                event.handled = true;
+                // VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
+                Vulkyrie::Events::EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {
+                    if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
+                        _toggleWireframe = !_toggleWireframe;
+
+                        Vulkyrie::Core::ApplicationManager::ToggleWireframeMode(_toggleWireframe);
+
+                        return true;
+                    }
+
+                    return false;
+                });
             }
+
+        private:
+            bool _toggleWireframe = false;
     };
 }
