@@ -30,8 +30,8 @@ cd build/games/pong/Debug && ./pong.exe
 - Asteroids Application.
 ```
 (On Linux)
-build/games/asteroids/asteroids
+cd build/games/asteroids && ./asteroids
 
 (On Windows)
-build/games/asteroids/Debug/asteroids.exe
+cd build/games/asteroids/Debug && ./asteroids.exe
 ```
