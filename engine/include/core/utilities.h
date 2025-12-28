@@ -19,7 +19,7 @@ namespace Vulkyrie::Core {
         // Check if file opened successfully.
         if (!file.is_open()) {
             // If the file failed to open, log an error and return an empty string.
-            VERROR("Failed to open file: %s", path.c_str());
+            VERROR("Failed to open file: {}", path.c_str());
 
             return {};
         }

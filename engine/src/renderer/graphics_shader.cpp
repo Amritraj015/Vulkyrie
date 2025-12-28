@@ -17,15 +17,15 @@ namespace Vulkyrie::Renderer {
         glUseProgram(_shaderProgram);
     }
 
-    void GraphicsShader::setBoolUniform(std::string_view name, bool value) const {
+    void GraphicsShader::SetBoolUniform(std::string_view name, bool value) const {
         glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), (int)value);
     }
 
-    void GraphicsShader::setIntUniform(std::string_view name, int value) const {
+    void GraphicsShader::SetIntUniform(std::string_view name, int value) const {
         glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), value);
     }
 
-    void GraphicsShader::setFloatUniform(std::string_view name, float value) const {
+    void GraphicsShader::SetFloatUniform(std::string_view name, float value) const {
         glUniform1f(glGetUniformLocation(_shaderProgram, name.data()), value);
     }
 
@@ -78,7 +78,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(vertexShaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile vertex shader: %s - Error: %s", _vertexShaderPath.c_str(), infoLog.data())
+            VERROR("Failed to compile vertex shader: {} - Error: {}", _vertexShaderPath.c_str(), infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -110,7 +110,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(fragmentShaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile fragment shader: %s - Error: %s", _fragmentShaderPath.c_str(), infoLog.data());
+            VERROR("Failed to compile fragment shader: {} - Error: {}", _fragmentShaderPath.c_str(), infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -149,7 +149,7 @@ namespace Vulkyrie::Renderer {
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             // Log the linking error.
-            VERROR("An error occurred while linking graphics shader program:", infoLog.data());
+            VERROR("An error occurred while linking graphics shader program: {}", infoLog.data());
 
             // At this point we can delete the program.
             glDeleteProgram(program);

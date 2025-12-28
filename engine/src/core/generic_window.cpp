@@ -13,6 +13,9 @@
 #include "renderer/graphics_shader.h"
 #include <cmath>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "vendor/stb_image.h"
+
 
 namespace Vulkyrie::Core {
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
@@ -43,6 +46,11 @@ namespace Vulkyrie::Core {
     GenericWindow::GenericWindow(const Vulkyrie::Core::Application &application) : Window(application) {};
 
     Vulkyrie::Core::StatusCode GenericWindow::Create() {
+        // Set GLFW error callback.
+        glfwSetErrorCallback([](int errorCode, const char *description) {
+            VERROR("GLFW Error {}: {}", errorCode, description);
+        });
+
         // GLFW: initialize and configure
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -81,7 +89,7 @@ namespace Vulkyrie::Core {
             Vulkyrie::Events::WindowResizeEvent event(width, height);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -91,22 +99,22 @@ namespace Vulkyrie::Core {
             Vulkyrie::Events::WindowCloseEvent event;
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
             // Dispatch the event.
             app.RaiseEvent(event);
         });
 
         glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-            Vulkyrie::Events::KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
+            const Vulkyrie::Events::KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
 
             switch (action) {
                 case GLFW_PRESS: {
-                    Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
+                    const Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -122,7 +130,7 @@ namespace Vulkyrie::Core {
                     Vulkyrie::Events::KeyReleasedEvent event(code);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -134,7 +142,7 @@ namespace Vulkyrie::Core {
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers, true);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -166,7 +174,7 @@ namespace Vulkyrie::Core {
                     Vulkyrie::Events::MouseButtonPressedEvent event(mouseButton, modifiers);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -177,7 +185,7 @@ namespace Vulkyrie::Core {
                     Vulkyrie::Events::MouseButtonReleasedEvent event(mouseButton);
 
                     // Get the window user pointer.
-                    Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+                    const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
                     // Dispatch the event.
                     app.RaiseEvent(event);
@@ -191,7 +199,7 @@ namespace Vulkyrie::Core {
             Vulkyrie::Events::MouseScrolledEvent event(offsetX, offsetY);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
             // Dispatch the event.
             app.RaiseEvent(event);
@@ -201,14 +209,14 @@ namespace Vulkyrie::Core {
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
-            Vulkyrie::Core::Application &app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+            const Vulkyrie::Core::Application &app = *static_cast<Vulkyrie::Core::Application *>(glfwGetWindowUserPointer(window));
 
             // Dispatch the event.
             app.RaiseEvent(event);
         });
 
         // GLAD: load all OpenGL function pointers
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
             VFATAL("Failed to initialize GLAD");
 
             return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
@@ -220,11 +228,13 @@ namespace Vulkyrie::Core {
         // int nrAttributes;
         // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
 
-        // VINFO("Total vertex attributes allowed: %i", nrAttributes)
+        // VINFO("Total vertex attributes allowed: {}", nrAttributes)
 
+        // -------------------------------------------------------------------------------
+        // Load shaders.
         Vulkyrie::Renderer::GraphicsShader graphicsShader(
-            "assets/triangle.vert.glsl",
-            "assets/triangle.frag.glsl"
+            "assets/shaders/triangle.vert.glsl",
+            "assets/shaders/triangle.frag.glsl"
         );
 
         // Check if shader program creation failed.
@@ -236,38 +246,109 @@ namespace Vulkyrie::Core {
             return Vulkyrie::Core::StatusCode::FailedToCompileShaderProgram;
         }
 
-        f32 vertices[] = {
+        constexpr f32 vertices[] = {
             // positions         // colors
-            0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
+            // 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+            // -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+            // 0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
+
+            // positions          // colors           // texture coords
+            0.5f, 0.5f,  0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+            0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+            -0.5f, 0.5f,  0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
         };
 
-        u32 vao, vbo;
+        unsigned int indices[] = {
+            0, 1, 3, // first triangle
+            1, 2, 3  // second triangle
+        };
+
+        u32 vao, vbo, ebo;
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
 
         glBindVertexArray(vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // i32 vertexColorLocation = glGetUniformLocation(graphicsShader.GetShaderProgram(), "ourColor");
+        // -------------------------------------------------------------------------------
 
-        i32 vertexColorLocation = glGetUniformLocation(graphicsShader.GetShaderProgram(), "ourColor");
+
+        // -------------------------------------------------------------------------------
+        // Generate Textures.
+        stbi_set_flip_vertically_on_load(true);
+
+        i32 width, height, nrChannels;
+        const u8 *image = stbi_load("assets/textures/wall.jpg", &width, &height, &nrChannels, 0);
+
+        i32 aWidth, aHeight, anrChannels;
+        const u8 *aImage = stbi_load("assets/textures/awesomeface.png", &aWidth, &aHeight, &anrChannels, 0);
+
+        if (!image) {
+            VERROR("Failed to load texture: assets/textures/container.jpg");
+
+            return Vulkyrie::Core::StatusCode::FailedToCreateWindow;
+        }
+
+        // Create the texture handle.
+        u32 textureHandle, aTextureHandle;
+        glGenTextures(1, &textureHandle);
+        glBindTexture(GL_TEXTURE_2D, textureHandle);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glGenTextures(1, &aTextureHandle);
+        glBindTexture(GL_TEXTURE_2D, aTextureHandle);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, aWidth, aHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, aImage);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        graphicsShader.Use();                                                // don't forget to activate the shader before setting uniforms!
+        glUniform1i(glGetUniformLocation(graphicsShader.GetShaderProgram(), "texture1"), 0); // set it manually
+        graphicsShader.SetIntUniform("texture2", 1);                                // or with shader class
+
+        stbi_image_free((void*)image);
+        stbi_image_free((void*)aImage);
+        // -------------------------------------------------------------------------------
 
         // Game/Render loop.
         while (!glfwWindowShouldClose(_window)) {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT); // clear the color buffer
 
+            // bind Texture
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureHandle);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, aTextureHandle);
+
+            // render container
             // Use the graphics shader program.
-            graphicsShader.Use();
+            // graphicsShader.Use();
+            glBindVertexArray(vao);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
             // float timeValue = glfwGetTime();
             // float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
@@ -275,8 +356,8 @@ namespace Vulkyrie::Core {
             // float blueValue = (sin(timeValue) / 2.0f) + 1.3f;
             // glUniform4f(vertexColorLocation, redValue, greenValue, blueValue, 1.0f);
 
-            glBindVertexArray(vao);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            // glBindVertexArray(vao);
+            // glDrawArrays(GL_TRIANGLES, 0, 3);
 
             glfwSwapBuffers(_window);
 
@@ -600,7 +681,6 @@ namespace Vulkyrie::Core {
                 return Vulkyrie::Events::KeyCode::RightSuper;
             case GLFW_KEY_MENU:
                 return Vulkyrie::Events::KeyCode::Menu;
-                break;
             default:
                 return Vulkyrie::Events::KeyCode::Unknown;
         }

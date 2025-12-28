@@ -3,6 +3,7 @@
 namespace Vulkyrie::Core {
     FileLogSink::~FileLogSink() {
         if (nullptr != _logFile) {
+            std::fflush(_logFile);
             std::fclose(_logFile);
         }
 
@@ -41,11 +42,11 @@ namespace Vulkyrie::Core {
 
         std::fwrite(buffer, 1, result - buffer, _logFile);
         std::fputc('\n', _logFile);
-        std::fflush(_logFile);
     }
 
     void FileLogSink::Dispose() {
         if (nullptr != _logFile) {
+            std::fflush(_logFile);
             std::fclose(_logFile);
         }
 

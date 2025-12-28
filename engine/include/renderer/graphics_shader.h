@@ -34,19 +34,19 @@ namespace Vulkyrie::Renderer {
              * @param name The name of the uniform variable.
              * @param value The boolean value to set.
              */
-            void setBoolUniform(std::string_view name, bool value) const;
+            void SetBoolUniform(std::string_view name, bool value) const;
 
             /** @brief Sets an integer uniform variable in the shader program.
              * @param name The name of the uniform variable.
              * @param value The integer value to set.
              */
-            void setIntUniform(std::string_view name, int value) const;
+            void SetIntUniform(std::string_view name, int value) const;
 
             /** @brief Sets a float uniform variable in the shader program.
              * @param name The name of the uniform variable.
              * @param value The float value to set.
              */
-            void setFloatUniform(std::string_view name, float value) const;
+            void SetFloatUniform(std::string_view name, float value) const;
 
         private:
             /** @brief A handle to the shader program. */

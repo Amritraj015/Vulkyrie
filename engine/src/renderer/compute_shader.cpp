@@ -62,7 +62,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(shaderHandle);
 
             // Log an error and return.
-            VERROR("Failed to compile compile shader: %s - Error: %s", _computeShaderPath.c_str(), infoLog.data())
+            VERROR("Failed to compile compile shader: {} - Error: {}", _computeShaderPath.c_str(), infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;
@@ -93,7 +93,7 @@ namespace Vulkyrie::Renderer {
             glDeleteShader(shaderHandle);
 
             // Log an error and return.
-            VERROR("An error occurred while linking compute shader program: %s", infoLog.data());
+            VERROR("An error occurred while linking compute shader program: {}", infoLog.data());
 
             // Mark the shader as invalid.
             _isValid = false;

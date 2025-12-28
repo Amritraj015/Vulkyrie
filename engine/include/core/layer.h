@@ -6,7 +6,7 @@
 namespace Vulkyrie::Core {
     class Layer {
         public:
-            Layer(std::string_view name = "Layer") : _layerName(name) {};
+            explicit Layer(const std::string_view name = "Layer") : _layerName(name) {};
             virtual ~Layer() = default;
 
             virtual void OnAttach() {

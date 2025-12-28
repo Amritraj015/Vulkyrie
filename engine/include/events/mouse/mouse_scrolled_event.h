@@ -6,15 +6,15 @@
 namespace Vulkyrie::Events {
     class MouseScrolledEvent : public Event {
         public:
-            MouseScrolledEvent(const i32 offsetX, const i32 offsetY)
+            MouseScrolledEvent(const f64 offsetX, const f64 offsetY)
                 : _offsetX(offsetX), _offsetY(offsetY) {
             }
 
-            [[nodiscard]] inline i32 GetXOffset() const {
+            [[nodiscard]] inline f64 GetXOffset() const {
                 return _offsetX;
             }
 
-            [[nodiscard]] inline i32 GetYOffset() const {
+            [[nodiscard]] inline f64 GetYOffset() const {
                 return _offsetY;
             }
 
@@ -38,7 +38,7 @@ namespace Vulkyrie::Events {
             }
 
         private:
-            const i32 _offsetX, _offsetY;
-            const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
+            const f64 _offsetX, _offsetY;
+            static constexpr i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
 } // namespace Vulkyrie::Events

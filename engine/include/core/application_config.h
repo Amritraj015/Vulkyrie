@@ -1,7 +1,6 @@
 #pragma once
 
-#include "logger_type.h"
-#include "grapthics_api.h"
+#include "graphics_api.h"
 
 namespace Vulkyrie::Core {
     struct ApplicationConfig {

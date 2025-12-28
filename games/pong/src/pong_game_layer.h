@@ -9,11 +9,11 @@ namespace Pong {
             ~PongGameLayer() = default;
 
             void OnAttach() override {
-                VDEBUG("Layer Attached: %s", _layerName.c_str());
+                VDEBUG("Layer Attached: {}", _layerName.c_str());
             }
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: %s",  _layerName.c_str());
+                VDEBUG("Layer Detached: {}",  _layerName.c_str());
             }
 
             void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {}
@@ -26,7 +26,6 @@ namespace Pong {
                 dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {
                     if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
                         VINFO("J key pressed in game layer!");
-                        // VINFO("%s - Event: %s",  _layerName.c_str(), event.ToString().c_str());
 
                         return true;
                     }

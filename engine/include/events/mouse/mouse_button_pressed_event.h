@@ -1,6 +1,7 @@
 #pragma once
 
 #include "events/mouse/mouse_button_event.h"
+#include "events/enums/key_modifier.h"
 
 namespace Vulkyrie::Events {
     class MouseButtonPressedEvent : public MouseButtonEvent {
