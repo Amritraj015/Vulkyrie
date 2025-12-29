@@ -45,7 +45,13 @@
 		{
 			"type": "shell",
 			"label": "Run Pong",
-			"command": "${workspaceFolder}/build/pong/pong",
+			"command": "pong",
+			"options": {
+				"cwd": "${workspaceFolder}/build/games/pong"
+			},
+			"windows": {
+				"command": "${workspaceFolder}/build/games/pong/pong.exe"
+			},
 			"group": "test",
 			"problemMatcher": [],
 			"dependsOn": ["CMake: Build"]

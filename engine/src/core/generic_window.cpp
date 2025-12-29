@@ -11,30 +11,31 @@
 
 // TODO: Remove these.
 #include "renderer/graphics_shader.h"
-#include <cmath>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
-
 
 namespace Vulkyrie::Core {
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
      * @param glfwKeyCode The GLFW key code to convert.
      * @returns The corresponding Vulkyrie key code.
      */
-    inline Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode);
+    static constexpr Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode);
 
     /** @brief Converts a GLFW mouse button to a Vulkyrie mouse button.
      * @param glfwMouseButton The GLFW mouse button to convert.
      * @returns The corresponding Vulkyrie mouse button.
      */
-    inline Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton);
+    static constexpr Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton);
 
     /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
      * @param glfwMods The GLFW modifier flags.
      * @returns The corresponding Vulkyrie key modifiers.
      */
-    inline Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods);
+    static constexpr Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods);
 
     constexpr static int shiftModifierAsInt = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
     constexpr static int controlModifierAsInt = std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
@@ -47,9 +48,7 @@ namespace Vulkyrie::Core {
 
     Vulkyrie::Core::StatusCode GenericWindow::Create() {
         // Set GLFW error callback.
-        glfwSetErrorCallback([](int errorCode, const char *description) {
-            VERROR("GLFW Error {}: {}", errorCode, description);
-        });
+        glfwSetErrorCallback([](int errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
         // GLFW: initialize and configure
         glfwInit();
@@ -138,7 +137,7 @@ namespace Vulkyrie::Core {
                     break;
                 }
                 case GLFW_REPEAT: {
-                    Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
+                    const Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
                     Vulkyrie::Events::KeyPressedEvent event(code, modifiers, true);
 
                     // Get the window user pointer.
@@ -166,7 +165,7 @@ namespace Vulkyrie::Core {
         // });
 
         glfwSetMouseButtonCallback(_window, [](GLFWwindow *window, int button, int action, int mods) {
-            Vulkyrie::Events::MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
+            const Vulkyrie::Events::MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
 
             switch (action) {
                 case GLFW_PRESS: {
@@ -232,10 +231,7 @@ namespace Vulkyrie::Core {
 
         // -------------------------------------------------------------------------------
         // Load shaders.
-        Vulkyrie::Renderer::GraphicsShader graphicsShader(
-            "assets/shaders/triangle.vert.glsl",
-            "assets/shaders/triangle.frag.glsl"
-        );
+        Vulkyrie::Renderer::GraphicsShader graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl");
 
         // Check if shader program creation failed.
         if (!graphicsShader.IsValid()) {
@@ -253,10 +249,10 @@ namespace Vulkyrie::Core {
             // 0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
 
             // positions          // colors           // texture coords
-            0.5f, 0.5f,  0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-            0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-            -0.5f, 0.5f,  0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
+            0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
         };
 
         unsigned int indices[] = {
@@ -288,7 +284,6 @@ namespace Vulkyrie::Core {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // i32 vertexColorLocation = glGetUniformLocation(graphicsShader.GetShaderProgram(), "ourColor");
         // -------------------------------------------------------------------------------
-
 
         // -------------------------------------------------------------------------------
         // Generate Textures.
@@ -325,13 +320,16 @@ namespace Vulkyrie::Core {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, aWidth, aHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, aImage);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        graphicsShader.Use();                                                // don't forget to activate the shader before setting uniforms!
-        glUniform1i(glGetUniformLocation(graphicsShader.GetShaderProgram(), "texture1"), 0); // set it manually
-        graphicsShader.SetIntUniform("texture2", 1);                                // or with shader class
+        graphicsShader.Use(); // remember to activate the shader before setting uniforms!
+        graphicsShader.SetIntUniform("texture1", 0);
+        graphicsShader.SetIntUniform("texture2", 1);
 
-        stbi_image_free((void*)image);
-        stbi_image_free((void*)aImage);
+
+
+        stbi_image_free((void *)image);
+        stbi_image_free((void *)aImage);
         // -------------------------------------------------------------------------------
+
 
         // Game/Render loop.
         while (!glfwWindowShouldClose(_window)) {
@@ -343,6 +341,21 @@ namespace Vulkyrie::Core {
             glBindTexture(GL_TEXTURE_2D, textureHandle);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, aTextureHandle);
+
+
+
+
+            glm::mat4 trans(1.0f);
+            trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+            trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
+            graphicsShader.SetIntUniform("transform", 1);                                         // or with shader class
+            const i32 transformLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+
+
+
 
             // render container
             // Use the graphics shader program.
@@ -388,7 +401,7 @@ namespace Vulkyrie::Core {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
-    inline Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods) {
+    static constexpr Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods) {
         i32 modifiers = 0;
 
         if (glfwMods & GLFW_MOD_SHIFT) {
@@ -418,7 +431,7 @@ namespace Vulkyrie::Core {
         return static_cast<Vulkyrie::Events::KeyModifier>(modifiers);
     }
 
-    inline Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton) {
+    static constexpr Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton) {
         switch (glfwMouseButton) {
             case GLFW_MOUSE_BUTTON_1:
                 return Vulkyrie::Events::MouseButton::MouseButton1;
@@ -441,7 +454,7 @@ namespace Vulkyrie::Core {
         }
     }
 
-    inline Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode) {
+    static constexpr Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode) {
         switch (glfwKeyCode) {
             case GLFW_KEY_SPACE:
                 return Vulkyrie::Events::KeyCode::Space;

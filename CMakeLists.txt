@@ -12,7 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Fetch GLFW
 include(FetchContent)
 
-FetchContent_Declare(
+fetchcontent_declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
     GIT_TAG 3.4
@@ -24,12 +24,39 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(glfw)
+fetchcontent_makeavailable(glfw)
 # -------------------------------------------------
 
 # GLAD (simple static library)
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
+# -------------------------------------------------
+
+# GLM
+find_package(glm 1.0.1 QUIET)
+
+message(STATUS "GLM found: ${glm_FOUND}")
+
+if (NOT glm_FOUND)
+    fetchcontent_declare(
+        glm
+        DOWNLOAD_EXTRACT_TIMESTAMP OFF
+        URL https://github.com/g-truc/glm/archive/refs/tags/1.0.1.zip
+    )
+
+    fetchcontent_makeavailable(glm)
+endif()
+
+if (TARGET glm)
+    message("GLM target 'glm' found.")
+    set_target_properties(glm PROPERTIES FOLDER "Dependencies")
+elseif (TARGET glm::glm)
+    message("GLM target 'glm::glm' found.")
+    # If glm::glm exists but not glm, we can create an alias or just use glm::glm
+    # But since the code uses target_link_libraries(Core glm), we might need the 'glm' target.
+    add_library(glm ALIAS glm::glm)
+endif()
+# -------------------------------------------------
 
 # -------------------------------------
 # Build the Vulkyrie Engine.

@@ -17,21 +17,21 @@ namespace Vulkyrie::Renderer {
         glUseProgram(_shaderProgram);
     }
 
-    void GraphicsShader::SetBoolUniform(std::string_view name, bool value) const {
-        glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), (int)value);
+    void GraphicsShader::SetBoolUniform(const std::string_view name, const bool value) const {
+        glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), static_cast<int>(value));
     }
 
-    void GraphicsShader::SetIntUniform(std::string_view name, int value) const {
+    void GraphicsShader::SetIntUniform(const std::string_view name, const int value) const {
         glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), value);
     }
 
-    void GraphicsShader::SetFloatUniform(std::string_view name, float value) const {
+    void GraphicsShader::SetFloatUniform(const std::string_view name, const float value) const {
         glUniform1f(glGetUniformLocation(_shaderProgram, name.data()), value);
     }
 
     u32 GraphicsShader::Reload() {
         // Create a new shader program.
-        u32 newShaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);
+        const u32 newShaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);
 
         // Return old shader program handle if compilation failed.
         if (newShaderProgram == 0) return _shaderProgram;
@@ -48,17 +48,17 @@ namespace Vulkyrie::Renderer {
 
     u32 GraphicsShader::Create(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath) {
         // Fetch the vertex shader source code.
-        std::string vertexShaderSource = Vulkyrie::Core::ReadTextFromFile(vertexShaderPath);
+        const std::string vertexShaderSource = Vulkyrie::Core::ReadTextFromFile(vertexShaderPath);
 
         // Fetch the fragment shader source code.
-        std::string fragmentShaderSource = Vulkyrie::Core::ReadTextFromFile(fragmentShaderPath);
+        const std::string fragmentShaderSource = Vulkyrie::Core::ReadTextFromFile(fragmentShaderPath);
 
         // Vertex shader
-        u32 vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER);
+        const u32 vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER);
 
         // Compile the vertex shader.
-        const char *source = (const char *)vertexShaderSource.c_str();
-        glShaderSource(vertexShaderHandle, 1, &source, 0);
+        const char *source = vertexShaderSource.c_str();
+        glShaderSource(vertexShaderHandle, 1, &source, nullptr);
         glCompileShader(vertexShaderHandle);
 
         i32 success = 0;
@@ -87,11 +87,11 @@ namespace Vulkyrie::Renderer {
         }
 
         // Fragment shader
-        u32 fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
+        const u32 fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
 
         // Compile the fragment shader.
-        source = (const char *)fragmentShaderSource.c_str();
-        glShaderSource(fragmentShaderHandle, 1, &source, 0);
+        source = fragmentShaderSource.c_str();
+        glShaderSource(fragmentShaderHandle, 1, &source, nullptr);
         glCompileShader(fragmentShaderHandle);
 
         glGetShaderiv(fragmentShaderHandle, GL_COMPILE_STATUS, &success);

@@ -31,7 +31,6 @@ namespace Vulkyrie::Events {
                 return EventType::MouseButtonPressed;
             }
 
-
         private:
             const KeyModifier _modifiers;
     };
