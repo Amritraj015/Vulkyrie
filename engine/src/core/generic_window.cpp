@@ -11,9 +11,14 @@
 
 // TODO: Remove these.
 #include "renderer/graphics_shader.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "renderer/camera.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
+// #include <glm/glm.hpp>
+// #include <glm/gtc/matrix_transform.hpp>
+// #include <glm/gtc/type_ptr.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
@@ -45,6 +50,17 @@ namespace Vulkyrie::Core {
     constexpr static int numLockModifierAsInt = std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
 
     GenericWindow::GenericWindow(const Vulkyrie::Core::Application &application) : Window(application) {};
+
+    // ------------------------------------------------------------------------------
+    // TODO: remove this.
+    // TODO: remove this.
+    // TODO: remove this.
+    Vulkyrie::Renderer::Camera camera;
+    float deltaTime = 0.0f; // Time between current frame and last frame
+    float lastFrame = 0.0f; // Time of last frame   Vulkyrie::Renderer::Camera camera;
+    float lastX = 400, lastY = 300;
+    bool firstMouse = true;
+    // ------------------------------------------------------------------------------
 
     Vulkyrie::Core::StatusCode GenericWindow::Create() {
         // Set GLFW error callback.
@@ -106,6 +122,19 @@ namespace Vulkyrie::Core {
 
         glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
             const Vulkyrie::Events::KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
+
+            // ------------------------------------------------------------------------------
+            // TODO: remove this.
+            const float cameraSpeed = 30.0f; // adjust accordingly
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::FORWARD, cameraSpeed, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::BACKWARD, cameraSpeed, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::LEFT, cameraSpeed, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, deltaTime);
+            // ------------------------------------------------------------------------------
 
             switch (action) {
                 case GLFW_PRESS: {
@@ -205,6 +234,23 @@ namespace Vulkyrie::Core {
         });
 
         glfwSetCursorPosCallback(_window, [](GLFWwindow *window, double positionX, double positionY) {
+            // ------------------------------------------------------------------------------
+            // TODO: remove this.
+            if (firstMouse) {
+                lastX = positionX;
+                lastY = positionY;
+                firstMouse = false;
+            }
+
+            float xoffset = positionX - lastX;
+            float yoffset = lastY - positionY;
+            lastX = positionX;
+            lastY = positionY;
+
+            camera.ProcessMouseMovement(xoffset, yoffset);
+
+            // ------------------------------------------------------------------------------
+
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
@@ -242,17 +288,48 @@ namespace Vulkyrie::Core {
             return Vulkyrie::Core::StatusCode::FailedToCompileShaderProgram;
         }
 
-        constexpr f32 vertices[] = {
-            // positions         // colors
-            // 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            // -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            // 0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
+        float vertices[] = {
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
 
-            // positions          // colors           // texture coords
-            0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+
+            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
         };
 
         unsigned int indices[] = {
@@ -273,13 +350,13 @@ namespace Vulkyrie::Core {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
+        // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+
+        // glEnableVertexAttribArray(2);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // i32 vertexColorLocation = glGetUniformLocation(graphicsShader.GetShaderProgram(), "ourColor");
@@ -295,9 +372,8 @@ namespace Vulkyrie::Core {
         i32 aWidth, aHeight, anrChannels;
         const u8 *aImage = stbi_load("assets/textures/awesomeface.png", &aWidth, &aHeight, &anrChannels, 0);
 
-        if (!image) {
-            VERROR("Failed to load texture: assets/textures/container.jpg");
-
+        if (!image || !aImage) {
+            VERROR("Failed to load texture: assets/textures/container.jpg or the other one.");
             return Vulkyrie::Core::StatusCode::FailedToCreateWindow;
         }
 
@@ -308,7 +384,7 @@ namespace Vulkyrie::Core {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -317,6 +393,11 @@ namespace Vulkyrie::Core {
         glGenTextures(1, &aTextureHandle);
         glBindTexture(GL_TEXTURE_2D, aTextureHandle);
 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, aWidth, aHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, aImage);
         glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -324,17 +405,34 @@ namespace Vulkyrie::Core {
         graphicsShader.SetIntUniform("texture1", 0);
         graphicsShader.SetIntUniform("texture2", 1);
 
+        glEnable(GL_DEPTH_TEST);
 
+        glm::vec3 cubePositions[] = {
+            glm::vec3(0.0f, 0.0f, 0.0f),     // Cube 1
+            glm::vec3(2.0f, 5.0f, -15.0f),   // Cube 2
+            glm::vec3(-1.5f, -2.2f, -2.5f),  // Cube 3
+            glm::vec3(-3.8f, -2.0f, -12.3f), // Cube 4
+            glm::vec3(2.4f, -0.4f, -3.5f),   // Cube 5
+            glm::vec3(-1.7f, 3.0f, -7.5f),   // Cube 6
+            glm::vec3(1.3f, -2.0f, -2.5f),   // Cube 7
+            glm::vec3(1.5f, 2.0f, -2.5f),    // Cube 8
+            glm::vec3(1.5f, 0.2f, -1.5f),    // Cube 9
+            glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
+        };
+
+        // Camera.
+        std::cout << "Camera position: " << glm::to_string(camera.GetViewMatrix()) << std::endl;
+        // TODO: remove this.
+        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         stbi_image_free((void *)image);
         stbi_image_free((void *)aImage);
         // -------------------------------------------------------------------------------
 
-
         // Game/Render loop.
         while (!glfwWindowShouldClose(_window)) {
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT); // clear the color buffer
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffer
 
             // bind Texture
             glActiveTexture(GL_TEXTURE0);
@@ -342,40 +440,44 @@ namespace Vulkyrie::Core {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, aTextureHandle);
 
+            // create transformations
+            graphicsShader.Use();
 
+            float currentFrame = glfwGetTime();
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
 
-
-            glm::mat4 trans(1.0f);
-            trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-            trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-
-            graphicsShader.SetIntUniform("transform", 1);                                         // or with shader class
-            const i32 transformLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "transform");
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
-
-
-
+            auto view = camera.GetViewMatrix();
+            glm::mat4 projection = glm::mat4(1.0f);
+            projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+            // retrieve the matrix uniform locations
+            unsigned int modelLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "model");
+            unsigned int viewLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "view");
+            // pass them to the shaders (3 different ways)
+            // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+            // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best
+            // practice to set it outside the main loop only once.
+            graphicsShader.SetMat4Uniform("projection", projection);
 
             // render container
             // Use the graphics shader program.
-            // graphicsShader.Use();
             glBindVertexArray(vao);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            // glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            // float timeValue = glfwGetTime();
-            // float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-            // float redValue = (cos(timeValue) / 2.0f) + 0.1f;
-            // float blueValue = (sin(timeValue) / 2.0f) + 1.3f;
-            // glUniform4f(vertexColorLocation, redValue, greenValue, blueValue, 1.0f);
+            for (unsigned int i = 0; i < 10; i++) {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, cubePositions[i]);
+                float angle = 20.0f * (i + 1);
 
-            // glBindVertexArray(vao);
-            // glDrawArrays(GL_TRIANGLES, 0, 3);
+                model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+                graphicsShader.SetMat4Uniform("model", model);
 
-            glfwSwapBuffers(_window);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            // -------------------------------------------------------------------------------
+            glfwSwapBuffers(_window);
             glfwPollEvents();
         }
 

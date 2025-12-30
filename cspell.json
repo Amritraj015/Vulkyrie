@@ -1,15 +1,1 @@
-{
-    "flagWords": [],
-    "words": [
-        "glfw",
-        "Integerv",
-        "MSVC",
-        "OPENGL",
-        "Programiv",
-        "Shaderiv",
-        "vulky",
-        "Vulkyrie"
-    ],
-    "version": "0.2",
-    "language": "en"
-}
+{"language":"en","flagWords":[],"words":["glfw","Integerv","MSVC","OPENGL","Programiv","Shaderiv","vulky","Vulkyrie","Parameteri","stbi"],"version":"0.2"}

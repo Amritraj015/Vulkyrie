@@ -5,7 +5,8 @@
 namespace Pong {
     class PongOverlayLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongOverlayLayer(std::string_view layerName) : Vulkyrie::Core::Layer(layerName) {}
+            PongOverlayLayer(std::string_view layerName) : Vulkyrie::Core::Layer(layerName) {
+            }
             ~PongOverlayLayer() = default;
 
             void OnAttach() override {
@@ -13,19 +14,17 @@ namespace Pong {
             }
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: {}",  _layerName.c_str());
+                VDEBUG("Layer Detached: {}", _layerName.c_str());
             }
 
             void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
-
             }
 
             void OnRender() override {
-
             }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
-                VINFO("{} - Event: {}",  _layerName.c_str(), event.ToString());
+                // VINFO("{} - Event: {}",  _layerName.c_str(), event.ToString());
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
 
                 dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {
@@ -44,4 +43,4 @@ namespace Pong {
         private:
             bool _toggleWireframe = false;
     };
-}
+} // namespace Pong

@@ -40,25 +40,25 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
-    // Windows OS.
-    #define PLATFORM_WINDOWS 1
+// Windows OS.
+#define PLATFORM_WINDOWS 1
 
-    #if defined(VULKYRIE_EXPORTS)
-        #define V_API __declspec(dllexport)
-    #else
-        #define V_API __declspec(dllimport)
-    #endif
+#if defined(VULKYRIE_EXPORTS)
+#define V_API __declspec(dllexport)
+#else
+#define V_API __declspec(dllimport)
+#endif
 
 #elif defined(__linux__) || defined(__gnu_linux__)
 
-    // Linux OS.
-    #define PLATFORM_LINUX 1
-    #define V_API 
+// Linux OS.
+#define PLATFORM_LINUX 1
+#define V_API
 
 #else
-    // Unsupported platform.
-    #error "Unknown platform!"
-    #define V_API 
+// Unsupported platform.
+#error "Unknown platform!"
+#define V_API
 #endif
 
 #include <cstring>
@@ -81,3 +81,9 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
+
+// GLM - OpenGL Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+

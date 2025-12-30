@@ -29,6 +29,18 @@ namespace Vulkyrie::Renderer {
         glUniform1f(glGetUniformLocation(_shaderProgram, name.data()), value);
     }
 
+    void GraphicsShader::SetMat2Uniform(const std::string_view name, const glm::mat2 &mat) const {
+        glUniformMatrix2fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void GraphicsShader::SetMat3Uniform(const std::string_view name, const glm::mat3 &mat) const {
+        glUniformMatrix3fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void GraphicsShader::SetMat4Uniform(const std::string_view name, const glm::mat4 &mat) const {
+        glUniformMatrix4fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+    }
+
     u32 GraphicsShader::Reload() {
         // Create a new shader program.
         const u32 newShaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);
@@ -118,7 +130,7 @@ namespace Vulkyrie::Renderer {
             return 0;
         }
 
-        // Attach the vertex and fragment shaders to 
+        // Attach the vertex and fragment shaders to
         // the program and then link the program.
         u32 program = glCreateProgram();
         glAttachShader(program, vertexShaderHandle);

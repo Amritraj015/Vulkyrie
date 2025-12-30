@@ -5,10 +5,10 @@
 namespace Vulkyrie::Renderer {
     class GraphicsShader {
         public:
-            /** @brief Constructs a Shader object with vertex and fragment shader file paths. 
+            /** @brief Constructs a Shader object with vertex and fragment shader file paths.
              * @param vertexShaderPath Path to the vertex shader source file.
              * @param fragmentShaderPath Path to the fragment shader source file.
-            */
+             */
             explicit GraphicsShader(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath);
 
             /** @brief Destructor to clean up the graphics shader program. */
@@ -48,6 +48,24 @@ namespace Vulkyrie::Renderer {
              */
             void SetFloatUniform(std::string_view name, float value) const;
 
+            /** @brief Sets a 2x2 matrix uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @param mat The 2x2 matrix to set.
+             */
+            void SetMat2Uniform(const std::string_view name, const glm::mat2 &mat) const;
+
+            /** @brief Sets a 3x3 matrix uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @param mat The 3x3 matrix to set.
+             */
+            void SetMat3Uniform(const std::string_view name, const glm::mat3 &mat) const;
+
+            /** @brief Sets a 4x4 matrix uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @param mat The 4x4 matrix to set.
+             */
+            void SetMat4Uniform(const std::string_view name, const glm::mat4 &mat) const;
+
         private:
             /** @brief A handle to the shader program. */
             u32 _shaderProgram;
@@ -68,4 +86,4 @@ namespace Vulkyrie::Renderer {
              */
             u32 Create(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
     };
-}
+} // namespace Vulkyrie::Renderer
