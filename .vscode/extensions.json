@@ -1,8 +1,9 @@
 {
     "recommendations": [
         "ms-vscode.cpptools",
-        "wayou.vscode-todo-highlight",
+        "Gruntfuggly.todo-tree",
         "slevesque.shader",
-        "cschlosser.doxdocgen"
+        "cschlosser.doxdocgen",
+        "streetsidesoftware.code-spell-checker"
     ]
 }
