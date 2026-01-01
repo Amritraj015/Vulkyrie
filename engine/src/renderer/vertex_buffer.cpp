@@ -3,7 +3,7 @@
 #include "renderer/open_gl/open_gl_vertex_buffer.h"
 
 namespace Vulkyrie::Renderer {
-    Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, u32 size) {
+    Ref<VertexBuffer> VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI api, u32 size) {
         switch (api) {
             case Vulkyrie::Core::GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLVertexBuffer>(size);
@@ -14,7 +14,7 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-    Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, u32 size) {
+    Ref<VertexBuffer> VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, u32 size) {
         switch (api) {
             case Vulkyrie::Core::GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLVertexBuffer>(vertices, size);
