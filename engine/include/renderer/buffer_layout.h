@@ -6,6 +6,9 @@
 namespace Vulkyrie::Renderer {
     class BufferLayout {
         public:
+            BufferLayout() {
+            }
+
             BufferLayout(std::initializer_list<BufferElement> elements) : _elements(elements) {
                 CalculateOffsetsAndStride();
             }

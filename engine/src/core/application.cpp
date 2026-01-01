@@ -1,6 +1,6 @@
+#include "defines.h"
 #include "core/application.h"
 #include "core/generic_window.h"
-#include "core/logger.h"
 #include "core/graphics_api.h"
 #include "events/event_dispatcher.h"
 #include "platform/platform.h"
@@ -12,19 +12,15 @@ namespace Vulkyrie::Core {
                 return "OpenGL";
             case GraphicsAPI::Vulkan:
                 return "Vulkan";
-            case GraphicsAPI::DirectX11:
-                return "DirectX 11";
-            case GraphicsAPI::DirectX12:
-                return "DirectX 12";
             default:
                 return "Unknown";
         }
     }
 
     Application::Application(const WindowProps &windowProps, const ApplicationConfig &config)
-        : _windowProps(windowProps), _config(config),
+        : _windowProps(windowProps), _config(config), _running(false), _lastFrameTime(0.0f),
           _window(std::make_shared<GenericWindow>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
-          _lastFrameTime(0.0f), _running(false) {
+          _layers(), _renderer(std::make_unique<Vulkyrie::Renderer::Renderer>()), _vertexBuffer(nullptr) {
     }
 
     Application::~Application() {

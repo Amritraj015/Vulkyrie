@@ -1,7 +1,5 @@
 #include "generic_window.h"
-#include "core/logger.h"
 #include "events/application/window_closed_event.h"
-#include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
 #include "events/mouse/mouse_moved_event.h"
 #include "events/mouse/mouse_button_pressed_event.h"
@@ -30,7 +28,7 @@ namespace Vulkyrie::Core {
      * @param type The Vulkyrie shader data type.
      * @returns The corresponding OpenGL data type.
      */
-    static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept;
+    // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept;
 
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
      * @param glfwKeyCode The GLFW key code to convert.
@@ -529,26 +527,26 @@ namespace Vulkyrie::Core {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
-    static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept {
-        switch (type) {
-            case Vulkyrie::Renderer::ShaderDataType::Float:
-            case Vulkyrie::Renderer::ShaderDataType::Float2:
-            case Vulkyrie::Renderer::ShaderDataType::Float3:
-            case Vulkyrie::Renderer::ShaderDataType::Float4:
-            case Vulkyrie::Renderer::ShaderDataType::Mat3:
-            case Vulkyrie::Renderer::ShaderDataType::Mat4:
-                return GL_FLOAT;
-            case Vulkyrie::Renderer::ShaderDataType::Int:
-            case Vulkyrie::Renderer::ShaderDataType::Int2:
-            case Vulkyrie::Renderer::ShaderDataType::Int3:
-            case Vulkyrie::Renderer::ShaderDataType::Int4:
-                return GL_INT;
-            case Vulkyrie::Renderer::ShaderDataType::Bool:
-                return GL_BOOL;
-            default:
-                return GL_INVALID_ENUM;
-        }
-    }
+    // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept {
+    //     switch (type) {
+    //         case Vulkyrie::Renderer::ShaderDataType::Float:
+    //         case Vulkyrie::Renderer::ShaderDataType::Float2:
+    //         case Vulkyrie::Renderer::ShaderDataType::Float3:
+    //         case Vulkyrie::Renderer::ShaderDataType::Float4:
+    //         case Vulkyrie::Renderer::ShaderDataType::Mat3:
+    //         case Vulkyrie::Renderer::ShaderDataType::Mat4:
+    //             return GL_FLOAT;
+    //         case Vulkyrie::Renderer::ShaderDataType::Int:
+    //         case Vulkyrie::Renderer::ShaderDataType::Int2:
+    //         case Vulkyrie::Renderer::ShaderDataType::Int3:
+    //         case Vulkyrie::Renderer::ShaderDataType::Int4:
+    //             return GL_INT;
+    //         case Vulkyrie::Renderer::ShaderDataType::Bool:
+    //             return GL_BOOL;
+    //         default:
+    //             return GL_INVALID_ENUM;
+    //     }
+    // }
 
     static constexpr Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods) {
         i32 modifiers = 0;

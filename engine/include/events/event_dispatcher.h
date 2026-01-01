@@ -9,6 +9,8 @@ namespace Vulkyrie::Events {
             }
 
             /** Dispatches the event to the provided function if the event type matches.
+             * @tparam T The type of the event to dispatch.
+             * @tparam F The type of the function to call if the event type matches.
              * @param[in] func The function to call if the event type matches.
              * @return True if the event was dispatched, false otherwise.
              */

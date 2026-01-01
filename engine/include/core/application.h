@@ -1,12 +1,13 @@
 #pragma once
 
+#include "window.h"
 #include "window_props.h"
 #include "application_config.h"
-#include "window.h"
 #include "layer_stack.h"
 #include "events/application/window_closed_event.h"
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
+#include "renderer/renderer.h"
 #include "renderer/vertex_buffer.h"
 
 namespace Vulkyrie::Core {
@@ -19,7 +20,7 @@ namespace Vulkyrie::Core {
             Application(const WindowProps &windowProps, const ApplicationConfig &config);
 
             /** @brief Destructor to clean up the application and its resources. */
-            ~Application();
+            virtual ~Application();
 
             /** @brief Starts the application's main loop.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
@@ -30,7 +31,7 @@ namespace Vulkyrie::Core {
             void Stop();
 
             /** @brief Pushes a new layer onto the layer stack if the application is running.
-             * @param TLayer The type of layer to push.
+             * @tparam TLayer The type of layer to push.
              * @param args Arguments to forward to the layer's constructor.
              */
             template <typename TLayer, typename... TArgs>
@@ -45,7 +46,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pops a layer from the layer stack.
-             * @param TLayer The type of layer to pop.
+             * @tparam TLayer The type of layer to pop.
              * @returns True if the layer was found and removed, false otherwise.
              */
             template <typename TLayer>
@@ -55,7 +56,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pushes a new overlay onto the layer stack if the application is running.
-             * @param TLayer The type of overlay to push.
+             * @tparam TLayer The type of overlay to push.
              * @param args Arguments to forward to the overlay's constructor.
              */
             template <typename TLayer, typename... TArgs>
@@ -70,7 +71,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pops an overlay from the layer stack.
-             * @param TLayer The type of overlay to pop.
+             * @tparam TLayer The type of overlay to pop.
              * @returns True if the overlay was found and removed, false otherwise.
              */
             template <typename TLayer>
@@ -80,7 +81,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.
-             * @param TLayer The type of layer to get.
+             * @tparam TLayer The type of layer to get.
              * @returns A pointer to the layer if found, nullptr otherwise.
              */
             template <typename TLayer>
@@ -90,6 +91,10 @@ namespace Vulkyrie::Core {
             }
 
         protected:
+            /** @brief Called when the application window is created.
+             * @param event The window created event.
+             * @returns True if the event was handled successfully, false otherwise.
+             */
             virtual bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event);
 
         private:
@@ -110,6 +115,9 @@ namespace Vulkyrie::Core {
 
             /** @brief The layers in the stack. */
             LayerStack _layers;
+
+            /** @brief The renderer used for rendering graphics. */
+            std::unique_ptr<Vulkyrie::Renderer::Renderer> _renderer;
 
             /** @brief The vertex buffer used for rendering. */
             std::unique_ptr<Vulkyrie::Renderer::VertexBuffer> _vertexBuffer;

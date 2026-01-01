@@ -40,5 +40,9 @@ namespace Vulkyrie::Renderer {
              * @param layout The buffer layout to set.
              */
             void SetLayout(const BufferLayout &layout) override;
+
+        private:
+            uint32_t _vboId;
+            BufferLayout _layout;
     };
 } // namespace Vulkyrie::Renderer

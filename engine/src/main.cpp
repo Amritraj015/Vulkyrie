@@ -1,8 +1,6 @@
 #include "vulkyrie.h"
 
 #if defined(VULKYRIE_DEBUG)
-// #include "core/logger.h"
-
 // void *operator new(size_t size) {
 //     VDEBUG("Allocating: {} bytes", size);
 //     return std::malloc(size);

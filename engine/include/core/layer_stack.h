@@ -16,7 +16,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pushes a new layer onto the layer stack.
-             * @param TLayer The type of layer to push.
+             * @tparam TLayer The type of layer to push.
              * @param args Arguments to forward to the layer's constructor.
              */
             template <typename TLayer, typename... TArgs>
@@ -39,7 +39,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pops a layer from the layer stack.
-             * @param TLayer The type of layer to pop.
+             * @tparam TLayer The type of layer to pop.
              * @returns True if the layer was found and removed, false otherwise.
              */
             template <typename TLayer>
@@ -67,7 +67,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pushes a new overlay onto the layer stack.
-             * @param TLayer The type of overlay to push.
+             * @tparam TLayer The type of overlay to push.
              * @param args Arguments to forward to the overlay's constructor.
              */
             template <typename TLayer, typename... TArgs>
@@ -87,7 +87,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pops an overlay from the layer stack.
-             * @param TLayer The type of overlay to pop.
+             * @tparam TLayer The type of overlay to pop.
              * @returns True if the overlay was found and removed, false otherwise.
              */
             template <typename TLayer>
@@ -113,7 +113,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.
-             * @param TLayer The type of layer to get.
+             * @tparam TLayer The type of layer to get.
              * @returns A pointer to the layer if found, nullptr otherwise.
              */
             template <typename TLayer>
@@ -134,10 +134,10 @@ namespace Vulkyrie::Core {
             auto end() {
                 return _layers.end();
             }
-            auto begin() const {
+            [[nodiscard]] auto begin() const {
                 return _layers.begin();
             }
-            auto end() const {
+            [[nodiscard]] auto end() const {
                 return _layers.end();
             }
 
@@ -147,10 +147,10 @@ namespace Vulkyrie::Core {
             auto rend() {
                 return _layers.rend();
             }
-            auto rbegin() const {
+            [[nodiscard]] auto rbegin() const {
                 return _layers.rbegin();
             }
-            auto rend() const {
+            [[nodiscard]] auto rend() const {
                 return _layers.rend();
             }
 

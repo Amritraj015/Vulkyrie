@@ -7,13 +7,13 @@ namespace Vulkyrie::Renderer {
     class BufferElement {
         public:
             /** Data type for the buffer element. */
-            const ShaderDataType Type;
+            ShaderDataType Type;
 
             /** Name of the buffer element. */
-            const std::string_view Name;
+            std::string_view Name;
 
             /** Size of the buffer element in bytes. */
-            const u32 Size;
+            u32 Size;
 
             // TODO: Try to make this a const as well.
             // TODO: This is currently calculated in BufferLayout's CalculateOffsetsAndStride method.
@@ -21,7 +21,10 @@ namespace Vulkyrie::Renderer {
             size_t Offset;
 
             /** Whether the buffer element is normalized. */
-            const bool Normalized;
+            bool Normalized;
+
+            BufferElement() {
+            }
 
             /** @brief Constructs a BufferElement with the given type, name, and normalization flag.
              * @param type The shader data type of the buffer element.

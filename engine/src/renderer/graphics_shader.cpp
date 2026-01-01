@@ -1,6 +1,6 @@
 #include "glad/glad.h"
+#include "defines.h"
 #include "renderer/graphics_shader.h"
-#include "core/logger.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie::Renderer {

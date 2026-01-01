@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer_layout.h"
+#include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {
     class VertexBuffer {
@@ -28,5 +29,20 @@ namespace Vulkyrie::Renderer {
              * @param layout The buffer layout to set.
              */
             virtual void SetLayout(const BufferLayout &layout) = 0;
+
+            /** @brief Creates a vertex buffer based on the specified graphics API and size.
+             * @param api The graphics API to use.
+             * @param size Size of the vertex buffer in bytes.
+             * @returns A reference to the created VertexBuffer.
+             */
+            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, u32 size);
+
+            /** @brief Creates a vertex buffer based on the specified graphics API, vertices, and size.
+             * @param api The graphics API to use.
+             * @param vertices Pointer to the vertex data.
+             * @param size Size of the vertex data in bytes.
+             * @returns A reference to the created VertexBuffer.
+             */
+            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, u32 size);
     };
 } // namespace Vulkyrie::Renderer

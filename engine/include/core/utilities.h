@@ -4,7 +4,6 @@
 #include "defines.h"
 #include "core/logger.h"
 
-
 #define BIT(x) (1 << x)
 
 namespace Vulkyrie::Core {
@@ -37,4 +36,4 @@ namespace Vulkyrie::Core {
         // Return the file contents.
         return contents;
     }
-}
+} // namespace Vulkyrie::Core

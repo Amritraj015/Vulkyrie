@@ -1,11 +1,10 @@
 #include "glad/glad.h"
+#include "defines.h"
 #include "core/utilities.h"
-#include "core/logger.h"
 #include "renderer/compute_shader.h"
 
 namespace Vulkyrie::Renderer {
-    ComputeShader::ComputeShader(const std::filesystem::path &computeShaderPath)
-        : _computeShaderPath(computeShaderPath), _isValid(false) {
+    ComputeShader::ComputeShader(const std::filesystem::path &computeShaderPath) : _computeShaderPath(computeShaderPath), _isValid(false) {
         _shaderProgram = Create();
     }
 
@@ -111,4 +110,4 @@ namespace Vulkyrie::Renderer {
         // Return the shader program handle.
         return program;
     }
-}
+} // namespace Vulkyrie::Renderer

@@ -18,4 +18,15 @@
 #include "events/mouse/mouse_moved_event.h"
 #include "events/mouse/mouse_scrolled_event.h"
 
+// Renderer includes
+#include "renderer/renderer.h"
+#include "renderer/graphics_shader.h"
+#include "renderer/compute_shader.h"
+#include "renderer/camera.h"
+#include "renderer/buffer_element.h"
+#include "renderer/buffer_layout.h"
+#include "renderer/vertex_array.h"
+#include "renderer/vertex_buffer.h"
+#include "renderer/index_buffer.h"
+
 extern Vulkyrie::Core::Application *CreateApplication();

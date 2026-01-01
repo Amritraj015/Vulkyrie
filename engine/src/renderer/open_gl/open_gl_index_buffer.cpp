@@ -1,0 +1,29 @@
+#include <glad/glad.h>
+#include "open_gl_index_buffer.h"
+
+namespace Vulkyrie::Renderer {
+    OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t *indices, uint32_t count) {
+        glCreateBuffers(1, &_eboId);
+
+        // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
+        // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
+        glBindBuffer(GL_ARRAY_BUFFER, _eboId);
+        glBufferData(GL_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+    }
+
+    OpenGLIndexBuffer::~OpenGLIndexBuffer() {
+        glDeleteBuffers(1, &_eboId);
+    }
+
+    void OpenGLIndexBuffer::Bind() const {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _eboId);
+    }
+
+    void OpenGLIndexBuffer::Unbind() const {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+
+    u32 OpenGLIndexBuffer::GetCount() const {
+        return _count;
+    }
+} // namespace Vulkyrie::Renderer

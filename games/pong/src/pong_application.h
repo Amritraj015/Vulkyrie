@@ -7,11 +7,11 @@
 namespace Pong {
     class PongApplication : public Vulkyrie::Core::Application {
         public:
-            PongApplication(Vulkyrie::Core::WindowProps windowProps, Vulkyrie::Core::ApplicationConfig config)
+            PongApplication(const Vulkyrie::Core::WindowProps &windowProps, const Vulkyrie::Core::ApplicationConfig config)
                 : Vulkyrie::Core::Application(windowProps, config) {
             }
 
-            ~PongApplication();
+            ~PongApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
                 PushLayer<Pong::PongGameLayer>("Pong Game Layer");
