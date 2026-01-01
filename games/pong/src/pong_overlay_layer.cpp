@@ -114,7 +114,7 @@ namespace Pong {
         // VINFO("{} - Event: {}",  _layerName.c_str(), event.ToString());
         Vulkyrie::Events::EventDispatcher dispatcher(event);
 
-        dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](Vulkyrie::Events::KeyPressedEvent &e) {
+        dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](const Vulkyrie::Events::KeyPressedEvent &e) {
             if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
                 _toggleWireframe = !_toggleWireframe;
 

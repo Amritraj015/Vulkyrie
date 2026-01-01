@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Events {
     enum class EventType : u8 {

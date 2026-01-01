@@ -80,8 +80,8 @@ namespace Vulkyrie::Renderer {
                 }
                 case ShaderDataType::Mat3:
                 case ShaderDataType::Mat4: {
-                    uint8_t count = element.GetComponentCount();
-                    for (uint8_t i = 0; i < count; i++) {
+                    u8 count = element.GetComponentCount();
+                    for (u8 i = 0; i < count; i++) {
                         glEnableVertexAttribArray(_vertexBufferIndex);
                         glVertexAttribPointer(_vertexBufferIndex,
                                               count,

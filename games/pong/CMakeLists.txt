@@ -1,24 +1,24 @@
-cmake_minimum_required(VERSION 3.27)
-project(pong)
-set(CMAKE_CXX_STANDARD 23)
+Cmake_Minimum_Required(VERSION 3.27)
+Project(pong)
+Set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE PONG_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+File(GLOB_RECURSE PONG_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 
-add_executable(${PROJECT_NAME})
+Add_Executable(${PROJECT_NAME})
 
-target_sources(${PROJECT_NAME} PRIVATE ${PONG_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE engine)
+Target_Sources(${PROJECT_NAME} PRIVATE ${PONG_SOURCES})
+Target_Link_Libraries(${PROJECT_NAME} PRIVATE engine)
 
-target_compile_definitions(${PROJECT_NAME} 
+Target_Compile_Definitions(${PROJECT_NAME}
     PRIVATE 
         VULKYRIE_EXPORTS
         VULKYRIE_DEBUG
 )
 
-add_custom_target(copy_assets ALL
+Add_Custom_Target(copy_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
             $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
 
-add_dependencies(${PROJECT_NAME} copy_assets)
+Add_Dependencies(${PROJECT_NAME} copy_assets)

@@ -23,7 +23,7 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
                 // Create the layer.
-                auto layer = std::make_unique<TLayer>(std::forward<TArgs>(args)...);
+                auto layer = CreateScope<TLayer>(std::forward<TArgs>(args)...);
 
                 // Keep a reference to the layer for OnAttach call after moving.
                 TLayer &reference = *layer;
@@ -74,7 +74,7 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
                 // Create the overlay.
-                auto overlay = std::make_unique<TLayer>(std::forward<TArgs>(args)...);
+                auto overlay = CreateScope<TLayer>(std::forward<TArgs>(args)...);
 
                 // Keep a reference to the overlay for OnAttach call after moving.
                 TLayer &reference = *overlay;
@@ -155,7 +155,11 @@ namespace Vulkyrie::Core {
             }
 
         private:
-            std::vector<std::unique_ptr<Layer>> _layers;
+
+            /** @brief The vector of layers in the stack. */
+            std::vector<Scope<Layer>> _layers;
+
+            /** @brief The index at which to insert new layers. Overlays are added after this index. */
             unsigned int _layerInsertIndex = 0;
     };
 } // namespace Vulkyrie::Core

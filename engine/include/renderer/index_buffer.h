@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 #include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {

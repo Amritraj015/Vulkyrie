@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie::Events {

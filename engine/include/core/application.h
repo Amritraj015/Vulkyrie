@@ -111,16 +111,16 @@ namespace Vulkyrie::Core {
             f32 _lastFrameTime;
 
             /** @brief The main application window. */
-            std::shared_ptr<Window> _window;
+            Ref<Window> _window;
 
             /** @brief The layers in the stack. */
             LayerStack _layers;
 
             /** @brief The renderer used for rendering graphics. */
-            std::unique_ptr<Vulkyrie::Renderer::Renderer> _renderer;
+            Scope<Vulkyrie::Renderer::Renderer> _renderer;
 
             /** @brief The vertex buffer used for rendering. */
-            std::unique_ptr<Vulkyrie::Renderer::VertexBuffer> _vertexBuffer;
+            Scope<Vulkyrie::Renderer::VertexBuffer> _vertexBuffer;
 
             /** @brief Raises an event to be handled by the application or other systems.
              * @param event The event to raise.
@@ -137,6 +137,6 @@ namespace Vulkyrie::Core {
              * @param event The window resized event.
              * @returns True if the event was handled successfully, false otherwise.
              */
-            bool OnWindowResized(Vulkyrie::Events::WindowResizedEvent &event);
+            bool OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event);
     };
 } // namespace Vulkyrie::Core

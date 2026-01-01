@@ -9,7 +9,9 @@
 				"-S",
 				".",
 				"-B",
-				"build"
+				"build",
+                "-G",
+                "Ninja"
 			],
 			"group": "build",
 			"problemMatcher": []

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Platform {
     /** @brief Gets the current time in seconds since the platform was initialized.

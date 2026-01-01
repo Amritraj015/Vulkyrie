@@ -32,7 +32,7 @@ namespace Vulkyrie::Core {
             static void TerminateLogger();
 
         private:
-            static std::unique_ptr<LogSink> _logSink;
+            static Scope<LogSink> _logSink;
     };
 } // namespace Vulkyrie::Core
 

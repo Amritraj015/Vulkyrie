@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 #include "enums/event_type.h"
 
 namespace Vulkyrie::Events {
@@ -30,7 +30,7 @@ namespace Vulkyrie::Events {
              * @return A string representation of the event.
              */
             [[nodiscard]] inline virtual std::string ToString() const {
-                return "Event";
+                return "General Event";
             }
 
             /** @brief Gets the static event type for this event class.

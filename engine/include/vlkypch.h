@@ -44,21 +44,21 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #define PLATFORM_WINDOWS 1
 
 #if defined(VULKYRIE_EXPORTS)
-#define V_API __declspec(dllexport)
+#define VULKYRIE_API __declspec(dllexport)
 #else
-#define V_API __declspec(dllimport)
+#define VULKYRIE_API __declspec(dllimport)
 #endif
 
 #elif defined(__linux__) || defined(__gnu_linux__)
 
 // Linux OS.
 #define PLATFORM_LINUX 1
-#define V_API
+#define VULKYRIE_API
 
 #else
 // Unsupported platform.
 #error "Unknown platform!"
-#define V_API
+#define VULKYRIE_API
 #endif
 
 #include <cstring>
@@ -78,6 +78,7 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #include <format>
 #include <sstream>
 #include <vector>
+#include <ranges>
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
@@ -87,11 +88,17 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+/** @brief A scoped pointer type alias using std::unique_ptr.
+ * @tparam T The type of the object being pointed to.
+ */
 template <typename T> using Scope = std::unique_ptr<T>;
 template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&...args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
+/** @brief A reference counted pointer type alias using std::shared_ptr.
+ * @tparam T The type of the object being pointed to.
+ */
 template <typename T> using Ref = std::shared_ptr<T>;
 template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) {
     return std::make_shared<T>(std::forward<Args>(args)...);

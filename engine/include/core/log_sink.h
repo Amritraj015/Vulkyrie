@@ -2,7 +2,7 @@
 
 #include "status_codes.h"
 #include "core/log_level.h"
-#include "defines.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Core {
     class LogSink {

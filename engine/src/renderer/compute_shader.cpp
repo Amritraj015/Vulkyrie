@@ -1,5 +1,5 @@
 #include "glad/glad.h"
-#include "defines.h"
+#include "vlkypch.h"
 #include "core/utilities.h"
 #include "renderer/compute_shader.h"
 

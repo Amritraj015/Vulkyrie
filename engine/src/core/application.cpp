@@ -1,4 +1,4 @@
-#include "defines.h"
+#include "vlkypch.h"
 #include "core/application.h"
 #include "core/generic_window.h"
 #include "core/graphics_api.h"
@@ -19,8 +19,8 @@ namespace Vulkyrie::Core {
 
     Application::Application(const WindowProps &windowProps, const ApplicationConfig &config)
         : _windowProps(windowProps), _config(config), _running(false), _lastFrameTime(0.0f),
-          _window(std::make_shared<GenericWindow>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
-          _layers(), _renderer(std::make_unique<Vulkyrie::Renderer::Renderer>()), _vertexBuffer(nullptr) {
+          _window(CreateRef<GenericWindow>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
+          _renderer(CreateScope<Vulkyrie::Renderer::Renderer>()), _vertexBuffer(nullptr) {
     }
 
     Application::~Application() {
@@ -76,6 +76,8 @@ namespace Vulkyrie::Core {
             _window->OnUpdate();
         }
 
+        // TODO: The following is causing segfaults,
+        // TODO: This needs to happen after all other openGL resources have been cleaned up.
         // Close the application window.
         statusCode = _window->Close();
 
@@ -95,18 +97,23 @@ namespace Vulkyrie::Core {
         dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
 
-        for (auto it = _layers.rbegin(); it != _layers.rend(); ++it) {
+        for (const auto & _layer : std::ranges::reverse_view(_layers)) {
             // If the event has been handled, stop propagating.
             if (event.handled) {
                 break;
             }
 
             // Else, pass the event to the layer.
-            (*it)->OnEvent(event);
+            _layer->OnEvent(event);
         }
     }
 
-    bool Application::OnWindowResized(Vulkyrie::Events::WindowResizedEvent &event) {
+    bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {
+        const auto resizeEvent = static_cast<Vulkyrie::Events::WindowResizedEvent>(event);
+
+        _windowProps.height = resizeEvent.GetHeight();
+        _windowProps.width = resizeEvent.GetWidth();
+
         return false;
     }
 

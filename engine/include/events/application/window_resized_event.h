@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 #include "events/event.h"
 #include "events/enums/event_category.h"
 #include "events/enums/event_type.h"

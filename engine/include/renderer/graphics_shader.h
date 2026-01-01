@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Renderer {
     class GraphicsShader {

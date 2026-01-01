@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Core {
     /** @brief Represents a duration of time in seconds and provides utility methods for time conversion. */

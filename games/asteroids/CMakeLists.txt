@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.27)
-project(asteroids)
-set(CMAKE_CXX_STANDARD 23)
+Cmake_Minimum_Required(VERSION 3.27)
+Project(asteroids)
+Set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE ASTEROIDS_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+File(GLOB_RECURSE ASTEROIDS_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 
-add_executable(${PROJECT_NAME})
+Add_Executable(${PROJECT_NAME})
 
-target_sources(${PROJECT_NAME} PRIVATE ${ASTEROIDS_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE engine)
+Target_Sources(${PROJECT_NAME} PRIVATE ${ASTEROIDS_SOURCES})
+Target_Link_Libraries(${PROJECT_NAME} PRIVATE engine)
 
-target_compile_definitions(${PROJECT_NAME} 
+Target_Compile_Definitions(${PROJECT_NAME}
     PRIVATE 
         VULKYRIE_EXPORTS
         VULKYRIE_DEBUG

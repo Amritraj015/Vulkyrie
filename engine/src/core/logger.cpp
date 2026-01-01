@@ -4,15 +4,15 @@
 
 namespace Vulkyrie::Core {
     // Define the static member variable
-    std::unique_ptr<LogSink> Logger::_logSink = nullptr;
+    Scope<LogSink> Logger::_logSink = nullptr;
 
     StatusCode Logger::InitializeLogger(LoggerType loggerType) {
         switch (loggerType) {
         case LoggerType::Console:
-            _logSink = std::make_unique<ConsoleLogSink>();
+            _logSink = CreateScope<ConsoleLogSink>();
             break;
         case LoggerType::File:
-            _logSink = std::make_unique<FileLogSink>();
+            _logSink = CreateScope<FileLogSink>();
             break;
         default:
             return StatusCode::UnsupportedLoggerType;

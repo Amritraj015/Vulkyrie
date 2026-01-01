@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fstream>
-#include "defines.h"
+#include "vlkypch.h"
 #include "core/logger.h"
 
 #define BIT(x) (1 << x)
