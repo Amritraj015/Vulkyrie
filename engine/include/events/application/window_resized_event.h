@@ -6,9 +6,9 @@
 #include "events/enums/event_type.h"
 
 namespace Vulkyrie::Events {
-    class WindowResizeEvent : public Event {
+    class WindowResizedEvent : public Event {
         public:
-            WindowResizeEvent(const u32 width, const u32 height) : _width(width), _height(height) {
+            WindowResizedEvent(const u32 width, const u32 height) : _width(width), _height(height) {
             }
 
             [[nodiscard]] inline u32 GetWidth() const {
@@ -35,7 +35,7 @@ namespace Vulkyrie::Events {
              * @return The static event type.
              */
             [[nodiscard]] static inline EventType GetStaticEventType() {
-                return EventType::WindowResize;
+                return EventType::WindowResized;
             }
 
         private:

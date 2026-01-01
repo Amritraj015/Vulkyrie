@@ -5,23 +5,23 @@
 namespace Pong {
     class PongOverlayLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongOverlayLayer(std::string_view layerName) : Vulkyrie::Core::Layer(layerName) {
+            PongOverlayLayer(const std::string_view layerName) : Vulkyrie::Core::Layer(layerName) {
             }
             ~PongOverlayLayer() = default;
 
             void OnAttach() override {
-                VDEBUG("Layer Attached: {}", _layerName.c_str());
+                VDEBUG("Layer Attached: {}", _layerName.data());
             }
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: {}", _layerName.c_str());
+                VDEBUG("Layer Detached: {}", _layerName.data());
             }
 
             void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
             }
 
-            void OnRender() override {
-            }
+            // void OnRender() override {
+            // }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 // VINFO("{} - Event: {}",  _layerName.c_str(), event.ToString());
@@ -31,7 +31,8 @@ namespace Pong {
                     if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
                         _toggleWireframe = !_toggleWireframe;
 
-                        Vulkyrie::Core::ApplicationManager::ToggleWireframeMode(_toggleWireframe);
+                        VINFO("J key pressed in {}!", _layerName.data());
+                        // Vulkyrie::Core::ApplicationManager::ToggleWireframeMode(_toggleWireframe);
 
                         return true;
                     }

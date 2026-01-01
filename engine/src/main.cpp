@@ -2,7 +2,7 @@
 
 #if defined(VULKYRIE_DEBUG)
 // #include "core/logger.h"
-//
+
 // void *operator new(size_t size) {
 //     VDEBUG("Allocating: {} bytes", size);
 //     return std::malloc(size);
@@ -26,12 +26,8 @@ int main(int argc, char **argv) {
         return std::to_underlying(Vulkyrie::Core::StatusCode::InvalidApplication);
     }
 
-    // Create an instance of Application Manager.
-    Vulkyrie::Core::ApplicationManager applicationManager(*application);
-
-    // Bootstrap the application.
-    // This is a blocking call until the application is closed.
-    auto status = applicationManager.BootstrapApplication();
+    // Run the application and get its status code.
+    statusCode = application->Run();
 
     // Clean up the application instance.
     delete application;
@@ -40,5 +36,5 @@ int main(int argc, char **argv) {
     Vulkyrie::Core::Logger::TerminateLogger();
 
     // Terminate the logger sub-system and return its status code.
-    return std::to_underlying(status);
+    return std::to_underlying(statusCode);
 }

@@ -12,13 +12,14 @@ namespace Vulkyrie::Core {
             virtual void OnAttach() {
             }
 
+            const char *GetName() const {
+                return _layerName.data();
+            }
+
             virtual void OnDetach() {
             }
 
             virtual void OnUpdate(Timestep deltaTime) {
-            }
-
-            virtual void OnRender() {
             }
 
             virtual void OnEvent(Vulkyrie::Events::Event &event) {

@@ -4,7 +4,7 @@
 #include "events/enums/event_category.h"
 
 namespace Vulkyrie::Events {
-    class WindowCloseEvent : public Event {
+    class WindowClosedEvent : public Event {
         public:
             [[nodiscard]] inline EventType GetEventType() const override {
                 return GetStaticEventType();
@@ -22,10 +22,10 @@ namespace Vulkyrie::Events {
              * @return The static event type.
              */
             [[nodiscard]] static inline EventType GetStaticEventType() {
-                return EventType::WindowClose;
+                return EventType::WindowClosed;
             }
 
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
-} // namespace Vulkyrie::Events 
+} // namespace Vulkyrie::Events

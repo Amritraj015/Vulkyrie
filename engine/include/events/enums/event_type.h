@@ -6,9 +6,9 @@ namespace Vulkyrie::Events {
     enum class EventType : u8 {
         None = 0,            // No event.
         WindowCreated,       // Window created event.
-        WindowClose,         // Window close event.
-        WindowResize,        // Window resize event.
-        WindowFocus,         // Window focus event.
+        WindowClosed,        // Window close event.
+        WindowResized,       // Window resize event.
+        WindowFocused,       // Window focus event.
         WindowLostFocus,     // Window lost focus event.
         WindowMoved,         // Window moved event.
         AppTick,             // Application tick event.

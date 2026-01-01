@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vulkyrie.h>
+#include "pong_overlay_layer.h"
+#include "pong_game_layer.h"
 
 namespace Pong {
     class PongApplication : public Vulkyrie::Core::Application {
@@ -11,6 +13,13 @@ namespace Pong {
 
             ~PongApplication();
 
-            // Additional Pong-specific methods and members can be added here
+            bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
+                PushLayer<Pong::PongGameLayer>("Pong Game Layer");
+                PushOverlay<Pong::PongOverlayLayer>("Pong Overlay Layer");
+
+                VINFO("PongApplication Initialized!");
+
+                return true;
+            }
     };
 } // namespace Pong
