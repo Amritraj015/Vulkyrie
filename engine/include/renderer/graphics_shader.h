@@ -5,6 +5,9 @@
 namespace Vulkyrie::Renderer {
     class GraphicsShader {
         public:
+            /** @brief Default constructor for the GraphicsShader class. */
+            GraphicsShader() = default;
+
             /** @brief Constructs a Shader object with vertex and fragment shader file paths.
              * @param vertexShaderPath Path to the vertex shader source file.
              * @param fragmentShaderPath Path to the fragment shader source file.

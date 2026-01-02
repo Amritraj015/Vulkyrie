@@ -4,7 +4,7 @@
 
 namespace Vulkyrie::Events {
     enum class EventType : u8 {
-        None = 0,            // No event.
+        Unknown = 0,         // Unknown event.
         WindowCreated,       // Window created event.
         WindowClosed,        // Window close event.
         WindowResized,       // Window resize event.

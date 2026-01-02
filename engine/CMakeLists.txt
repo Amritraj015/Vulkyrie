@@ -15,7 +15,8 @@ Target_Include_Directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad)
+# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad)
+Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad)
 
 Target_Compile_Definitions(${PROJECT_NAME}
     PRIVATE 

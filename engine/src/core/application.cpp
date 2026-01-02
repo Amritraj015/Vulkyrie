@@ -3,7 +3,6 @@
 #include "core/generic_window.h"
 #include "core/graphics_api.h"
 #include "events/event_dispatcher.h"
-#include "platform/platform.h"
 
 namespace Vulkyrie::Core {
     constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
@@ -63,7 +62,7 @@ namespace Vulkyrie::Core {
         // Main application loop.
         while (_running) {
             // Calculate the time since the last frame.
-            const f32 time = Vulkyrie::Platform::GetTime();
+            const f32 time = _window->GetTime();
             const Timestep deltaTime(time - _lastFrameTime);
             _lastFrameTime = time;
 
@@ -76,7 +75,7 @@ namespace Vulkyrie::Core {
             _window->OnUpdate();
         }
 
-        // TODO: The following is causing segfaults,
+        // TODO: The following causes a segfault in OpenGLVertexArray class's destructor,
         // TODO: This needs to happen after all other openGL resources have been cleaned up.
         // Close the application window.
         statusCode = _window->Close();
@@ -97,7 +96,7 @@ namespace Vulkyrie::Core {
         dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
 
-        for (const auto & _layer : std::ranges::reverse_view(_layers)) {
+        for (const auto &_layer : std::ranges::reverse_view(_layers)) {
             // If the event has been handled, stop propagating.
             if (event.handled) {
                 break;

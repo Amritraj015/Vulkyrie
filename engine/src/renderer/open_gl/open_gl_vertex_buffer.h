@@ -8,13 +8,13 @@ namespace Vulkyrie::Renderer {
             /** @brief Constructs an OpenGL vertex buffer with the given size.
              * @param size Size of the vertex buffer in bytes.
              */
-            OpenGLVertexBuffer(uint32_t size);
+            OpenGLVertexBuffer(size_t size);
 
             /** @brief Constructs an OpenGL vertex buffer with the given vertices and size.
              * @param vertices Pointer to the vertex data.
              * @param size Size of the vertex data in bytes.
              */
-            OpenGLVertexBuffer(float *vertices, uint32_t size);
+            OpenGLVertexBuffer(float *vertices, size_t size);
 
             /** @brief Destructor to clean up the OpenGL vertex buffer. */
             ~OpenGLVertexBuffer();

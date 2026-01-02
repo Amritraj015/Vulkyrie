@@ -12,10 +12,20 @@ namespace Vulkyrie::Core {
             ~GenericWindow() override = default;
 
             Vulkyrie::Core::StatusCode Create() override;
+
             void SetVSync(bool enabled) override;
+
             inline void OnUpdate() const override;
+
             Vulkyrie::Core::StatusCode Close() override;
-            void ToggleWireframeMode(bool enable) override;
+
+            inline void ToggleWireframeMode(bool enable) override;
+
+            inline void CaptureMouseOnFocus(bool enable) override;
+
+            [[nodiscard]] inline float GetTime() const override {
+                return static_cast<float>(glfwGetTime());
+            }
 
         private:
             GLFWwindow *_window;

@@ -35,7 +35,7 @@ namespace Vulkyrie::Renderer {
              * @param size Size of the vertex buffer in bytes.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, u32 size);
+            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, size_t size);
 
             /** @brief Creates a vertex buffer based on the specified graphics API, vertices, and size.
              * @param api The graphics API to use.
@@ -43,6 +43,6 @@ namespace Vulkyrie::Renderer {
              * @param size Size of the vertex data in bytes.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, u32 size);
+            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, size_t size);
     };
 } // namespace Vulkyrie::Renderer

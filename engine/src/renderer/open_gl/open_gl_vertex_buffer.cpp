@@ -2,16 +2,18 @@
 #include "open_gl_vertex_buffer.h"
 
 namespace Vulkyrie::Renderer {
-    OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size) {
+    OpenGLVertexBuffer::OpenGLVertexBuffer(size_t size) {
         glCreateBuffers(1, &_vboId);
         glBindBuffer(GL_ARRAY_BUFFER, _vboId);
         glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
     }
 
-    OpenGLVertexBuffer::OpenGLVertexBuffer(float *vertices, uint32_t size) {
+    OpenGLVertexBuffer::OpenGLVertexBuffer(float *vertices, size_t size) {
         glCreateBuffers(1, &_vboId);
-        glBindBuffer(GL_ARRAY_BUFFER, _vboId);
-        glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+        // glBindBuffer(GL_ARRAY_BUFFER, _vboId);
+        // glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+
+        glNamedBufferData(_vboId, size, vertices, GL_STATIC_DRAW);
     }
 
     OpenGLVertexBuffer::~OpenGLVertexBuffer() {

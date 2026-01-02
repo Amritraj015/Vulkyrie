@@ -3,6 +3,9 @@
 #include <vulkyrie.h>
 
 namespace Pong {
+    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie::Core;
+
     class PongOverlayLayer final : public Vulkyrie::Core::Layer {
         public:
             PongOverlayLayer(const std::string_view layerName);
@@ -14,7 +17,14 @@ namespace Pong {
             void OnEvent(Vulkyrie::Events::Event &event) override;
 
         private:
-            bool _toggleWireframe = false;
-            Ref<Vulkyrie::Renderer::VertexArray> _vertexArray;
+            Ref<Texture2D> texture1;
+            Ref<Texture2D> texture2;
+            Ref<VertexBuffer> vertexBuffer;
+            Ref<VertexArray> vertexArray;
+            GraphicsShader graphicsShader;
+            Camera camera;
+            f64 lastMouseX = 400.0f;
+            f64 lastMouseY = 300.0f;
+            bool firstMouseMove = true;
     };
 } // namespace Pong

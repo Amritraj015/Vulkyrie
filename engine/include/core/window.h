@@ -42,10 +42,20 @@ namespace Vulkyrie::Core {
              * */
             virtual Vulkyrie::Core::StatusCode Close() = 0;
 
+            /** @brief Gets the current time in seconds since the window was created.
+             * @returns The current time in seconds.
+             */
+            [[nodiscard]] virtual inline float GetTime() const = 0;
+
             /** @brief Toggles wireframe rendering mode.
              * @param enable True to enable wireframe mode, false to disable.
              */
             virtual void ToggleWireframeMode(bool enable) = 0;
+
+            /** @brief Captures or releases the mouse cursor when the window gains or loses focus.
+             * @param enable True to capture the mouse on focus, false to release it.
+             */
+            virtual inline void CaptureMouseOnFocus(bool enable) = 0;
 
         protected:
             const Vulkyrie::Core::WindowProps &_windowProps;

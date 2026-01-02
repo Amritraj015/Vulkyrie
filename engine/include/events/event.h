@@ -36,8 +36,8 @@ namespace Vulkyrie::Events {
             /** @brief Gets the static event type for this event class.
              * @return The static event type.
              */
-            // [[nodiscard]] static inline EventType GetStaticEventType() {
-            //     return EventType::None;
-            // }
+            [[nodiscard]] static inline EventType GetStaticEventType() {
+                return EventType::Unknown;
+            }
     };
 } // namespace Vulkyrie::Events
