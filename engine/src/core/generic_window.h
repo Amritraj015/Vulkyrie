@@ -9,7 +9,7 @@ namespace Vulkyrie::Core {
     class GenericWindow final : public Window {
         public:
             GenericWindow(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
-            ~GenericWindow() override = default;
+            ~GenericWindow() override;
 
             Vulkyrie::Core::StatusCode Create() override;
 

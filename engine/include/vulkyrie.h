@@ -33,4 +33,8 @@
 #include "renderer/texture.h"
 #include "renderer/texture_2D.h"
 
+// Material includes
+#include "materials/material.h"
+#include "materials/material_library.h"
+
 extern Vulkyrie::Core::Application *CreateApplication();

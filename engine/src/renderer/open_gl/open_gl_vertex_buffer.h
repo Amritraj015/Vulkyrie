@@ -42,7 +42,7 @@ namespace Vulkyrie::Renderer {
             void SetLayout(const BufferLayout &layout) override;
 
         private:
-            uint32_t _vboId;
+            u32 _vboId;
             BufferLayout _layout;
     };
 } // namespace Vulkyrie::Renderer

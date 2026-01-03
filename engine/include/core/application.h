@@ -117,10 +117,7 @@ namespace Vulkyrie::Core {
             LayerStack _layers;
 
             /** @brief The renderer used for rendering graphics. */
-            Scope<Vulkyrie::Renderer::Renderer> _renderer;
-
-            /** @brief The vertex buffer used for rendering. */
-            Scope<Vulkyrie::Renderer::VertexBuffer> _vertexBuffer;
+            Ref<Vulkyrie::Renderer::Renderer> _renderer;
 
             /** @brief Raises an event to be handled by the application or other systems.
              * @param event The event to raise.

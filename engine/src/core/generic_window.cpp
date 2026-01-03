@@ -256,7 +256,6 @@ namespace Vulkyrie::Core {
             default:
                 return Vulkyrie::Events::KeyCode::Unknown;
         }
-
     }
 
     /** @brief Converts a GLFW mouse button to a Vulkyrie mouse button.
@@ -286,43 +285,54 @@ namespace Vulkyrie::Core {
         }
     }
 
+    constexpr u8 shiftKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
+    constexpr u8 controlKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
+    constexpr u8 altKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Alt);
+    constexpr u8 superKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Super);
+    constexpr u8 capsLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::CapsLock);
+    constexpr u8 numLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
+
     /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
      * @param glfwMods The GLFW modifier flags.
      * @returns The corresponding Vulkyrie key modifiers.
      */
     static constexpr Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods) {
-        i32 modifiers = 0;
+        u8 modifiers = 0U;
 
         if (glfwMods & GLFW_MOD_SHIFT) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
+            modifiers |= shiftKeyModifier;
         }
 
         if (glfwMods & GLFW_MOD_CONTROL) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
+            modifiers |= controlKeyModifier;
         }
 
         if (glfwMods & GLFW_MOD_ALT) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::Alt);
+            modifiers |= altKeyModifier;
         }
 
         if (glfwMods & GLFW_MOD_SUPER) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::Super);
+            modifiers |= superKeyModifier;
         }
 
         if (glfwMods & GLFW_MOD_CAPS_LOCK) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::CapsLock);
+            modifiers |= capsLockKeyModifier;
         }
 
         if (glfwMods & GLFW_MOD_NUM_LOCK) {
-            modifiers |= std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
+            modifiers |= numLockKeyModifier;
         }
 
         return static_cast<Vulkyrie::Events::KeyModifier>(modifiers);
     }
 
-
     GenericWindow::GenericWindow(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
         : Window(windowProps, eventCallbackFn), _window(nullptr) {};
+
+    GenericWindow::~GenericWindow() {
+        glfwDestroyWindow(_window);
+        glfwTerminate();
+    }
 
     Vulkyrie::Core::StatusCode GenericWindow::Create() {
         // Set GLFW error callback.
@@ -462,7 +472,7 @@ namespace Vulkyrie::Core {
             }
         });
 
-        glfwSetScrollCallback(_window, [](GLFWwindow *window, double offsetX, double offsetY) {
+        glfwSetScrollCallback(_window, [](GLFWwindow *window, f64 offsetX, f64 offsetY) {
             Vulkyrie::Events::MouseScrolledEvent event(offsetX, offsetY);
 
             // Get the window user pointer.
@@ -472,7 +482,7 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
-        glfwSetCursorPosCallback(_window, [](GLFWwindow *window, const double positionX, const double positionY) {
+        glfwSetCursorPosCallback(_window, [](GLFWwindow *window, const f64 positionX, const f64 positionY) {
             Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
@@ -491,6 +501,9 @@ namespace Vulkyrie::Core {
 
             return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
         }
+
+        // Enable or disable V-Sync.
+        SetVSync(_windowProps.VSync);
 
         // set the viewport
         glViewport(0, 0, _windowProps.Width, _windowProps.Height);
@@ -530,8 +543,8 @@ namespace Vulkyrie::Core {
 
     Vulkyrie::Core::StatusCode GenericWindow::Close() {
         // glfw: terminate, clearing all previously allocated GLFW resources.
-        glfwDestroyWindow(_window);
-        glfwTerminate();
+        // glfwDestroyWindow(_window);
+        // glfwTerminate();
 
         return Vulkyrie::Core::StatusCode::Successful;
     }

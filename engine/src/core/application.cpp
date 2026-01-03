@@ -19,7 +19,7 @@ namespace Vulkyrie::Core {
     Application::Application(const WindowProps &windowProps, const ApplicationConfig &config)
         : _windowProps(windowProps), _config(config), _running(false), _lastFrameTime(0.0f),
           _window(CreateRef<GenericWindow>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
-          _renderer(CreateScope<Vulkyrie::Renderer::Renderer>()), _vertexBuffer(nullptr) {
+          _renderer(CreateRef<Vulkyrie::Renderer::Renderer>()) {
     }
 
     Application::~Application() {

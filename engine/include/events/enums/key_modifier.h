@@ -4,7 +4,7 @@
 #include "core/utilities.h"
 
 namespace Vulkyrie::Events {
-    enum class KeyModifier : i32 {
+    enum class KeyModifier : u8 {
         None        = 0,
         Shift       = BIT(0),
         Control     = BIT(1),

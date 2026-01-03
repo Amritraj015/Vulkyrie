@@ -1,8 +1,7 @@
 #pragma once
 
 #include <vulkyrie.h>
-#include "pong_overlay_layer.h"
-#include "pong_game_layer.h"
+#include "pong_void_layer.h"
 
 namespace Pong {
     class PongApplication : public Vulkyrie::Core::Application {
@@ -14,10 +13,9 @@ namespace Pong {
             ~PongApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<Pong::PongGameLayer>(event.Width, event.Height);
-                // PushLayer<Pong::PongOverlayLayer>(event.Width, event.Height);
-
-                VINFO("PongApplication Initialized!");
+                // PushLayer<Pong::PongGameLayer>(event.Width, event.Height);
+                PushLayer<Pong::PongLayer1>(event.Width, event.Height);
+                PushOverlay<Pong::PongVoidLayer>(event.Width, event.Height);
 
                 return true;
             }
