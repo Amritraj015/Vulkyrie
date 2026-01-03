@@ -5,22 +5,22 @@
 namespace Vulkyrie::Core {
     struct WindowProps {
         public:
-            // Starting position of the window on x-axis.
-            u32 startX = 0;
+            /** @brief Starting position of the window on x-axis. */
+            u32 StartX = 0;
 
-            // Starting position of the window on x-axis.
-            u32 startY = 0;
+            /** @brief Starting position of the window on y-axis. */
+            u32 StartY = 0;
 
-            // Starting width of the window.
-            u32 height = 0;
+            /** @brief Starting height of the window. */
+            u32 Height = 0;
 
-            // Starting width of the window.
-            u32 width = 0;
+            /** @brief Starting width of the window. */
+            u32 Width = 0;
 
-            // The title for the window.
-            const char *title;
+            /** @brief Title of the window. */
+            std::string Title;
 
-            // Enable or disable VSync.
-            bool vsync = true;
+            /** @brief Enable or disable VSync. */
+            bool VSync = true;
     };
 } // namespace Vulkyrie::Core

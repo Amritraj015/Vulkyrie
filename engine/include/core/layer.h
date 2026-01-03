@@ -4,9 +4,12 @@
 #include "events/event.h"
 
 namespace Vulkyrie::Core {
+    class Application;
+
     class Layer {
         public:
-            explicit Layer(const std::string_view name = "Layer") : _layerName(name) {};
+            explicit Layer(const Application &application, const std::string_view name = "Layer")
+                : _application(application), _layerName(name) {};
             virtual ~Layer() = default;
 
             virtual void OnAttach() {
@@ -26,6 +29,7 @@ namespace Vulkyrie::Core {
             }
 
         protected:
+            const Application &_application;
             std::string _layerName;
     };
 } // namespace Vulkyrie::Core

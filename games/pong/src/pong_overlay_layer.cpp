@@ -65,16 +65,10 @@ namespace Pong {
         glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
     };
 
-    // Ref<Texture2D> texture1;
-    // Ref<Texture2D> texture2;
-    // Ref<VertexBuffer> vertexBuffer;
-    // Ref<VertexArray> vertexArray;
-    // GraphicsShader graphicsShader;
-    // Camera camera;
-    float dt = 0.0f; // Time between current frame and last frame
+    PongOverlayLayer::PongOverlayLayer(const Application &application, const std::string_view layerName, f32 windowWidth, f32 windowHeight)
+        : Layer(application, layerName), windowWidth(windowWidth), windowHeight(windowHeight),
+          graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl") {
 
-    PongOverlayLayer::PongOverlayLayer(const std::string_view layerName)
-        : Layer(layerName), graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl") {
         // Check if shader program creation failed.
         if (!graphicsShader.IsValid()) {
             // Log a fatal error.
@@ -103,12 +97,15 @@ namespace Pong {
             VERROR("Failed to load one or more textures!");
         }
 
-        graphicsShader.Use();
-        graphicsShader.SetIntUniform("texture1", 0);
-        graphicsShader.SetIntUniform("texture2", 1);
+        // This is required to make sure 3D rendering works properly.
         glEnable(GL_DEPTH_TEST);
 
-        // -----------------------------------------------
+        // Projection matrix hardly ever changes, so it can live outside the main application loop.
+        graphicsShader.Use();
+        glm::mat4 projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+
+        graphicsShader.SetMat4Uniform("projection", projection);
     }
 
     void PongOverlayLayer::OnAttach() {
@@ -120,53 +117,26 @@ namespace Pong {
     }
 
     void PongOverlayLayer::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffer
-
-        // bind Texture
-        // texture1->Bind(GL_TEXTURE0);
-
-        // GLenum err = glGetError();
-        // if (err != GL_NO_ERROR) VERROR("Error Binding texture 1: {}", err);
-
-        // texture2->Bind(GL_TEXTURE1);
-
-        // err = glGetError();
-        // if (err != GL_NO_ERROR) VERROR("Error Binding texture 2: {}", err);
-
+        // TODO: remove this.
         dt = deltaTime.GetSeconds();
 
-        // or more simply:
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+        // clear the color and depth buffer
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // create transformations
+        // Use the graphics shader program.
         graphicsShader.Use();
 
+        // bind Texture
+        texture1->Bind(0);
+        texture2->Bind(1);
+
         auto view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        // retrieve the matrix uniform locations
-        // unsigned int modelLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "model");
-        // unsigned int viewLoc = glGetUniformLocation(graphicsShader.GetShaderProgram(), "view");
-
-        // pass them to the shaders (3 different ways)
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-
-        // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best
-        // practice to set it outside the main loop only once.
         graphicsShader.SetMat4Uniform("view", view);
-        graphicsShader.SetMat4Uniform("projection", projection);
 
         // render container
-        // Use the graphics shader program.
-        // glBindVertexArray(vao);
         vertexArray->Bind();
-        // glDrawArrays(GL_TRIANGLES, 0, 36);
 
         for (unsigned int i = 0; i < 10; i++) {
             glm::mat4 model = glm::mat4(1.0f);
@@ -181,52 +151,52 @@ namespace Pong {
     }
 
     void PongOverlayLayer::OnEvent(Vulkyrie::Events::Event &event) {
-        // VINFO("{} - Event: {}",  _layerName.c_str(), event.ToString());
         Vulkyrie::Events::EventDispatcher dispatcher(event);
+
+        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
+            auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
+
+            glm::mat4 projection = glm::mat4(1.0f);
+            projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
+
+            graphicsShader.SetMat4Uniform("projection", projection);
+
+            return true;
+        });
 
         dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
             auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
 
             if (firstMouseMove) {
-                lastMouseX = mouseMovedEvent.GetX();
-                lastMouseY = mouseMovedEvent.GetY();
+                lastMouseX = mouseMovedEvent.MouseX;
+                lastMouseY = mouseMovedEvent.MouseY;
                 firstMouseMove = false;
             }
 
-            const float xOffset = mouseMovedEvent.GetX() - lastMouseX;
-            const float yOffset = lastMouseY - mouseMovedEvent.GetY();
+            const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
+            const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
 
             camera.ProcessMouseMovement(xOffset, yOffset);
 
-            lastMouseX = mouseMovedEvent.GetX();
-            lastMouseY = mouseMovedEvent.GetY();
+            lastMouseX = mouseMovedEvent.MouseX;
+            lastMouseY = mouseMovedEvent.MouseY;
 
             return true;
         });
 
         dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](const Vulkyrie::Events::KeyPressedEvent &e) {
-            // if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
-            //     _toggleWireframe = !_toggleWireframe;
-
-            //     VINFO("J key pressed in {}!", _layerName.data());
-            //     // Vulkyrie::Core::ApplicationManager::ToggleWireframeMode(_toggleWireframe);
-
-            //     return true;
-            // }
-
             constexpr float cameraSpeed = 30.0f; // adjust accordingly
 
-            if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::W)
+            if (e.KeyCode == Vulkyrie::Events::KeyCode::W)
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::FORWARD, cameraSpeed, dt);
-            else if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::S)
+            else if (e.KeyCode == Vulkyrie::Events::KeyCode::S)
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::BACKWARD, cameraSpeed, dt);
-            else if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::A)
+            else if (e.KeyCode == Vulkyrie::Events::KeyCode::A)
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::LEFT, cameraSpeed, dt);
-            else if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::D)
+            else if (e.KeyCode == Vulkyrie::Events::KeyCode::D)
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, dt);
 
             return false;
         });
     }
-
 } // namespace Pong

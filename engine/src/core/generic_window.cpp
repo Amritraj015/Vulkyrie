@@ -335,7 +335,7 @@ namespace Vulkyrie::Core {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // GLFW window creation
-        _window = glfwCreateWindow(_windowProps.width, _windowProps.height, _windowProps.title, nullptr, nullptr);
+        _window = glfwCreateWindow(_windowProps.Width, _windowProps.Height, _windowProps.Title.c_str(), nullptr, nullptr);
 
         // Check if window creation failed.
         if (nullptr == _window) {
@@ -493,11 +493,11 @@ namespace Vulkyrie::Core {
         }
 
         // set the viewport
-        glViewport(0, 0, _windowProps.width, _windowProps.height);
+        glViewport(0, 0, _windowProps.Width, _windowProps.Height);
 
         // Camera.
         // TODO: remove this.
-        // glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // Return success.
         return Vulkyrie::Core::StatusCode::Successful;
@@ -512,7 +512,7 @@ namespace Vulkyrie::Core {
     }
 
     void GenericWindow::SetVSync(bool enabled) {
-        glfwSwapInterval(_windowProps.vsync ? 1 : 0);
+        glfwSwapInterval(_windowProps.VSync ? 1 : 0);
     }
 
     inline void GenericWindow::OnUpdate() const {

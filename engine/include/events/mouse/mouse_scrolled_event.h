@@ -6,17 +6,15 @@
 namespace Vulkyrie::Events {
     class MouseScrolledEvent : public Event {
         public:
-            MouseScrolledEvent(const f64 offsetX, const f64 offsetY)
-                : _offsetX(offsetX), _offsetY(offsetY) {
+            MouseScrolledEvent(const f32 offsetX, const f32 offsetY)
+                : OffsetX(offsetX), OffsetY(offsetY) {
             }
 
-            [[nodiscard]] inline f64 GetXOffset() const {
-                return _offsetX;
-            }
+            /** The horizontal scroll offset of the mouse wheel. */
+            const f32 OffsetX;
 
-            [[nodiscard]] inline f64 GetYOffset() const {
-                return _offsetY;
-            }
+            /** The vertical scroll offset of the mouse wheel. */
+            const f32 OffsetY;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
@@ -27,7 +25,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return std::format("MouseScrolledEvent: ({}, {})", _offsetX, _offsetY);
+                return std::format("MouseScrolledEvent: ({}, {})", OffsetX, OffsetY);
             }
 
             /** @brief Gets the static event type for this event class.
@@ -38,7 +36,6 @@ namespace Vulkyrie::Events {
             }
 
         private:
-            const f64 _offsetX, _offsetY;
             static constexpr i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
 } // namespace Vulkyrie::Events

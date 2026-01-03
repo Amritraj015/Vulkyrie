@@ -6,16 +6,14 @@
 namespace Vulkyrie::Events {
     class MouseMovedEvent : public Event {
         public:
-            MouseMovedEvent(const f64 x, const f64 y) : _mouseX(x), _mouseY(y) {
+            MouseMovedEvent(const f32 x, const f32 y) : MouseX(x), MouseY(y) {
             }
 
-            [[nodiscard]] inline f64 GetX() const {
-                return _mouseX;
-            }
+            /** The X coordinate of the mouse cursor. */
+            const f32 MouseX;
 
-            [[nodiscard]] inline f64 GetY() const {
-                return _mouseY;
-            }
+            /** The Y coordinate of the mouse cursor. */
+            const f32 MouseY;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
@@ -26,7 +24,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return std::format("MouseMovedEvent: ({}, {})", _mouseX, _mouseY);
+                return std::format("MouseMovedEvent: ({}, {})", MouseX, MouseY);
             }
 
             /** @brief Gets the static event type for this event class.
@@ -37,7 +35,6 @@ namespace Vulkyrie::Events {
             }
 
         private:
-            const f64 _mouseX, _mouseY;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
 } // namespace Vulkyrie::Events

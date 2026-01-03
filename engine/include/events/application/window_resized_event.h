@@ -8,16 +8,14 @@
 namespace Vulkyrie::Events {
     class WindowResizedEvent : public Event {
         public:
-            WindowResizedEvent(const u32 width, const u32 height) : _width(width), _height(height) {
+            WindowResizedEvent(const u32 width, const u32 height) : Width(width), Height(height) {
             }
 
-            [[nodiscard]] inline u32 GetWidth() const {
-                return _width;
-            }
+            /** @brief The new width of the window. */
+            const u32 Width;
 
-            [[nodiscard]] inline u32 GetHeight() const {
-                return _height;
-            }
+            /** @brief The new height of the window. */
+            const u32 Height;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
@@ -28,7 +26,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return std::format("WindowResizeEvent: {}x{}", _width, _height);
+                return std::format("WindowResizeEvent: {}x{}", Width, Height);
             }
 
             /** @brief Gets the static event type for this event class.
@@ -39,7 +37,6 @@ namespace Vulkyrie::Events {
             }
 
         private:
-            const u32 _width, _height;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
 } // namespace Vulkyrie::Events

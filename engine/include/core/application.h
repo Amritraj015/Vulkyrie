@@ -38,7 +38,7 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
                 if (_running) {
-                    _layers.PushLayer<TLayer>(std::forward<TArgs>(args)...);
+                    _layers.PushLayer<TLayer>(*this, std::forward<TArgs>(args)...);
                 } else {
                     VERROR("Cannot push layer while application is not running, it is recommended that you make changes to the layer "
                            "stack after the 'OnInit'.")
@@ -63,7 +63,7 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
                 if (_running) {
-                    _layers.PushOverlay<TLayer>(std::forward<TArgs>(args)...);
+                    _layers.PushOverlay<TLayer>(*this, std::forward<TArgs>(args)...);
                 } else {
                     VERROR("Cannot push overlay while application is not running, it is recommended that you make changes to the layer "
                            "stack after the 'OnInit'.")

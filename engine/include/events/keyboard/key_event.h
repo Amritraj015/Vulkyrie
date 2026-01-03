@@ -8,19 +8,17 @@ namespace Vulkyrie::Events {
     // A class to represent a key press or release event.
     class KeyEvent : public Event {
         public:
-            KeyEvent(KeyCode keycode) : _keyCode(keycode) {
+            KeyEvent(Vulkyrie::Events::KeyCode keycode) : KeyCode(keycode) {
             }
+
+            /** @brief The key code associated with the event. */
+            const Vulkyrie::Events::KeyCode KeyCode;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
             }
 
-            [[nodiscard]] inline KeyCode GetKeyCode() const {
-                return _keyCode;
-            }
-
         private:
-            const KeyCode _keyCode;
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Keyboard) | std::to_underlying(EventCategory::Input);
     };
 } // namespace Vulkyrie::Events 

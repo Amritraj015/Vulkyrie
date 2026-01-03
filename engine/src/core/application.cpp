@@ -40,15 +40,15 @@ namespace Vulkyrie::Core {
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
-        VINFO("Application name              | {}", _windowProps.title)
-        VINFO("Window Height requested       | {}", _windowProps.height)
-        VINFO("Window Width requested        | {}", _windowProps.width)
-        VINFO("Window Starting X position    | {}", _windowProps.startX)
-        VINFO("Window Starting Y position    | {}", _windowProps.startY)
+        VINFO("Application name              | {}", _windowProps.Title)
+        VINFO("Window Height requested       | {}", _windowProps.Height)
+        VINFO("Window Width requested        | {}", _windowProps.Width)
+        VINFO("Window Starting X position    | {}", _windowProps.StartX)
+        VINFO("Window Starting Y position    | {}", _windowProps.StartY)
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", GetGraphicsApiName(_config.graphicsApi))
+        VINFO("Graphics API                  | {}", GetGraphicsApiName(_config.GraphicsApi))
         VINFO("*****************************************************************************************")
 
         // Mark the application as running.
@@ -56,7 +56,7 @@ namespace Vulkyrie::Core {
         _running = true;
 
         // Raise the window created event.
-        Vulkyrie::Events::WindowCreatedEvent event;
+        Vulkyrie::Events::WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
         OnEvent(event);
 
         // Main application loop.
@@ -110,8 +110,8 @@ namespace Vulkyrie::Core {
     bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {
         const auto resizeEvent = static_cast<Vulkyrie::Events::WindowResizedEvent>(event);
 
-        _windowProps.height = resizeEvent.GetHeight();
-        _windowProps.width = resizeEvent.GetWidth();
+        _windowProps.Height = resizeEvent.Height;
+        _windowProps.Width = resizeEvent.Width;
 
         return false;
     }

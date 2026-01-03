@@ -8,7 +8,10 @@ namespace Pong {
 
     class PongOverlayLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongOverlayLayer(const std::string_view layerName);
+            PongOverlayLayer(const Vulkyrie::Core::Application &application,
+                             const std::string_view layerName,
+                             f32 windowWidth,
+                             f32 windowHeight);
             ~PongOverlayLayer() = default;
 
             void OnAttach() override;
@@ -26,5 +29,7 @@ namespace Pong {
             f64 lastMouseX = 400.0f;
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
+            f32 windowHeight, windowWidth;
+            f32 dt = 0.0f; // Time between current frame and last frame
     };
 } // namespace Pong

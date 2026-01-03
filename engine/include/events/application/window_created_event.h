@@ -7,8 +7,13 @@ namespace Vulkyrie::Events {
     /** @brief Event triggered during application bootstrap. */
     class WindowCreatedEvent final : public Event {
         public:
-            WindowCreatedEvent() = default;
-            ~WindowCreatedEvent() = default;
+            WindowCreatedEvent(const u32 width, const u32 height) : Width(width), Height(height) {}
+
+            /** @brief The width of the created window. */
+            const u32 Width;
+
+            /** @brief The height of the created window. */
+            const u32 Height;
 
             [[nodiscard]] inline virtual EventType GetEventType() const override {
                 return GetStaticEventType();
@@ -19,7 +24,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return "WindowCreatedEvent";
+                return std::format("WindowCreatedEvent: {}x{}", Width, Height);
             }
 
             /** @brief Gets the static event type for this event class.

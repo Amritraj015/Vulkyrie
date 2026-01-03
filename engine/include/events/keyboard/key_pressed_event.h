@@ -6,27 +6,25 @@
 namespace Vulkyrie::Events {
     class KeyPressedEvent : public KeyEvent {
         public:
-            KeyPressedEvent(const KeyCode keycode, const KeyModifier modifiers, const bool isRepeat = false)
-                : KeyEvent(keycode), _isRepeat(isRepeat), _modifiers(modifiers) {
+            KeyPressedEvent(const Vulkyrie::Events::KeyCode keycode, const KeyModifier modifiers, const bool isRepeat = false)
+                : KeyEvent(keycode), IsRepeat(isRepeat), Modifiers(modifiers) {
             }
+
+            /** @brief Indicates whether the key press is a repeat. */
+            const bool IsRepeat;
+
+            /** @brief The key modifiers active during the key press. */
+            const KeyModifier Modifiers;
 
             [[nodiscard]] inline EventType GetEventType() const override {
                 return GetStaticEventType();
             }
 
-            [[nodiscard]] inline bool IsRepeat() const {
-                return _isRepeat;
-            }
-
-            [[nodiscard]] inline KeyModifier GetModifiers() const {
-                return _modifiers;
-            }
-
             [[nodiscard]] inline std::string ToString() const override {
                 return std::format("KeyPressedEvent: {} (repeats: {}, modifiers: {})",
-                                   std::to_underlying(GetKeyCode()),
-                                   _isRepeat ? "true" : "false",
-                                   std::to_underlying(_modifiers));
+                                   std::to_underlying(KeyCode),
+                                   IsRepeat ? "true" : "false",
+                                   std::to_underlying(Modifiers));
             }
 
             /** @brief Gets the static event type for this event class.
@@ -35,9 +33,5 @@ namespace Vulkyrie::Events {
             [[nodiscard]] static inline EventType GetStaticEventType() {
                 return EventType::KeyPressed;
             }
-
-        private:
-            const bool _isRepeat;
-            const KeyModifier _modifiers;
     };
 }

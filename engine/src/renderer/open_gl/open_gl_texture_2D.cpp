@@ -51,9 +51,9 @@ namespace Vulkyrie::Renderer {
         glTextureParameteri(_textureId, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(_textureId, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        if (_specification.GenerateMips) {
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
+        // if (_specification.GenerateMips) {
+        //     glGenerateTextureMipmap(_textureId);
+        // }
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path) {
@@ -94,7 +94,9 @@ namespace Vulkyrie::Renderer {
             glTextureParameteri(_textureId, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             glTextureSubImage2D(_textureId, 0, 0, 0, _width, _height, dataFormat, GL_UNSIGNED_BYTE, data);
-            // glGenerateMipmap(GL_TEXTURE_2D);
+
+            // If mipmaps are to be generated.
+            // glGenerateTextureMipmap(_textureId);
 
             stbi_image_free(data);
         }
@@ -105,7 +107,7 @@ namespace Vulkyrie::Renderer {
     }
 
     void OpenGLTexture2D::SetData(void *data, u32 size) {
-        u32 bpp = _dataFormat == GL_RGBA ? 4 : 3;
+        // u32 bpp = _dataFormat == GL_RGBA ? 4 : 3;
         glTextureSubImage2D(_textureId, 0, 0, 0, _width, _height, _dataFormat, GL_UNSIGNED_BYTE, data);
     }
 

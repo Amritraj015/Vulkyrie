@@ -5,7 +5,7 @@
 namespace Pong {
     class PongGameLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongGameLayer(const std::string_view layerName) : Vulkyrie::Core::Layer(layerName) {
+            PongGameLayer(const Vulkyrie::Core::Application &application, const std::string_view layerName) : Vulkyrie::Core::Layer(application, layerName) {
             }
             ~PongGameLayer() = default;
 
@@ -28,7 +28,7 @@ namespace Pong {
 
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
                 dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([](Vulkyrie::Events::KeyPressedEvent &e) {
-                    if (e.GetKeyCode() == Vulkyrie::Events::KeyCode::J) {
+                    if (e.KeyCode == Vulkyrie::Events::KeyCode::J) {
                         VINFO("J key pressed in game layer!");
 
                         return true;

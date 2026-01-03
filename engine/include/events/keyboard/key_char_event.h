@@ -5,7 +5,7 @@
 namespace Vulkyrie::Events {
     class KeyCharEvent : public KeyEvent {
         public:
-            KeyCharEvent(const KeyCode keycode) : KeyEvent(keycode) {
+            KeyCharEvent(const Vulkyrie::Events::KeyCode keycode) : KeyEvent(keycode) {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
@@ -13,7 +13,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return std::format("KeyCharEvent: {}", std::to_underlying(GetKeyCode()));
+                return std::format("KeyCharEvent: {}", std::to_underlying(KeyCode));
             }
 
             /** @brief Gets the static event type for this event class.
