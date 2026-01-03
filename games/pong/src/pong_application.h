@@ -14,8 +14,8 @@ namespace Pong {
             ~PongApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                // PushLayer<Pong::PongGameLayer>("Pong Game Layer");
-                PushOverlay<Pong::PongOverlayLayer>("Pong Overlay Layer", event.Width, event.Height);
+                // PushLayer<Pong::PongGameLayer>(event.Width, event.Height);
+                PushLayer<Pong::PongOverlayLayer>(event.Width, event.Height);
 
                 VINFO("PongApplication Initialized!");
 

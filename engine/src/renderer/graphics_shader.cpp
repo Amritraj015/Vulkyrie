@@ -41,6 +41,14 @@ namespace Vulkyrie::Renderer {
         glUniformMatrix4fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
+    void GraphicsShader::SetVec3Uniform(const std::string_view name, const glm::vec3 &value) const {
+        glUniform3fv(glGetUniformLocation(_shaderProgram, name.data()), 1, &value[0]);
+    }
+
+    void GraphicsShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const {
+        glUniform3f(glGetUniformLocation(_shaderProgram, name.data()), x, y, z);
+    }
+
     u32 GraphicsShader::Reload() {
         // Create a new shader program.
         const u32 newShaderProgram = Create(_vertexShaderPath, _fragmentShaderPath);

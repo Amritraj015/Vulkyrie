@@ -44,6 +44,10 @@ namespace Vulkyrie::Renderer {
                 }
             }
 
+            glm::vec3 GetPosition() const {
+                return _position;
+            }
+
             glm::mat4 GetViewMatrix() const {
                 return glm::lookAt(_position, _position + _front, _up);
             }

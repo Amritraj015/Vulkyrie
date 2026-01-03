@@ -65,8 +65,8 @@ namespace Pong {
         glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
     };
 
-    PongOverlayLayer::PongOverlayLayer(const Application &application, const std::string_view layerName, f32 windowWidth, f32 windowHeight)
-        : Layer(application, layerName), windowWidth(windowWidth), windowHeight(windowHeight),
+    PongOverlayLayer::PongOverlayLayer(const Application &application, f32 windowWidth, f32 windowHeight)
+        : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
           graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl") {
 
         // Check if shader program creation failed.
@@ -109,11 +109,11 @@ namespace Pong {
     }
 
     void PongOverlayLayer::OnAttach() {
-        VDEBUG("Layer Attached: {}", _layerName.data());
+        VDEBUG("Layer Attached: Pong Overlay Layer.");
     }
 
     void PongOverlayLayer::OnDetach() {
-        VDEBUG("Layer Detached: {}", _layerName.data());
+        VDEBUG("Layer Detached: Pong Overlay Layer.");
     }
 
     void PongOverlayLayer::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {

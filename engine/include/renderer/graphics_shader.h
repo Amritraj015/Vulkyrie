@@ -69,6 +69,20 @@ namespace Vulkyrie::Renderer {
              */
             void SetMat4Uniform(const std::string_view name, const glm::mat4 &mat) const;
 
+            /** @brief Sets a vec3 uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @param value The vec3 value to set.
+             */
+            void SetVec3Uniform(const std::string_view name, const glm::vec3 &value) const;
+
+            /** @brief Sets a vec3 uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @param x The x component of the vec3.
+             * @param y The y component of the vec3.
+             * @param z The z component of the vec3.
+             */
+            void SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const;
+
         private:
             /** @brief A handle to the shader program. */
             u32 _shaderProgram;

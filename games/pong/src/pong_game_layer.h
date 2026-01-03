@@ -3,39 +3,33 @@
 #include <vulkyrie.h>
 
 namespace Pong {
+    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie::Core;
+
     class PongGameLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongGameLayer(const Vulkyrie::Core::Application &application, const std::string_view layerName) : Vulkyrie::Core::Layer(application, layerName) {
-            }
+            PongGameLayer(const Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight);
             ~PongGameLayer() = default;
 
-            void OnAttach() override {
-                VDEBUG("Layer Attached: {}", _layerName.data());
-            }
+            void OnAttach() override;
+            void OnDetach() override;
+            void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override;
+            void OnEvent(Vulkyrie::Events::Event &event) override;
 
-            void OnDetach() override {
-                VDEBUG("Layer Detached: {}", _layerName.data());
-            }
+        private:
+            Ref<VertexArray> objectVertexArray;
+            Ref<VertexBuffer> objectVertexBuffer;
+            GraphicsShader objectShader;
 
-            void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
-            }
+            Ref<VertexArray> lightVertexArray;
+            Ref<VertexBuffer> lightVertexBuffer;
+            GraphicsShader lightShader;
 
-            // void OnRender() override {
-            // }
-
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                // VINFO("{} - {} Event",  _layerName.c_str(), event.ToString());
-
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-                dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([](Vulkyrie::Events::KeyPressedEvent &e) {
-                    if (e.KeyCode == Vulkyrie::Events::KeyCode::J) {
-                        VINFO("J key pressed in game layer!");
-
-                        return true;
-                    }
-
-                    return true;
-                });
-            }
+            Camera camera;
+            f64 lastMouseX = 400.0f;
+            f64 lastMouseY = 300.0f;
+            bool firstMouseMove = true;
+            f32 windowHeight, windowWidth;
+            f32 dt = 0.0f; // Time between current frame and last frame
     };
 } // namespace Pong

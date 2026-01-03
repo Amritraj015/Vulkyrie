@@ -8,15 +8,10 @@ namespace Vulkyrie::Core {
 
     class Layer {
         public:
-            explicit Layer(const Application &application, const std::string_view name = "Layer")
-                : _application(application), _layerName(name) {};
+            explicit Layer(const Application &application) : _application(application) {};
             virtual ~Layer() = default;
 
             virtual void OnAttach() {
-            }
-
-            const char *GetName() const {
-                return _layerName.data();
             }
 
             virtual void OnDetach() {
@@ -30,6 +25,5 @@ namespace Vulkyrie::Core {
 
         protected:
             const Application &_application;
-            std::string _layerName;
     };
 } // namespace Vulkyrie::Core
