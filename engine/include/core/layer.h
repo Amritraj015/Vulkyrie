@@ -8,7 +8,7 @@ namespace Vulkyrie::Core {
 
     class Layer {
         public:
-            explicit Layer(const Application &application) : _application(application) {};
+            explicit Layer(Application &application) : _application(application) {};
             virtual ~Layer() = default;
 
             virtual void OnAttach() {
@@ -24,6 +24,6 @@ namespace Vulkyrie::Core {
             }
 
         protected:
-            const Application &_application;
+            Application &_application;
     };
 } // namespace Vulkyrie::Core

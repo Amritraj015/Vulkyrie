@@ -8,7 +8,7 @@ namespace Pong {
 
     class PongGameLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongGameLayer(const Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight);
+            PongGameLayer(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight);
             ~PongGameLayer() = default;
 
             void OnAttach() override;

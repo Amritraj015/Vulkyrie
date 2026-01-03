@@ -55,11 +55,11 @@ namespace Pong {
 
     static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-    PongGameLayer::PongGameLayer(const Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
+    PongGameLayer::PongGameLayer(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
         : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
           objectShader("assets/shaders/reflective-object.vert.glsl", "assets/shaders/reflective-object.frag.glsl"),
           lightShader("assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl"),
-          camera(glm::vec3(0.0f, 0.0f, 3.0f)) {
+          camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
         if (!objectShader.IsValid() || !lightShader.IsValid()) {
             VERROR("Failed to load shaders.");
@@ -198,7 +198,7 @@ namespace Pong {
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, dt);
             else if (e.KeyCode == Vulkyrie::Events::KeyCode::J) {
                 _application.PushLayer<Pong::PongOverlayLayer>(windowWidth, windowHeight);
-                // _application.PushLayer<Pong::PongOverlayLayer>(windowWidth, windowHeight);
+                _application.PopLayer<Pong::PongGameLayer>();
             }
 
             return false;

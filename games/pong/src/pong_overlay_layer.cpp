@@ -1,8 +1,11 @@
 #include "pong_overlay_layer.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
+#include "pong_game_layer.h"
 
 namespace Pong {
+    class PongGameLayer;
+
     constexpr float vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
         0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
@@ -65,8 +68,8 @@ namespace Pong {
         glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
     };
 
-    PongOverlayLayer::PongOverlayLayer(const Application &application, f32 windowWidth, f32 windowHeight)
-        : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
+    PongOverlayLayer::PongOverlayLayer(Application &application, f32 windowWidth, f32 windowHeight)
+        : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
           graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl") {
 
         // Check if shader program creation failed.
@@ -195,6 +198,10 @@ namespace Pong {
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::LEFT, cameraSpeed, dt);
             else if (e.KeyCode == Vulkyrie::Events::KeyCode::D)
                 camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, dt);
+            else if (e.KeyCode == Vulkyrie::Events::KeyCode::J) {
+                _application.PushLayer<PongGameLayer>(windowWidth, windowHeight);
+                _application.PopLayer<Pong::PongOverlayLayer>();
+            }
 
             return false;
         });
