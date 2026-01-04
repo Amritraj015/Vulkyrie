@@ -62,9 +62,15 @@ namespace Vulkyrie::Core {
         // Main application loop.
         while (_running) {
             // Calculate the time since the last frame.
+            // const f32 time = _window->GetTime();
+            // const Timestep deltaTime(time - _lastFrameTime);
+            // _lastFrameTime = time;
+
             const f32 time = _window->GetTime();
-            const Timestep deltaTime(time - _lastFrameTime);
+            f32 dt = time - _lastFrameTime;
             _lastFrameTime = time;
+            dt = std::min(dt, 0.1f); // clamp MAX delta (100 ms)
+            Timestep deltaTime(dt);
 
             // Update each layer.
             for (const auto &layer : _layers) {

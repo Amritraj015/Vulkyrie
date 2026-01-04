@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 
 namespace Pong {
+    using namespace Vulkyrie::Events;
+
     constexpr float vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
         0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
@@ -66,11 +68,13 @@ namespace Pong {
     };
 
     PongLayer1::PongLayer1(Application &application, f32 windowWidth, f32 windowHeight)
-        : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
-          graphicsShader("assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl") {
+        : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+
+        // Load and compile shader program.
+        graphicsShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl");
 
         // Check if shader program creation failed.
-        if (!graphicsShader.IsValid()) {
+        if (!graphicsShader->IsValid()) {
             // Log a fatal error.
             VFATAL("Failed to create graphics shader");
 
@@ -101,11 +105,11 @@ namespace Pong {
         glEnable(GL_DEPTH_TEST);
 
         // Projection matrix hardly ever changes, so it can live outside the main application loop.
-        graphicsShader.Use();
+        graphicsShader->Use();
         glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
-        graphicsShader.SetMat4Uniform("projection", projection);
+        graphicsShader->SetMat4Uniform("projection", projection);
     }
 
     void PongLayer1::OnAttach() {
@@ -117,15 +121,21 @@ namespace Pong {
     }
 
     void PongLayer1::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
-        // TODO: remove this.
-        dt = deltaTime.GetSeconds();
-
         // clear the color and depth buffer
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Update Camera position based on input.
+        constexpr float cameraSpeed = 5.0f;
+        auto dt = deltaTime.GetSeconds();
+
+        if (moveForward) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+        if (moveBackward) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+        if (moveLeft) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+        if (moveRight) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+
         // Use the graphics shader program.
-        graphicsShader.Use();
+        graphicsShader->Use();
 
         // bind Texture
         texture1->Bind(0);
@@ -133,7 +143,7 @@ namespace Pong {
 
         auto view = camera.GetViewMatrix();
 
-        graphicsShader.SetMat4Uniform("view", view);
+        graphicsShader->SetMat4Uniform("view", view);
 
         // render container
         vertexArray->Bind();
@@ -144,7 +154,7 @@ namespace Pong {
             float angle = 20.0f * (i + 1);
 
             model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
-            graphicsShader.SetMat4Uniform("model", model);
+            graphicsShader->SetMat4Uniform("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -159,7 +169,7 @@ namespace Pong {
             glm::mat4 projection = glm::mat4(1.0f);
             projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
 
-            graphicsShader.SetMat4Uniform("projection", projection);
+            graphicsShader->SetMat4Uniform("projection", projection);
 
             return true;
         });
@@ -184,17 +194,20 @@ namespace Pong {
             return true;
         });
 
-        dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](const Vulkyrie::Events::KeyPressedEvent &e) {
-            constexpr float cameraSpeed = 30.0f; // adjust accordingly
+        dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+            if (e.KeyCode == KeyCode::W) moveForward = true;
+            if (e.KeyCode == KeyCode::S) moveBackward = true;
+            if (e.KeyCode == KeyCode::A) moveLeft = true;
+            if (e.KeyCode == KeyCode::D) moveRight = true;
 
-            if (e.KeyCode == Vulkyrie::Events::KeyCode::W)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::FORWARD, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::S)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::BACKWARD, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::A)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::LEFT, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::D)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, dt);
+            return false;
+        });
+
+        dispatcher.Dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent &e) {
+            if (e.KeyCode == KeyCode::W) moveForward = false;
+            if (e.KeyCode == KeyCode::S) moveBackward = false;
+            if (e.KeyCode == KeyCode::A) moveLeft = false;
+            if (e.KeyCode == KeyCode::D) moveRight = false;
 
             return false;
         });

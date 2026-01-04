@@ -8,17 +8,13 @@ namespace Vulkyrie::Renderer {
         BACKWARD,
         LEFT,
         RIGHT,
-        // UP,
-        // DOWN
-
     };
-
-    // Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch =
-    // PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 
     class Camera {
         public:
-            Camera(glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), f32 yaw = -90.0f,
+            Camera(glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f),
+                   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+                   f32 yaw = -90.0f,
                    f32 pitch = 0.0f)
                 : _position(cameraPosition), _worldUp(up), _yaw(yaw), _pitch(pitch), _front(glm::vec3(0.0f, 0.0f, -1.0f)),
                   _mouseSensitivity(0.1f), _zoom(45.0f) {
@@ -97,7 +93,4 @@ namespace Vulkyrie::Renderer {
                 _up = glm::normalize(glm::cross(_right, _front));
             }
     };
-
-    class Camera2D : public Camera {};
-    class Camera3D : public Camera {};
 } // namespace Vulkyrie::Renderer

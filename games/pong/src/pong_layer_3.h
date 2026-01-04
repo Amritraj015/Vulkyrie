@@ -19,11 +19,11 @@ namespace Pong {
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;
-            GraphicsShader objectShader;
+            Ref<GraphicsShader> objectShader;
 
             Ref<VertexArray> lightVertexArray;
             Ref<VertexBuffer> lightVertexBuffer;
-            GraphicsShader lightShader;
+            Ref<GraphicsShader> lightShader;
 
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;
@@ -33,6 +33,10 @@ namespace Pong {
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
-            f32 dt = 0.0f; // Time between current frame and last frame
+
+            bool moveForward = false;
+            bool moveBackward = false;
+            bool moveLeft = false;
+            bool moveRight = false;
     };
 } // namespace Pong

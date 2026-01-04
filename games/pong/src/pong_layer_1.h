@@ -21,12 +21,16 @@ namespace Pong {
             Ref<Texture2D> texture2;
             Ref<VertexBuffer> vertexBuffer;
             Ref<VertexArray> vertexArray;
-            GraphicsShader graphicsShader;
+            Ref<GraphicsShader> graphicsShader;
             Camera camera;
             f64 lastMouseX = 400.0f;
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
-            f32 dt = 0.0f; // Time between current frame and last frame
+
+            bool moveForward = false;
+            bool moveBackward = false;
+            bool moveLeft = false;
+            bool moveRight = false;
     };
 } // namespace Pong

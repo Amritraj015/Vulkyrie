@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 
 namespace Pong {
+    using namespace Vulkyrie::Events;
+
     float vertices[] = {
         // positions         // normals          // texture coords
         -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
@@ -56,12 +58,14 @@ namespace Pong {
     static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     PongLayer3::PongLayer3(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
-        : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
-          objectShader("assets/shaders/specular-highlight.vert.glsl", "assets/shaders/specular-highlight.frag.glsl"),
-          lightShader("assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl"),
-          camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+        : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
-        if (!objectShader.IsValid() || !lightShader.IsValid()) {
+        // load and compile the shader programs.
+        objectShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.vert.glsl", "assets/shaders/specular-highlight.frag.glsl");
+        lightShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl");
+
+        // Check if shaders are loaded successfully.
+        if (!objectShader->IsValid() || !lightShader->IsValid()) {
             VERROR("Failed to load shaders.");
             return;
         }
@@ -111,41 +115,48 @@ namespace Pong {
     }
 
     void PongLayer3::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
-        dt = deltaTime.GetSeconds();
-
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        objectShader.Use();
-        objectShader.SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
-        objectShader.SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
-        objectShader.SetVec3Uniform("viewPos", camera.GetPosition());
+        // Update Camera position based on input.
+        constexpr float cameraSpeed = 5.0f;
+        auto dt = deltaTime.GetSeconds();
+
+        if (moveForward) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+        if (moveBackward) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+        if (moveLeft) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+        if (moveRight) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+
+        objectShader->Use();
+        objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
+        objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
+        objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        objectShader.SetMat4Uniform("projection", projection);
-        objectShader.SetMat4Uniform("view", view);
+        objectShader->SetMat4Uniform("projection", projection);
+        objectShader->SetMat4Uniform("view", view);
 
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
-        objectShader.SetMat4Uniform("model", model);
+        objectShader->SetMat4Uniform("model", model);
 
         // Set the material properties for the object.
-        objectShader.SetVec3Uniform("material.ambient", 1.0f, 0.5f, 0.31f);
-        objectShader.SetIntUniform("material.diffuse", 0);
-        objectShader.SetIntUniform("material.specular", 1);
-        objectShader.SetFloatUniform("material.shininess", 32.0f);
+        objectShader->SetVec3Uniform("material.ambient", 1.0f, 0.5f, 0.31f);
+        objectShader->SetIntUniform("material.diffuse", 0);
+        objectShader->SetIntUniform("material.specular", 1);
+        objectShader->SetFloatUniform("material.shininess", 32.0f);
 
         // Bind the textures to texture units.
         boxTexture->Bind(0);
         specularMapTexture->Bind(1);
 
         // Set the light properties.
-        objectShader.SetVec3Uniform("light.position", lightPos);
-        objectShader.SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
-        objectShader.SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
-        objectShader.SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
+        objectShader->SetVec3Uniform("light.position", lightPos);
+        objectShader->SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
+        objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
+        objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
 
         // Issue a draw call to draw the light source.
         objectVertexArray->Bind();
@@ -153,13 +164,13 @@ namespace Pong {
 
         // -----------------------------------------------------------------------------------
         // also draw the lamp object
-        lightShader.Use();
-        lightShader.SetMat4Uniform("projection", projection);
-        lightShader.SetMat4Uniform("view", view);
+        lightShader->Use();
+        lightShader->SetMat4Uniform("projection", projection);
+        lightShader->SetMat4Uniform("view", view);
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lightShader.SetMat4Uniform("model", model);
+        lightShader->SetMat4Uniform("model", model);
 
         // graphicsShader.Use();
         lightVertexArray->Bind();
@@ -202,21 +213,20 @@ namespace Pong {
             return true;
         });
 
-        dispatcher.Dispatch<Vulkyrie::Events::KeyPressedEvent>([this](const Vulkyrie::Events::KeyPressedEvent &e) {
-            constexpr float cameraSpeed = 30.0f; // adjust accordingly
+        dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+            if (e.KeyCode == KeyCode::W) moveForward = true;
+            if (e.KeyCode == KeyCode::S) moveBackward = true;
+            if (e.KeyCode == KeyCode::A) moveLeft = true;
+            if (e.KeyCode == KeyCode::D) moveRight = true;
 
-            if (e.KeyCode == Vulkyrie::Events::KeyCode::W)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::FORWARD, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::S)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::BACKWARD, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::A)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::LEFT, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::D)
-                camera.ProcessKeyboardMovement(Vulkyrie::Renderer::RIGHT, cameraSpeed, dt);
-            else if (e.KeyCode == Vulkyrie::Events::KeyCode::J) {
-                // _application.PushLayer<Pong::PongOverlayLayer>(windowWidth, windowHeight);
-                // _application.PopLayer<Pong::PongGameLayer>();
-            }
+            return false;
+        });
+
+        dispatcher.Dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent &e) {
+            if (e.KeyCode == KeyCode::W) moveForward = false;
+            if (e.KeyCode == KeyCode::S) moveBackward = false;
+            if (e.KeyCode == KeyCode::A) moveLeft = false;
+            if (e.KeyCode == KeyCode::D) moveRight = false;
 
             return false;
         });

@@ -21,18 +21,20 @@ namespace Pong {
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     constexpr float cameraSpeed = 30.0f; // adjust accordingly
 
-                    if (e.KeyCode == KeyCode::J || e.KeyCode == KeyCode::K || e.KeyCode == KeyCode::L) {
+                    if (e.KeyCode == KeyCode::J) {
                         _application.PopLayer<PongLayer1>();
                         _application.PopLayer<PongLayer2>();
                         _application.PopLayer<PongLayer3>();
 
-                        if (e.KeyCode == KeyCode::J) {
+                        if (currentLayer == 0) {
                             _application.PushLayer<PongLayer1>(windowWidth, windowHeight);
-                        } else if (e.KeyCode == KeyCode::K) {
+                        } else if (currentLayer == 1) {
                             _application.PushLayer<PongLayer2>(windowWidth, windowHeight);
-                        } else if (e.KeyCode == KeyCode::L) {
+                        } else if (currentLayer == 2) {
                             _application.PushLayer<PongLayer3>(windowWidth, windowHeight);
                         }
+
+                        currentLayer = (currentLayer + 1) % 3;
 
                         return true;
                     }
@@ -43,6 +45,7 @@ namespace Pong {
 
         private:
             f32 windowHeight, windowWidth;
+            u8 currentLayer = 1;
     };
 
 } // namespace Pong

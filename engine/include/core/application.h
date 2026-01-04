@@ -8,7 +8,6 @@
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
 #include "renderer/renderer.h"
-#include "renderer/vertex_buffer.h"
 
 namespace Vulkyrie::Core {
     class Application {
@@ -41,7 +40,7 @@ namespace Vulkyrie::Core {
                     _layers.PushLayer<TLayer>(*this, std::forward<TArgs>(args)...);
                 } else {
                     VERROR("Cannot push layer while application is not running, it is recommended that you make changes to the layer "
-                           "stack after the 'OnInit'.")
+                           "stack after the 'OnInit' lifecycle hook.")
                 }
             }
 
@@ -66,7 +65,7 @@ namespace Vulkyrie::Core {
                     _layers.PushOverlay<TLayer>(*this, std::forward<TArgs>(args)...);
                 } else {
                     VERROR("Cannot push overlay while application is not running, it is recommended that you make changes to the layer "
-                           "stack after the 'OnInit'.")
+                           "stack after the 'OnInit' lifecycle hook.")
                 }
             }
 
@@ -109,10 +108,10 @@ namespace Vulkyrie::Core {
 
             /** @brief The time of the last frame, used for timestep calculations. */
             f32 _lastFrameTime;
-
+            
             /** @brief The main application window. */
             Ref<Window> _window;
-
+            
             /** @brief The layers in the stack. */
             LayerStack _layers;
 

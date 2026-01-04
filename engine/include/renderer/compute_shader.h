@@ -1,18 +1,11 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {
     class ComputeShader {
         public:
-            /** @brief Constructs a ComputeShader object with the compute shader file path. 
-             * @param computeShaderPath Path to the compute shader source file.
-            */
-            explicit ComputeShader(const std::filesystem::path &computeShaderPath);
-
-            /** @brief Destructor to clean up the compute shader program. */
-            ~ComputeShader();
-
             /** @brief Returns whether the compute shader is valid (compiled successfully). */
             [[nodiscard]] inline bool IsValid() const {
                 return _isValid;
@@ -24,25 +17,23 @@ namespace Vulkyrie::Renderer {
             }
 
             /** @brief Reloads the compute shader from its source file. */
-            u32 Reload();
+            virtual u32 Reload() = 0;
 
             /** @brief Binds the compute shader program for use. */
-            inline void Use() const;
-        
-        private:
+            virtual inline void Use() const = 0;
+
+            /** @brief Creates a compute shader based on the specified graphics API and shader file path.
+             * @param api The graphics API to use.
+             * @param computeShaderPath The file path to the compute shader source code.
+             * @returns A reference to the created ComputeShader object.
+             */
+            Ref<ComputeShader> Create(Vulkyrie::Core::GraphicsAPI api, const std::filesystem::path &computeShaderPath);
+
+        protected:
             /** @brief A handle to the compute shader program. */
             u32 _shaderProgram;
 
             /** @brief Indicates whether the compute shader is valid (compiled successfully). */
             bool _isValid;
-
-            /** @brief Path to the compute shader source file. */
-            std::filesystem::path _computeShaderPath;
-
-            /** @brief Creates a compute shader program from the compute shader source file.
-             * @param computePath Path to the compute shader source file.
-             * @returns The handle of the created compute shader program.
-             */
-            u32 Create();
     };
-}
+} // namespace Vulkyrie::Renderer
