@@ -5,7 +5,7 @@ Set(CMAKE_CXX_STANDARD 23)
 File(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 File(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS include/*.h)
 
-Add_Library(${PROJECT_NAME} ${ENGINE_HEADERS} ${ENGINE_SOURCES})
+Add_Library(${PROJECT_NAME} STATIC ${ENGINE_HEADERS} ${ENGINE_SOURCES})
 
 Target_Include_Directories(${PROJECT_NAME}
     PUBLIC
@@ -16,7 +16,7 @@ Target_Include_Directories(${PROJECT_NAME}
 )
 
 # Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad)
-Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad)
+Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad assimp)
 
 Target_Compile_Definitions(${PROJECT_NAME}
     PRIVATE 

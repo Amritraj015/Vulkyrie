@@ -58,6 +58,30 @@ elseif (TARGET glm::glm)
 endif()
 # -------------------------------------------------
 
+# -------------------------------------------------
+# Assimp
+Message("Fetching and building Assimp...")
+
+Set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+Set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+Set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
+Set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+Set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+Set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+# No need to build zlib if we're using the system one
+set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG v6.0.2   # pin a version!
+)
+
+FetchContent_MakeAvailable(assimp)
+# -------------------------------------------------
+
+
 # -------------------------------------
 # Build the Vulkyrie Engine.
 # -------------------------------------

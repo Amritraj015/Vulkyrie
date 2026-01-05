@@ -1,0 +1,126 @@
+#pragma once
+
+#include <vulkyrie.h>
+#include "model.h"
+
+namespace Pong {
+    using namespace Vulkyrie::Core;
+    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie::Events;
+
+    class PongLayer0 final : public Layer {
+        public:
+            PongLayer0(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
+                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
+                  backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
+                graphicsShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
+
+                if (graphicsShader->IsValid()) {
+                    VDEBUG("PongLayer0: Shader compiled and linked successfully.");
+                } else {
+                    VERROR("PongLayer0: Shader failed to compile or link.");
+                }
+
+                glEnable(GL_DEPTH_TEST);
+
+                // backPackModel = std::make_unique<Model>("assets/models/backpack/backpack.obj");
+            };
+            ~PongLayer0() = default;
+
+            void OnAttach() override {
+                VDEBUG("Layer Attached: Pong Layer 0.");
+            };
+
+            void OnDetach() override {
+                VDEBUG("Layer Detached: Pong Layer 0.");
+            };
+
+            void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
+                glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                constexpr float cameraSpeed = 5.0f;
+                auto dt = deltaTime.GetSeconds();
+
+                if (moveForward) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+                if (moveBackward) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+                if (moveLeft) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+                if (moveRight) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+
+                graphicsShader->Use();
+
+                // view/projection transformations
+                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+                glm::mat4 view = camera.GetViewMatrix();
+                graphicsShader->SetMat4Uniform("projection", projection);
+                graphicsShader->SetMat4Uniform("view", view);
+
+                // render the loaded model
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+                model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
+                graphicsShader->SetMat4Uniform("model", model);
+
+                backPackModel->Draw(*graphicsShader);
+            };
+
+            void OnEvent(Vulkyrie::Events::Event &event) override {
+                Vulkyrie::Events::EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
+                    auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
+                    glm::mat4 projection = glm::mat4(1.0f);
+                    projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
+                    return true;
+                });
+
+                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
+                    auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
+                    if (firstMouseMove) {
+                        lastMouseX = mouseMovedEvent.MouseX;
+                        lastMouseY = mouseMovedEvent.MouseY;
+                        firstMouseMove = false;
+                    }
+
+                    const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
+                    const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+                    camera.ProcessMouseMovement(xOffset, yOffset);
+                    lastMouseX = mouseMovedEvent.MouseX;
+                    lastMouseY = mouseMovedEvent.MouseY;
+                    return true;
+                });
+
+                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::W) moveForward = true;
+                    if (e.KeyCode == KeyCode::S) moveBackward = true;
+                    if (e.KeyCode == KeyCode::A) moveLeft = true;
+                    if (e.KeyCode == KeyCode::D) moveRight = true;
+
+                    return false;
+                });
+
+                dispatcher.Dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent &e) {
+                    if (e.KeyCode == KeyCode::W) moveForward = false;
+                    if (e.KeyCode == KeyCode::S) moveBackward = false;
+                    if (e.KeyCode == KeyCode::A) moveLeft = false;
+                    if (e.KeyCode == KeyCode::D) moveRight = false;
+
+                    return false;
+                });
+            };
+
+        private:
+            Ref<Model> backPackModel;
+            Ref<GraphicsShader> graphicsShader;
+            Camera camera;
+            f64 lastMouseX = 400.0f;
+            f64 lastMouseY = 300.0f;
+            bool firstMouseMove = true;
+            f32 windowHeight, windowWidth;
+
+            bool moveForward = false;
+            bool moveBackward = false;
+            bool moveLeft = false;
+            bool moveRight = false;
+    };
+} // namespace Pong
