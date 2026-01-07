@@ -1,4 +1,4 @@
-#include "generic_window.h"
+#include "vulkyrie_glfw_platform.h"
 #include "events/application/window_closed_event.h"
 #include "events/application/window_resized_event.h"
 #include "events/mouse/mouse_moved_event.h"
@@ -326,15 +326,15 @@ namespace Vulkyrie::Core {
         return static_cast<Vulkyrie::Events::KeyModifier>(modifiers);
     }
 
-    GenericWindow::GenericWindow(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
-        : Window(windowProps, eventCallbackFn), _window(nullptr) {};
+    VulkyrieGLFWPlatform::VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
+        : Platform(windowProps, eventCallbackFn), _window(nullptr) {};
 
-    GenericWindow::~GenericWindow() {
+    VulkyrieGLFWPlatform::~VulkyrieGLFWPlatform() {
         glfwDestroyWindow(_window);
         glfwTerminate();
     }
 
-    Vulkyrie::Core::StatusCode GenericWindow::Create() {
+    Vulkyrie::Core::StatusCode VulkyrieGLFWPlatform::CreateWindow() {
         // Set GLFW error callback.
         glfwSetErrorCallback([](int errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
@@ -516,7 +516,7 @@ namespace Vulkyrie::Core {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
-    void GenericWindow::CaptureMouseOnFocus(bool enable) {
+    void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {
         if (enable) {
             glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         } else {
@@ -524,16 +524,16 @@ namespace Vulkyrie::Core {
         }
     }
 
-    void GenericWindow::SetVSync(bool enabled) {
+    inline void VulkyrieGLFWPlatform::SetVSync(bool enabled) {
         glfwSwapInterval(_windowProps.VSync ? 1 : 0);
     }
 
-    inline void GenericWindow::OnUpdate() const {
+    inline void VulkyrieGLFWPlatform::OnUpdate() const {
         glfwSwapBuffers(_window);
         glfwPollEvents();
     }
 
-    void GenericWindow::ToggleWireframeMode(bool enable) {
+    inline void VulkyrieGLFWPlatform::ToggleWireframeMode(bool enable) {
         if (enable) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         } else {
@@ -541,7 +541,30 @@ namespace Vulkyrie::Core {
         }
     }
 
-    Vulkyrie::Core::StatusCode GenericWindow::Close() {
+    inline bool VulkyrieGLFWPlatform::IsKeyPressed(const Vulkyrie::Events::KeyCode key) const {
+        return glfwGetKey(_window, static_cast<u16>(key)) == GLFW_PRESS;
+    }
+
+    inline bool VulkyrieGLFWPlatform::IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button) const {
+        return glfwGetMouseButton(_window, static_cast<u8>(button)) == GLFW_PRESS;
+    }
+
+    inline std::pair<f32, f32> VulkyrieGLFWPlatform::GetMousePosition() const {
+        double xpos, ypos;
+        glfwGetCursorPos(_window, &xpos, &ypos);
+
+        return { (f32)xpos, (f32)ypos };
+    }
+
+    inline f32 VulkyrieGLFWPlatform::GetMouseX() const {
+        return GetMousePosition().first;
+    }
+
+    inline f32 VulkyrieGLFWPlatform::GetMouseY() const {
+        return GetMousePosition().second;
+    }
+
+    Vulkyrie::Core::StatusCode VulkyrieGLFWPlatform::Close() {
         // glfw: terminate, clearing all previously allocated GLFW resources.
         // glfwDestroyWindow(_window);
         // glfwTerminate();

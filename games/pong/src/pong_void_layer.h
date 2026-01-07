@@ -12,7 +12,8 @@ namespace Pong {
 
     class PongVoidLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongVoidLayer(Application &application, f32 windowWidth, f32 windowHeight) : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight) {};
+            PongVoidLayer(Application &application, f32 windowWidth, f32 windowHeight)
+                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight) {};
             ~PongVoidLayer() = default;
 
             void OnEvent(Event &event) override {
@@ -20,6 +21,16 @@ namespace Pong {
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     constexpr float cameraSpeed = 30.0f; // adjust accordingly
+
+                    if (e.KeyCode == KeyCode::K) {
+                        showWireFrame = !showWireFrame;
+
+                        if (showWireFrame) {
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        } else {
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                        }
+                    }
 
                     if (e.KeyCode == KeyCode::J) {
                         _application.PopLayer<PongLayer0>();
@@ -47,6 +58,7 @@ namespace Pong {
             };
 
         private:
+            bool showWireFrame = false;
             f32 windowHeight, windowWidth;
             u8 currentLayer = 1;
     };

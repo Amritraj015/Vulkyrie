@@ -1,6 +1,6 @@
 #include "vlkypch.h"
 #include "core/application.h"
-#include "core/generic_window.h"
+#include "core/vulkyrie_glfw_platform.h"
 #include "core/graphics_api.h"
 #include "events/event_dispatcher.h"
 
@@ -18,7 +18,7 @@ namespace Vulkyrie::Core {
 
     Application::Application(const WindowProps &windowProps, const ApplicationConfig &config)
         : _windowProps(windowProps), _config(config), _running(false), _lastFrameTime(0.0f),
-          _window(CreateRef<GenericWindow>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
+          _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
           _renderer(CreateRef<Vulkyrie::Renderer::Renderer>()) {
     }
 
@@ -30,7 +30,7 @@ namespace Vulkyrie::Core {
 
     StatusCode Application::Run() {
         // Create the application window.
-        StatusCode statusCode = _window->Create();
+        StatusCode statusCode = _platform->CreateWindow();
 
         // If window creation failed, return the status code.
         if (StatusCode::Successful != statusCode) {
@@ -66,7 +66,7 @@ namespace Vulkyrie::Core {
             // const Timestep deltaTime(time - _lastFrameTime);
             // _lastFrameTime = time;
 
-            const f32 time = _window->GetTime();
+            const f32 time = _platform->GetTime();
             f32 dt = time - _lastFrameTime;
             _lastFrameTime = time;
             dt = std::min(dt, 0.1f); // clamp MAX delta (100 ms)
@@ -78,13 +78,13 @@ namespace Vulkyrie::Core {
             }
 
             // Update the application window.
-            _window->OnUpdate();
+            _platform->OnUpdate();
         }
 
         // TODO: The following causes a segfault in OpenGLVertexArray class's destructor,
         // TODO: This needs to happen after all other openGL resources have been cleaned up.
         // Close the application window.
-        statusCode = _window->Close();
+        statusCode = _platform->Close();
 
         // Return the status code.
         return statusCode;

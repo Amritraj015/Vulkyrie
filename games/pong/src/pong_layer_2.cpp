@@ -117,10 +117,10 @@ namespace Pong {
         constexpr float cameraSpeed = 5.0f;
         auto dt = deltaTime.GetSeconds();
 
-        if (moveForward) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-        if (moveBackward) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-        if (moveLeft) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-        if (moveRight) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+        if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+        if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+        if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+        if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
         objectShader->Use();
         objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
@@ -213,24 +213,6 @@ namespace Pong {
             lastMouseY = mouseMovedEvent.MouseY;
 
             return true;
-        });
-
-        dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
-            if (e.KeyCode == KeyCode::W) moveForward = true;
-            if (e.KeyCode == KeyCode::S) moveBackward = true;
-            if (e.KeyCode == KeyCode::A) moveLeft = true;
-            if (e.KeyCode == KeyCode::D) moveRight = true;
-
-            return false;
-        });
-
-        dispatcher.Dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent &e) {
-            if (e.KeyCode == KeyCode::W) moveForward = false;
-            if (e.KeyCode == KeyCode::S) moveBackward = false;
-            if (e.KeyCode == KeyCode::A) moveLeft = false;
-            if (e.KeyCode == KeyCode::D) moveRight = false;
-
-            return false;
         });
     }
 

@@ -9,7 +9,7 @@ IndentAccessModifiers: true
 AccessModifierOffset: 4
 SortIncludes: false
 NamespaceIndentation: All
-ColumnLimit: 180
+ColumnLimit: 160
 Cpp11BracedListStyle: false
 IndentCaseLabels: true
 

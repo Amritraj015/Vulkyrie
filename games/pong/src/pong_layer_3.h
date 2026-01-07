@@ -33,10 +33,5 @@ namespace Pong {
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
-
-            bool moveForward = false;
-            bool moveBackward = false;
-            bool moveLeft = false;
-            bool moveRight = false;
     };
 } // namespace Pong

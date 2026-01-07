@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Vulkyrie::Events {
-    enum class KeyCode {
+    enum class KeyCode : u16 {
         Space = 32,
         Apostrophe = 39, /* ' */
         Comma = 44,      /* , */

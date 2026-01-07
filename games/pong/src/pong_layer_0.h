@@ -39,13 +39,15 @@ namespace Pong {
                 glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                constexpr float cameraSpeed = 5.0f;
+                float cameraSpeed = 5.0f;
                 auto dt = deltaTime.GetSeconds();
 
-                if (moveForward) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (moveBackward) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (moveLeft) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (moveRight) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 20.0f;
+
+                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
                 graphicsShader->Use();
 
@@ -89,24 +91,6 @@ namespace Pong {
                     lastMouseY = mouseMovedEvent.MouseY;
                     return true;
                 });
-
-                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
-                    if (e.KeyCode == KeyCode::W) moveForward = true;
-                    if (e.KeyCode == KeyCode::S) moveBackward = true;
-                    if (e.KeyCode == KeyCode::A) moveLeft = true;
-                    if (e.KeyCode == KeyCode::D) moveRight = true;
-
-                    return false;
-                });
-
-                dispatcher.Dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent &e) {
-                    if (e.KeyCode == KeyCode::W) moveForward = false;
-                    if (e.KeyCode == KeyCode::S) moveBackward = false;
-                    if (e.KeyCode == KeyCode::A) moveLeft = false;
-                    if (e.KeyCode == KeyCode::D) moveRight = false;
-
-                    return false;
-                });
             };
 
         private:
@@ -117,10 +101,5 @@ namespace Pong {
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
-
-            bool moveForward = false;
-            bool moveBackward = false;
-            bool moveLeft = false;
-            bool moveRight = false;
     };
 } // namespace Pong
