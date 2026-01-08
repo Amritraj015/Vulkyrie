@@ -87,7 +87,10 @@ namespace Vulkyrie::Core {
             [[nodiscard]] virtual inline f32 GetMouseY() const = 0;
 
         protected:
-            const Vulkyrie::Core::WindowProps &_windowProps;
+            /** @brief The properties of the window. */
+            const WindowProps &_windowProps;
+
+            /** @brief The event callback function for handling events. */
             EventCallbackFn _eventCallbackFn;
     };
 } // namespace Vulkyrie::Core

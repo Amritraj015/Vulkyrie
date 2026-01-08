@@ -6,7 +6,7 @@
 namespace Pong {
     class PongApplication : public Vulkyrie::Core::Application {
         public:
-            PongApplication(const Vulkyrie::Core::WindowProps &windowProps, const Vulkyrie::Core::ApplicationConfig config) : Vulkyrie::Core::Application(windowProps, config) {
+            PongApplication(const Vulkyrie::Core::WindowProps &windowProps) : Vulkyrie::Core::Application(windowProps) {
             }
 
             ~PongApplication() override = default;

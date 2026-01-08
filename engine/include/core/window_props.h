@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/graphics_api.h"
 
 namespace Vulkyrie::Core {
     struct WindowProps {
@@ -22,5 +23,8 @@ namespace Vulkyrie::Core {
 
             /** @brief Enable or disable VSync. */
             bool VSync = true;
+
+            /** @brief The graphics API to use for rendering. */
+            Vulkyrie::Core::GraphicsAPI GraphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
     };
 } // namespace Vulkyrie::Core

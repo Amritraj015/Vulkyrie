@@ -492,15 +492,22 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
-        // Make the OpenGL context current.
-        glfwMakeContextCurrent(_window);
+        // Create the graphics context.
+        _graphicsContext = Vulkyrie::Core::GraphicsContext::Create(_windowProps.GraphicsApi, _window);
 
-        // GLAD: load all OpenGL function pointers
-        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-            VFATAL("Failed to initialize GLAD");
+        // Check if graphics context creation failed.
+        if (nullptr == _graphicsContext) {
+            VFATAL("Failed to create graphics context for the specified graphics API.");
 
-            return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
+            // Destroy the window.
+            glfwDestroyWindow(_window);
+            glfwTerminate();
+
+            return Vulkyrie::Core::StatusCode::FailedToCreateGraphicsContext;
         }
+
+        // Initialize the graphics context.
+        _graphicsContext->Initialize();
 
         // Enable or disable V-Sync.
         SetVSync(_windowProps.VSync);
@@ -508,60 +515,11 @@ namespace Vulkyrie::Core {
         // set the viewport
         glViewport(0, 0, _windowProps.Width, _windowProps.Height);
 
-        // Camera.
         // TODO: remove this.
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // Return success.
         return Vulkyrie::Core::StatusCode::Successful;
-    }
-
-    void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {
-        if (enable) {
-            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        } else {
-            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
-
-    inline void VulkyrieGLFWPlatform::SetVSync(bool enabled) {
-        glfwSwapInterval(_windowProps.VSync ? 1 : 0);
-    }
-
-    inline void VulkyrieGLFWPlatform::OnUpdate() const {
-        glfwSwapBuffers(_window);
-        glfwPollEvents();
-    }
-
-    inline void VulkyrieGLFWPlatform::ToggleWireframeMode(bool enable) {
-        if (enable) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-    }
-
-    inline bool VulkyrieGLFWPlatform::IsKeyPressed(const Vulkyrie::Events::KeyCode key) const {
-        return glfwGetKey(_window, static_cast<u16>(key)) == GLFW_PRESS;
-    }
-
-    inline bool VulkyrieGLFWPlatform::IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button) const {
-        return glfwGetMouseButton(_window, static_cast<u8>(button)) == GLFW_PRESS;
-    }
-
-    inline std::pair<f32, f32> VulkyrieGLFWPlatform::GetMousePosition() const {
-        double xpos, ypos;
-        glfwGetCursorPos(_window, &xpos, &ypos);
-
-        return { (f32)xpos, (f32)ypos };
-    }
-
-    inline f32 VulkyrieGLFWPlatform::GetMouseX() const {
-        return GetMousePosition().first;
-    }
-
-    inline f32 VulkyrieGLFWPlatform::GetMouseY() const {
-        return GetMousePosition().second;
     }
 
     Vulkyrie::Core::StatusCode VulkyrieGLFWPlatform::Close() {

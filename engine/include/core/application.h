@@ -2,7 +2,6 @@
 
 #include "core/platform.h"
 #include "core/window_props.h"
-#include "core/application_config.h"
 #include "core/layer_stack.h"
 #include "events/application/window_closed_event.h"
 #include "events/application/window_created_event.h"
@@ -14,9 +13,8 @@ namespace Vulkyrie::Core {
         public:
             /** @brief Constructs a new Application with the given window properties and configuration.
              * @param windowProps The properties for the application window.
-             * @param config The configuration for the application.
              */
-            Application(const WindowProps &windowProps, const ApplicationConfig &config);
+            Application(const WindowProps &windowProps);
 
             /** @brief Destructor to clean up the application and its resources. */
             virtual ~Application();
@@ -139,9 +137,6 @@ namespace Vulkyrie::Core {
 
             /** @brief Window properties for the application. */
             WindowProps _windowProps;
-
-            /** @brief The application configuration. */
-            ApplicationConfig _config;
 
             /** @brief Indicates whether the application is running. */
             bool _running;

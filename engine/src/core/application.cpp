@@ -16,10 +16,9 @@ namespace Vulkyrie::Core {
         }
     }
 
-    Application::Application(const WindowProps &windowProps, const ApplicationConfig &config)
-        : _windowProps(windowProps), _config(config), _running(false), _lastFrameTime(0.0f),
-          _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
-          _renderer(CreateRef<Vulkyrie::Renderer::Renderer>()) {
+    Application::Application(const WindowProps &windowProps)
+        : _windowProps(windowProps), _running(false), _lastFrameTime(0.0f),
+          _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })) {
     }
 
     Application::~Application() {
@@ -48,7 +47,7 @@ namespace Vulkyrie::Core {
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", GetGraphicsApiName(_config.GraphicsApi))
+        VINFO("Graphics API                  | {}", GetGraphicsApiName(_windowProps.GraphicsApi))
         VINFO("*****************************************************************************************")
 
         // Mark the application as running.
@@ -62,15 +61,9 @@ namespace Vulkyrie::Core {
         // Main application loop.
         while (_running) {
             // Calculate the time since the last frame.
-            // const f32 time = _window->GetTime();
-            // const Timestep deltaTime(time - _lastFrameTime);
-            // _lastFrameTime = time;
-
             const f32 time = _platform->GetTime();
-            f32 dt = time - _lastFrameTime;
+            Timestep deltaTime(std::min(time - _lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
             _lastFrameTime = time;
-            dt = std::min(dt, 0.1f); // clamp MAX delta (100 ms)
-            Timestep deltaTime(dt);
 
             // Update each layer.
             for (const auto &layer : _layers) {
