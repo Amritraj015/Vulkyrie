@@ -56,7 +56,7 @@ namespace Vulkyrie::Core {
 
         // Raise the window created event.
         Vulkyrie::Events::WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
-        OnEvent(event);
+        OnInit(event);
 
         // Main application loop.
         while (_running) {
@@ -91,7 +91,6 @@ namespace Vulkyrie::Core {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
 
         // If the event is a window close or resize event, handle it first.
-        dispatcher.Dispatch<Vulkyrie::Events::WindowCreatedEvent>([this](auto &e) -> bool { return this->OnInit(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
 

@@ -6,7 +6,7 @@ Vulkyrie::Core::Application *CreateApplication() {
     windowProps.Width = 800;
     windowProps.StartX = 100;
     windowProps.StartY = 100;
-    windowProps.VSync = true;
+    windowProps.VSync = false;
     windowProps.Title = "Pong (Powered by The Vulkyrie Game Engine)";
 
     Pong::PongApplication *pongApp = new Pong::PongApplication(windowProps);

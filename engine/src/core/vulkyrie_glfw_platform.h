@@ -12,8 +12,8 @@ namespace Vulkyrie::Core {
             VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
             ~VulkyrieGLFWPlatform() override;
 
-            Vulkyrie::Core::StatusCode CreateWindow() override;
-            Vulkyrie::Core::StatusCode Close() override;
+            StatusCode CreateWindow() override;
+            StatusCode Close() override;
 
             inline void SetVSync(bool enabled) override {
                 glfwSwapInterval(_windowProps.VSync ? 1 : 0);
@@ -60,11 +60,17 @@ namespace Vulkyrie::Core {
             }
 
             [[nodiscard]] inline f32 GetMouseX() const override {
-                return GetMousePosition().first;
+                double xpos;
+                glfwGetCursorPos(_window, &xpos, nullptr);
+
+                return xpos;
             }
 
             [[nodiscard]] inline f32 GetMouseY() const override {
-                return GetMousePosition().second;
+                double ypos;
+                glfwGetCursorPos(_window, nullptr, &ypos);
+
+                return ypos;
             }
 
         private:

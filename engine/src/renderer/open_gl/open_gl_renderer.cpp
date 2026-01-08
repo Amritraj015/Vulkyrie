@@ -6,7 +6,6 @@ namespace Vulkyrie::Renderer {
     }
 
     Vulkyrie::Core::StatusCode Renderer::Initialize() {
-
         return Vulkyrie::Core::StatusCode::Successful;
     }
 

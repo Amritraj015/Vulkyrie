@@ -334,7 +334,7 @@ namespace Vulkyrie::Core {
         glfwTerminate();
     }
 
-    Vulkyrie::Core::StatusCode VulkyrieGLFWPlatform::CreateWindow() {
+    StatusCode VulkyrieGLFWPlatform::CreateWindow() {
         // Set GLFW error callback.
         glfwSetErrorCallback([](int errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
@@ -355,7 +355,7 @@ namespace Vulkyrie::Core {
             glfwTerminate();
 
             // Return an error code.
-            return Vulkyrie::Core::StatusCode::FailedToCreateWindow;
+            return StatusCode::FailedToCreateWindow;
         }
 
         // Set the window user pointer to this instance.
@@ -503,7 +503,7 @@ namespace Vulkyrie::Core {
             glfwDestroyWindow(_window);
             glfwTerminate();
 
-            return Vulkyrie::Core::StatusCode::FailedToCreateGraphicsContext;
+            return StatusCode::FailedToCreateGraphicsContext;
         }
 
         // Initialize the graphics context.
@@ -519,15 +519,15 @@ namespace Vulkyrie::Core {
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // Return success.
-        return Vulkyrie::Core::StatusCode::Successful;
+        return StatusCode::Successful;
     }
 
-    Vulkyrie::Core::StatusCode VulkyrieGLFWPlatform::Close() {
+    StatusCode VulkyrieGLFWPlatform::Close() {
         // glfw: terminate, clearing all previously allocated GLFW resources.
         // glfwDestroyWindow(_window);
         // glfwTerminate();
 
-        return Vulkyrie::Core::StatusCode::Successful;
+        return StatusCode::Successful;
     }
 
     // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept {
