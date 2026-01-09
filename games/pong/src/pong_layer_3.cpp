@@ -61,8 +61,7 @@ namespace Pong {
         : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
         // load and compile the shader programs.
-        objectShader =
-            GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.vert.glsl", "assets/shaders/specular-highlight.frag.glsl");
+        objectShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.vert.glsl", "assets/shaders/specular-highlight.frag.glsl");
         lightShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl");
 
         // Check if shaders are loaded successfully.
@@ -129,8 +128,8 @@ namespace Pong {
         if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
         objectShader->Use();
-        objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
-        objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
+        // objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
+        // objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
         objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
         // view/projection transformations
@@ -144,7 +143,7 @@ namespace Pong {
         objectShader->SetMat4Uniform("model", model);
 
         // Set the material properties for the object.
-        objectShader->SetVec3Uniform("material.ambient", 1.0f, 0.5f, 0.31f);
+        // objectShader->SetVec3Uniform("material.ambient", 1.0f, 0.5f, 0.31f);
         objectShader->SetIntUniform("material.diffuse", 0);
         objectShader->SetIntUniform("material.specular", 1);
         objectShader->SetFloatUniform("material.shininess", 32.0f);

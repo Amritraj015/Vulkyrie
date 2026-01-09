@@ -17,35 +17,53 @@ namespace Vulkyrie::Renderer {
     }
 
     void OpenGLGraphicsShader::SetBoolUniform(const std::string_view name, const bool value) const {
-        glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), static_cast<int>(value));
+        glUniform1i(GetUniformLocation(name.data()), static_cast<int>(value));
     }
 
     void OpenGLGraphicsShader::SetIntUniform(const std::string_view name, const int value) const {
-        glUniform1i(glGetUniformLocation(_shaderProgram, name.data()), value);
+        glUniform1i(GetUniformLocation(name.data()), value);
     }
 
     void OpenGLGraphicsShader::SetFloatUniform(const std::string_view name, const float value) const {
-        glUniform1f(glGetUniformLocation(_shaderProgram, name.data()), value);
+        glUniform1f(GetUniformLocation(name.data()), value);
     }
 
     void OpenGLGraphicsShader::SetMat2Uniform(const std::string_view name, const glm::mat2 &mat) const {
-        glUniformMatrix2fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix2fv(GetUniformLocation(name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
     void OpenGLGraphicsShader::SetMat3Uniform(const std::string_view name, const glm::mat3 &mat) const {
-        glUniformMatrix3fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix3fv(GetUniformLocation(name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
     void OpenGLGraphicsShader::SetMat4Uniform(const std::string_view name, const glm::mat4 &mat) const {
-        glUniformMatrix4fv(glGetUniformLocation(_shaderProgram, name.data()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix4fv(GetUniformLocation(name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
     void OpenGLGraphicsShader::SetVec3Uniform(const std::string_view name, const glm::vec3 &value) const {
-        glUniform3fv(glGetUniformLocation(_shaderProgram, name.data()), 1, &value[0]);
+        glUniform3fv(GetUniformLocation(name.data()), 1, &value[0]);
     }
 
     void OpenGLGraphicsShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const {
-        glUniform3f(glGetUniformLocation(_shaderProgram, name.data()), x, y, z);
+        glUniform3f(GetUniformLocation(name.data()), x, y, z);
+    }
+
+    i32 OpenGLGraphicsShader::GetUniformLocation(const std::string &name) const {
+        if (auto it = _uniformLocationCache.find(name); it != _uniformLocationCache.end()) {
+            return it->second;
+        }
+
+        const i32 location = glGetUniformLocation(_shaderProgram, name.c_str());
+
+#if defined(VULKYRIE_DEBUG)
+        if (location == -1) {
+            VERROR("Uniform '{}' does not exist in shader program: {}.", name, _shaderProgram);
+        }
+#endif
+
+        _uniformLocationCache[name] = location;
+
+        return location;
     }
 
     u32 OpenGLGraphicsShader::Reload() {

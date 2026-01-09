@@ -22,8 +22,6 @@ namespace Pong {
                 }
 
                 glEnable(GL_DEPTH_TEST);
-
-                // backPackModel = std::make_unique<Model>("assets/models/backpack/backpack.obj");
             };
             ~PongLayer0() = default;
 
@@ -52,7 +50,8 @@ namespace Pong {
                 graphicsShader->Use();
 
                 // view/projection transformations
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+                // glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 graphicsShader->SetMat4Uniform("projection", projection);
                 graphicsShader->SetMat4Uniform("view", view);
@@ -68,6 +67,13 @@ namespace Pong {
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
+                    auto scrollEvent = static_cast<MouseScrolledEvent>(e);
+                    camera.ProcessMouseScroll(scrollEvent.OffsetY);
+
+                    return true;
+                });
 
                 dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
                     auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);

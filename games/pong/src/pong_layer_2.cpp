@@ -87,13 +87,6 @@ namespace Pong {
         // Create the vertex array for the light source.
         lightVertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
 
-        // Create the vertex buffer for the light source.
-        // lightVertexBuffer = VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
-        // lightVertexBuffer->SetLayout({
-        //     { Vulkyrie::Renderer::ShaderDataType::Float3, "a_Position" },
-        //     { Vulkyrie::Renderer::ShaderDataType::Float3, "aNormal" },
-        // });
-
         // Reuse the same vertex buffer for the light source.
         lightVertexArray->AddVertexBuffer(objectVertexBuffer);
 
@@ -123,8 +116,8 @@ namespace Pong {
         if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
         objectShader->Use();
-        objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
-        objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
+        // objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
+        // objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
         objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
         // view/projection transformations

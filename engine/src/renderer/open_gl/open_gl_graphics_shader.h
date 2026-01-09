@@ -71,6 +71,9 @@ namespace Vulkyrie::Renderer {
             void SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const override;
 
         private:
+            /** @brief Cache for uniform variable locations. */
+            mutable std::unordered_map<std::string, i32> _uniformLocationCache;
+
             /** @brief Path to the vertex shader source file. */
             std::filesystem::path _vertexShaderPath;
 
@@ -83,5 +86,12 @@ namespace Vulkyrie::Renderer {
              * @returns The handle of the created graphics shader program.
              */
             u32 LoadAndCompile(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath);
+
+            /** @brief Retrieves the location of a uniform variable in the shader program.
+             * @param name The name of the uniform variable.
+             * @returns The location of the uniform variable.
+             */
+            i32 GetUniformLocation(const std::string &name) const;
+
     };
 } // namespace Vulkyrie::Renderer

@@ -18,7 +18,7 @@ namespace Vulkyrie::Renderer {
                 UpdateCameraVectors();
             };
 
-            void ProcessKeyboardMovement(CameraMovement direction, f32 deltaTime, f32 movementSpeed = 2.5f) {
+            inline void ProcessKeyboardMovement(CameraMovement direction, f32 deltaTime, f32 movementSpeed = 2.5f) {
                 f32 velocity = movementSpeed * deltaTime;
 
                 switch (direction) {
@@ -37,16 +37,27 @@ namespace Vulkyrie::Renderer {
                 }
             }
 
-            glm::vec3 GetPosition() const {
+            inline void ProcessMouseScroll(f32 yOffset) {
+                _zoom -= yOffset;
+
+                if (_zoom < 1.0f) _zoom = 1.0f;
+                if (_zoom > 45.0f) _zoom = 45.0f;
+            }
+
+            [[nodiscard]] inline f32 GetZoom() const {
+                return _zoom;
+            }
+
+            [[nodiscard]] inline glm::vec3 GetPosition() const {
                 return _position;
             }
 
-            glm::mat4 GetViewMatrix() const {
+            [[nodiscard]] inline glm::mat4 GetViewMatrix() const {
                 return glm::lookAt(_position, _position + _front, _up);
             }
 
             // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-            void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch = true) {
+            inline void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch = true) {
                 xOffset *= _mouseSensitivity;
                 yOffset *= _mouseSensitivity;
 
