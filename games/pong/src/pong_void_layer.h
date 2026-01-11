@@ -5,6 +5,7 @@
 #include "pong_layer_1.h"
 #include "pong_layer_2.h"
 #include "pong_layer_3.h"
+#include "pong_layer_4.h"
 
 namespace Pong {
     using namespace Vulkyrie::Events;
@@ -37,6 +38,7 @@ namespace Pong {
                         _application.PopLayer<PongLayer1>();
                         _application.PopLayer<PongLayer2>();
                         _application.PopLayer<PongLayer3>();
+                        _application.PopLayer<PongLayer4>();
 
                         if (currentLayer == 0) {
                             _application.PushLayer<PongLayer0>(windowWidth, windowHeight);
@@ -46,9 +48,11 @@ namespace Pong {
                             _application.PushLayer<PongLayer2>(windowWidth, windowHeight);
                         } else if (currentLayer == 3) {
                             _application.PushLayer<PongLayer3>(windowWidth, windowHeight);
+                        } else if (currentLayer == 4) {
+                            _application.PushLayer<PongLayer4>(windowWidth, windowHeight);
                         }
 
-                        currentLayer = (currentLayer + 1) % 4;
+                        currentLayer = (currentLayer + 1) % 5;
 
                         return true;
                     }

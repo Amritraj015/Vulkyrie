@@ -24,14 +24,6 @@ namespace Vulkyrie::Core {
                 glfwPollEvents();
             }
 
-            inline void ToggleWireframeMode(bool enable) override {
-                if (enable) {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                } else {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                }
-            }
-
             inline void CaptureMouseOnFocus(bool enable) override {
                 if (enable) {
                     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -61,6 +53,7 @@ namespace Vulkyrie::Core {
 
             [[nodiscard]] inline f32 GetMouseX() const override {
                 double xpos;
+
                 glfwGetCursorPos(_window, &xpos, nullptr);
 
                 return xpos;
@@ -68,6 +61,7 @@ namespace Vulkyrie::Core {
 
             [[nodiscard]] inline f32 GetMouseY() const override {
                 double ypos;
+
                 glfwGetCursorPos(_window, nullptr, &ypos);
 
                 return ypos;

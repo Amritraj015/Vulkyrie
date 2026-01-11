@@ -13,6 +13,7 @@ namespace Pong {
             PongLayer0(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
                   backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
+                // backPackModel(CreateRef<Model>("assets/models/Planet/Planet.obj")) {
                 graphicsShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
 
                 if (graphicsShader->IsValid()) {
@@ -23,6 +24,7 @@ namespace Pong {
 
                 glEnable(GL_DEPTH_TEST);
             };
+
             ~PongLayer0() = default;
 
             void OnAttach() override {
@@ -79,22 +81,27 @@ namespace Pong {
                     auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
                     glm::mat4 projection = glm::mat4(1.0f);
                     projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
+
                     return true;
                 });
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
                     auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
+
                     if (firstMouseMove) {
                         lastMouseX = mouseMovedEvent.MouseX;
                         lastMouseY = mouseMovedEvent.MouseY;
                         firstMouseMove = false;
                     }
 
-                    const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
+                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
+
                     camera.ProcessMouseMovement(xOffset, yOffset);
+
                     lastMouseX = mouseMovedEvent.MouseX;
                     lastMouseY = mouseMovedEvent.MouseY;
+
                     return true;
                 });
             };

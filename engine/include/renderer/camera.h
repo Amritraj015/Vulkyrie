@@ -58,11 +58,8 @@ namespace Vulkyrie::Renderer {
 
             // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
             inline void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch = true) {
-                xOffset *= _mouseSensitivity;
-                yOffset *= _mouseSensitivity;
-
-                _yaw += xOffset;
-                _pitch += yOffset;
+                _yaw += xOffset * _mouseSensitivity;
+                _pitch += yOffset * _mouseSensitivity;
 
                 // make sure that when pitch is out of bounds, screen doesn't get flipped
                 if (constrainPitch) {

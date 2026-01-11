@@ -9,10 +9,7 @@
 #include <assimp/postprocess.h>
 #include <vulkyrie.h>
 #include <string>
-#include <fstream>
-#include <sstream>
 #include <iostream>
-#include <map>
 #include <vector>
 
 #include "mesh.h"
@@ -23,7 +20,7 @@
 
 using namespace std;
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
+u32 TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 class Model {
     public:
@@ -35,7 +32,6 @@ class Model {
 
         // constructor, expects a filepath to a 3D model.
         Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
-
             stbi_set_flip_vertically_on_load(true);
 
             loadModel(path);
@@ -43,7 +39,7 @@ class Model {
 
         // draws the model, and thus all its meshes
         void Draw(Vulkyrie::Renderer::GraphicsShader &shader) {
-            for (unsigned int i = 0; i < meshes.size(); i++) {
+            for (u32 i = 0; i < meshes.size(); i++) {
                 meshes[i].Draw(shader);
             }
         }
@@ -54,12 +50,14 @@ class Model {
             // read file via ASSIMP
             Assimp::Importer importer;
             const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
             // check for errors
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
             {
                 cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
                 return;
             }
+
             // retrieve the directory path of the filepath
             directory = path.substr(0, path.find_last_of('/'));
 
@@ -70,14 +68,14 @@ class Model {
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
         void processNode(aiNode *node, const aiScene *scene) {
             // process each mesh located at the current node
-            for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+            for (u32 i = 0; i < node->mNumMeshes; i++) {
                 // the node object only contains indices to index the actual objects in the scene.
                 // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
                 aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
                 meshes.push_back(processMesh(mesh, scene));
             }
             // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
-            for (unsigned int i = 0; i < node->mNumChildren; i++) {
+            for (u32 i = 0; i < node->mNumChildren; i++) {
                 processNode(node->mChildren[i], scene);
             }
         }
@@ -85,14 +83,14 @@ class Model {
         Mesh processMesh(aiMesh *mesh, const aiScene *scene) {
             // data to fill
             vector<Vertex> vertices;
-            vector<unsigned int> indices;
+            vector<u32> indices;
             vector<Texture> textures;
 
             // walk through each of the mesh's vertices
-            for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+            for (u32 i = 0; i < mesh->mNumVertices; i++) {
                 Vertex vertex;
-                glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the
-                                  // data to this placeholder glm::vec3 first.
+                glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so
+                                  // we transfer the data to this placeholder glm::vec3 first.
                 // positions
                 vector.x = mesh->mVertices[i].x;
                 vector.y = mesh->mVertices[i].y;
@@ -130,10 +128,10 @@ class Model {
                 vertices.push_back(vertex);
             }
             // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-            for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+            for (u32 i = 0; i < mesh->mNumFaces; i++) {
                 aiFace face = mesh->mFaces[i];
                 // retrieve all indices of the face and store them in the indices vector
-                for (unsigned int j = 0; j < face.mNumIndices; j++) indices.push_back(face.mIndices[j]);
+                for (u32 j = 0; j < face.mNumIndices; j++) indices.push_back(face.mIndices[j]);
             }
             // process materials
             aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
@@ -165,12 +163,12 @@ class Model {
         // the required info is returned as a Texture struct.
         vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName) {
             vector<Texture> textures;
-            for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+            for (u32 i = 0; i < mat->GetTextureCount(type); i++) {
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
                 bool skip = false;
-                for (unsigned int j = 0; j < textures_loaded.size(); j++) {
+                for (u32 j = 0; j < textures_loaded.size(); j++) {
                     if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
                         textures.push_back(textures_loaded[j]);
                         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
@@ -190,11 +188,11 @@ class Model {
         }
 };
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma) {
+u32 TextureFromFile(const char *path, const string &directory, bool gamma) {
     string filename = string(path);
     filename = directory + '/' + filename;
 
-    unsigned int textureID;
+    u32 textureID;
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;

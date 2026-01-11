@@ -49,11 +49,6 @@ namespace Vulkyrie::Core {
              */
             [[nodiscard]] virtual inline f32 GetTime() const = 0;
 
-            /** @brief Toggles wireframe rendering mode.
-             * @param enable True to enable wireframe mode, false to disable.
-             */
-            virtual inline void ToggleWireframeMode(bool enable) = 0;
-
             /** @brief Captures or releases the mouse cursor when the window gains or loses focus.
              * @param enable True to capture the mouse on focus, false to release it.
              */

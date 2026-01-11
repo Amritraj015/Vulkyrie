@@ -9,6 +9,7 @@ namespace Vulkyrie::Renderer {
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
         glBindBuffer(GL_ARRAY_BUFFER, _eboId);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u32), indices, GL_STATIC_DRAW);
+        _count = count;
     }
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(u16 *indices, u32 count) {
@@ -18,6 +19,7 @@ namespace Vulkyrie::Renderer {
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
         glBindBuffer(GL_ARRAY_BUFFER, _eboId);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u16), indices, GL_STATIC_DRAW);
+        _count = count;
     }
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(u8 *indices, u32 count) {
@@ -27,6 +29,7 @@ namespace Vulkyrie::Renderer {
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
         glBindBuffer(GL_ARRAY_BUFFER, _eboId);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u8), indices, GL_STATIC_DRAW);
+        _count = count;
     }
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer() {
