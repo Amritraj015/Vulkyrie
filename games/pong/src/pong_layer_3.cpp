@@ -61,8 +61,8 @@ namespace Pong {
         : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
         // load and compile the shader programs.
-        objectShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.vert.glsl", "assets/shaders/specular-highlight.frag.glsl");
-        lightShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl");
+        objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.glsl");
+        lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
 
         // Check if shaders are loaded successfully.
         if (!objectShader->IsValid() || !lightShader->IsValid()) {

@@ -1,3 +1,4 @@
+#type vertex
 #version 460 core
 layout(location = 0) in vec3 aPos;
 
@@ -11,4 +12,17 @@ void main()
     TexCoords = aPos;
     vec4 position = projection * view * vec4(aPos, 1.0);
     gl_Position = position.xyww;
+}
+
+#type fragment
+#version 460 core
+out vec4 FragColor;
+
+in vec3 TexCoords;
+
+uniform samplerCube skybox;
+
+void main()
+{
+    FragColor = texture(skybox, TexCoords);
 }

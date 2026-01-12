@@ -38,7 +38,7 @@ class Model {
         }
 
         // draws the model, and thus all its meshes
-        void Draw(Vulkyrie::Renderer::GraphicsShader &shader) {
+        void Draw(Vulkyrie::Renderer::Shader &shader) {
             for (u32 i = 0; i < meshes.size(); i++) {
                 meshes[i].Draw(shader);
             }

@@ -71,7 +71,7 @@ namespace Pong {
         : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
         // Load and compile shader program.
-        graphicsShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl");
+        graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl");
 
         // Check if shader program creation failed.
         if (!graphicsShader->IsValid()) {

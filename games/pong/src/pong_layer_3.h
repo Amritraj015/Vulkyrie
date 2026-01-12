@@ -19,11 +19,11 @@ namespace Pong {
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;
-            Ref<GraphicsShader> objectShader;
+            Ref<Shader> objectShader;
 
             Ref<VertexArray> lightVertexArray;
             Ref<VertexBuffer> lightVertexBuffer;
-            Ref<GraphicsShader> lightShader;
+            Ref<Shader> lightShader;
 
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;

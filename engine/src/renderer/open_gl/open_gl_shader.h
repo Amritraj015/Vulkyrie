@@ -1,20 +1,19 @@
 #pragma once
 
-#include "renderer/graphics_shader.h"
+#include "renderer/shader.h"
 
 namespace Vulkyrie::Renderer {
-    class OpenGLGraphicsShader final : public GraphicsShader {
+    class OpenGLShader final : public Shader {
         public:
-            /** @brief Constructs a Shader object with vertex and fragment shader file paths.
-             * @param vertexShaderPath Path to the vertex shader source file.
-             * @param fragmentShaderPath Path to the fragment shader source file.
+            /** @brief Constructs an OpenGL shader program by compiling the provided shader source file.
+             * @param shaderSourcePath Path to the shader source file.
              */
-            explicit OpenGLGraphicsShader(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath);
+            explicit OpenGLShader(const std::filesystem::path &shaderSourcePath);
 
-            /** @brief Destructor to clean up the graphics shader program. */
-            ~OpenGLGraphicsShader();
+            /** @brief Destructor to clean up the shader program. */
+            ~OpenGLShader();
 
-            /** @brief Reloads the shader from its source files. */
+            /** @brief Reloads the shader from its source file. */
             u32 Reload() override;
 
             /** @brief Binds the shader program for use. */
@@ -74,24 +73,18 @@ namespace Vulkyrie::Renderer {
             /** @brief Cache for uniform variable locations. */
             mutable std::unordered_map<std::string, i32> _uniformLocationCache;
 
-            /** @brief Path to the vertex shader source file. */
-            std::filesystem::path _vertexShaderPath;
+            /** @brief Path to the shader source file. */
+            std::filesystem::path _shaderSourcePath;
 
-            /** @brief Path to the fragment shader source file. */
-            std::filesystem::path _fragmentShaderPath;
-
-            /** @brief Creates and compiles a graphics shader program from vertex and fragment shader source files.
-             * @param vertexShaderPath Path to the vertex shader source file.
-             * @param fragmentShaderPath Path to the fragment shader source file.
-             * @returns The handle of the created graphics shader program.
+            /** @brief Creates and compiles a shader program from the shader source file.
+             * @returns The ID of the created shader program.
              */
-            u32 LoadAndCompile(const std::filesystem::path &vertexShaderPath, const std::filesystem::path &fragmentShaderPath);
+            u32 LoadAndCompile();
 
             /** @brief Retrieves the location of a uniform variable in the shader program.
              * @param name The name of the uniform variable.
              * @returns The location of the uniform variable.
              */
             i32 GetUniformLocation(const std::string &name) const;
-
     };
 } // namespace Vulkyrie::Renderer

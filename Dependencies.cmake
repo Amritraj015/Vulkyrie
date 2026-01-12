@@ -79,3 +79,42 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(assimp)
 # -------------------------------------------------
+
+# -------------------------------------------------
+# GLAD
+# FetchContent_Declare(
+#     glad_source
+#     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+#     GIT_TAG v2.0.8
+# )
+#
+# FetchContent_MakeAvailable(glad_source)
+#
+# Set(GLAD_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated/glad)
+# Set(GLAD_INCLUDE_DIR   ${GLAD_GENERATED_DIR}/include)
+# Set(GLAD_SOURCE_DIR    ${GLAD_GENERATED_DIR}/src)
+#
+# File(MAKE_DIRECTORY ${GLAD_INCLUDE_DIR})
+# File(MAKE_DIRECTORY ${GLAD_SOURCE_DIR})
+#
+# Find_Package(Python3 REQUIRED COMPONENTS Interpreter)
+#
+# Add_Custom_Command(
+#     OUTPUT
+#         ${GLAD_SOURCE_DIR}/glad.c
+#         ${GLAD_INCLUDE_DIR}/glad/glad.h
+#
+#     COMMAND
+#         Python3::Interpreter
+#         -m glad
+#         --profile=core
+#         --api=gl=4.6
+#         --generator=c
+#         --spec=gl
+#         --out-path=${GLAD_GENERATED_DIR}
+#
+#     WORKING_DIRECTORY
+#         ${glad_source_SOURCE_DIR}
+#
+#     COMMENT "Generating OpenGL loader via GLAD"
+# )

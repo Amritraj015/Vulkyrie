@@ -73,7 +73,7 @@ namespace Pong {
             PongLayer4(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
                   texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
-                  graphicsShader(GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.vert.glsl", "assets/shaders/triangle.frag.glsl")) {
+                  graphicsShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
 
                 if (!texture->IsLoaded()) {
                     VERROR("PongLayer4: Failed to load texture.");
@@ -113,7 +113,7 @@ namespace Pong {
                 skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
 
                 // Load skybox shaders.
-                skyboxShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.vert.glsl", "assets/shaders/skybox.frag.glsl");
+                skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
@@ -236,10 +236,10 @@ namespace Pong {
             bool firstMouseMove = true;
             float lastMouseX = 0.0f;
             float lastMouseY = 0.0f;
-            Ref<GraphicsShader> graphicsShader;
+            Ref<Shader> graphicsShader;
             Ref<VertexArray> vertexArray;
             Ref<Texture2D> texture;
-            Ref<GraphicsShader> skyboxShader;
+            Ref<Shader> skyboxShader;
             Ref<VertexArray> skyboxVertexArray;
             u32 skyboxTextureId;
 

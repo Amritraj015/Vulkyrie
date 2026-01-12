@@ -21,7 +21,7 @@ namespace Pong {
             Ref<Texture2D> texture2;
             Ref<VertexBuffer> vertexBuffer;
             Ref<VertexArray> vertexArray;
-            Ref<GraphicsShader> graphicsShader;
+            Ref<Shader> graphicsShader;
             Camera camera;
             f64 lastMouseX = 400.0f;
             f64 lastMouseY = 300.0f;

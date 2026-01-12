@@ -60,8 +60,8 @@ namespace Pong {
         : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
         // Load and compile shader programs.
-        objectShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/reflective-object.vert.glsl", "assets/shaders/reflective-object.frag.glsl");
-        lightShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.vert.glsl", "assets/shaders/light-source.frag.glsl");
+        objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/reflective-object.glsl");
+        lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
 
         // Check if shaders are valid.
         if (!objectShader->IsValid() || !lightShader->IsValid()) {

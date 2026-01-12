@@ -20,8 +20,7 @@
 
 // Renderer includes
 #include "renderer/renderer.h"
-#include "renderer/graphics_shader.h"
-#include "renderer/compute_shader.h"
+#include "renderer/shader.h"
 #include "renderer/camera.h"
 #include "renderer/buffer_element.h"
 #include "renderer/buffer_layout.h"

@@ -6,16 +6,16 @@
 namespace Vulkyrie::Renderer {
     using namespace Vulkyrie::Core;
 
-    class GraphicsShader {
+    class Shader {
         public:
             /** @brief Returns whether the shader is valid (compiled and linked successfully). */
             [[nodiscard]] inline bool IsValid() const {
                 return _isValid;
             }
 
-            /** @brief Returns the shader program handle. */
-            [[nodiscard]] inline u32 GetShaderProgram() const {
-                return _shaderProgram;
+            /** @brief Returns the shader program ID. */
+            [[nodiscard]] inline u32 GetProgramID() const {
+                return _shaderProgramID;
             }
 
             /** @brief Reloads the shader from its source files. */
@@ -74,17 +74,16 @@ namespace Vulkyrie::Renderer {
              */
             virtual void SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const = 0;
 
-            /** @brief Creates a graphics shader based on the specified graphics API.
+            /** @brief Creates a shader program based on the specified graphics API and shader source path.
              * @param api The graphics API to use.
-             * @param vertexPath The file path to the vertex shader source code.
-             * @param fragmentPath The file path to the fragment shader source code.
-             * @returns A reference to the created GraphicsShader.
+             * @param shaderSourcePath The file path to the shader source code.
+             * @returns A reference to the created Shader.
              */
-            static Ref<GraphicsShader> Create(GraphicsAPI api, const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
+            static Ref<Shader> Create(GraphicsAPI api, const std::filesystem::path &shaderSourcePath);
 
         protected:
-            /** @brief A handle to the shader program. */
-            u32 _shaderProgram;
+            /** @brief The ID of the created shader program. */
+            u32 _shaderProgramID;
 
             /** @brief Indicates whether the shader is valid (compiled and linked successfully). */
             bool _isValid;

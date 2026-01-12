@@ -14,7 +14,7 @@ namespace Pong {
                 : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
                   backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
                 // backPackModel(CreateRef<Model>("assets/models/Planet/Planet.obj")) {
-                graphicsShader = GraphicsShader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
+                graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
                 if (graphicsShader->IsValid()) {
                     VDEBUG("PongLayer0: Shader compiled and linked successfully.");
@@ -108,7 +108,7 @@ namespace Pong {
 
         private:
             Ref<Model> backPackModel;
-            Ref<GraphicsShader> graphicsShader;
+            Ref<Shader> graphicsShader;
             Camera camera;
             f64 lastMouseX = 400.0f;
             f64 lastMouseY = 300.0f;
