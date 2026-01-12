@@ -134,28 +134,15 @@ namespace Pong {
                 if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
                 // --------------------------------------------------------------------
-                // Sky box.
-                glDepthMask(GL_FALSE);
-                skyboxShader->Use();
-
-                glm::mat4 projection = glm::mat4(1.0f);
-                projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-                skyboxShader->SetMat4Uniform("projection", projection);
-
-                glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-                skyboxShader->SetMat4Uniform("view", view);
-
-                // ... set view and projection matrix
-                // glBindVertexArray(skyboxVAO);
-                skyboxVertexArray->Bind();
-                glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureId);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-                glDepthMask(GL_TRUE);
-                // --------------------------------------------------------------------
-
-                // --------------------------------------------------------------------
                 // Render terrain.
                 graphicsShader->Use();
+
+                // View Matrix.
+                glm::mat4 view = camera.GetViewMatrix();
+
+                // Projection Matrix.
+                glm::mat4 projection = glm::mat4(1.0f);
+                projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
                 // glm::mat4 projection = glm::mat4(1.0f);
                 // projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
@@ -180,6 +167,30 @@ namespace Pong {
                         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                     }
                 }
+
+                vertexArray->Unbind();
+                // --------------------------------------------------------------------
+
+                // --------------------------------------------------------------------
+                // Sky box.
+                // change depth function so depth test passes when values are equal to depth buffer's content
+                glDepthFunc(GL_LEQUAL);
+                skyboxShader->Use();
+
+                skyboxShader->SetMat4Uniform("projection", projection);
+
+                view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+                skyboxShader->SetMat4Uniform("view", view);
+
+                // ... set view and projection matrix
+                // glBindVertexArray(skyboxVAO);
+                skyboxVertexArray->Bind();
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureId);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+                skyboxVertexArray->Unbind();
+                // set depth function back to default
+                glDepthFunc(GL_LESS);
                 // --------------------------------------------------------------------
             }
 
