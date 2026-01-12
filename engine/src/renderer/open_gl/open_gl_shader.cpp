@@ -128,14 +128,13 @@ namespace Vulkyrie::Renderer {
     }
 
     u32 OpenGLShader::LoadAndCompile() {
-        // Fetch the vertex shader source code.
+        // Fetch the shader source code.
         const std::string shaderSource = Vulkyrie::Core::ReadTextFromFile(_shaderSourcePath);
 
         // Split the shader source into its respective stages.
         const auto shaderStages = ExtractShaderStages(shaderSource);
 
-        // Attach the vertex and fragment shaders to
-        // the program and then link the program.
+        // Attach the shaders to the program and then link the program.
         u32 program = glCreateProgram();
         i32 success = 0;
 
@@ -152,14 +151,13 @@ namespace Vulkyrie::Renderer {
 
                 return 0;
             } else {
-                // Fragment shader
+                // Create the shader object.
                 const u32 shaderID = glCreateShader(type);
                 const char *shaderSource = source.data();
 
-            std::cout << "Compiling shader source: " << shaderSource << "\n";
+ std::cout << "Compiling shader source: " << shaderSource << "\n";
 
-
-                // Compile the fragment shader.
+                // Compile the shader.
                 glShaderSource(shaderID, 1, &shaderSource, nullptr);
                 glCompileShader(shaderID);
 
@@ -184,7 +182,7 @@ namespace Vulkyrie::Renderer {
                     }
 
                     // Log an error and return.
-                    VERROR("Failed to compile fragment shader: {} - Error: {}", shaderID, infoLog.data());
+                    VERROR("Failed to compile shader: {} - Error: {}", shaderID, infoLog.data());
 
                     // Mark the shader as invalid.
                     _isValid = false;
@@ -243,5 +241,4 @@ namespace Vulkyrie::Renderer {
         // Return the shader program handle.
         return program;
     }
-
 } // namespace Vulkyrie::Renderer
