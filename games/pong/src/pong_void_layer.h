@@ -34,12 +34,6 @@ namespace Pong {
                     }
 
                     if (e.KeyCode == KeyCode::J) {
-                        _application.PopLayer<PongLayer0>();
-                        _application.PopLayer<PongLayer1>();
-                        _application.PopLayer<PongLayer2>();
-                        _application.PopLayer<PongLayer3>();
-                        _application.PopLayer<PongLayer4>();
-
                         if (currentLayer == 0) {
                             _application.PushLayer<PongLayer0>(windowWidth, windowHeight);
                         } else if (currentLayer == 1) {

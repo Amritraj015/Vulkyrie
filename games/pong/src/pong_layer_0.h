@@ -16,10 +16,8 @@ namespace Pong {
                 // backPackModel(CreateRef<Model>("assets/models/Planet/Planet.obj")) {
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
-                if (graphicsShader->IsValid()) {
-                    VDEBUG("PongLayer0: Shader compiled and linked successfully.");
-                } else {
-                    VERROR("PongLayer0: Shader failed to compile or link.");
+                if (!graphicsShader->IsValid()) {
+                    VERROR("Failed to compile shaders.");
                 }
 
                 glEnable(GL_DEPTH_TEST);
@@ -28,7 +26,7 @@ namespace Pong {
             ~PongLayer0() = default;
 
             void OnAttach() override {
-                VDEBUG("Layer Attached: Pong Layer 0.");
+                VDEBUG("Layer Attached: Pong Layer 0, Layer ID {}.", _id.GetUUID());
             };
 
             void OnDetach() override {

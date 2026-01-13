@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/time_step.h"
+#include "core/uuid.h"
 #include "events/event.h"
 
 namespace Vulkyrie::Core {
@@ -23,7 +24,12 @@ namespace Vulkyrie::Core {
             virtual void OnEvent(Vulkyrie::Events::Event &event) {
             }
 
+            [[nodiscard]] inline const UUID &GetLayerID() const {
+                return _id;
+            }
+
         protected:
             Application &_application;
+            UUID _id;
     };
 } // namespace Vulkyrie::Core

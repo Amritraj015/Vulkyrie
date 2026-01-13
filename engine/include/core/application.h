@@ -42,16 +42,6 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pops a layer from the layer stack.
-             * @tparam TLayer The type of layer to pop.
-             * @returns True if the layer was found and removed, false otherwise.
-             */
-            template <typename TLayer>
-                requires std::derived_from<TLayer, Layer>
-            bool PopLayer() {
-                return _layers.PopLayer<TLayer>();
-            }
-
             /** @brief Pushes a new overlay onto the layer stack if the application is running.
              * @tparam TLayer The type of overlay to push.
              * @param args Arguments to forward to the overlay's constructor.
@@ -67,14 +57,11 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pops an overlay from the layer stack.
-             * @tparam TLayer The type of overlay to pop.
-             * @returns True if the overlay was found and removed, false otherwise.
+            /** @brief Pops a layer from the layer stack.
+             * @tparam layerId The ID of the layer to pop.
              */
-            template <typename TLayer>
-                requires std::derived_from<TLayer, Layer>
-            bool PopOverlay() {
-                return _layers.PopOverlay<TLayer>();
+            void PopLayer(const UUID &layerId) {
+                return _layers.PopLayer(layerId);
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.

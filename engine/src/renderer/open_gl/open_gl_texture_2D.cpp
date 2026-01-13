@@ -1,46 +1,48 @@
 #include "open_gl_texture_2D.h"
+#include "core/logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
 
 namespace Vulkyrie::Renderer {
-    namespace Utils {
-        static GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {
-            switch (format) {
-                case TextureImageFormat::RGB8:
-                    return GL_RGB;
-                case TextureImageFormat::RGBA8:
-                    return GL_RGBA;
-                case TextureImageFormat::R8:
-                case TextureImageFormat::RGBA32F:
-                case TextureImageFormat::None:
-                    break;
-            }
-
-            return 0;
+    static GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {
+        switch (format) {
+            case TextureImageFormat::RGB8:
+                return GL_RGB;
+            case TextureImageFormat::RGBA8:
+                return GL_RGBA;
+            case TextureImageFormat::R8:
+            case TextureImageFormat::RGBA32F:
+            case TextureImageFormat::None:
+                break;
         }
 
-        static GLenum VulkyrieImageFormatToOpenGLInternalFormat(TextureImageFormat format) {
-            switch (format) {
-                case TextureImageFormat::RGB8:
-                    return GL_RGB8;
-                case TextureImageFormat::RGBA8:
-                    return GL_RGBA8;
-                case TextureImageFormat::R8:
-                case TextureImageFormat::RGBA32F:
-                case TextureImageFormat::None:
-                    break;
-            }
+        return 0;
+    }
 
-            return 0;
+    static GLenum VulkyrieImageFormatToOpenGLInternalFormat(TextureImageFormat format) {
+        switch (format) {
+            case TextureImageFormat::RGB8:
+                return GL_RGB8;
+            case TextureImageFormat::RGBA8:
+                return GL_RGBA8;
+            case TextureImageFormat::R8:
+                return GL_R8;
+            case TextureImageFormat::RGBA32F:
+                return GL_RGBA32F;
+            case TextureImageFormat::None:
+                VERROR("TextureImageFormat::None is not a valid image format!");
+                break;
         }
-    } // namespace Utils
+
+        return 0;
+    }
 
     OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &specification)
         : _specification(specification), _width(_specification.Width), _height(_specification.Height) {
 
-        _imageFormat = Utils::VulkyrieImageFormatToOpenGLInternalFormat(_specification.Format);
-        _dataFormat = Utils::VulkyrieImageFormatToOpenGLDataFormat(_specification.Format);
+        _imageFormat = VulkyrieImageFormatToOpenGLInternalFormat(_specification.Format);
+        _dataFormat = VulkyrieImageFormatToOpenGLDataFormat(_specification.Format);
 
         glCreateTextures(GL_TEXTURE_2D, 1, &_textureId);
         glTextureStorage2D(_textureId, 1, _imageFormat, _width, _height);
@@ -51,9 +53,9 @@ namespace Vulkyrie::Renderer {
         glTextureParameteri(_textureId, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(_textureId, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        // if (_specification.GenerateMips) {
-        //     glGenerateTextureMipmap(_textureId);
-        // }
+        if (_specification.GenerateMips) {
+            glGenerateTextureMipmap(_textureId);
+        }
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path) {
@@ -96,7 +98,7 @@ namespace Vulkyrie::Renderer {
             glTextureSubImage2D(_textureId, 0, 0, 0, _width, _height, dataFormat, GL_UNSIGNED_BYTE, data);
 
             // If mipmaps are to be generated.
-            // glGenerateTextureMipmap(_textureId);
+            glGenerateTextureMipmap(_textureId);
 
             stbi_image_free(data);
         }
