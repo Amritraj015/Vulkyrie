@@ -43,40 +43,38 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
-
 // Properly define static assertions.
 #if defined(__clang__) || defined(__gcc__)
-    #define STATIC_ASSERT _Static_assert
+#define VASSERT _Static_assert
 #else
-    #define STATIC_ASSERT static_assert
+#define VASSERT static_assert
 #endif
 
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
-    // Windows OS.
-    #define PLATFORM_WINDOWS 1
+// Windows OS.
+#define PLATFORM_WINDOWS 1
 
-    #if defined(VULKYRIE_EXPORTS)
-        #define VULKYRIE_API __declspec(dllexport)
-    #else
-        #define VULKYRIE_API __declspec(dllimport)
-    #endif
+#if defined(VULKYRIE_EXPORTS)
+#define VULKYRIE_API __declspec(dllexport)
+#else
+#define VULKYRIE_API __declspec(dllimport)
+#endif
 
 #elif defined(__linux__) || defined(__gnu_linux__)
 
-    // Linux OS.
-    #define PLATFORM_LINUX 1
-    #define VULKYRIE_API
+// Linux OS.
+#define PLATFORM_LINUX 1
+#define VULKYRIE_API
 
 #else
 
-    // Unsupported platform.
-    #error "Unknown platform!"
-    #define VULKYRIE_API
+// Unsupported platform.
+#error "Unknown platform!"
+#define VULKYRIE_API
 
 #endif
-
 
 /** @brief A scoped pointer type alias using std::unique_ptr.
  * @tparam T The type of the object being pointed to.

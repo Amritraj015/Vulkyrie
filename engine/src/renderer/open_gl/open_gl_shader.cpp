@@ -15,37 +15,48 @@ namespace Vulkyrie::Renderer {
     }
 
     std::unordered_map<GLenum, std::string_view> ExtractShaderStages(const std::string &source) {
-        std::unordered_map<GLenum, std::string_view> shaderSources;
+        std::unordered_map<GLenum, std::string_view> result;
 
-        const char *typeToken = "#type";
-        size_t typeTokenLength = strlen(typeToken);
-        size_t pos = source.find(typeToken, 0); // Start of shader type declaration line
-        while (pos != std::string::npos) {
-            size_t eol = source.find_first_of("\r\n", pos); // End of shader type declaration line
+        constexpr std::string_view tag = "#type";
+        size_t pos = 0;
 
-            size_t begin = pos + typeTokenLength + 1; // Start of shader type name (after "#type " keyword)
-            std::string type = source.substr(begin, eol - begin);
-            
-            // Trim whitespace from type string
-            type.erase(0, type.find_first_not_of(" \t"));
-            type.erase(type.find_last_not_of(" \t") + 1);
+        while (true) {
+            size_t tagPos = source.find(tag, pos);
+            if (tagPos == std::string_view::npos) break;
 
-            size_t nextLinePos = source.find_first_not_of("\r\n", eol); // Start of shader code after shader type declaration line
-            pos = source.find(typeToken, nextLinePos);                  // Start of next shader type declaration line
+            size_t lineEnd = source.find_first_of("\r\n", tagPos);
 
-            // Calculate the end position (exclude trailing whitespace before next #type)
-            size_t endPos;
-            if (pos == std::string::npos) {
-                endPos = source.size();
-            } else {
-                // Find the last non-whitespace character before the next #type token
-                endPos = source.find_last_not_of(" \t\r\n", pos - 1) + 1;
-            }
+            // -----------------------------------------------------------------------------
+            // TODO: Write an assert macro for this.
+            // TODO: Write an assert macro for this.
+            // TODO: Write an assert macro for this.
+            if (lineEnd == std::string_view::npos) throw std::runtime_error("Malformed #type line");
+            // TODO: Write an assert macro for this.
+            // TODO: Write an assert macro for this.
+            // TODO: Write an assert macro for this.
+            // -----------------------------------------------------------------------------
 
-            shaderSources[ShaderTypeFromString(type)] = std::string_view(source.c_str() + nextLinePos, endPos - nextLinePos);
+            // Parse shader type
+            size_t typeStart = tagPos + tag.size();
+            while (typeStart < lineEnd && source[typeStart] == ' ') ++typeStart;
+
+            std::string_view typeName(&source[typeStart], lineEnd - typeStart);
+            GLenum shaderType = ShaderTypeFromString(typeName);
+
+            // Start of GLSL code (exactly after newline)
+            size_t codeStart = source.find_first_not_of("\r\n", lineEnd);
+            if (codeStart == std::string_view::npos) break;
+
+            // End at next #type or EOF
+            size_t nextTag = source.find(tag, codeStart);
+            size_t codeEnd = (nextTag == std::string_view::npos) ? source.size() : nextTag;
+
+            result[shaderType] = std::string_view(source.data() + codeStart, codeEnd - codeStart);
+
+            pos = codeEnd;
         }
 
-        return shaderSources;
+        return result;
     }
 
     OpenGLShader::OpenGLShader(const std::filesystem::path &shaderSourcePath) : _shaderSourcePath(shaderSourcePath) {
@@ -129,10 +140,10 @@ namespace Vulkyrie::Renderer {
 
     u32 OpenGLShader::LoadAndCompile() {
         // Fetch the shader source code.
-        const std::string shaderSource = Vulkyrie::Core::ReadTextFromFile(_shaderSourcePath);
+        const std::string shaderSources = Vulkyrie::Core::ReadTextFromFile(_shaderSourcePath);
 
         // Split the shader source into its respective stages.
-        const auto shaderStages = ExtractShaderStages(shaderSource);
+        const auto shaderStages = ExtractShaderStages(shaderSources);
 
         // Attach the shaders to the program and then link the program.
         u32 program = glCreateProgram();
@@ -140,7 +151,8 @@ namespace Vulkyrie::Renderer {
 
         // Store shader IDs so that we can delete them after
         // they are attached and linked with the program.
-        std::vector<u32> shaderIds(shaderStages.size());
+        std::vector<u32> shaderIds;
+        shaderIds.reserve(shaderStages.size());
 
         for (const auto &[type, source] : shaderStages) {
             if (INVALID_SHADER_TYPE == type) {
@@ -153,24 +165,26 @@ namespace Vulkyrie::Renderer {
             } else {
                 // Create the shader object.
                 const u32 shaderID = glCreateShader(type);
-                const char *shaderSource = source.data();
-
- std::cout << "Compiling shader source: " << shaderSource << "\n";
+                const char *src = source.data();
+                const i32 srcLength = static_cast<i32>(source.size());
 
                 // Compile the shader.
-                glShaderSource(shaderID, 1, &shaderSource, nullptr);
+                glShaderSource(shaderID, 1, &src, &srcLength);
                 glCompileShader(shaderID);
 
                 glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
 
                 if (GL_FALSE == success) {
                     // Get the length of the compilation error message.
-                    i32 maxLength = 0;
-                    glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
+                    i32 logLength = 0;
+                    glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
 
                     // Get the compilation error message.
-                    std::vector<char> infoLog(maxLength);
-                    glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
+                    std::vector<char> infoLog(logLength);
+                    glGetShaderInfoLog(shaderID, logLength, &logLength, &infoLog[0]);
+
+                    // Log an error and return.
+                    VERROR("Failed to compile shader: {} - Error: {}", shaderID, infoLog.data());
 
                     // Delete the shaders because the compilation has failed.
                     for (const u32 shaderID : shaderIds) {
@@ -180,9 +194,6 @@ namespace Vulkyrie::Renderer {
                         // Delete the shader from memory.
                         glDeleteShader(shaderID);
                     }
-
-                    // Log an error and return.
-                    VERROR("Failed to compile shader: {} - Error: {}", shaderID, infoLog.data());
 
                     // Mark the shader as invalid.
                     _isValid = false;
@@ -201,15 +212,6 @@ namespace Vulkyrie::Renderer {
         // Link the shader program.
         glLinkProgram(program);
 
-        // Delete the shaders as they are no longer needed.
-        for (const u32 shaderID : shaderIds) {
-            // Detach the shader from the program.
-            glDetachShader(program, shaderID);
-
-            // Delete the shader from memory.
-            glDeleteShader(shaderID);
-        }
-
         // Get the program's linking status.
         glGetProgramiv(program, GL_LINK_STATUS, &success);
 
@@ -226,6 +228,15 @@ namespace Vulkyrie::Renderer {
             // Log the linking error.
             VERROR("An error occurred while linking graphics shader program: {}", infoLog.data());
 
+            // Delete the shaders since the linking has failed.
+            for (const u32 shaderID : shaderIds) {
+                // Detach the shader from the program.
+                glDetachShader(program, shaderID);
+
+                // Delete the shader from memory.
+                glDeleteShader(shaderID);
+            }
+
             // At this point we can delete the program.
             glDeleteProgram(program);
 
@@ -233,6 +244,15 @@ namespace Vulkyrie::Renderer {
             _isValid = false;
 
             return 0;
+        }
+
+        // Delete the shaders as they are no longer needed.
+        for (const u32 shaderID : shaderIds) {
+            // Detach the shader from the program.
+            glDetachShader(program, shaderID);
+
+            // Delete the shader from memory.
+            glDeleteShader(shaderID);
         }
 
         // Mark the shader as valid.
