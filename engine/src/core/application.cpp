@@ -61,7 +61,7 @@ namespace Vulkyrie::Core {
         // Main application loop.
         while (_running) {
             // Process any pending layer operations.
-            _layers.ProcessOperations();
+            _layers.ProcessQueuedOperations();
 
             // Calculate the time since the last frame.
             const f32 time = _platform->GetTime();

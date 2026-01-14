@@ -56,13 +56,13 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pushes a new layer onto the layer stack.
+            /** @brief Queues a layer to be pushed onto the layer stack.
              * @tparam TLayer The type of layer to push.
              * @param args Arguments to forward to the layer's constructor.
              */
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
-            void PushLayer(TArgs &&...args) {
+            void QueuePushLayerOperation(TArgs &&...args) {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
                     _layerOperations.emplace_back(LayerOperation::OperationType::PushLayer, CreateScope<TLayer>(std::forward<TArgs>(args)...));
                 } else {
@@ -70,13 +70,13 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pushes a new overlay onto the layer stack.
+            /** @brief Queues a new overlay to be pushed onto the layer stack.
              * @tparam TLayer The type of overlay to push.
              * @param args Arguments to forward to the overlay's constructor.
              */
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
-            void PushOverlay(TArgs &&...args) {
+            void QueuePushOverlayOperation(TArgs &&...args) {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
                     _layerOperations.emplace_back(LayerOperation::OperationType::PushOverlay, CreateScope<TLayer>(std::forward<TArgs>(args)...));
                 } else {
@@ -84,13 +84,13 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pops a layer from the layer stack.
+            /** @brief Queues a layer to be popped from the layer stack.
              * @tparam TLayer The type of layer to pop.
              * @tparam layerId The ID of the layer to pop.
              */
             template <typename TLayer>
                 requires std::derived_from<TLayer, Layer>
-            void PopLayer() {
+            void QueuePopLayerOperation() {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
                     _layerOperations.emplace_back(LayerOperation::OperationType::PopLayer, std::type_index(typeid(TLayer)));
                 } else {
@@ -98,13 +98,13 @@ namespace Vulkyrie::Core {
                 }
             }
 
-            /** @brief Pops an overlay from the layer stack.
+            /** @brief Queues an overlay to be popped from the layer stack.
              * @tparam TLayer The type of overlay to pop.
              * @tparam layerId The ID of the overlay to pop.
              */
             template <typename TLayer>
                 requires std::derived_from<TLayer, Layer>
-            void PopOverlay() {
+            void QueuePopOverlayOperation() {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
                     _layerOperations.emplace_back(LayerOperation::OperationType::PopOverlay, std::type_index(typeid(TLayer)));
                 } else {
@@ -129,7 +129,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Processes queued operations on the layer stack. */
-            inline void ProcessOperations() {
+            inline void ProcessQueuedOperations() {
                 if (_layerOperations.empty()) {
                     return;
                 }

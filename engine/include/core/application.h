@@ -34,7 +34,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
-                _layers.PushLayer<TLayer>(*this, std::forward<TArgs>(args)...);
+                _layers.QueuePushLayerOperation<TLayer>(*this, std::forward<TArgs>(args)...);
             }
 
             /** @brief Pushes a new overlay onto the layer stack if the application is running.
@@ -44,7 +44,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
-                _layers.PushOverlay<TLayer>(*this, std::forward<TArgs>(args)...);
+                _layers.QueuePushOverlayOperation<TLayer>(*this, std::forward<TArgs>(args)...);
             }
 
             /** @brief Pops a layer from the layer stack.
@@ -54,7 +54,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer>
                 requires std::derived_from<TLayer, Layer>
             void PopLayer() {
-                return _layers.PopLayer<TLayer>();
+                return _layers.QueuePopLayerOperation<TLayer>();
             }
 
             /** @brief Pops an overlay from the layer stack.
@@ -64,7 +64,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer>
                 requires std::derived_from<TLayer, Layer>
             void PopOverlay() {
-                return _layers.PopOverlay<TLayer>();
+                return _layers.QueuePopOverlayOperation<TLayer>();
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.
