@@ -117,8 +117,8 @@ namespace Vulkyrie::Core {
              * @returns A pointer to the layer if found, nullptr otherwise.
              */
             template <typename TLayer>
-                requires(std::is_base_of_v<Layer, TLayer>)
-            TLayer *GetLayer() {
+                requires(std::derived_from<TLayer, Layer>)
+            const TLayer *GetLayer() {
                 for (const auto &layer : _layers) {
                     if (auto casted = dynamic_cast<TLayer *>(layer.get())) {
                         return casted;
