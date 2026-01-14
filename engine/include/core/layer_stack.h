@@ -13,7 +13,7 @@ namespace Vulkyrie::Core {
     struct LayerOperation {
         public:
             /** @brief The type of operation to perform on the layer stack. */
-            enum class OperationType : u8 { PushLayer, PopLayer, PushOverlay } Type;
+            enum class OperationType : u8 { PushLayer, PopLayer, PushOverlay, PopOverlay } Type;
 
             /** @brief The layer to push onto the stack. */
             Scope<Layer> LayerToPush;
@@ -98,6 +98,20 @@ namespace Vulkyrie::Core {
                 }
             }
 
+            /** @brief Pops an overlay from the layer stack.
+             * @tparam TLayer The type of overlay to pop.
+             * @tparam layerId The ID of the overlay to pop.
+             */
+            template <typename TLayer>
+                requires std::derived_from<TLayer, Layer>
+            void PopOverlay() {
+                if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
+                    _layerOperations.emplace_back(LayerOperation::OperationType::PopOverlay, std::type_index(typeid(TLayer)));
+                } else {
+                    VERROR("Maximum layer operations exceeded {}. Cannot pop more layers or overlays this frame.", MAX_LAYER_OPERATIONS);
+                }
+            }
+
             /** @brief Gets a layer of the specified type from the layer stack.
              * @tparam TLayer The type of layer to get.
              * @returns A pointer to the layer if found, nullptr otherwise.
@@ -174,6 +188,24 @@ namespace Vulkyrie::Core {
                                 overlayRef.OnAttach();
                             } else {
                                 VERROR("Maximum layers exceeded {}. Cannot push overlay.", MAX_LAYERS);
+                            }
+
+                            break;
+                        }
+                        case LayerOperation::OperationType::PopOverlay: {
+                            for (auto it = _layers.begin() + _layerInsertIndex; it != _layers.end(); ++it) {
+                                auto *layerPtr = it->get();
+
+                                // Check if this is the overlay to remove.
+                                if (std::type_index(typeid(*layerPtr)) == operation.LayerToPop) {
+                                    // Call OnDetach on the overlay.
+                                    (*it)->OnDetach();
+
+                                    // Remove the overlay from the stack.
+                                    _layers.erase(it);
+
+                                    break;
+                                }
                             }
 
                             break;

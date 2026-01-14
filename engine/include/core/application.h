@@ -34,12 +34,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
-                if (_running) {
-                    _layers.PushLayer<TLayer>(*this, std::forward<TArgs>(args)...);
-                } else {
-                    VERROR("Cannot push layer while application is not running, it is recommended that you make changes to the layer "
-                           "stack after the 'OnInit' lifecycle hook.")
-                }
+                _layers.PushLayer<TLayer>(*this, std::forward<TArgs>(args)...);
             }
 
             /** @brief Pushes a new overlay onto the layer stack if the application is running.
@@ -49,12 +44,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
-                if (_running) {
-                    _layers.PushOverlay<TLayer>(*this, std::forward<TArgs>(args)...);
-                } else {
-                    VERROR("Cannot push overlay while application is not running, it is recommended that you make changes to the layer "
-                           "stack after the 'OnInit' lifecycle hook.")
-                }
+                _layers.PushOverlay<TLayer>(*this, std::forward<TArgs>(args)...);
             }
 
             /** @brief Pops a layer from the layer stack.
@@ -65,6 +55,16 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PopLayer() {
                 return _layers.PopLayer<TLayer>();
+            }
+
+            /** @brief Pops an overlay from the layer stack.
+             * @tparam TLayer The type of overlay to pop.
+             * @tparam layerId The ID of the overlay to pop.
+             */
+            template <typename TLayer>
+                requires std::derived_from<TLayer, Layer>
+            void PopOverlay() {
+                return _layers.PopOverlay<TLayer>();
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.
