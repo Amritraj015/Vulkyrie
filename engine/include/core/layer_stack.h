@@ -2,10 +2,12 @@
 
 #include "layer.h"
 #include "core/logger.h"
+#include <typeindex>
 
 namespace Vulkyrie::Core {
 
-#define MAX_LAYER_OPERATIONS 10
+    constexpr static u8 MAX_LAYER_OPERATIONS = 10;
+    constexpr static u8 MAX_LAYERS = 10;
 
     /** @brief Represents an operation to be performed on the layer stack. */
     struct LayerOperation {
@@ -13,15 +15,26 @@ namespace Vulkyrie::Core {
             /** @brief The type of operation to perform on the layer stack. */
             enum class OperationType : u8 { PushLayer, PopLayer, PushOverlay } Type;
 
-            /** @brief The layer to push onto the stack.
-             * Null if the operation is a Pop.
-             */
-            Scope<Vulkyrie::Core::Layer> Layer;
+            /** @brief The layer to push onto the stack. */
+            Scope<Layer> LayerToPush;
 
-            /** @brief The target layer to pop from the stack.
-             * Null if the operation is a Push.
+            /** @brief The target layer to pop from the stack. */
+            std::type_index LayerToPop;
+
+            /** @brief Constructs a LayerOperation for pushing a layer or overlay.
+             * @param operation The type of operation (PushLayer or PushOverlay).
+             * @param layerToPush The layer to push onto the stack.
              */
-            UUID LayerIdToPop;
+            explicit LayerOperation(OperationType operation, Scope<Layer> layerToPush)
+                : Type(operation), LayerToPop(typeid(void)), LayerToPush(std::move(layerToPush)) {
+            }
+
+            /** @brief Constructs a LayerOperation for popping a layer.
+             * @param operation The type of operation (PopLayer).
+             * @param layerToPop The type index of the layer to pop.
+             */
+            explicit LayerOperation(OperationType operation, std::type_index layerToPop) : Type(operation), LayerToPop(layerToPop), LayerToPush(nullptr) {
+            }
     };
 
     /** @brief Manages a stack of layers and overlays for the application. */
@@ -31,6 +44,9 @@ namespace Vulkyrie::Core {
             LayerStack() : _layerInsertIndex(0) {
                 // Reserve space for layer operations to minimize reallocations.
                 _layerOperations.reserve(MAX_LAYER_OPERATIONS);
+
+                // Reserve space for layers to minimize reallocations.
+                _layers.reserve(MAX_LAYERS);
             }
 
             /** @brief Destructor to clean up the layer stack and detach all layers. */
@@ -48,11 +64,7 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
-                    _layerOperations.emplace_back(LayerOperation{
-                        .Type = LayerOperation::OperationType::PushLayer,
-                        .Layer = CreateScope<TLayer>(std::forward<TArgs>(args)...),
-                        .LayerIdToPop = 0,
-                    });
+                    _layerOperations.emplace_back(LayerOperation::OperationType::PushLayer, CreateScope<TLayer>(std::forward<TArgs>(args)...));
                 } else {
                     VERROR("Maximum layer operations exceeded {}. Cannot push more layers or overlays this frame.", MAX_LAYER_OPERATIONS);
                 }
@@ -66,26 +78,21 @@ namespace Vulkyrie::Core {
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
-                    _layerOperations.emplace_back(LayerOperation{
-                        .Type = LayerOperation::OperationType::PushOverlay,
-                        .Layer = CreateScope<TLayer>(std::forward<TArgs>(args)...),
-                        .LayerIdToPop = 0,
-                    });
+                    _layerOperations.emplace_back(LayerOperation::OperationType::PushOverlay, CreateScope<TLayer>(std::forward<TArgs>(args)...));
                 } else {
                     VERROR("Maximum layer operations exceeded {}. Cannot push more layers or overlays this frame.", MAX_LAYER_OPERATIONS);
                 }
             }
 
             /** @brief Pops a layer from the layer stack.
+             * @tparam TLayer The type of layer to pop.
              * @tparam layerId The ID of the layer to pop.
              */
-            void PopLayer(const UUID &layerId) {
+            template <typename TLayer>
+                requires std::derived_from<TLayer, Layer>
+            void PopLayer() {
                 if (MAX_LAYER_OPERATIONS >= _layerOperations.size()) {
-                    _layerOperations.emplace_back(LayerOperation{
-                        .Type = LayerOperation::OperationType::PopLayer,
-                        .Layer = nullptr,
-                        .LayerIdToPop = layerId,
-                    });
+                    _layerOperations.emplace_back(LayerOperation::OperationType::PopLayer, std::type_index(typeid(TLayer)));
                 } else {
                     VERROR("Maximum layer operations exceeded {}. Cannot pop more layers or overlays this frame.", MAX_LAYER_OPERATIONS);
                 }
@@ -116,49 +123,58 @@ namespace Vulkyrie::Core {
                 for (auto &operation : _layerOperations) {
                     switch (operation.Type) {
                         case LayerOperation::OperationType::PushLayer: {
-                            // Get a reference to the layer before moving it.
-                            auto &layerRef = *operation.Layer;
+                            if (MAX_LAYERS >= _layers.size()) {
+                                // Get a reference to the layer before moving it.
+                                auto &layerRef = *operation.LayerToPush;
 
-                            // Insert the layer at the correct position.
-                            _layers.emplace(_layers.begin() + _layerInsertIndex, std::move(operation.Layer));
+                                // Insert the layer at the correct position.
+                                _layers.emplace(_layers.begin() + _layerInsertIndex, std::move(operation.LayerToPush));
 
-                            // Increment the layer insert index.
-                            _layerInsertIndex++;
+                                // Increment the layer insert index.
+                                _layerInsertIndex++;
 
-                            // Call OnAttach on the layer.
-                            layerRef.OnAttach();
+                                // Call OnAttach on the layer.
+                                layerRef.OnAttach();
+                            } else {
+                                VERROR("Maximum layers exceeded {}. Cannot push more layers.", MAX_LAYERS);
+                            }
 
                             break;
                         }
                         case LayerOperation::OperationType::PopLayer: {
-                            const auto layerId = operation.LayerIdToPop;
+                            for (auto it = _layers.begin(); it != _layers.begin() + _layerInsertIndex; ++it) {
+                                auto *layerPtr = it->get();
 
-                            auto it = std::find_if(_layers.begin(), _layers.begin() + _layerInsertIndex, [layerId](const Scope<Layer> &l) {
-                                return l.get()->GetLayerID() == layerId;
-                            });
+                                // Check if this is the layer to remove.
+                                if (std::type_index(typeid(*layerPtr)) == operation.LayerToPop) {
+                                    // Call OnDetach on the layer.
+                                    (*it)->OnDetach();
 
-                            if (it != _layers.begin() + _layerInsertIndex) {
-                                // Call OnDetach on the layer.
-                                (*it)->OnDetach();
+                                    // Remove the layer from the stack.
+                                    _layers.erase(it);
 
-                                // Remove the layer from the stack.
-                                _layers.erase(it);
+                                    // Decrement the layer insert index.
+                                    --_layerInsertIndex;
 
-                                // Decrement the layer insert index.
-                                --_layerInsertIndex;
+                                    break;
+                                }
                             }
 
                             break;
                         }
                         case LayerOperation::OperationType::PushOverlay: {
-                            // Get a reference to the overlay before moving it.
-                            auto &overlayRef = *operation.Layer;
+                            if (MAX_LAYERS >= _layers.size()) {
+                                // Get a reference to the overlay before moving it.
+                                auto &overlayRef = *operation.LayerToPush;
 
-                            // Insert the overlay at the end of the layer stack.
-                            _layers.emplace_back(std::move(operation.Layer));
+                                // Insert the overlay at the end of the layer stack.
+                                _layers.emplace_back(std::move(operation.LayerToPush));
 
-                            // Call OnAttach on the overlay.
-                            overlayRef.OnAttach();
+                                // Call OnAttach on the overlay.
+                                overlayRef.OnAttach();
+                            } else {
+                                VERROR("Maximum layers exceeded {}. Cannot push overlay.", MAX_LAYERS);
+                            }
 
                             break;
                         }

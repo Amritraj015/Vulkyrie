@@ -58,10 +58,13 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Pops a layer from the layer stack.
+             * @tparam TLayer The type of layer to pop.
              * @tparam layerId The ID of the layer to pop.
              */
-            void PopLayer(const UUID &layerId) {
-                return _layers.PopLayer(layerId);
+            template <typename TLayer>
+                requires std::derived_from<TLayer, Layer>
+            void PopLayer() {
+                return _layers.PopLayer<TLayer>();
             }
 
             /** @brief Gets a layer of the specified type from the layer stack.
