@@ -12,10 +12,10 @@ namespace Pong {
 
     constexpr float vertices[] = {
         // positions        // texture coords
-        0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
+        0.5f,  0.5f,  0.0f, // 1.0f, 1.0f, // top right
+        0.5f,  -0.5f, 0.0f, // 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f,  0.0f, // 0.0f, 1.0f, // top left
     };
 
     constexpr u32 indices[] = {
@@ -68,19 +68,22 @@ namespace Pong {
         1.0f,  -1.0f, 1.0f,  //
     };
 
+    const u16 WIDTH = 100;
+    const u16 HEIGHT = 100;
+
     class PongLayer4 final : public Vulkyrie::Core::Layer {
         public:
             PongLayer4(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
-                  texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
-                  graphicsShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
+                  // texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
+                  terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
-                if (!texture->IsLoaded()) {
-                    VERROR("PongLayer4: Failed to load texture.");
-                    return;
-                }
+                // if (!texture->IsLoaded()) {
+                //     VERROR("PongLayer4: Failed to load texture.");
+                //     return;
+                // }
 
-                if (!graphicsShader->IsValid()) {
+                if (!terrainShader->IsValid()) {
                     VERROR("PongLayer4: Failed to load shaders.");
                     return;
                 }
@@ -90,7 +93,7 @@ namespace Pong {
                 Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
-                    { ShaderDataType::Float2, "aTexCoord" },
+                    // { ShaderDataType::Float2, "aTexCoord" },
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
@@ -115,6 +118,16 @@ namespace Pong {
                 // Load skybox shaders.
                 skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
 
+                noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
+                    .MapWidth = 100,
+                    .MapHeight = 100,
+                    .Scale = scale,
+                    .Octaves = 4,
+                    .Persistence = 0.5f,
+                    .Lacunarity = 2.0f,
+                    .Seed = 42,
+                });
+
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
             }
@@ -123,19 +136,47 @@ namespace Pong {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                float cameraSpeed = 5.0f;
+                float cameraSpeed = 20.0f;
                 auto dt = deltaTime.GetSeconds();
 
-                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 20.0f;
+                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 100.0f;
 
                 if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
                 if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
                 if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
                 if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
+                if (_application.IsKeyPressed(KeyCode::M)) {
+                    if (scale < 100.0f) scale += 1.0f;
+
+                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
+                        .MapWidth = 100,
+                        .MapHeight = 100,
+                        .Scale = scale,
+                        .Octaves = 4,
+                        .Persistence = 0.5f,
+                        .Lacunarity = 2.0f,
+                        .Seed = 42,
+                    });
+                }
+
+                if (_application.IsKeyPressed(KeyCode::N)) {
+                    if (scale > 2.0f) scale -= 1.0f;
+
+                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
+                        .MapWidth = 100,
+                        .MapHeight = 100,
+                        .Scale = scale,
+                        .Octaves = 4,
+                        .Persistence = 0.5f,
+                        .Lacunarity = 2.0f,
+                        .Seed = 42,
+                    });
+                }
+
                 // --------------------------------------------------------------------
                 // Render terrain.
-                graphicsShader->Use();
+                terrainShader->Use();
 
                 // View Matrix.
                 glm::mat4 view = camera.GetViewMatrix();
@@ -146,23 +187,28 @@ namespace Pong {
 
                 // glm::mat4 projection = glm::mat4(1.0f);
                 // projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-                graphicsShader->SetMat4Uniform("projection", projection);
+                terrainShader->SetMat4Uniform("projection", projection);
 
                 glm::mat4 viewTerrain = camera.GetViewMatrix();
-                graphicsShader->SetMat4Uniform("view", viewTerrain);
+                terrainShader->SetMat4Uniform("view", viewTerrain);
 
-                texture->Bind(0);
+                // texture->Bind(0);
 
                 vertexArray->Bind();
 
-                for (int i = 0; i < 100; i++) {
-                    for (int j = 0; j < 100; j++) {
+                for (int i = 0; i < HEIGHT; i++) {
+                    const auto x = i * WIDTH;
+
+                    for (int j = 0; j < WIDTH; j++) {
                         glm::mat4 model(1.0f);
 
                         glm::vec3 firstQuadrantPosition = glm::vec3(j * -1.0f, -1.0f, i * -1.0f);
                         model = glm::translate(model, firstQuadrantPosition);
                         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                        graphicsShader->SetMat4Uniform("model", model);
+                        terrainShader->SetMat4Uniform("model", model);
+
+                        const glm::vec3 pixelColor = noiseMap[x + j] * glm::vec3(1.0f, 1.0f, 1.0f);
+                        terrainShader->SetVec3Uniform("pixelColor", pixelColor);
 
                         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                     }
@@ -203,7 +249,7 @@ namespace Pong {
                     glm::mat4 projection = glm::mat4(1.0f);
                     projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
 
-                    graphicsShader->SetMat4Uniform("projection", projection);
+                    terrainShader->SetMat4Uniform("projection", projection);
 
                     return true;
                 });
@@ -236,12 +282,14 @@ namespace Pong {
             bool firstMouseMove = true;
             float lastMouseX = 0.0f;
             float lastMouseY = 0.0f;
-            Ref<Shader> graphicsShader;
+            Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
-            Ref<Texture2D> texture;
+            std::vector<f32> noiseMap;
+            // Ref<Texture2D> texture;
             Ref<Shader> skyboxShader;
             Ref<VertexArray> skyboxVertexArray;
             u32 skyboxTextureId;
+            f32 scale = 5.0f;
 
             unsigned int loadCubemap(std::vector<std::string> faces) {
                 unsigned int textureID;

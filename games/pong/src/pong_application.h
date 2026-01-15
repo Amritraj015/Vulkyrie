@@ -12,7 +12,7 @@ namespace Pong {
             ~PongApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<Pong::PongLayer0>(event.Width, event.Height);
+                PushLayer<Pong::PongLayer4>(event.Width, event.Height);
                 PushOverlay<Pong::PongVoidLayer>(event.Width, event.Height);
 
                 return true;
