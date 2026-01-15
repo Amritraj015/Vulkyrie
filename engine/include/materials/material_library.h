@@ -1,9 +1,25 @@
 #pragma once
 
-#include <glm/vec4.hpp>
-#include "materials/material.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie::Materials {
+
+    /** @brief Represents a material with ambient, diffuse, specular properties and shininess factor. */
+    struct Material {
+        public:
+            /** @brief The ambient color component of the material. */
+            const glm::vec4 Ambient;
+
+            /** @brief The diffuse color component of the material. */
+            const glm::vec4 Diffuse;
+
+            /** @brief The specular color component of the material. */
+            const glm::vec4 Specular;
+
+            /** @brief The shininess factor of the material. */
+            const f32 Shininess;
+    };
+
     // Source: http://devernay.free.fr/cours/opengl/materials.html
 
     /** @brief Predefined material: Emerald - A vibrant green gemstone with high reflectivity */

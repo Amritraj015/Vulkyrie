@@ -13,11 +13,5 @@ namespace Vulkyrie::Core {
         FailedToCreateGraphicsContext, // Failed to create graphics context error.
         FailedToInitializeGLAD,        // Failed to initialize GLAD error.
         FailedToCompileShaderProgram,  // Failed to create shader program error.
-
-        // WaylandCannotConnectToDisplay,     // Linux (Wayland) connect to display.
-        // WaylandCannotFindCompositor,       // Linux (Wayland) cannot find compositor.
-        // WaylandCannotCreateSurface,        // Linux (Wayland) cannot create surface.
-        // WaylandCannotCreateXdgSurface,     // Linux (Wayland) cannot create XDG surface.
-        // WaylandCannotCreateTopLevelWindow, // Linux (Wayland) cannot create top level window.
     };
 } // namespace Vulkyrie::Core
