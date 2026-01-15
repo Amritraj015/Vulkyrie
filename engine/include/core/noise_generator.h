@@ -12,9 +12,11 @@ namespace Vulkyrie::Core {
 
             /** @brief Height of the noise map. */
             size_t MapHeight;
+
+            /** @brief Scale of the noise. Higher values zoom out, lower values zoom in. */
             f32 Scale;
 
-            /** @brief Number of octaves to use in the noise generation. */
+            /** @brief Number of octaves to combine for the noise generation. */
             i32 Octaves;
 
             /** @brief Persistence value for the noise generation. */

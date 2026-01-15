@@ -4,6 +4,7 @@
 #include "core/application.h"
 #include "core/status_codes.h"
 #include "core/logger.h"
+#include "core/noise_generator.h"
 
 // Events includes
 #include "events/event_dispatcher.h"
