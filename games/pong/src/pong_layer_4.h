@@ -119,8 +119,8 @@ namespace Pong {
                 skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
 
                 noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                    .MapWidth = 100,
-                    .MapHeight = 100,
+                    .MapWidth = WIDTH,
+                    .MapHeight = HEIGHT,
                     .Scale = scale,
                     .Octaves = 4,
                     .Persistence = 0.5f,
@@ -150,8 +150,8 @@ namespace Pong {
                     if (scale < 100.0f) scale += 1.0f;
 
                     noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = 100,
-                        .MapHeight = 100,
+                        .MapWidth = WIDTH,
+                        .MapHeight = HEIGHT,
                         .Scale = scale,
                         .Octaves = 4,
                         .Persistence = 0.5f,
@@ -164,8 +164,8 @@ namespace Pong {
                     if (scale > 2.0f) scale -= 1.0f;
 
                     noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = 100,
-                        .MapHeight = 100,
+                        .MapWidth = WIDTH,
+                        .MapHeight = HEIGHT,
                         .Scale = scale,
                         .Octaves = 4,
                         .Persistence = 0.5f,
