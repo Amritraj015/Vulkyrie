@@ -8,21 +8,21 @@ namespace Vulkyrie::Core {
         const size_t height = specification.MapHeight;
         const i32 rawOctaves = specification.Octaves;
         const size_t octaves = static_cast<size_t>(std::max(1, rawOctaves)); // Ensure at least 1 octave.
-        const f32 persistence = std::clamp(specification.Persistence, 0.0f, 1.0f); // Clamp to valid range.
-        const f32 lacunarity = std::max(specification.Lacunarity, 1.0f); // Must be >= 1.0.
+        const f32 persistence = std::clamp(specification.Persistence, 0.0f, 1.0f); // Controls amplitude decay (0-1 range).
+        const f32 lacunarity = std::max(specification.Lacunarity, 1.0f); // Controls frequency growth (must be >= 1.0).
         const f32 halfWidth = static_cast<f32>(width) / 2.0f;
         const f32 halfHeight = static_cast<f32>(height) / 2.0f;
-        const f32 invScale = 1.0f / std::max(specification.Scale, 0.0001f); // Pre-compute for performance.
+        const f32 invScale = 1.0f / std::max(specification.Scale, 0.0001f); // Pre-compute inverse for performance.
 
-        // Track min/max for normalization (local mode).
+        // Track min/max for local normalization.
         f32 maxNoiseHeight = std::numeric_limits<f32>::lowest();
         f32 minNoiseHeight = std::numeric_limits<f32>::max();
 
         // Allocate the noise map.
         std::vector<f32> noiseMap(width * height);
 
-        // Generate random octave offsets for each octave (deterministic per seed).
-        // Each octave gets a unique offset to add variation to the noise pattern.
+        // Generate random octave offsets for each octave (deterministic based on seed).
+        // Each octave gets a unique offset to create variation in the noise pattern.
         std::mt19937 prng(specification.Seed);
         std::uniform_real_distribution<f32> dist(-100000.0f, 100000.0f);
         std::vector<glm::vec2> octaveOffsets(octaves);
@@ -41,9 +41,10 @@ namespace Vulkyrie::Core {
 
                 // Combine octaves: higher frequencies add fine details, amplitudes control their strength.
                 for (size_t i = 0; i < octaves; ++i) {
-                    // Center coordinates, apply octave offset, scale, and frequency.
-                    const f32 sampleX = (static_cast<f32>(x) - halfWidth + octaveOffsets[i].x) * invScale * frequency;
-                    const f32 sampleY = (static_cast<f32>(y) - halfHeight + octaveOffsets[i].y) * invScale * frequency;
+                    // Apply transformations in correct order: center → scale → frequency → offset.
+                    // This ensures zoom/scale works properly before adding the random offset.
+                    const f32 sampleX = (static_cast<f32>(x) - halfWidth) * invScale * frequency + octaveOffsets[i].x;
+                    const f32 sampleY = (static_cast<f32>(y) - halfHeight) * invScale * frequency + octaveOffsets[i].y;
 
                     // Sample Perlin noise (glm::perlin returns values in [-1, 1]).
                     const f32 perlinValue = glm::perlin(glm::vec2(sampleX, sampleY));
@@ -63,7 +64,7 @@ namespace Vulkyrie::Core {
             }
         }
 
-        // Normalize the noise map to [0, 1] range using local min/max.
+        // Normalize the noise map to [0, 1] range using local min/max values.
         const f32 range = maxNoiseHeight - minNoiseHeight;
         if (range > 0.0f) {
             for (f32 &value : noiseMap) {
