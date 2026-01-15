@@ -3,16 +3,33 @@
 #include "vlkypch.h"
 
 namespace Vulkyrie::Core {
+
+    /** @brief Specification for generating a Perlin noise map. */
     struct NoiseMapSpecification {
         public:
+            /** @brief Width of the noise map. */
             size_t MapWidth;
+
+            /** @brief Height of the noise map. */
             size_t MapHeight;
             f32 Scale;
+
+            /** @brief Number of octaves to use in the noise generation. */
             i32 Octaves;
+
+            /** @brief Persistence value for the noise generation. */
             f32 Persistence;
+
+            /** @brief Lacunarity value for the noise generation. */
             f32 Lacunarity;
+
+            /** @brief Seed value for the noise generation. */
             u32 Seed;
     };
 
-    std::vector<f32> GenerateNoiseMap(const NoiseMapSpecification &specification);
+    /** @brief Generates a Perlin noise map based on the provided specification.
+     * @param specification The specifications for generating the noise map.
+     * @return A vector containing the generated Perlin noise values.
+     */
+    std::vector<f32> GeneratePerlinNoiseMap(const NoiseMapSpecification &specification);
 } // namespace Vulkyrie::Core
