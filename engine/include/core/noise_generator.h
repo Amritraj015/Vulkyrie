@@ -27,6 +27,9 @@ namespace Vulkyrie::Core {
 
             /** @brief Seed value for the noise generation. */
             u32 Seed;
+
+            /** @brief Offset for the noise map generation. */
+            glm::vec2 Offset;
     };
 
     /** @brief Generates a Perlin noise map based on the provided specification.

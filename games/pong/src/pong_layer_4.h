@@ -10,123 +10,26 @@ namespace Pong {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    constexpr float vertices[] = {
-        // positions        // texture coords
-        0.5f,  0.5f,  0.0f, // 1.0f, 1.0f, // top right
-        0.5f,  -0.5f, 0.0f, // 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f,  0.0f, // 0.0f, 1.0f, // top left
-    };
-
-    constexpr u32 indices[] = {
-        0, 1, 2, // first triangle
-        0, 2, 3  // second triangle
-    };
-
-    constexpr float skyboxVertices[] = {
-        // positions
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  1.0f,  -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-
-        -1.0f, -1.0f, 1.0f,  //
-        -1.0f, -1.0f, -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, 1.0f,  1.0f,  //
-        -1.0f, -1.0f, 1.0f,  //
-
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, 1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-
-        -1.0f, -1.0f, 1.0f, //
-        -1.0f, 1.0f,  1.0f, //
-        1.0f,  1.0f,  1.0f, //
-        1.0f,  1.0f,  1.0f, //
-        1.0f,  -1.0f, 1.0f, //
-        -1.0f, -1.0f, 1.0f, //
-
-        -1.0f, 1.0f,  -1.0f, //
-        1.0f,  1.0f,  -1.0f, //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        -1.0f, 1.0f,  1.0f,  //
-        -1.0f, 1.0f,  -1.0f, //
-
-        -1.0f, -1.0f, -1.0f, //
-        -1.0f, -1.0f, 1.0f,  //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        -1.0f, -1.0f, 1.0f,  //
-        1.0f,  -1.0f, 1.0f,  //
-    };
-
     const u16 WIDTH = 100;
     const u16 HEIGHT = 100;
+    const float worldSizeX = 100.0f; // meters wide
+    const float worldSizeZ = 100.0f; // meters deep
+    const float heightScale = 20.0f; // max height in meters
 
     class PongLayer4 final : public Vulkyrie::Core::Layer {
         public:
             PongLayer4(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
-                  // texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
                   terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
-                // if (!texture->IsLoaded()) {
-                //     VERROR("PongLayer4: Failed to load texture.");
-                //     return;
-                // }
-
                 if (!terrainShader->IsValid()) {
-                    VERROR("PongLayer4: Failed to load shaders.");
+                    VERROR("PongLayer4: Failed to load terrain shaders.");
                     return;
                 }
 
-                vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                vertices.reserve(WIDTH * HEIGHT * 3);
 
-                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
-                vertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                    // { ShaderDataType::Float2, "aTexCoord" },
-                });
-                vertexArray->AddVertexBuffer(vertexBuffer);
-
-                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, const_cast<u32 *>(indices), sizeof(indices) / sizeof(u32));
-                vertexArray->SetIndexBuffer(indexBuffer);
-
-                // Load sky-box cubemap textures.
-                stbi_set_flip_vertically_on_load(false);
-                std::vector<std::string> faces = {
-                    "assets/cubemaps/skybox/right.jpg",  "assets/cubemaps/skybox/left.jpg",  "assets/cubemaps/skybox/top.jpg",
-                    "assets/cubemaps/skybox/bottom.jpg", "assets/cubemaps/skybox/front.jpg", "assets/cubemaps/skybox/back.jpg",
-                };
-                skyboxTextureId = loadCubemap(faces);
-
-                skyboxVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(skyboxVertices), sizeof(skyboxVertices));
-                skyboxVertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                });
-                skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
-
-                // Load skybox shaders.
-                skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
-
-                noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                    .MapWidth = WIDTH,
-                    .MapHeight = HEIGHT,
-                    .Scale = scale,
-                    .Octaves = 4,
-                    .Persistence = 0.5f,
-                    .Lacunarity = 2.0f,
-                    .Seed = 42,
-                });
+                CreateVertexBufferElements();
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
@@ -149,94 +52,36 @@ namespace Pong {
                 if (_application.IsKeyPressed(KeyCode::M)) {
                     if (scale < 100.0f) scale += 1.0f;
 
-                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = WIDTH,
-                        .MapHeight = HEIGHT,
-                        .Scale = scale,
-                        .Octaves = 4,
-                        .Persistence = 0.5f,
-                        .Lacunarity = 2.0f,
-                        .Seed = 42,
-                    });
+                    CreateVertexBufferElements();
                 }
 
                 if (_application.IsKeyPressed(KeyCode::N)) {
                     if (scale > 2.0f) scale -= 1.0f;
 
-                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = WIDTH,
-                        .MapHeight = HEIGHT,
-                        .Scale = scale,
-                        .Octaves = 4,
-                        .Persistence = 0.5f,
-                        .Lacunarity = 2.0f,
-                        .Seed = 42,
-                    });
+                    CreateVertexBufferElements();
                 }
 
                 // --------------------------------------------------------------------
                 // Render terrain.
                 terrainShader->Use();
 
-                // View Matrix.
-                glm::mat4 view = camera.GetViewMatrix();
-
                 // Projection Matrix.
                 glm::mat4 projection = glm::mat4(1.0f);
                 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
-
-                // glm::mat4 projection = glm::mat4(1.0f);
-                // projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
-                glm::mat4 viewTerrain = camera.GetViewMatrix();
-                terrainShader->SetMat4Uniform("view", viewTerrain);
+                // View Matrix.
+                glm::mat4 view = camera.GetViewMatrix();
+                terrainShader->SetMat4Uniform("view", view);
 
-                // texture->Bind(0);
+                // Model Matrix.
+                glm::mat4 model(1.0f);
+                model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                terrainShader->SetMat4Uniform("model", model);
 
                 vertexArray->Bind();
-
-                for (int i = 0; i < HEIGHT; i++) {
-                    const auto x = i * WIDTH;
-
-                    for (int j = 0; j < WIDTH; j++) {
-                        glm::mat4 model(1.0f);
-
-                        glm::vec3 firstQuadrantPosition = glm::vec3(j * -1.0f, -1.0f, i * -1.0f);
-                        model = glm::translate(model, firstQuadrantPosition);
-                        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                        terrainShader->SetMat4Uniform("model", model);
-
-                        const glm::vec3 pixelColor = noiseMap[x + j] * glm::vec3(1.0f, 1.0f, 1.0f);
-                        terrainShader->SetVec3Uniform("pixelColor", pixelColor);
-
-                        glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
-                    }
-                }
-
+                glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                 vertexArray->Unbind();
-                // --------------------------------------------------------------------
-
-                // --------------------------------------------------------------------
-                // Sky box.
-                // change depth function so depth test passes when values are equal to depth buffer's content
-                glDepthFunc(GL_LEQUAL);
-                skyboxShader->Use();
-
-                skyboxShader->SetMat4Uniform("projection", projection);
-
-                view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-                skyboxShader->SetMat4Uniform("view", view);
-
-                // ... set view and projection matrix
-                // glBindVertexArray(skyboxVAO);
-                skyboxVertexArray->Bind();
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureId);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-                skyboxVertexArray->Unbind();
-                // set depth function back to default
-                glDepthFunc(GL_LESS);
                 // --------------------------------------------------------------------
             }
 
@@ -285,35 +130,100 @@ namespace Pong {
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
             std::vector<f32> noiseMap;
-            // Ref<Texture2D> texture;
-            Ref<Shader> skyboxShader;
-            Ref<VertexArray> skyboxVertexArray;
-            u32 skyboxTextureId;
+            std::vector<f32> vertices;
+            std::vector<u32> indices;
+
             f32 scale = 5.0f;
+            i32 octaves = 4;
+            f32 persistence = 0.5f;
+            f32 lacunarity = 2.0f;
+            u32 seed = 42;
+            glm::vec2 offset = glm::vec2(10.0f, 10.0f);
 
-            unsigned int loadCubemap(std::vector<std::string> faces) {
-                unsigned int textureID;
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+            void CreateVertexBufferElements() {
+                noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
+                    .MapWidth = WIDTH,
+                    .MapHeight = HEIGHT,
+                    .Scale = scale,
+                    .Octaves = octaves,
+                    .Persistence = persistence,
+                    .Lacunarity = lacunarity,
+                    .Seed = seed,
+                    .Offset = offset,
+                });
 
-                int width, height, nrChannels;
-                for (unsigned int i = 0; i < faces.size(); i++) {
-                    unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-                    if (data) {
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-                        stbi_image_free(data);
-                    } else {
-                        std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
-                        stbi_image_free(data);
+                vertices.clear();
+                indices.clear();
+
+                for (size_t z = 0; z < HEIGHT; ++z) {
+                    for (size_t x = 0; x < WIDTH; ++x) {
+                        f32 h = noiseMap[z * WIDTH + x];
+
+                        f32 worldX = (f32(x) / (WIDTH - 1)) * worldSizeX;
+                        f32 worldZ = (f32(z) / (HEIGHT - 1)) * worldSizeZ;
+                        f32 worldY = h * heightScale;
+
+                        vertices.emplace_back(worldX);
+                        vertices.emplace_back(worldY);
+                        vertices.emplace_back(worldZ);
+
+                        if (h > 0.85f) {
+                            vertices.emplace_back(1.0f);
+                            vertices.emplace_back(1.0f);
+                            vertices.emplace_back(1.0f);
+                        } else if (h > 0.7f) {
+                            vertices.emplace_back(0.588f);
+                            vertices.emplace_back(0.294f);
+                            vertices.emplace_back(0.0f);
+                        } else if (h > 0.4f) {
+                            vertices.emplace_back(0.0f);
+                            vertices.emplace_back(0.5f);
+                            vertices.emplace_back(0.0f);
+                        } else {
+                            vertices.emplace_back(0.0f);
+                            vertices.emplace_back(0.0f);
+                            vertices.emplace_back(1.0f);
+                        }
                     }
                 }
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-                return textureID;
+                if (!vertexArray) {
+                    for (size_t z = 0; z < HEIGHT - 1; ++z) {
+                        for (size_t x = 0; x < WIDTH - 1; ++x) {
+                            u32 i0 = z * WIDTH + x;
+                            u32 i1 = z * WIDTH + x + 1;
+                            u32 i2 = (z + 1) * WIDTH + x;
+                            u32 i3 = (z + 1) * WIDTH + x + 1;
+
+                            // Triangle 1
+                            indices.push_back(i0);
+                            indices.push_back(i2);
+                            indices.push_back(i1);
+
+                            // Triangle 2
+                            indices.push_back(i1);
+                            indices.push_back(i2);
+                            indices.push_back(i3);
+                        }
+                    }
+
+                    vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+
+                    // Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<f32 *>(vertices), sizeof(vertices));
+                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                    vertexBuffer->SetLayout({
+                        { ShaderDataType::Float3, "position" },
+                        { ShaderDataType::Float3, "color" }, // new attribute
+                        // { ShaderDataType::Float2, "aUV" },
+                        // { ShaderDataType::Float3, "aNormal" },
+                    });
+                    vertexArray->AddVertexBuffer(vertexBuffer);
+
+                    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
+                    vertexArray->SetIndexBuffer(indexBuffer);
+                } else {
+                    vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));
+                }
             }
     };
 } // namespace Pong
