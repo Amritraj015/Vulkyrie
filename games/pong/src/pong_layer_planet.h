@@ -116,8 +116,8 @@ namespace Pong {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
                 model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                model = glm::rotate(model, glm::radians((f32)glfwGetTime() * 5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-                model = glm::scale(model, glm::vec3(40.0f, 40.0f, 40.0f));
+                model = glm::rotate(model, glm::radians((f32)glfwGetTime() * -5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+                model = glm::scale(model, glm::vec3(70.0f, 70.0f, 70.0f));
                 planetShader->SetMat4Uniform("model", model);
 
                 // draw planet
@@ -127,7 +127,12 @@ namespace Pong {
                 asteroidShader->Use();
                 asteroidShader->SetMat4Uniform("projection", projection);
                 asteroidShader->SetMat4Uniform("view", view);
-                asteroidShader->SetIntUniform("texture_diffuse1", 0);
+
+                // Apply orbital rotation to all asteroids
+                glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                asteroidShader->SetMat4Uniform("orbitRotation", orbitRotation);
+
+                asteroidShader->SetIntUniform("texture_diffuse", 0);
                 glActiveTexture(GL_TEXTURE0);
 
                 // note: we also made the textures_loaded vector public (instead of private) from the model class.
@@ -191,8 +196,6 @@ namespace Pong {
             Ref<Model> asteroidModel;
             Ref<Shader> planetShader;
             Ref<Shader> asteroidShader;
-            // Ref<VertexArray> vertexArray;
-            // Ref<VertexBuffer> vertexBuffer;
             f32 windowHeight;
             f32 windowWidth;
             Camera camera;
