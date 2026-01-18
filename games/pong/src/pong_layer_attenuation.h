@@ -11,12 +11,21 @@ namespace Pong {
         public:
             PongLayerAttenuation(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
-                // Starting light position.
-                lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+                pointLight = {
+                    .Light = {
+                        { 0.2f, 0.2f, 0.2f },
+                        { 0.5f, 0.5f, 0.5f },
+                        { 1.0f, 1.0f, 1.0f },
+                    },
+                    .Position = { 1.2f, 1.0f, 2.0f },
+                    .AttenuationConstant = 1.0f,
+                    .AttenuationLinear = 0.09f,
+                    .AttenuationQuadratic = 0.032f,
+                };
 
                 // Starting vertices.
                 vertices = {
-                    // positions         // normals          // texture coords
+                    // positions         // normals    // texture coords
                     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
                     0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
                     0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
@@ -114,7 +123,7 @@ namespace Pong {
                 VDEBUG("Layer Detached: Pong Layer Attenuation.");
             }
 
-            void OnUpdate(Timestep deltaTime) override {
+            void OnUpdate(const Timestep deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -151,18 +160,18 @@ namespace Pong {
                 boxTexture->Bind(0);
                 specularMapTexture->Bind(1);
 
-                lightPos = glm::vec3(1.2f * sin(glfwGetTime()), 0.0f, 10.0f * cos(glfwGetTime()));
+                pointLight.Position = glm::vec3(2.0f * sin(glfwGetTime()), 0.0f, 5.0f * cos(glfwGetTime()));
 
                 // Set the light properties.
-                objectShader->SetVec3Uniform("light.position", lightPos);
-                objectShader->SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
-                objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
-                objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
+                objectShader->SetVec3Uniform("light.position", pointLight.Position);
+                objectShader->SetVec3Uniform("light.ambient", pointLight.Light.Ambient);
+                objectShader->SetVec3Uniform("light.diffuse", pointLight.Light.Diffuse);
+                objectShader->SetVec3Uniform("light.specular", pointLight.Light.Specular);
 
                 // Set attenuation factors.
-                objectShader->SetFloatUniform("light.constant", 1.0f);
-                objectShader->SetFloatUniform("light.linear", 0.09f);
-                objectShader->SetFloatUniform("light.quadratic", 0.032f);
+                objectShader->SetFloatUniform("light.constant", pointLight.AttenuationConstant);
+                objectShader->SetFloatUniform("light.linear", pointLight.AttenuationLinear);
+                objectShader->SetFloatUniform("light.quadratic", pointLight.AttenuationQuadratic);
 
                 // Issue a draw call to draw the reflecting object.
                 objectVertexArray->Bind();
@@ -174,8 +183,8 @@ namespace Pong {
                 lightShader->Use();
                 lightShader->SetMat4Uniform("projection", projection);
                 lightShader->SetMat4Uniform("view", view);
-                model = glm::translate(model, lightPos);
-                model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+                model = glm::translate(model, pointLight.Position);
+                model = glm::scale(model, glm::vec3(0.1f)); // a smaller cube
                 lightShader->SetMat4Uniform("model", model);
 
                 // Issue a draw call to draw the light source.
@@ -226,7 +235,7 @@ namespace Pong {
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
             std::vector<f32> vertices;
-            glm::vec3 lightPos;
+            PointLight pointLight;
     };
 
 } // namespace Pong

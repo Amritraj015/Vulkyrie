@@ -13,7 +13,7 @@ namespace Pong {
 
             void OnAttach() override;
             void OnDetach() override;
-            void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override;
+            void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override;
             void OnEvent(Vulkyrie::Events::Event &event) override;
 
         private:

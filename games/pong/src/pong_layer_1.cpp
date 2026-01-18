@@ -5,7 +5,7 @@
 namespace Pong {
     using namespace Vulkyrie::Events;
 
-    constexpr float vertices[] = {
+    constexpr f32 vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
         0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
         0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
@@ -82,7 +82,7 @@ namespace Pong {
         }
 
         vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-        vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
+        vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<f32 *>(vertices), sizeof(vertices));
         vertexBuffer->SetLayout({
             { ShaderDataType::Float3, "aPos" },
             { ShaderDataType::Float2, "aTexCoord" },
@@ -107,7 +107,7 @@ namespace Pong {
         // Projection matrix hardly ever changes, so it can live outside the main application loop.
         graphicsShader->Use();
         glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
 
         graphicsShader->SetMat4Uniform("projection", projection);
     }
@@ -120,13 +120,13 @@ namespace Pong {
         VDEBUG("Layer Detached: Pong Layer 1.");
     }
 
-    void PongLayer1::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
+    void PongLayer1::OnUpdate(const Vulkyrie::Core::Timestep deltaTime) {
         // clear the color and depth buffer
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Update Camera position based on input.
-        constexpr float cameraSpeed = 5.0f;
+        constexpr f32 cameraSpeed = 5.0f;
         auto dt = deltaTime.GetSeconds();
 
         if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
@@ -148,12 +148,12 @@ namespace Pong {
         // render container
         vertexArray->Bind();
 
-        for (unsigned int i = 0; i < 10; i++) {
+        for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * (i + 1);
+            f32 angle = 20.0f * (i + 1);
 
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+            model = glm::rotate(model, (f32)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
             graphicsShader->SetMat4Uniform("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -166,10 +166,8 @@ namespace Pong {
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
             auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
 
-            glm::mat4 projection = glm::mat4(1.0f);
-            projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
-
-            graphicsShader->SetMat4Uniform("projection", projection);
+            windowWidth = static_cast<f32>(ev.Width);
+            windowHeight = static_cast<f32>(ev.Height);
 
             return true;
         });
@@ -183,8 +181,8 @@ namespace Pong {
                 firstMouseMove = false;
             }
 
-            const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-            const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+            const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
+            const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
 
             camera.ProcessMouseMovement(xOffset, yOffset);
 

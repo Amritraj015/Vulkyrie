@@ -8,12 +8,11 @@ namespace Pong {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    class PongLayer0 final : public Layer {
+    class PongLayerBackPack final : public Layer {
         public:
-            PongLayer0(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
+            PongLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
                   backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
-                // backPackModel(CreateRef<Model>("assets/models/Planet/Planet.obj")) {
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
@@ -23,7 +22,7 @@ namespace Pong {
                 glEnable(GL_DEPTH_TEST);
             };
 
-            ~PongLayer0() = default;
+            ~PongLayerBackPack() = default;
 
             void OnAttach() override {
                 VDEBUG("Layer Attached: Pong Layer 0, Layer ID {}.", _id.GetUUID());
@@ -33,7 +32,7 @@ namespace Pong {
                 VDEBUG("Layer Detached: Pong Layer 0.");
             };
 
-            void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
+            void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
                 glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -50,7 +49,6 @@ namespace Pong {
                 graphicsShader->Use();
 
                 // view/projection transformations
-                // glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 graphicsShader->SetMat4Uniform("projection", projection);

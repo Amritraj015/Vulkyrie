@@ -101,7 +101,7 @@ namespace Pong {
         VDEBUG("Layer Detached: Pong Layer 2.");
     }
 
-    void PongLayer2::OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
+    void PongLayer2::OnUpdate(const Vulkyrie::Core::Timestep deltaTime) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

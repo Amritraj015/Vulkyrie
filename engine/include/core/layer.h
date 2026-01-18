@@ -18,7 +18,7 @@ namespace Vulkyrie::Core {
             virtual void OnDetach() {
             }
 
-            virtual void OnUpdate(Timestep deltaTime) {
+            virtual void OnUpdate(const Timestep deltaTime) {
             }
 
             virtual void OnEvent(Vulkyrie::Events::Event &event) {
