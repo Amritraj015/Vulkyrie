@@ -17,7 +17,6 @@ void main()
 {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     FragPos = vec3(model * vec4(aPos, 1.0));
-    // Normal = aNormal;
     Normal = mat3(transpose(inverse(model))) * aNormal;
     TexCoords = aTexCoords;
 }
@@ -31,17 +30,11 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 
-// uniform vec3 objectColor;
-// uniform vec3 lightColor;
-uniform vec3 viewPos;
-
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
     float shininess;
 };
-
-uniform Material material;
 
 struct Light {
     vec3 position;
@@ -50,6 +43,8 @@ struct Light {
     vec3 specular;
 };
 
+uniform vec3 viewPos;
+uniform Material material;
 uniform Light light;
 
 void main()

@@ -5,7 +5,7 @@
 namespace Pong {
     using namespace Vulkyrie::Events;
 
-    float vertices[] = {
+    f32 vertices[] = {
         // positions         // normals          // texture coords
         -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
         0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
@@ -50,11 +50,6 @@ namespace Pong {
         -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
     };
 
-    static constexpr unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-
     static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     PongLayer3::PongLayer3(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
@@ -84,7 +79,7 @@ namespace Pong {
         objectVertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
 
         // Create Vertex Buffer.
-        objectVertexBuffer = VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
+        objectVertexBuffer = VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, const_cast<f32 *>(vertices), sizeof(vertices));
 
         // Set layout for the vertex buffer.
         objectVertexBuffer->SetLayout({
@@ -119,7 +114,7 @@ namespace Pong {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Update Camera position based on input.
-        constexpr float cameraSpeed = 5.0f;
+        constexpr f32 cameraSpeed = 5.0f;
         auto dt = deltaTime.GetSeconds();
 
         if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
@@ -128,22 +123,21 @@ namespace Pong {
         if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
         objectShader->Use();
-        // objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
-        // objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
         objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        // projection transformations.
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
         objectShader->SetMat4Uniform("projection", projection);
+
+        // view matrix.
+        glm::mat4 view = camera.GetViewMatrix();
         objectShader->SetMat4Uniform("view", view);
 
-        // world transformation
+        // world transformation.
         glm::mat4 model = glm::mat4(1.0f);
         objectShader->SetMat4Uniform("model", model);
 
         // Set the material properties for the object.
-        // objectShader->SetVec3Uniform("material.ambient", 1.0f, 0.5f, 0.31f);
         objectShader->SetIntUniform("material.diffuse", 0);
         objectShader->SetIntUniform("material.specular", 1);
         objectShader->SetFloatUniform("material.shininess", 32.0f);
@@ -158,40 +152,28 @@ namespace Pong {
         objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
         objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
 
-        // Issue a draw call to draw the light source.
+        // Issue a draw call to draw the reflecting object.
         objectVertexArray->Bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        objectVertexArray->Unbind();
 
         // -----------------------------------------------------------------------------------
         // also draw the lamp object
         lightShader->Use();
         lightShader->SetMat4Uniform("projection", projection);
         lightShader->SetMat4Uniform("view", view);
-        model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightShader->SetMat4Uniform("model", model);
 
-        // graphicsShader.Use();
+        // Issue a draw call to draw the light source.
         lightVertexArray->Bind();
-
-        // Issue a draw call to draw the reflecting object.
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        lightVertexArray->Unbind();
     }
 
     void PongLayer3::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-            auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
-
-            glm::mat4 projection = glm::mat4(1.0f);
-            projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
-
-            // graphicsShader.SetMat4Uniform("projection", projection);
-
-            return true;
-        });
 
         dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
             auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
@@ -202,8 +184,8 @@ namespace Pong {
                 firstMouseMove = false;
             }
 
-            const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-            const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+            const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
+            const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
 
             camera.ProcessMouseMovement(xOffset, yOffset);
 

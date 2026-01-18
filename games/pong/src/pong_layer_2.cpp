@@ -49,7 +49,7 @@ namespace Pong {
         -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f  //
     };
 
-    static constexpr unsigned int indices[] = {
+    static constexpr u32 indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
@@ -58,7 +58,6 @@ namespace Pong {
 
     PongLayer2::PongLayer2(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
         : Vulkyrie::Core::Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
-
         // Load and compile shader programs.
         objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/reflective-object.glsl");
         lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
@@ -116,8 +115,6 @@ namespace Pong {
         if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
         objectShader->Use();
-        // objectShader->SetVec3Uniform("objectColor", 1.0f, 0.5f, 0.31f);
-        // objectShader->SetVec3Uniform("lightColor", 1.0f, 1.0f, 1.0f);
         objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
         // view/projection transformations
@@ -136,13 +133,15 @@ namespace Pong {
         objectShader->SetVec3Uniform("material.specular", 0.5f, 0.5f, 0.5f);
         objectShader->SetFloatUniform("material.shininess", 32.0f);
 
+        lightPos = glm::vec3(1.0f + sin(glfwGetTime()) * 2.0f, sin(glfwGetTime() / 2.0f) * 1.0f, 2.0f);
+
         // Set the light properties.
         objectShader->SetVec3Uniform("light.position", lightPos);
         objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
 
         // Change ambient and diffuse light color over time.
         glm::vec3 lightColor;
-        double currentTime = glfwGetTime();
+        f64 currentTime = glfwGetTime();
         lightColor.x = sin(currentTime * 2.0f);
         lightColor.y = sin(currentTime * 0.7f);
         lightColor.z = sin(currentTime * 1.3f);
@@ -162,7 +161,6 @@ namespace Pong {
         lightShader->Use();
         lightShader->SetMat4Uniform("projection", projection);
         lightShader->SetMat4Uniform("view", view);
-        model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightShader->SetMat4Uniform("model", model);
@@ -176,17 +174,6 @@ namespace Pong {
 
     void PongLayer2::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-            auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
-
-            glm::mat4 projection = glm::mat4(1.0f);
-            projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
-
-            // graphicsShader.SetMat4Uniform("projection", projection);
-
-            return true;
-        });
 
         dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
             auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);

@@ -12,14 +12,14 @@ namespace Pong {
 
     const u16 WIDTH = 100;
     const u16 HEIGHT = 100;
-    const float worldSizeX = 100.0f; // meters wide
-    const float worldSizeZ = 100.0f; // meters deep
-    const float heightScale = 20.0f; // max height in meters
+    const f32 worldSizeX = 100.0f; // meters wide
+    const f32 worldSizeZ = 100.0f; // meters deep
+    const f32 heightScale = 15.0f; // max height in meters
 
     class PongLayer4 final : public Vulkyrie::Core::Layer {
         public:
             PongLayer4(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
+                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
                   terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
@@ -36,10 +36,10 @@ namespace Pong {
             }
 
             void OnUpdate(Vulkyrie::Core::Timestep deltaTime) override {
-                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+                glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                float cameraSpeed = 20.0f;
+                f32 cameraSpeed = 20.0f;
                 auto dt = deltaTime.GetSeconds();
 
                 if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 100.0f;
@@ -51,13 +51,41 @@ namespace Pong {
 
                 if (_application.IsKeyPressed(KeyCode::M)) {
                     if (scale < 100.0f) scale += 1.0f;
-
                     CreateVertexBufferElements();
                 }
 
                 if (_application.IsKeyPressed(KeyCode::N)) {
                     if (scale > 2.0f) scale -= 1.0f;
+                    CreateVertexBufferElements();
+                }
 
+                if (_application.IsKeyPressed(KeyCode::Y)) {
+                    seed += 1.0f;
+                    CreateVertexBufferElements();
+                }
+
+                if (_application.IsKeyPressed(KeyCode::U)) {
+                    persistence += 0.001f;
+                    CreateVertexBufferElements();
+                }
+
+                if (_application.IsKeyPressed(KeyCode::H)) {
+                    offset = glm::vec2(offset.x - 0.01f, offset.y);
+                    CreateVertexBufferElements();
+                }
+
+                if (_application.IsKeyPressed(KeyCode::L)) {
+                    offset = glm::vec2(offset.x, offset.y + 0.01f);
+                    CreateVertexBufferElements();
+                }
+
+                if (_application.IsKeyPressed(KeyCode::I)) {
+                    lacunarity += 0.1f;
+                    CreateVertexBufferElements();
+                }
+
+                if (_application.IsKeyPressed(KeyCode::O)) {
+                    octaves += 1.0f;
                     CreateVertexBufferElements();
                 }
 
@@ -66,8 +94,7 @@ namespace Pong {
                 terrainShader->Use();
 
                 // Projection Matrix.
-                glm::mat4 projection = glm::mat4(1.0f);
-                projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 1000.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
                 // View Matrix.
@@ -75,8 +102,7 @@ namespace Pong {
                 terrainShader->SetMat4Uniform("view", view);
 
                 // Model Matrix.
-                glm::mat4 model(1.0f);
-                model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-50.0f, -25.0f, -115.0f));
                 terrainShader->SetMat4Uniform("model", model);
 
                 vertexArray->Bind();
@@ -92,7 +118,7 @@ namespace Pong {
                     auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
 
                     glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (float)ev.Width / (float)ev.Height, 0.1f, 100.0f);
+                    projection = glm::perspective(glm::radians(45.0f), (f32)ev.Width / (f32)ev.Height, 0.1f, 100.0f);
 
                     terrainShader->SetMat4Uniform("projection", projection);
 
@@ -108,8 +134,8 @@ namespace Pong {
                         firstMouseMove = false;
                     }
 
-                    const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
+                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
 
                     camera.ProcessMouseMovement(xOffset, yOffset);
 
@@ -125,8 +151,8 @@ namespace Pong {
             f32 windowWidth;
             f32 windowHeight;
             bool firstMouseMove = true;
-            float lastMouseX = 0.0f;
-            float lastMouseY = 0.0f;
+            f32 lastMouseX = 0.0f;
+            f32 lastMouseY = 0.0f;
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
             std::vector<f32> noiseMap;
@@ -153,7 +179,6 @@ namespace Pong {
                 });
 
                 vertices.clear();
-                indices.clear();
 
                 for (size_t z = 0; z < HEIGHT; ++z) {
                     for (size_t x = 0; x < WIDTH; ++x) {
@@ -209,13 +234,10 @@ namespace Pong {
 
                     vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
 
-                    // Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<f32 *>(vertices), sizeof(vertices));
                     Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
                     vertexBuffer->SetLayout({
                         { ShaderDataType::Float3, "position" },
-                        { ShaderDataType::Float3, "color" }, // new attribute
-                        // { ShaderDataType::Float2, "aUV" },
-                        // { ShaderDataType::Float3, "aNormal" },
+                        { ShaderDataType::Float3, "color" },
                     });
                     vertexArray->AddVertexBuffer(vertexBuffer);
 

@@ -6,6 +6,7 @@
 #include "pong_layer_2.h"
 #include "pong_layer_3.h"
 #include "pong_layer_4.h"
+#include "pong_layer_attenuation.h"
 
 namespace Pong {
     using namespace Vulkyrie::Events;
@@ -35,7 +36,7 @@ namespace Pong {
 
                     if (e.KeyCode == KeyCode::J) {
                         if (currentLayer == 0) {
-                            _application.PopLayer<PongLayer4>();
+                            _application.PopLayer<PongLayerAttenuation>();
                             _application.PushLayer<PongLayer0>(windowWidth, windowHeight);
                         } else if (currentLayer == 1) {
                             _application.PopLayer<PongLayer0>();
@@ -49,9 +50,12 @@ namespace Pong {
                         } else if (currentLayer == 4) {
                             _application.PopLayer<PongLayer3>();
                             _application.PushLayer<PongLayer4>(windowWidth, windowHeight);
+                        } else if (currentLayer == 5) {
+                            _application.PopLayer<PongLayer4>();
+                            _application.PushLayer<PongLayerAttenuation>(windowWidth, windowHeight);
                         }
 
-                        currentLayer = (currentLayer + 1) % 5;
+                        currentLayer = (currentLayer + 1) % 6;
 
                         return true;
                     }
