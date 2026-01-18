@@ -5,22 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Pong",
+            "name": "Launch Sandbox",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/games/pong/pong",
-            "cwd": "${workspaceFolder}/build/games/pong",
+            "program": "${workspaceFolder}/build/examples/sandbox/sandbox",
+            "cwd": "${workspaceFolder}/build/examples/sandbox",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/games/pong/pong",
+                "program": "${workspaceFolder}/build/examples/sandbox/sandbox",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/games/pong/pong.exe",
+                "program": "${workspaceFolder}/build/examples/sandbox/sandbox.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
@@ -40,19 +40,19 @@
             "name": "Launch Asteroids",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/games/asteroids/asteroids",
-            "cwd": "${workspaceFolder}/build/games/asteroids",
+            "program": "${workspaceFolder}/build/examples/asteroids/asteroids",
+            "cwd": "${workspaceFolder}/build/examples/asteroids",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/games/asteroids/asteroids",
+                "program": "${workspaceFolder}/build/examples/asteroids/asteroids",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/games/asteroids/Debug/asteroids.exe",
+                "program": "${workspaceFolder}/build/examples/asteroids/Debug/asteroids.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [

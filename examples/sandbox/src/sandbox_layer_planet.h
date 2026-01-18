@@ -5,14 +5,14 @@
 #include "model.h"
 #include <GLFW/glfw3.h>
 
-namespace Pong {
+namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Renderer;
 
-    class PongLayerPlanet final : public Layer {
+    class SandboxLayerPlanet final : public Layer {
         public:
-            PongLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
                 planetModel = CreateRef<Model>("assets/models/planet/planet.obj");
                 asteroidModel = CreateRef<Model>("assets/models/asteroid/rock.obj");
@@ -145,11 +145,11 @@ namespace Pong {
             }
 
             void OnAttach() override {
-                VDEBUG("Layer Detached: Pong Layer Planet.");
+                VDEBUG("Layer Detached: Planet");
             }
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: Pong Layer Planet.");
+                VDEBUG("Layer Detached: Planet");
             }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
@@ -205,4 +205,4 @@ namespace Pong {
             u32 amount;
             std::vector<glm::mat4> modelMatrices;
     };
-} // namespace Pong
+} // namespace Sandbox

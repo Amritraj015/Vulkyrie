@@ -18,20 +18,20 @@ cmake --build .
 
 Then you can run the project by running the executables under
 
-- Pong Application.
+- Sandbox Application.
 ```
 (On Linux)
-cd build/games/pong && ./pong
+cd build/examples/sandbox && ./sandbox
 
 (On Windows)
-cd build/games/pong/Debug && ./pong.exe
+cd build/examples/sandbox/Debug && ./sandbox.exe
 ```
 
 - Asteroids Application.
 ```
 (On Linux)
-cd build/games/asteroids && ./asteroids
+cd build/examples/asteroids && ./asteroids
 
 (On Windows)
-cd build/games/asteroids/Debug && ./asteroids.exe
+cd build/examples/asteroids/Debug && ./asteroids.exe
 ```

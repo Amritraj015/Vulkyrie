@@ -15,7 +15,7 @@
         "build.zig",
         "build.zig.zon",
         "engine",
-        "games",
+        "examples",
         "vulky-cli",
         "external",
     },

@@ -3,14 +3,14 @@
 #include <vulkyrie.h>
 #include "model.h"
 
-namespace Pong {
+namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    class PongLayerBackPack final : public Layer {
+    class SandboxLayerBackPack final : public Layer {
         public:
-            PongLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
                   backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
@@ -22,14 +22,14 @@ namespace Pong {
                 glEnable(GL_DEPTH_TEST);
             };
 
-            ~PongLayerBackPack() = default;
+            ~SandboxLayerBackPack() = default;
 
             void OnAttach() override {
-                VDEBUG("Layer Attached: Pong Layer 0, Layer ID {}.", _id.GetUUID());
+                VDEBUG("Layer Attached: Backpack", _id.GetUUID());
             };
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: Pong Layer 0.");
+                VDEBUG("Layer Detached: Backpack");
             };
 
             void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
@@ -111,4 +111,4 @@ namespace Pong {
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
     };
-} // namespace Pong
+} // namespace Sandbox

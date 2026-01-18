@@ -47,7 +47,7 @@ pub fn build(b: *std.Build) void {
     // -------------------------------------
 
     // -------------------------------------
-    // Build the Pong Game Executable.
+    // Build the Sandbox Executable.
     // -------------------------------------
 
     // -------------------------------------
@@ -114,36 +114,36 @@ pub fn build(b: *std.Build) void {
     // b.installArtifact(engine);
 
     // // -------------------------------------
-    // // Game: Pong
+    // // Example: Sandbox
     // // -------------------------------------
 
-    // const pong = b.addExecutable(.{
-    //     .name = "pong",
+    // const sandbox = b.addExecutable(.{
+    //     .name = "sandbox",
     //     .target = target,
     //     .optimize = optimize,
     // });
 
-    // pong.addCSourceFiles(.{
+    // sandbox.addCSourceFiles(.{
     //     .files = &.{
-    //         "games/pong/src/pong_entry.cpp",
+    //         "examples/sandbox/src/sandbox_entry.cpp",
     //     },
     //     .flags = &.{"-std=c++23"},
     // });
 
-    // pong.linkLibrary(engine);
-    // pong.linkLibCpp();
+    // sandbox.linkLibrary(engine);
+    // sandbox.linkLibCpp();
 
-    // b.installArtifact(pong);
+    // b.installArtifact(sandbox);
 
-    // // Add run step for pong
-    // const run_pong_cmd = b.addRunArtifact(pong);
-    // run_pong_cmd.step.dependOn(b.getInstallStep());
+    // // Add run step for sandbox
+    // const run_sandbox_cmd = b.addRunArtifact(sandbox);
+    // run_sandbox_cmd.step.dependOn(b.getInstallStep());
     // if (b.args) |args| {
-    //     run_pong_cmd.addArgs(args);
+    //     run_sandbox_cmd.addArgs(args);
     // }
 
-    // const run_pong_step = b.step("run-pong", "Run the Pong game");
-    // run_pong_step.dependOn(&run_pong_cmd.step);
+    // const run_sandbox_step = b.step("run-sandbox", "Run the Sandbox game");
+    // run_sandbox_step.dependOn(&run_sandbox_cmd.step);
 
     // // -------------------------------------
     // // Game: Asteroids
@@ -157,7 +157,7 @@ pub fn build(b: *std.Build) void {
 
     // asteroids.addCSourceFiles(.{
     //     .files = &.{
-    //         "games/asteroids/src/asteroids_entry.cpp",
+    //         "examples/asteroids/src/asteroids_entry.cpp",
     //     },
     //     .flags = &.{"-std=c++23"},
     // });

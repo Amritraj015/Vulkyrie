@@ -5,7 +5,7 @@
 
 #include "vendor/stb_image.h"
 
-namespace Pong {
+namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
@@ -16,14 +16,14 @@ namespace Pong {
     const f32 worldSizeZ = 100.0f; // meters deep
     const f32 heightScale = 15.0f; // max height in meters
 
-    class PongLayer4 final : public Vulkyrie::Core::Layer {
+    class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
-            PongLayer4(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerTerrainGeneration(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
                   terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
-                    VERROR("PongLayer4: Failed to load terrain shaders.");
+                    VERROR("SandboxLayerTerrainGeneration: Failed to load terrain shaders.");
                     return;
                 }
 
@@ -33,6 +33,14 @@ namespace Pong {
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
+            }
+
+            void OnAttach() override {
+                VDEBUG("Layer Attached: Terrain Generation");
+            }
+
+            void OnDetach() override {
+                VDEBUG("Layer Detached: Terrain Generation");
             }
 
             void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
@@ -248,4 +256,4 @@ namespace Pong {
                 }
             }
     };
-} // namespace Pong
+} // namespace Sandbox

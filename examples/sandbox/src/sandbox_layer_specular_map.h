@@ -1,76 +1,24 @@
+#pragma once
+
 #include <vulkyrie.h>
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
-namespace Pong {
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Core;
+namespace Sandbox {
     using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie::Core;
+    using namespace Vulkyrie::Events;
 
-    class PongLayerAttenuation : public Vulkyrie::Core::Layer {
+    class SandboxLayerSpecularMap : public Layer {
         public:
-            PongLayerAttenuation(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerSpecularMap(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
-                pointLight = {
-                    .Light = {
-                        { 0.2f, 0.2f, 0.2f },
-                        { 0.5f, 0.5f, 0.5f },
-                        { 1.0f, 1.0f, 1.0f },
-                    },
-                    .Position = { 1.2f, 1.0f, 2.0f },
-                    .AttenuationConstant = 1.0f,
-                    .AttenuationLinear = 0.09f,
-                    .AttenuationQuadratic = 0.032f,
-                };
 
-                // Starting vertices.
-                vertices = {
-                    // positions         // normals    // texture coords
-                    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
-                    0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
-                    0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-                    0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-                    -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
-                    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
-
-                    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
-                    0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
-                    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-                    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-                    -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
-                    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
-
-                    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
-                    -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
-                    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-                    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-                    -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
-                    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
-
-                    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
-                    0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
-                    0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-                    0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-                    0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
-                    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
-
-                    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
-                    0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
-                    0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-                    0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-                    -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
-                    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
-
-                    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
-                    0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
-                    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-                    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-                    -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
-                    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
-                };
+                // Initial light position.
+                lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
                 // load and compile the shader programs.
-                objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/attenuation.glsl");
+                objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.glsl");
                 lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
 
                 // Check if shaders are loaded successfully.
@@ -115,12 +63,14 @@ namespace Pong {
                 glEnable(GL_DEPTH_TEST);
             }
 
+            ~SandboxLayerSpecularMap() = default;
+
             void OnAttach() override {
-                VDEBUG("Layer Attached: Pong Layer Attenuation.");
+                VDEBUG("Layer Attached: Specular Map");
             }
 
             void OnDetach() override {
-                VDEBUG("Layer Detached: Pong Layer Attenuation.");
+                VDEBUG("Layer Detached: Specular Map");
             }
 
             void OnUpdate(const Timestep deltaTime) override {
@@ -160,18 +110,11 @@ namespace Pong {
                 boxTexture->Bind(0);
                 specularMapTexture->Bind(1);
 
-                pointLight.Position = glm::vec3(2.0f * sin(glfwGetTime()), 0.0f, 5.0f * cos(glfwGetTime()));
-
                 // Set the light properties.
-                objectShader->SetVec3Uniform("light.position", pointLight.Position);
-                objectShader->SetVec3Uniform("light.ambient", pointLight.Light.Ambient);
-                objectShader->SetVec3Uniform("light.diffuse", pointLight.Light.Diffuse);
-                objectShader->SetVec3Uniform("light.specular", pointLight.Light.Specular);
-
-                // Set attenuation factors.
-                objectShader->SetFloatUniform("light.constant", pointLight.AttenuationConstant);
-                objectShader->SetFloatUniform("light.linear", pointLight.AttenuationLinear);
-                objectShader->SetFloatUniform("light.quadratic", pointLight.AttenuationQuadratic);
+                objectShader->SetVec3Uniform("light.position", lightPos);
+                objectShader->SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
+                objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
+                objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
 
                 // Issue a draw call to draw the reflecting object.
                 objectVertexArray->Bind();
@@ -183,8 +126,8 @@ namespace Pong {
                 lightShader->Use();
                 lightShader->SetMat4Uniform("projection", projection);
                 lightShader->SetMat4Uniform("view", view);
-                model = glm::translate(model, pointLight.Position);
-                model = glm::scale(model, glm::vec3(0.1f)); // a smaller cube
+                model = glm::translate(model, lightPos);
+                model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
                 lightShader->SetMat4Uniform("model", model);
 
                 // Issue a draw call to draw the light source.
@@ -226,6 +169,8 @@ namespace Pong {
             Ref<VertexBuffer> lightVertexBuffer;
             Ref<Shader> lightShader;
 
+            glm::vec3 lightPos;
+
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;
 
@@ -234,8 +179,50 @@ namespace Pong {
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
-            std::vector<f32> vertices;
-            PointLight pointLight;
-    };
 
-} // namespace Pong
+            std::vector<f32> vertices = {
+                // positions         // normals          // texture coords
+                -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
+                0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
+                0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+                0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+                -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
+
+                -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
+                0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+                0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+                -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
+                -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
+
+                -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
+                -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+                -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
+                -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
+
+                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+                0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
+
+                -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
+                0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+                0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+                -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
+
+                -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
+                0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
+                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+                -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
+                -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
+            };
+    };
+} // namespace Sandbox

@@ -44,13 +44,13 @@
 		},
 		{
 			"type": "shell",
-			"label": "Run Pong",
-			"command": "pong",
+			"label": "Run Sandbox",
+			"command": "sandbox",
 			"options": {
-				"cwd": "${workspaceFolder}/build/games/pong"
+				"cwd": "${workspaceFolder}/build/examples/sandbox"
 			},
 			"windows": {
-				"command": "${workspaceFolder}/build/games/pong/pong.exe"
+				"command": "${workspaceFolder}/build/examples/sandbox/sandbox.exe"
 			},
 			"group": "test",
 			"problemMatcher": [],

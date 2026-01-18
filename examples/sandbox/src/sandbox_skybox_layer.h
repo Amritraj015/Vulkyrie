@@ -6,7 +6,7 @@
 
 #include "vendor/stb_image.h"
 
-namespace Pong {
+namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
@@ -72,20 +72,20 @@ namespace Pong {
     const u16 WIDTH = 100;
     const u16 HEIGHT = 100;
 
-    class PongSkyboxLayer final : public Vulkyrie::Core::Layer {
+    class SandboxSkyboxLayer final : public Vulkyrie::Core::Layer {
         public:
-            PongSkyboxLayer(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxSkyboxLayer(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
                   // texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
                   terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
                 // if (!texture->IsLoaded()) {
-                //     VERROR("PongSkyboxLayer: Failed to load texture.");
+                //     VERROR("SandboxSkyboxLayer: Failed to load texture.");
                 //     return;
                 // }
 
                 if (!terrainShader->IsValid()) {
-                    VERROR("PongSkyboxLayer: Failed to load shaders.");
+                    VERROR("SandboxSkyboxLayer: Failed to load shaders.");
                     return;
                 }
 
@@ -324,4 +324,4 @@ namespace Pong {
                 return textureID;
             }
     };
-} // namespace Pong
+} // namespace Sandbox

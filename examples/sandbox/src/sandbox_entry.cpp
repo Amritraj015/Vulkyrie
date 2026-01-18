@@ -1,4 +1,4 @@
-#include "pong_application.h"
+#include "sandbox_application.h"
 
 Vulkyrie::Core::Application *CreateApplication() {
     Vulkyrie::Core::WindowProps windowProps;
@@ -7,9 +7,9 @@ Vulkyrie::Core::Application *CreateApplication() {
     windowProps.StartX = 100;
     windowProps.StartY = 100;
     windowProps.VSync = false;
-    windowProps.Title = "Pong (Powered by The Vulkyrie Game Engine)";
+    windowProps.Title = "Sandbox (Powered by The Vulkyrie Game Engine)";
 
-    Pong::PongApplication *pongApp = new Pong::PongApplication(windowProps);
+    Sandbox::SandboxApplication *sandboxApp = new Sandbox::SandboxApplication(windowProps);
 
-    return pongApp;
+    return sandboxApp;
 }

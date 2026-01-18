@@ -22,7 +22,7 @@ Add_Subdirectory(engine)
 # Add_Subdirectory(vulky-cli)
 
 # -------------------------------------
-# Games based on the Vulkyrie engine
+# Examples/Games based on the Vulkyrie engine
 # -------------------------------------
-# Add_Subdirectory(games/asteroids)
-Add_Subdirectory(games/pong)
+# Add_Subdirectory(examples/asteroids)
+Add_Subdirectory(examples/sandbox)
