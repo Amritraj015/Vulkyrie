@@ -16,21 +16,21 @@ namespace Sandbox {
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
-                    VERROR("Failed to compile shaders.");
+                    VERROR("Failed to compile shaders.")
                 }
 
+                // Enable depth testing for proper 3D rendering.
                 glEnable(GL_DEPTH_TEST);
+
+                // Enable face culling to improve performance.
+                glEnable(GL_CULL_FACE);
             };
 
             ~SandboxLayerBackPack() = default;
 
-            void OnAttach() override {
-                VDEBUG("Layer Attached: Backpack", _id.GetUUID());
-            };
+            void OnAttach() override { VDEBUG("Layer Attached: Backpack", _id.GetUUID()) };
 
-            void OnDetach() override {
-                VDEBUG("Layer Detached: Backpack");
-            };
+            void OnDetach() override { VDEBUG("Layer Detached: Backpack") };
 
             void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
                 glClearColor(0.05f, 0.05f, 0.05f, 1.0f);

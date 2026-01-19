@@ -33,9 +33,6 @@ namespace Sandbox {
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
-                const auto indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
-                vertexArray->SetIndexBuffer(indexBuffer);
-
                 // -----------------------------------------------
                 // Textures.
                 texture1 = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg");
@@ -45,15 +42,18 @@ namespace Sandbox {
                     VERROR("Failed to load one or more textures!");
                 }
 
-                // This is required to make sure 3D rendering works properly.
-                glEnable(GL_DEPTH_TEST);
-
                 // Projection matrix hardly ever changes, so it can live outside the main application loop.
                 graphicsShader->Use();
                 glm::mat4 projection = glm::mat4(1.0f);
                 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
 
                 graphicsShader->SetMat4Uniform("projection", projection);
+
+                // This is required to make sure 3D rendering works properly.
+                glEnable(GL_DEPTH_TEST);
+
+                // Enable face culling to improve performance.
+                glDisable(GL_CULL_FACE);
             }
 
             ~SandboxLayerCubes() = default;
@@ -206,11 +206,6 @@ namespace Sandbox {
                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
                 -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
                 -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-            };
-
-            std::vector<u32> indices = {
-                0, 1, 3, // first triangle
-                1, 2, 3  // second triangle
             };
     };
 } // namespace Sandbox

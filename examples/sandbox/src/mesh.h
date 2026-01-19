@@ -1,12 +1,8 @@
 #pragma once
 
-#include <glad/glad.h> // holds all OpenGL type declarations
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <vulkyrie.h>
+#include "glad/glad.h"
 
-// #include <string>
-// #include <vector>
 using namespace std;
 
 #define MAX_BONE_INFLUENCE 4
@@ -31,7 +27,7 @@ struct Vertex {
 
 struct Texture {
     public:
-        unsigned int id;
+        u32 id;
         string type;
         string path;
 };
@@ -40,12 +36,12 @@ class Mesh {
     public:
         // mesh Data
         vector<Vertex> vertices;
-        vector<unsigned int> indices;
+        vector<u32> indices;
         vector<Texture> textures;
-        unsigned int VAO;
+        u32 VAO;
 
         // constructor
-        Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices, const vector<Texture> &textures)
+        Mesh(const vector<Vertex> &vertices, const vector<u32> &indices, const vector<Texture> &textures)
             : vertices(vertices), indices(indices), textures(textures) {
             // now that we have all the required data, set the vertex buffers and its attribute pointers.
             setupMesh();
@@ -54,12 +50,12 @@ class Mesh {
         // render the mesh
         void Draw(Vulkyrie::Renderer::Shader &shader) {
             // bind appropriate textures
-            unsigned int diffuseNr = 1;
-            unsigned int specularNr = 1;
-            unsigned int normalNr = 1;
-            unsigned int heightNr = 1;
+            u32 diffuseNr = 1;
+            u32 specularNr = 1;
+            u32 normalNr = 1;
+            u32 heightNr = 1;
 
-            for (unsigned int i = 0; i < textures.size(); i++) {
+            for (u32 i = 0; i < textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
                 // retrieve texture number (the N in diffuse_textureN)
                 string number;
@@ -67,11 +63,11 @@ class Mesh {
                 if (name == "texture_diffuse")
                     number = std::to_string(diffuseNr++);
                 else if (name == "texture_specular")
-                    number = std::to_string(specularNr++); // transfer unsigned int to string
+                    number = std::to_string(specularNr++); // transfer u32 to string
                 else if (name == "texture_normal")
-                    number = std::to_string(normalNr++); // transfer unsigned int to string
+                    number = std::to_string(normalNr++); // transfer u32 to string
                 else if (name == "texture_height")
-                    number = std::to_string(heightNr++); // transfer unsigned int to string
+                    number = std::to_string(heightNr++); // transfer u32 to string
 
                 // now set the sampler to the correct texture unit
                 glUniform1i(glGetUniformLocation(shader.GetProgramID(), (name + number).c_str()), i);
@@ -81,7 +77,7 @@ class Mesh {
 
             // draw mesh
             glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, static_cast<u32>(indices.size()), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
 
             // always good practice to set everything back to defaults once configured.
@@ -90,7 +86,7 @@ class Mesh {
 
     private:
         // render data
-        unsigned int VBO, EBO;
+        u32 VBO, EBO;
 
         // initializes all the buffer objects/arrays
         void setupMesh() {
@@ -108,7 +104,7 @@ class Mesh {
             glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(u32), &indices[0], GL_STATIC_DRAW);
 
             // set the vertex attribute pointers
             // vertex Positions

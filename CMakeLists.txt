@@ -19,7 +19,7 @@ Add_Subdirectory(engine)
 # -------------------------------------
 # Build the Vulkyrie CLI tool.
 # -------------------------------------
-# Add_Subdirectory(vulky-cli)
+Add_Subdirectory(vulky-cli)
 
 # -------------------------------------
 # Examples/Games based on the Vulkyrie engine
