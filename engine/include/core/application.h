@@ -67,6 +67,34 @@ namespace Vulkyrie::Core {
                 return _layers.QueuePopOverlayOperation<TLayer>();
             }
 
+            /** @brief Suspends a layer in the layer stack.
+             * @tparam TLayer The type of layer to suspend.
+             */
+            template <typename TLayer>
+                requires(std::derived_from<TLayer, Layer>)
+            void SuspendLayer() {
+                return _layers.QueueSuspendLayerOperation<TLayer>();
+            }
+
+            /** @brief Resumes a suspended layer in the layer stack.
+             * @tparam TLayer The type of layer to resume.
+             */
+            template <typename TLayer>
+                requires(std::derived_from<TLayer, Layer>)
+            void ResumeLayer() {
+                return _layers.QueueResumeLayerOperation<TLayer>();
+            }
+
+            /** @brief Checks if a layer of the specified type exists in the active or suspended layer stack.
+             * @tparam TLayer The type of layer to check for.
+             * @returns True if the layer exists, false otherwise.
+             */
+            template <typename TLayer>
+                requires std::derived_from<TLayer, Layer>
+            bool HasLayer() const {
+                return _layers.HasLayer<TLayer>();
+            }
+
             /** @brief Gets a layer of the specified type from the layer stack.
              * @tparam TLayer The type of layer to get.
              * @returns A pointer to the layer if found, nullptr otherwise.
@@ -74,7 +102,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer>
                 requires(std::derived_from<TLayer, Layer>)
             const TLayer *GetLayer() {
-                return _layers.GetLayer<TLayer>();
+                return _layers.GetActiveLayer<TLayer>();
             }
 
             /** @brief Checks if a specific key is currently pressed.

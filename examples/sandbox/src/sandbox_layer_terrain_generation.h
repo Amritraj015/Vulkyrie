@@ -23,7 +23,7 @@ namespace Sandbox {
                   terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
-                    VERROR("SandboxLayerTerrainGeneration: Failed to load terrain shaders.");
+                    VERROR("Failed to load terrain shaders.");
                     return;
                 }
 
@@ -35,11 +35,11 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttach() override {
+            void OnAttached() override {
                 VDEBUG("Layer Attached: Terrain Generation");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Terrain Generation");
             }
 

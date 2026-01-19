@@ -91,7 +91,7 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
 
                 // Enable face culling to improve performance.
-                glEnable(GL_CULL_FACE);
+                // glEnable(GL_CULL_FACE);
             }
 
             void OnUpdate(const Timestep deltaTime) override {
@@ -148,11 +148,11 @@ namespace Sandbox {
                 }
             }
 
-            void OnAttach() override {
+            void OnAttached() override {
                 VDEBUG("Layer Detached: Planet");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Planet");
             }
 

@@ -60,11 +60,11 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttach() override {
+            void OnAttached() override {
                 VDEBUG("Layer Attached: Attenuation");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Attenuation");
             }
 

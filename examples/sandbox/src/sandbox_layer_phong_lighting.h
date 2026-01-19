@@ -50,11 +50,11 @@ namespace Sandbox {
 
             ~SandboxLayerPhongLighting() = default;
 
-            void OnAttach() override {
+            void OnAttached() override {
                 VDEBUG("Layer Attached: Phong Lighting");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Phong Lighting");
             }
 

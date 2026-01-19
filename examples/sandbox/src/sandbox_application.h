@@ -12,7 +12,7 @@ namespace Sandbox {
             ~SandboxApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<SandboxLayerTerrainGeneration>(event.Width, event.Height);
+                PushLayer<SandboxLayerAttenuation>(event.Width, event.Height);
                 PushOverlay<SandboxVoidLayer>(event.Width, event.Height);
 
                 return true;
