@@ -15,10 +15,11 @@ namespace Sandbox {
                 // load and compile the shader programs.
                 // objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/attenuation.glsl");
                 objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/spotlight.glsl");
-                lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
+                // lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
 
                 // Check if shaders are loaded successfully.
-                if (!objectShader->IsValid() || !lightShader->IsValid()) {
+                // if (!objectShader->IsValid() || !lightShader->IsValid()) {
+                if (!objectShader->IsValid()) {
                     VERROR("Failed to load shaders.");
                     return;
                 }
@@ -103,16 +104,8 @@ namespace Sandbox {
                 specularMapTexture->Bind(1);
 
                 SpotLight spotLight = {
-                    {
-                        0.1f,
-                        0.1f,
-                        0.1f,
-                    },
-                    {
-                        0.8f,
-                        0.8f,
-                        0.8f,
-                    },
+                    { 0.1f, 0.1f, 0.1f },
+                    { 0.8f, 0.8f, 0.8f },
                     {
                         1.0f,
                         1.0f,
@@ -202,7 +195,7 @@ namespace Sandbox {
 
             Ref<VertexArray> lightVertexArray;
             Ref<VertexBuffer> lightVertexBuffer;
-            Ref<Shader> lightShader;
+            // Ref<Shader> lightShader;
 
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;
@@ -213,9 +206,31 @@ namespace Sandbox {
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
 
-            PointLight pointLight = {
-                { 0.2f, 0.2f, 0.2f }, { 0.5f, 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f }, { 1.2f, 1.0f, 2.0f }, 1.0f, 0.09f, 0.032f,
-            };
+            // PointLight pointLight = {
+            //     {
+            //         0.2f,
+            //         0.2f,
+            //         0.2f,
+            //     },
+            //     {
+            //         0.5f,
+            //         0.5f,
+            //         0.5f,
+            //     },
+            //     {
+            //         1.0f,
+            //         1.0f,
+            //         1.0f,
+            //     },
+            //     {
+            //         1.2f,
+            //         1.0f,
+            //         2.0f,
+            //     },
+            //     1.0f,
+            //     0.09f,
+            //     0.032f,
+            // };
 
             std::vector<f32> vertices = {
                 // positions         // normals    // texture coords
