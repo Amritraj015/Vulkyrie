@@ -149,7 +149,7 @@ namespace Sandbox {
             }
 
             void OnAttached() override {
-                VDEBUG("Layer Detached: Planet");
+                VDEBUG("Layer Attached: Planet");
             }
 
             void OnDetached() override {
