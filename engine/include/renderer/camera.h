@@ -22,7 +22,7 @@ namespace Vulkyrie::Renderer {
              * @param pitch The initial pitch angle (in degrees) of the camera. Default is 0 degrees.
              */
             Camera(glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), f32 yaw = -90.0f, f32 pitch = 0.0f)
-                : _position(cameraPosition), _worldUp(up), _yaw(yaw), _pitch(pitch), _front(glm::vec3(0.0f, 0.0f, -1.0f)), _mouseSensitivity(0.1f),
+                : _position(cameraPosition), _front(glm::vec3(0.0f, 0.0f, -1.0f)), _worldUp(up), _yaw(yaw), _pitch(pitch), _mouseSensitivity(0.1f),
                   _zoom(45.0f) {
                 UpdateCameraVectors();
             };
@@ -103,18 +103,34 @@ namespace Vulkyrie::Renderer {
             }
 
         private:
+            /** @brief The position of the camera in world space. */
             glm::vec3 _position;
+
+            /** @brief The front vector of the camera, indicating the direction it is facing. */
             glm::vec3 _front;
+
+            /** @brief The up vector of the camera, indicating the upward direction relative to the camera's orientation. */
             glm::vec3 _up;
+
+            /** @brief The right vector of the camera, indicating the rightward direction relative to the camera's orientation. */
             glm::vec3 _right;
+
+            /** @brief The world's up vector, used as a reference for calculating the camera's orientation. */
             glm::vec3 _worldUp;
 
+            /** @brief The yaw angle (in degrees) of the camera, representing rotation around the vertical axis. */
             f32 _yaw;
+
+            /** @brief The pitch angle (in degrees) of the camera, representing rotation around the horizontal axis. */
             f32 _pitch;
 
+            /** @brief The mouse sensitivity factor, affecting how much the camera rotates in response to mouse movement. */
             f32 _mouseSensitivity;
+
+            /** @brief The zoom level (field of view) of the camera, affecting how wide the camera's view is. */
             f32 _zoom;
 
+            /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
             void UpdateCameraVectors() {
                 // calculate the new Front vector
                 glm::vec3 front;
