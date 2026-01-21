@@ -6,6 +6,13 @@
 #include "renderer/polygon_fill_mode.h"
 
 namespace Vulkyrie::Renderer {
+    struct RendererStatistics {
+        public:
+            u32 FramesRendered = 0;
+            u32 DrawCalls = 0;
+            u32 TrianglesRendered = 0;
+    };
+
     class Renderer {
         public:
             Renderer(const Vulkyrie::Core::Platform &platform);

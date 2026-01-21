@@ -2,11 +2,26 @@
 
 #include "buffer_layout.h"
 #include "core/graphics_api.h"
+#include "renderer/vertex.h"
 
 namespace Vulkyrie::Renderer {
     class VertexBuffer {
         public:
             virtual ~VertexBuffer() = default;
+
+            /** @brief Gets the layout of the vertex buffer.
+             * @returns The buffer layout.
+             */
+            [[nodiscard]] inline const BufferLayout &GetLayout() const {
+                return _layout;
+            }
+
+            /** @brief Sets the layout of the vertex buffer.
+             * @param layout The buffer layout to set.
+             */
+            inline void SetLayout(const BufferLayout &layout) {
+                _layout = layout;
+            }
 
             /** @brief Binds the vertex buffer. */
             virtual void Bind() const = 0;
@@ -19,16 +34,6 @@ namespace Vulkyrie::Renderer {
              * @param size Size of the data in bytes.
              */
             virtual void SetData(const void *data, size_t size) = 0;
-
-            /** @brief Gets the layout of the vertex buffer.
-             * @returns The buffer layout.
-             */
-            virtual const BufferLayout &GetLayout() const = 0;
-
-            /** @brief Sets the layout of the vertex buffer.
-             * @param layout The buffer layout to set.
-             */
-            virtual void SetLayout(const BufferLayout &layout) = 0;
 
             /** @brief Creates a vertex buffer based on the specified graphics API and size.
              * @param api The graphics API to use.
@@ -44,5 +49,15 @@ namespace Vulkyrie::Renderer {
              * @returns A reference to the created VertexBuffer.
              */
             static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, size_t size);
+
+            /** @brief Creates a vertex buffer based on the specified graphics API and a vector of vertices.
+             * @param api The graphics API to use.
+             * @param vertices The vector of vertices.
+             * @returns A reference to the created VertexBuffer.
+             */
+            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, const std::vector<Vertex> &vertices);
+
+        private:
+            BufferLayout _layout;
     };
 } // namespace Vulkyrie::Renderer

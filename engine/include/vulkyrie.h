@@ -29,6 +29,8 @@
 #include "renderer/vertex_buffer.h"
 #include "renderer/index_buffer.h"
 #include "renderer/light.h"
+#include "renderer/mesh.h"
+#include "renderer/model.h"
 #include "renderer/texture_image_format.h"
 #include "renderer/texture_specification.h"
 #include "renderer/texture.h"

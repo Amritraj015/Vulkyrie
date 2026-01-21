@@ -34,6 +34,11 @@ namespace Vulkyrie::Renderer {
              */
             [[nodiscard]] inline virtual const std::filesystem::path &GetPath() const = 0;
 
+            /** @brief Gets the file name of the texture.
+             * @returns The texture file name as a string view.
+             */
+            [[nodiscard]] inline virtual const std::string_view GetTextureFileName() const = 0;
+
             /** @brief Sets the data of the texture.
              * @param data Pointer to the data to set.
              * @param size Size of the data in bytes.

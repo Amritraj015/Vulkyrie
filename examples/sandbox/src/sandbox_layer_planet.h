@@ -2,7 +2,6 @@
 
 #include <vulkyrie.h>
 #include "glad/glad.h"
-#include "model.h"
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
@@ -14,8 +13,8 @@ namespace Sandbox {
         public:
             SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
-                planetModel = CreateRef<Model>("assets/models/planet/planet.obj");
-                asteroidModel = CreateRef<Model>("assets/models/asteroid/rock.obj");
+                planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
+                asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
 
                 planetShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
                 asteroidShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/asteroid.glsl");
@@ -24,74 +23,74 @@ namespace Sandbox {
                     VERROR("Failed to compile shaders.");
                 }
 
-                amount = 1000000;
-                modelMatrices.reserve(amount);
-                srand(glfwGetTime()); // initialize random seed
-                f32 radius = 500.0;
-                f32 offset = 50.0f;
+                // amount = 1000000;
+                // modelMatrices.reserve(amount);
+                // srand(glfwGetTime()); // initialize random seed
+                // f32 radius = 500.0;
+                // f32 offset = 50.0f;
 
-                for (u32 i = 0; i < amount; i++) {
-                    glm::mat4 model = glm::mat4(1.0f);
-                    // 1. translation: displace along circle with 'radius' in range [-offset, offset]
-                    f32 angle = (f32)i / (f32)amount * 360.0f;
-                    f32 displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
-                    f32 x = sin(angle) * radius + displacement;
-                    displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
-                    f32 y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
-                    displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
-                    f32 z = cos(angle) * radius + displacement;
-                    model = glm::translate(model, glm::vec3(x, y, z));
+                // for (u32 i = 0; i < amount; i++) {
+                //     glm::mat4 model = glm::mat4(1.0f);
+                //     // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+                //     f32 angle = (f32)i / (f32)amount * 360.0f;
+                //     f32 displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
+                //     f32 x = sin(angle) * radius + displacement;
+                //     displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
+                //     f32 y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+                //     displacement = (rand() % (i32)(2 * offset * 100)) / 100.0f - offset;
+                //     f32 z = cos(angle) * radius + displacement;
+                //     model = glm::translate(model, glm::vec3(x, y, z));
 
-                    // 2. scale: scale between 0.05 and 0.25f
-                    f32 scale = (rand() % 20) / 100.0f + 0.05;
-                    model = glm::scale(model, glm::vec3(scale));
+                //     // 2. scale: scale between 0.05 and 0.25f
+                //     f32 scale = (rand() % 20) / 100.0f + 0.05;
+                //     model = glm::scale(model, glm::vec3(scale));
 
-                    // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-                    f32 rotAngle = (rand() % 360);
-                    model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+                //     // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+                //     f32 rotAngle = (rand() % 360);
+                //     model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
-                    // 4. now add to list of matrices
-                    modelMatrices.push_back(model);
-                }
+                //     // 4. now add to list of matrices
+                //     modelMatrices.push_back(model);
+                // }
 
-                // configure instanced array
-                // -------------------------
-                u32 buffer;
-                glGenBuffers(1, &buffer);
-                glBindBuffer(GL_ARRAY_BUFFER, buffer);
-                glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+                // // configure instanced array
+                // // -------------------------
+                // u32 buffer;
+                // glGenBuffers(1, &buffer);
+                // glBindBuffer(GL_ARRAY_BUFFER, buffer);
+                // glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
-                // set transformation matrices as an instance vertex attribute (with divisor 1)
-                // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
-                // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
-                // -----------------------------------------------------------------------------------------------------------------------------------
-                for (u32 i = 0; i < asteroidModel->meshes.size(); i++) {
-                    u32 VAO = asteroidModel->meshes[i].VAO;
-                    glBindVertexArray(VAO);
+                // // set transformation matrices as an instance vertex attribute (with divisor 1)
+                // // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
+                // // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
+                // // -----------------------------------------------------------------------------------------------------------------------------------
+                // for (u32 i = 0; i < asteroidModel->_meshes.size(); i++) {
+                //     u32 VAO = asteroidModel->_meshes[i].VAO;
+                //     glBindVertexArray(VAO);
 
-                    // set attribute pointers for matrix (4 times vec4)
-                    glEnableVertexAttribArray(3);
-                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
-                    glEnableVertexAttribArray(4);
-                    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(sizeof(glm::vec4)));
-                    glEnableVertexAttribArray(5);
-                    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(2 * sizeof(glm::vec4)));
-                    glEnableVertexAttribArray(6);
-                    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(3 * sizeof(glm::vec4)));
+                //     // set attribute pointers for matrix (4 times vec4)
+                //     glEnableVertexAttribArray(3);
+                //     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
+                //     glEnableVertexAttribArray(4);
+                //     glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(sizeof(glm::vec4)));
+                //     glEnableVertexAttribArray(5);
+                //     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(2 * sizeof(glm::vec4)));
+                //     glEnableVertexAttribArray(6);
+                //     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(3 * sizeof(glm::vec4)));
 
-                    glVertexAttribDivisor(3, 1);
-                    glVertexAttribDivisor(4, 1);
-                    glVertexAttribDivisor(5, 1);
-                    glVertexAttribDivisor(6, 1);
+                //     glVertexAttribDivisor(3, 1);
+                //     glVertexAttribDivisor(4, 1);
+                //     glVertexAttribDivisor(5, 1);
+                //     glVertexAttribDivisor(6, 1);
 
-                    glBindVertexArray(0);
-                }
+                //     glBindVertexArray(0);
+                // }
 
-                // Enable depth testing for correct 3D rendering.
-                glEnable(GL_DEPTH_TEST);
+                // // Enable depth testing for correct 3D rendering.
+                // glEnable(GL_DEPTH_TEST);
 
-                // Enable face culling to improve performance.
-                // glEnable(GL_CULL_FACE);
+                // // Enable face culling to improve performance.
+                // // glEnable(GL_CULL_FACE);
             }
 
             void OnUpdate(const Timestep deltaTime) override {
@@ -140,12 +139,12 @@ namespace Sandbox {
                 glActiveTexture(GL_TEXTURE0);
 
                 // note: we also made the textures_loaded vector public (instead of private) from the model class.
-                glBindTexture(GL_TEXTURE_2D, asteroidModel->textures_loaded[0].id);
-                for (u32 i = 0; i < asteroidModel->meshes.size(); i++) {
-                    glBindVertexArray(asteroidModel->meshes[i].VAO);
-                    glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(asteroidModel->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
-                    glBindVertexArray(0);
-                }
+                // glBindTexture(GL_TEXTURE_2D, asteroidModel->texturesLoaded[0].Id);
+                // for (u32 i = 0; i < asteroidModel->_meshes.size(); i++) {
+                //     glBindVertexArray(asteroidModel->_meshes[i].VAO);
+                //     glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(asteroidModel->_meshes[i]._indices.size()), GL_UNSIGNED_INT, 0, amount);
+                //     glBindVertexArray(0);
+                // }
             }
 
             void OnAttached() override {

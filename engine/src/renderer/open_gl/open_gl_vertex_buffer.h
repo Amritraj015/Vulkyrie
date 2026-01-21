@@ -14,7 +14,12 @@ namespace Vulkyrie::Renderer {
              * @param vertices Pointer to the vertex data.
              * @param size Size of the vertex data in bytes.
              */
-            OpenGLVertexBuffer(float *vertices, size_t size);
+            OpenGLVertexBuffer(f32 *vertices, size_t size);
+
+            /** @brief Constructs an OpenGL vertex buffer with the given vector of vertices.
+             * @param vertices The vector of vertices.
+             */
+            OpenGLVertexBuffer(const std::vector<Vertex> &vertices);
 
             /** @brief Destructor to clean up the OpenGL vertex buffer. */
             ~OpenGLVertexBuffer();
@@ -31,18 +36,7 @@ namespace Vulkyrie::Renderer {
              */
             void SetData(const void *data, size_t size) override;
 
-            /** @brief Gets the layout of the vertex buffer.
-             * @returns The buffer layout.
-             */
-            const BufferLayout &GetLayout() const override;
-
-            /** @brief Sets the layout of the vertex buffer.
-             * @param layout The buffer layout to set.
-             */
-            void SetLayout(const BufferLayout &layout) override;
-
         private:
             u32 _vboId;
-            BufferLayout _layout;
     };
 } // namespace Vulkyrie::Renderer

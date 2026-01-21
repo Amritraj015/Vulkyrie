@@ -5,7 +5,7 @@
 #include "vendor/stb_image.h"
 
 namespace Vulkyrie::Renderer {
-    static GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {
+    static constexpr GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {
         switch (format) {
             case TextureImageFormat::RGB8:
                 return GL_RGB;
@@ -20,7 +20,7 @@ namespace Vulkyrie::Renderer {
         return 0;
     }
 
-    static GLenum VulkyrieImageFormatToOpenGLInternalFormat(TextureImageFormat format) {
+    static constexpr GLenum VulkyrieImageFormatToOpenGLInternalFormat(TextureImageFormat format) {
         switch (format) {
             case TextureImageFormat::RGB8:
                 return GL_RGB8;
@@ -61,7 +61,7 @@ namespace Vulkyrie::Renderer {
     OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path) {
         int width, height, channels;
 
-        stbi_set_flip_vertically_on_load(1);
+        stbi_set_flip_vertically_on_load(true);
 
         stbi_uc *data = nullptr;
         {

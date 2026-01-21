@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkyrie.h>
-#include "model.h"
+#include "glad/glad.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Core;
@@ -13,7 +13,7 @@ namespace Sandbox {
             SandboxLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight) {
 
-                backPackModel = CreateRef<Model>("assets/models/backpack/backpack.obj");
+                backPackModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/backpack/backpack.obj");
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
