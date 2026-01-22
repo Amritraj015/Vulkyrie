@@ -3,18 +3,16 @@
 #include <vulkyrie.h>
 #include "glad/glad.h"
 
-#include "vendor/stb_image.h"
-
 namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    const u16 WIDTH = 100;
-    const u16 HEIGHT = 100;
-    const f32 worldSizeX = 100.0f; // meters wide
-    const f32 worldSizeZ = 100.0f; // meters deep
-    const f32 heightScale = 15.0f; // max height in meters
+    constexpr u16 WIDTH = 100;
+    constexpr u16 HEIGHT = 100;
+    constexpr f32 worldSizeX = 100.0f; // meters wide
+    constexpr f32 worldSizeZ = 100.0f; // meters deep
+    constexpr f32 heightScale = 15.0f; // max height in meters
 
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
