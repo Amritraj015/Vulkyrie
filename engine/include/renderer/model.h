@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <unordered_map>
 #include "vlkypch.h"
 #include "renderer/mesh.h"
@@ -16,6 +17,20 @@ namespace Vulkyrie::Renderer {
              */
             static Ref<Model> Create(Vulkyrie::Core::GraphicsAPI api, const std::filesystem::path &path, bool gamma = false);
 
+            /** @brief Gets the number of meshes in the model.
+             * @return The count of meshes.
+             */
+            [[nodiscard]] inline size_t GetMeshCount() const {
+                return _meshes.size();
+            }
+
+            /** @brief Gets the meshes that make up the model.
+             * @return A constant reference to the vector of meshes.
+             */
+            [[nodiscard]] inline const std::vector<Ref<Vulkyrie::Renderer::Mesh>> &GetMeshes() const {
+                return _meshes;
+            }
+
             /** @brief Draws the model using the specified shader.
              * @param shader The shader to use for rendering.
              */
@@ -25,6 +40,7 @@ namespace Vulkyrie::Renderer {
                     mesh->Draw(shader);
                 }
             }
+
 
         protected:
             Model(const std::string &path, bool gammaCorrection) : _path(path), _gammaCorrection(gammaCorrection) {

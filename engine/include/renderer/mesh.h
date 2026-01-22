@@ -17,6 +17,30 @@ namespace Vulkyrie::Renderer {
             // TODO: Needs to be removed.
             virtual void Draw(Shader &shader) const = 0;
 
+            /** @brief Gets the number of vertices in the mesh.
+             * @return The count of vertices.
+             */
+            // [[nodiscard]] inline size_t GetVertexCount() const {
+            //     return _vertexArray->GetVertexBuffer()->GetCount();
+            // }
+
+            /** @brief Gets the number of indices in the mesh.
+             * @return The count of indices.
+             */
+            [[nodiscard]] inline size_t GetIndexCount() const {
+                return _vertexArray->GetIndexBuffer()->GetCount();
+            }
+
+            /** @brief Binds the mesh's vertex array. */
+            inline void Bind() const {
+                _vertexArray->Bind();
+            }
+
+            /** @brief Unbinds the mesh's vertex array. */
+            inline void Unbind() const {
+                _vertexArray->Unbind();
+            }
+
             /** @brief Creates a mesh with the specified vertex array and textures.
              * @param api The graphics API to use.
              * @param vertices The vertices that make up the mesh.
