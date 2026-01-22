@@ -34,11 +34,12 @@ namespace Vulkyrie::Renderer {
 
             /** @brief Creates a mesh with the specified vertex array and textures.
              * @param api The graphics API to use.
-             * @param vertexArray The vertex array representing the mesh geometry.
+             * @param vertices The vertices that make up the mesh.
+             * @param indices The indices defining the mesh's faces.
              * @param textures The textures associated with the mesh.
              * @return A reference to the created Mesh.
              */
-            static Ref<Mesh> Create(Vulkyrie::Core::GraphicsAPI api, std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<Ref<Texture2D>> &&textures);
+            static Ref<Mesh> Create(Vulkyrie::Core::GraphicsAPI api, std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures);
 
         protected:
             /** @brief Constructs a mesh with the specified vertices, indices, and textures.

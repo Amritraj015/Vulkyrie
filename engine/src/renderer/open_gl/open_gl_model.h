@@ -32,11 +32,11 @@ namespace Vulkyrie::Renderer {
             Ref<OpenGLMesh> ProcessMesh(aiMesh *mesh, const aiScene *scene);
 
             /** @brief Loads material textures of a specified type from an ASSIMP material.
+             * @param textures The vector to append loaded textures to.
              * @param mat The ASSIMP material to load textures from.
              * @param type The type of texture to load (e.g., diffuse, specular).
              * @param textureType The corresponding MeshTextureType for the loaded textures.
-             * @return A vector of references to the loaded Texture2D and it's type objects stored in std::pair.
              */
-            std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> LoadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshTextureType textureType);
+            void LoadMaterialTextures(std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &textures, aiMaterial *mat, aiTextureType type, MeshTextureType textureType);
     };
 } // namespace Vulkyrie::Renderer

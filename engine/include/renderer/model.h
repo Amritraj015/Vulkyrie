@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "vlkypch.h"
 #include "renderer/mesh.h"
 
@@ -39,7 +41,7 @@ namespace Vulkyrie::Renderer {
             std::filesystem::path _modelDirectory;
 
             // TODO: stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-            std::vector<Ref<Texture2D>> _loadedTextures;
+            std::unordered_map<std::string, Ref<Texture2D>> _loadedTextures;
 
             /** @brief The meshes that make up the model. */
             std::vector<Ref<Vulkyrie::Renderer::Mesh>> _meshes;

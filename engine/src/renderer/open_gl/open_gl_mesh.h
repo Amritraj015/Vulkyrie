@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "renderer/mesh.h"
 
 namespace Vulkyrie::Renderer {
@@ -19,5 +21,8 @@ namespace Vulkyrie::Renderer {
         private:
             /** @brief Initializes all the buffer objects/arrays for the mesh. */
             void SetupMesh();
+
+            /** @brief Stores the uniform names for the textures used in the mesh. */
+            std::vector<std::string> _textureUniformNames;
     };
 } // namespace Vulkyrie::Renderer

@@ -1,7 +1,6 @@
 #include "renderer/open_gl/open_gl_model.h"
 #include "vendor/stb_image.h"
 #include "core/logger.h"
-#include <utility>
 
 namespace Vulkyrie::Renderer {
     OpenGLModel::OpenGLModel(std::filesystem::path const &path, bool gammaCorrection) : Model(path, gammaCorrection) {
@@ -55,11 +54,10 @@ namespace Vulkyrie::Renderer {
         indices.reserve(mesh->mNumFaces * 3);
 
         std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> textures;
-        textures.reserve(8);
 
         // walk through each of the mesh's vertices
         for (u32 i = 0; i < mesh->mNumVertices; i++) {
-            Vertex vertex;
+            Vertex vertex{};
 
             // Positions
             if (mesh->HasPositions()) {
@@ -88,12 +86,12 @@ namespace Vulkyrie::Renderer {
                 vertex.Bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
             }
 
-            vertices.push_back(vertex);
+            vertices.emplace_back(std::move(vertex));
         }
 
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (u32 i = 0; i < mesh->mNumFaces; i++) {
-            aiFace face = mesh->mFaces[i];
+            const aiFace& face = mesh->mFaces[i];
 
             // retrieve all indices of the face and store them in the indices vector
             for (u32 j = 0; j < face.mNumIndices; j++) {
@@ -110,25 +108,12 @@ namespace Vulkyrie::Renderer {
         // specular: texture_specularN
         // normal: texture_normalN
 
-        // 1. Ambient maps
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> ambientMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, MeshTextureType::Ambient);
-        textures.insert(textures.end(), ambientMaps.begin(), ambientMaps.end());
-
-        // 2. diffuse maps
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, MeshTextureType::Diffuse);
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-        // 3. Specular maps
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, MeshTextureType::Specular);
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-        // 4. Height maps
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, MeshTextureType::Height);
-        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-        // 5. Normal maps
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS, MeshTextureType::Normal);
-        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        // Load all texture types directly into the textures vector
+        LoadMaterialTextures(textures, material, aiTextureType_AMBIENT, MeshTextureType::Ambient);
+        LoadMaterialTextures(textures, material, aiTextureType_DIFFUSE, MeshTextureType::Diffuse);
+        LoadMaterialTextures(textures, material, aiTextureType_SPECULAR, MeshTextureType::Specular);
+        LoadMaterialTextures(textures, material, aiTextureType_HEIGHT, MeshTextureType::Height);
+        LoadMaterialTextures(textures, material, aiTextureType_NORMALS, MeshTextureType::Normal);
 
         // Return a mesh object created from the extracted mesh data.
         return CreateRef<OpenGLMesh>(std::move(vertices), std::move(indices), std::move(textures));
@@ -136,34 +121,28 @@ namespace Vulkyrie::Renderer {
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> OpenGLModel::LoadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshTextureType textureType) {
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> textures;
+    void OpenGLModel::LoadMaterialTextures(std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &textures, aiMaterial *mat, aiTextureType type, MeshTextureType textureType) {
+        const u32 textureCount = mat->GetTextureCount(type);
+        textures.reserve(textures.size() + textureCount);
 
-        for (u32 i = 0; i < mat->GetTextureCount(type); i++) {
+        for (u32 i = 0; i < textureCount; i++) {
             aiString str;
             mat->GetTexture(type, i, &str);
-            // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-            bool skip = false;
 
-            for (u32 j = 0; j < _loadedTextures.size(); j++) {
-                if (std::strcmp(_loadedTextures[j]->GetTextureFileName().data(), str.C_Str()) == 0) {
-                    textures.push_back(std::make_pair(textureType, _loadedTextures[j]));
-                    skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-                    break;
-                }
+            const std::filesystem::path texturePath = (_modelDirectory / str.C_Str()).lexically_normal();
+            const std::string cacheKey = texturePath.generic_string();
+
+            // Try to find existing texture in cache
+            auto it = _loadedTextures.find(cacheKey);
+            if (it != _loadedTextures.end()) {
+                textures.emplace_back(textureType, it->second);
+                continue;
             }
 
-            // If texture hasn't been loaded already, load it.
-            if (!skip) { 
-                Ref<Texture2D> texture = Texture2D::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, this->_modelDirectory.append(str.C_Str()));
-                textures.push_back(std::make_pair(textureType, texture));
-
-                // store it as texture loaded for entire model,
-                //  to ensure we won't unnecessary load duplicate textures.
-                _loadedTextures.push_back(texture); 
-            }
+            // Load new texture and cache it
+            auto texture = Texture2D::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, texturePath);
+            textures.emplace_back(textureType, texture);
+            _loadedTextures.emplace(std::move(cacheKey), texture);
         }
-
-        return textures;
     }
 } // namespace Vulkyrie::Renderer
