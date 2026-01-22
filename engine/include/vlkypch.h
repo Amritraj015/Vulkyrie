@@ -44,13 +44,6 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
-// Properly define static assertions.
-#if defined(__clang__) || defined(__gcc__)
-#define VASSERT _Static_assert
-#else
-#define VASSERT static_assert
-#endif
-
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 

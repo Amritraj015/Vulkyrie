@@ -4,11 +4,7 @@
 
 namespace Vulkyrie::Renderer {
     OpenGLModel::OpenGLModel(std::filesystem::path const &path, bool gammaCorrection) : Model(path, gammaCorrection) {
-        stbi_set_flip_vertically_on_load(true);
-
         LoadModel(path);
-
-        stbi_set_flip_vertically_on_load(false);
     }
 
     void OpenGLModel::LoadModel(std::filesystem::path const &path) {
@@ -51,47 +47,24 @@ namespace Vulkyrie::Renderer {
         vertices.reserve(mesh->mNumVertices);
 
         std::vector<u32> indices;
-        indices.reserve(mesh->mNumFaces * 3);
+        indices.reserve(mesh->mNumFaces * 3); // assuming each face is a triangle -> See aiProcess_Triangulate usage in LoadModel
 
-        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> textures;
+        MeshTextures textures;
 
         // walk through each of the mesh's vertices
         for (u32 i = 0; i < mesh->mNumVertices; i++) {
-            Vertex vertex{};
-
-            // Positions
-            if (mesh->HasPositions()) {
-                vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-            }
-
-            // Normals
-            if (mesh->HasNormals()) {
-                vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-            }
-
-            // TODO: A vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't
-            // TODO: use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-            if (mesh->HasTextureCoords(0)) {
-                vertex.TextureCoords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-            } else {
-                vertex.TextureCoords = glm::vec2(0.0f, 0.0f);
-            }
-
-            // Tangents and Bitangents
-            if (mesh->HasTangentsAndBitangents()) {
-                // Tangent
-                vertex.Tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-
-                // Bitangent
-                vertex.Bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-            }
-
-            vertices.emplace_back(std::move(vertex));
+            vertices.emplace_back(
+                mesh->HasPositions() ? glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z) : glm::vec3{},             // Position
+                mesh->HasNormals() ? glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z) : glm::vec3{},                  // Normal
+                mesh->HasTextureCoords(0) ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2{ 0.0f, 0.0f },  // TextureCoords
+                mesh->HasTangentsAndBitangents() ? glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z) : glm::vec3{}, // Tangent
+                mesh->HasTangentsAndBitangents() ? glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z)
+                                                 : glm::vec3{}); // Bitangent
         }
 
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (u32 i = 0; i < mesh->mNumFaces; i++) {
-            const aiFace& face = mesh->mFaces[i];
+            const aiFace &face = mesh->mFaces[i];
 
             // retrieve all indices of the face and store them in the indices vector
             for (u32 j = 0; j < face.mNumIndices; j++) {
@@ -109,40 +82,36 @@ namespace Vulkyrie::Renderer {
         // normal: texture_normalN
 
         // Load all texture types directly into the textures vector
-        LoadMaterialTextures(textures, material, aiTextureType_AMBIENT, MeshTextureType::Ambient);
-        LoadMaterialTextures(textures, material, aiTextureType_DIFFUSE, MeshTextureType::Diffuse);
-        LoadMaterialTextures(textures, material, aiTextureType_SPECULAR, MeshTextureType::Specular);
-        LoadMaterialTextures(textures, material, aiTextureType_HEIGHT, MeshTextureType::Height);
-        LoadMaterialTextures(textures, material, aiTextureType_NORMALS, MeshTextureType::Normal);
+        LoadMaterialTextures(textures.Ambient, material, aiTextureType_AMBIENT);
+        LoadMaterialTextures(textures.Diffuse, material, aiTextureType_DIFFUSE);
+        LoadMaterialTextures(textures.Specular, material, aiTextureType_SPECULAR);
+        LoadMaterialTextures(textures.Height, material, aiTextureType_HEIGHT);
+        LoadMaterialTextures(textures.Normal, material, aiTextureType_NORMALS);
 
         // Return a mesh object created from the extracted mesh data.
         return CreateRef<OpenGLMesh>(std::move(vertices), std::move(indices), std::move(textures));
     }
 
-    // checks all material textures of a given type and loads the textures if they're not loaded yet.
-    // the required info is returned as a Texture struct.
-    void OpenGLModel::LoadMaterialTextures(std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &textures, aiMaterial *mat, aiTextureType type, MeshTextureType textureType) {
-        const u32 textureCount = mat->GetTextureCount(type);
-        textures.reserve(textures.size() + textureCount);
+    void OpenGLModel::LoadMaterialTextures(std::vector<Ref<Texture2D>> &out, aiMaterial *mat, aiTextureType type) {
+        const u32 count = mat->GetTextureCount(type);
+        out.reserve(count);
 
-        for (u32 i = 0; i < textureCount; i++) {
+        for (u32 i = 0; i < count; i++) {
             aiString str;
             mat->GetTexture(type, i, &str);
 
-            const std::filesystem::path texturePath = (_modelDirectory / str.C_Str()).lexically_normal();
-            const std::string cacheKey = texturePath.generic_string();
+            auto path = (_modelDirectory / str.C_Str()).lexically_normal();
+            auto key = path.generic_string();
 
-            // Try to find existing texture in cache
-            auto it = _loadedTextures.find(cacheKey);
+            auto it = _loadedTextures.find(key);
             if (it != _loadedTextures.end()) {
-                textures.emplace_back(textureType, it->second);
+                out.emplace_back(it->second);
                 continue;
             }
 
-            // Load new texture and cache it
-            auto texture = Texture2D::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, texturePath);
-            textures.emplace_back(textureType, texture);
-            _loadedTextures.emplace(std::move(cacheKey), texture);
+            auto texture = Texture2D::Create(Core::GraphicsAPI::OpenGL, path);
+            out.emplace_back(texture);
+            _loadedTextures.emplace(std::move(key), texture);
         }
     }
 } // namespace Vulkyrie::Renderer

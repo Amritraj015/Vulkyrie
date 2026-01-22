@@ -12,7 +12,7 @@ namespace Vulkyrie::Renderer {
              * @param indices The indices defining the mesh's faces.
              * @param textures The textures associated with the mesh.
              */
-            OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures);
+            OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures);
 
             // render the mesh
             // TODO: Needs to be removed.

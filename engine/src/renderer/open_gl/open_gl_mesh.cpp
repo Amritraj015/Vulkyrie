@@ -1,35 +1,34 @@
 #include "renderer/open_gl/open_gl_mesh.h"
-#include "glad/glad.h"
+#include "core/asserts.h"
 #include "vlkypch.h"
+#include "glad/glad.h"
 
 namespace Vulkyrie::Renderer {
-    OpenGLMesh::OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures)
+    OpenGLMesh::OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures)
         : Mesh(std::move(vertices), std::move(indices), std::move(textures)) {
         SetupMesh();
     }
 
     inline void OpenGLMesh::Draw(Shader &shader) const {
-        for (u32 i = 0; i < _textures.size(); i++) {
-            // Activate proper texture unit before binding
-            glActiveTexture(GL_TEXTURE0 + i);
+        u32 unit = 0;
 
-            // Set the sampler uniform.
-            shader.SetIntUniform(_textureUniformNames[i].c_str(), i);
+        std::array<const std::vector<Ref<Texture2D>> *, 5> availableTextures = {
+            &_textures.Ambient, &_textures.Diffuse, &_textures.Specular, &_textures.Normal, &_textures.Height
+        };
 
-            // Bind the texture.
-            glBindTexture(GL_TEXTURE_2D, _textures[i].second->GetTextureID());
+        for (auto typeVec : availableTextures) {
+            for (const auto &texture : *typeVec) {
+                shader.SetIntUniform(_textureUniformNames[unit].c_str(), static_cast<int>(unit));
+                texture->Bind(unit++);
+            }
         }
 
-        // Draw mesh
+        // Draw the mesh
         _vertexArray->Bind();
-        glDrawElements(GL_TRIANGLES, _vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, _vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
         _vertexArray->Unbind();
-
-        // Always good practice to set everything back to defaults once configured.
-        glActiveTexture(GL_TEXTURE0);
     }
 
-    // initializes all the buffer objects/arrays
     void OpenGLMesh::SetupMesh() {
         _vertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
 
@@ -46,7 +45,7 @@ namespace Vulkyrie::Renderer {
 
         // Prepare texture uniform names
         _textureUniformNames.clear();
-        _textureUniformNames.reserve(_textures.size());
+        _textureUniformNames.reserve(_textures.TotalCount());
 
         u32 ambientNr = 1;
         u32 diffuseNr = 1;
@@ -54,27 +53,40 @@ namespace Vulkyrie::Renderer {
         u32 normalNr = 1;
         u32 heightNr = 1;
 
-        for (const auto &textureData : _textures) {
-            std::string name;
-            switch (textureData.first) {
-                case MeshTextureType::Ambient:
-                    name = "texture_ambient" + std::to_string(ambientNr++);
-                    break;
-                case MeshTextureType::Diffuse:
-                    name = "texture_diffuse" + std::to_string(diffuseNr++);
-                    break;
-                case MeshTextureType::Specular:
-                    name = "texture_specular" + std::to_string(specularNr++);
-                    break;
-                case MeshTextureType::Normal:
-                    name = "texture_normal" + std::to_string(normalNr++);
-                    break;
-                case MeshTextureType::Height:
-                    name = "texture_height" + std::to_string(heightNr++);
-                    break;
-            }
-
+        // Iterate over each texture type and generate uniform names
+        for (size_t i = 0; i < _textures.Ambient.size(); i++) {
+            std::string name = "texture_ambient" + std::to_string(ambientNr++);
             _textureUniformNames.emplace_back(std::move(name));
         }
+
+        for (size_t i = 0; i < _textures.Diffuse.size(); i++) {
+            std::string name = "texture_diffuse" + std::to_string(diffuseNr++);
+            _textureUniformNames.emplace_back(std::move(name));
+        }
+
+        for (size_t i = 0; i < _textures.Specular.size(); i++) {
+            std::string name = "texture_specular" + std::to_string(specularNr++);
+            _textureUniformNames.emplace_back(std::move(name));
+        }
+
+        for (size_t i = 0; i < _textures.Normal.size(); i++) {
+            std::string name = "texture_normal" + std::to_string(normalNr++);
+            _textureUniformNames.emplace_back(std::move(name));
+        }
+
+        for (size_t i = 0; i < _textures.Height.size(); i++) {
+            std::string name = "texture_height" + std::to_string(heightNr++);
+            _textureUniformNames.emplace_back(std::move(name));
+        }
+
+#if defined(VULKYRIE_DEBUG)
+        GLint maxUnits;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxUnits);
+
+        VASSERT(_textureUniformNames.size() == _textures.TotalCount(),
+                "Texture/uniform mismatch: {} names vs {} textures",
+                _textureUniformNames.size(),
+                _textures.TotalCount());
+#endif
     }
 } // namespace Vulkyrie::Renderer

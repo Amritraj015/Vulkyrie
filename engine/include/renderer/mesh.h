@@ -1,26 +1,11 @@
 #pragma once
 
+#include "renderer/mesh_textures.h"
 #include "renderer/shader.h"
-#include "renderer/texture_2D.h"
 #include "renderer/vertex_array.h"
 #include "renderer/vertex.h"
 
 namespace Vulkyrie::Renderer {
-    enum class MeshTextureType : u8 {
-        Ambient,
-        Diffuse,
-        Specular,
-        Normal,
-        Height,
-    };
-
-    // struct MeshTexture {
-    //     public:
-    //         u32 Id;
-    //         TextureType Type;
-    //         std::string Path;
-    // };
-
     class Mesh {
         public:
             /** @brief Virtual destructor for the Mesh class. */
@@ -39,7 +24,7 @@ namespace Vulkyrie::Renderer {
              * @param textures The textures associated with the mesh.
              * @return A reference to the created Mesh.
              */
-            static Ref<Mesh> Create(Vulkyrie::Core::GraphicsAPI api, std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures);
+            static Ref<Mesh> Create(Vulkyrie::Core::GraphicsAPI api, std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures);
 
         protected:
             /** @brief Constructs a mesh with the specified vertices, indices, and textures.
@@ -47,7 +32,7 @@ namespace Vulkyrie::Renderer {
              * @param indices The indices defining the mesh's faces.
              * @param textures The textures associated with the mesh.
              */
-            Mesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures)
+            Mesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures)
                 : _vertices(std::move(vertices)), _indices(std::move(indices)), _textures(std::move(textures)) {
             }
 
@@ -58,7 +43,7 @@ namespace Vulkyrie::Renderer {
             std::vector<u32> _indices;
 
             /** @brief The textures associated with the mesh. */
-            std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> _textures;
+            MeshTextures _textures;
 
             /** @brief The vertex array representing the mesh geometry. */
             Ref<VertexArray> _vertexArray;

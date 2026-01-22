@@ -35,8 +35,7 @@ namespace Vulkyrie::Renderer {
              * @param textures The vector to append loaded textures to.
              * @param mat The ASSIMP material to load textures from.
              * @param type The type of texture to load (e.g., diffuse, specular).
-             * @param textureType The corresponding MeshTextureType for the loaded textures.
              */
-            void LoadMaterialTextures(std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &textures, aiMaterial *mat, aiTextureType type, MeshTextureType textureType);
+            void LoadMaterialTextures(std::vector<Ref<Texture2D>> &out, aiMaterial *mat, aiTextureType type);
     };
 } // namespace Vulkyrie::Renderer

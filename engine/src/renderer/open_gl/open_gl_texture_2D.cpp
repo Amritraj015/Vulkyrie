@@ -68,6 +68,8 @@ namespace Vulkyrie::Renderer {
             data = stbi_load(path.c_str(), &width, &height, &channels, 0);
         }
 
+        stbi_set_flip_vertically_on_load(false);
+
         if (data) {
             _loaded = true;
             _width = width;
