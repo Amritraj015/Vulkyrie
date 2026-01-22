@@ -15,7 +15,8 @@ Target_Include_Directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad)
+
+# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad assimp)
 Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad assimp)
 
 Target_Compile_Definitions(${PROJECT_NAME}
@@ -25,3 +26,9 @@ Target_Compile_Definitions(${PROJECT_NAME}
 )
 
 Target_Precompile_Headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/vlkypch.h)
+
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()

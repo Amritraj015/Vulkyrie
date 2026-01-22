@@ -30,11 +30,11 @@ namespace Vulkyrie::Renderer {
                 return _path;
             }
 
-            [[nodiscard]] inline const std::string_view GetTextureFileName() const {
-                return _path.filename().string();
+            [[nodiscard]] inline std::string_view GetTextureFileName() const override {
+                return _fileName;
             }
 
-            void SetData(void *data, u32 size) override;
+            void SetData(void *data) override;
 
             void Bind(u32 slot = 0) const override;
 
@@ -49,6 +49,7 @@ namespace Vulkyrie::Renderer {
         private:
             TextureSpecification _specification;
             std::filesystem::path _path;
+            std::string _fileName;
             bool _loaded = false;
             u32 _width, _height;
             u32 _textureId;

@@ -1,3 +1,4 @@
+#include "core/status_codes.h"
 #include "renderer/renderer.h"
 #include <glad/glad.h>
 
@@ -13,8 +14,8 @@ namespace Vulkyrie::Renderer {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
-    void Renderer::BeginScene(const Scene &scene) {
-    }
+    // void Renderer::BeginScene(const Scene &scene) {
+    // }
 
     void Renderer::OnWindowResize(u32 width, u32 height) {
         glViewport(0, 0, width, height);

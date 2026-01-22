@@ -1,16 +1,15 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/utilities.h"
 
 namespace Vulkyrie::Events {
     enum class KeyModifier : u8 {
         None        = 0,
-        Shift       = BIT(0),
-        Control     = BIT(1),
-        Alt         = BIT(2),
-        Super       = BIT(3),
-        CapsLock    = BIT(4),
-        NumLock     = BIT(5)
+        Shift       = 1 << 0,
+        Control     = 1 << 1,
+        Alt         = 1 << 2,
+        Super       = 1 << 3,
+        CapsLock    = 1 << 4,
+        NumLock     = 1 << 5
     };
 } // namespace Vulkyrie::Events

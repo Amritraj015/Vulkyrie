@@ -1,10 +1,8 @@
 #pragma once
 
 #include <fstream>
-#include "vlkypch.h"
 #include "core/logger.h"
 
-#define BIT(x) (1 << x)
 
 namespace Vulkyrie::Core {
     /** Reads the contents of a file at the given path and returns it as a string.

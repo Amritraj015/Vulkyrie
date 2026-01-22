@@ -41,14 +41,25 @@ namespace Vulkyrie::Renderer {
             static Ref<Mesh> Create(Vulkyrie::Core::GraphicsAPI api, std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<Ref<Texture2D>> &&textures);
 
         protected:
-            Mesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<Ref<Texture2D>> &&textures)
+            /** @brief Constructs a mesh with the specified vertices, indices, and textures.
+             * @param vertices The vertices that make up the mesh.
+             * @param indices The indices defining the mesh's faces.
+             * @param textures The textures associated with the mesh.
+             */
+            Mesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures)
                 : _vertices(std::move(vertices)), _indices(std::move(indices)), _textures(std::move(textures)) {
             }
 
+            /** @brief The vertices that make up the mesh. */
             std::vector<Vertex> _vertices;
+
+            /** @brief The indices defining the mesh's faces. */
             std::vector<u32> _indices;
-            std::vector<Ref<Texture2D>> _textures;
+
+            /** @brief The textures associated with the mesh. */
+            std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> _textures;
+
+            /** @brief The vertex array representing the mesh geometry. */
             Ref<VertexArray> _vertexArray;
-            // Ref<VertexBuffer> _vertexBuffer;
     };
 } // namespace Vulkyrie::Renderer

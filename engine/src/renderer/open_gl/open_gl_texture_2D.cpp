@@ -39,7 +39,7 @@ namespace Vulkyrie::Renderer {
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &specification)
-        : _specification(specification), _width(_specification.Width), _height(_specification.Height) {
+        : _specification(specification), _fileName(_path.filename().string()), _width(_specification.Width), _height(_specification.Height) {
 
         _imageFormat = VulkyrieImageFormatToOpenGLInternalFormat(_specification.Format);
         _dataFormat = VulkyrieImageFormatToOpenGLDataFormat(_specification.Format);
@@ -58,7 +58,7 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path) {
+    OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path), _fileName(_path.filename().string()) {
         int width, height, channels;
 
         stbi_set_flip_vertically_on_load(true);
@@ -108,7 +108,7 @@ namespace Vulkyrie::Renderer {
         glDeleteTextures(1, &_textureId);
     }
 
-    void OpenGLTexture2D::SetData(void *data, u32 size) {
+    void OpenGLTexture2D::SetData(void *data) {
         // u32 bpp = _dataFormat == GL_RGBA ? 4 : 3;
         glTextureSubImage2D(_textureId, 0, 0, 0, _width, _height, _dataFormat, GL_UNSIGNED_BYTE, data);
     }

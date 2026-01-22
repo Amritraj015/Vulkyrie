@@ -37,13 +37,13 @@ namespace Vulkyrie::Core {
             /** @brief Called every frame to update the layer.
              * @param deltaTime The time elapsed since the last frame.
              */
-            virtual void OnUpdate(const Timestep deltaTime) {
+            virtual void OnUpdate([[maybe_unused]] const Timestep deltaTime) {
             }
 
             /** @brief Called when an event is dispatched to the layer.
              * @param event The event to handle.
              */
-            virtual void OnEvent(Vulkyrie::Events::Event &event) {
+            virtual void OnEvent([[maybe_unused]] Vulkyrie::Events::Event &event) {
             }
 
             /** @brief Gets the unique identifier of the layer.

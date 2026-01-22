@@ -26,3 +26,8 @@ Add_Subdirectory(engine)
 # -------------------------------------
 # Add_Subdirectory(examples/asteroids)
 Add_Subdirectory(examples/sandbox)
+
+# -------------------------------------
+# Build tests
+# -------------------------------------
+Add_Subdirectory(tests)

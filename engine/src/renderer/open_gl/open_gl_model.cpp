@@ -1,6 +1,7 @@
 #include "renderer/open_gl/open_gl_model.h"
 #include "vendor/stb_image.h"
 #include "core/logger.h"
+#include <utility>
 
 namespace Vulkyrie::Renderer {
     OpenGLModel::OpenGLModel(std::filesystem::path const &path, bool gammaCorrection) : Model(path, gammaCorrection) {
@@ -11,24 +12,22 @@ namespace Vulkyrie::Renderer {
         stbi_set_flip_vertically_on_load(false);
     }
 
-    // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void OpenGLModel::LoadModel(std::filesystem::path const &path) {
-        // read file via ASSIMP
+        // Read file via ASSIMP
         Assimp::Importer importer;
         const aiScene *scene =
             importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
-        // check for errors
-        // if is Not Zero
+        // Make sure the import succeeded.
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             VERROR("Failed to load model from path: {}, Error: {}", path.string(), importer.GetErrorString());
             return;
         }
 
-        // retrieve the directory path of the filepath
+        // Retrieve the directory path of the filepath
         _modelDirectory = path.parent_path();
 
-        // process ASSIMP's root node recursively
+        // Process ASSIMP's root node recursively
         ProcessNode(scene->mRootNode, scene);
     }
 
@@ -55,7 +54,7 @@ namespace Vulkyrie::Renderer {
         std::vector<u32> indices;
         indices.reserve(mesh->mNumFaces * 3);
 
-        std::vector<Ref<Texture2D>> textures;
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> textures;
         textures.reserve(8);
 
         // walk through each of the mesh's vertices
@@ -112,24 +111,23 @@ namespace Vulkyrie::Renderer {
         // normal: texture_normalN
 
         // 1. Ambient maps
-        std::vector<Ref<Texture2D>> ambientMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, MeshTextureType::Ambient);
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> ambientMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, MeshTextureType::Ambient);
         textures.insert(textures.end(), ambientMaps.begin(), ambientMaps.end());
 
         // 2. diffuse maps
-        // vector<Texture2D> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        std::vector<Ref<Texture2D>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, MeshTextureType::Diffuse);
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, MeshTextureType::Diffuse);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
         // 3. Specular maps
-        std::vector<Ref<Texture2D>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, MeshTextureType::Specular);
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, MeshTextureType::Specular);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
         // 4. Height maps
-        std::vector<Ref<Texture2D>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, MeshTextureType::Height);
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, MeshTextureType::Height);
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // 5. Normal maps
-        std::vector<Ref<Texture2D>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS, MeshTextureType::Normal);
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS, MeshTextureType::Normal);
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
         // Return a mesh object created from the extracted mesh data.
@@ -138,8 +136,8 @@ namespace Vulkyrie::Renderer {
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    std::vector<Ref<Texture2D>> OpenGLModel::LoadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshTextureType textureType) {
-        std::vector<Ref<Texture2D>> textures;
+    std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> OpenGLModel::LoadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshTextureType textureType) {
+        std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> textures;
 
         for (u32 i = 0; i < mat->GetTextureCount(type); i++) {
             aiString str;
@@ -149,20 +147,20 @@ namespace Vulkyrie::Renderer {
 
             for (u32 j = 0; j < _loadedTextures.size(); j++) {
                 if (std::strcmp(_loadedTextures[j]->GetTextureFileName().data(), str.C_Str()) == 0) {
-                    textures.push_back(_loadedTextures[j]);
+                    textures.push_back(std::make_pair(textureType, _loadedTextures[j]));
                     skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                     break;
                 }
             }
 
-            if (!skip) { // if texture hasn't been loaded already, load it
-                auto texture = Texture2D::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, this->_modelDirectory.append(str.C_Str()));
-                // Texture texture;
-                // texture.Id = TextureFromFile(str.C_Str(), this->directory);
-                // texture.Type = textureType;
-                // texture.Path = str.C_Str();
-                textures.push_back(texture);
-                _loadedTextures.push_back(texture); // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+            // If texture hasn't been loaded already, load it.
+            if (!skip) { 
+                Ref<Texture2D> texture = Texture2D::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, this->_modelDirectory.append(str.C_Str()));
+                textures.push_back(std::make_pair(textureType, texture));
+
+                // store it as texture loaded for entire model,
+                //  to ensure we won't unnecessary load duplicate textures.
+                _loadedTextures.push_back(texture); 
             }
         }
 

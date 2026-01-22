@@ -3,13 +3,13 @@
 
 namespace Vulkyrie::Renderer {
     // constructor
-    OpenGLMesh::OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<Ref<Texture2D>> &&textures)
+    OpenGLMesh::OpenGLMesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, std::vector<std::pair<MeshTextureType, Ref<Texture2D>>> &&textures)
         : Mesh(std::move(vertices), std::move(indices), std::move(textures)) {
         SetupMesh();
     }
 
     // render the mesh
-    inline void OpenGLMesh::Draw(Shader &shader) const {
+    inline void OpenGLMesh::Draw([[maybe_unused]] Shader &shader) const {
         // bind appropriate textures
         u32 ambientNr = 1;
         u32 diffuseNr = 1;
@@ -20,26 +20,26 @@ namespace Vulkyrie::Renderer {
         for (u32 i = 0; i < _textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
 
-            // switch (textures[i]->Type) {
-            //     case ModelTextureType::Ambient:
-            //         shader.SetIntUniform(("texture_ambient" + std::to_string(ambientNr++)).c_str(), i);
-            //         break;
-            //     case ModelTextureType::Diffuse:
-            //         shader.SetIntUniform(("texture_diffuse" + std::to_string(diffuseNr++)).c_str(), i);
-            //         break;
-            //     case ModelTextureType::Specular:
-            //         shader.SetIntUniform(("texture_specular" + std::to_string(specularNr++)).c_str(), i);
-            //         break;
-            //     case ModelTextureType::Normal:
-            //         shader.SetIntUniform(("texture_normal" + std::to_string(normalNr++)).c_str(), i);
-            //         break;
-            //     case ModelTextureType::Height:
-            //         shader.SetIntUniform(("texture_height" + std::to_string(heightNr++)).c_str(), i);
-            //         break;
-            // }
+            switch (_textures[i].first) {
+                case MeshTextureType::Ambient:
+                    shader.SetIntUniform(("texture_ambient" + std::to_string(ambientNr++)).c_str(), i);
+                    break;
+                case MeshTextureType::Diffuse:
+                    shader.SetIntUniform(("texture_diffuse" + std::to_string(diffuseNr++)).c_str(), i);
+                    break;
+                case MeshTextureType::Specular:
+                    shader.SetIntUniform(("texture_specular" + std::to_string(specularNr++)).c_str(), i);
+                    break;
+                case MeshTextureType::Normal:
+                    shader.SetIntUniform(("texture_normal" + std::to_string(normalNr++)).c_str(), i);
+                    break;
+                case MeshTextureType::Height:
+                    shader.SetIntUniform(("texture_height" + std::to_string(heightNr++)).c_str(), i);
+                    break;
+            }
 
             // and finally bind the texture
-            glBindTexture(GL_TEXTURE_2D, _textures[i]->GetTextureID());
+            glBindTexture(GL_TEXTURE_2D, _textures[i].second->GetTextureID());
         }
 
         // Draw mesh

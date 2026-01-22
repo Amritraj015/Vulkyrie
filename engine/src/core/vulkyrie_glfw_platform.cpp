@@ -1,4 +1,5 @@
 #include "vulkyrie_glfw_platform.h"
+#include "core/logger.h"
 #include "events/application/window_closed_event.h"
 #include "events/application/window_resized_event.h"
 #include "events/mouse/mouse_moved_event.h"
@@ -387,7 +388,7 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
-        glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+        glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, int mods) {
             const Vulkyrie::Events::KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
 
             switch (action) {

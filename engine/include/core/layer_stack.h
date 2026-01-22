@@ -33,14 +33,14 @@ namespace Vulkyrie::Core {
              * @param layerToPush The layer to push onto the stack.
              */
             explicit LayerOperation(OperationType operation, Scope<Layer> layerToPush)
-                : Type(operation), LayerToPop(typeid(void)), LayerToPush(std::move(layerToPush)) {
+                : Type(operation), LayerToPush(std::move(layerToPush)), LayerToPop(typeid(void)) {
             }
 
             /** @brief Constructs a LayerOperation for popping a layer.
              * @param operation The type of operation (PopLayer).
              * @param layerToPop The type index of the layer to pop.
              */
-            explicit LayerOperation(OperationType operation, std::type_index layerToPop) : Type(operation), LayerToPop(layerToPop), LayerToPush(nullptr) {
+            explicit LayerOperation(OperationType operation, std::type_index layerToPop) : Type(operation), LayerToPush(nullptr), LayerToPop(layerToPop) {
             }
     };
 

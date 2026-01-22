@@ -1,14 +1,13 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/utilities.h"
 
 namespace Vulkyrie::Events {
     enum class EventCategory : u8 {
-        ApplicationEvent = BIT(0), // Application Event.
-        Input = BIT(1),            // Input event.
-        Keyboard = BIT(2),         // Keyboard event.
-        Mouse = BIT(3),            // Mouse event.
-        MouseButton = BIT(4),      // Mouse Button event.
+        ApplicationEvent = 1 << 0, // Application Event.
+        Input = 1 << 1,            // Input event.
+        Keyboard = 1 << 2,         // Keyboard event.
+        Mouse = 1 << 3,            // Mouse event.
+        MouseButton = 1 << 4,      // Mouse Button event.
     };
 }
