@@ -35,6 +35,7 @@
 #include "renderer/texture_specification.h"
 #include "renderer/texture.h"
 #include "renderer/texture_2D.h"
+#include "renderer/texture_cube_map.h"
 
 // Material includes
 #include "materials/material_library.h"

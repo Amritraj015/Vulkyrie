@@ -47,6 +47,7 @@ namespace Vulkyrie::Renderer {
             for (const auto &texture : *typeVec) {
                 // Set the sampler uniform to the texture unit index
                 shader.SetIntUniform(_textureUniformNames[unit].c_str(), static_cast<int>(unit));
+
                 // Bind texture to the current unit and increment
                 texture->Bind(unit++);
             }
@@ -71,7 +72,6 @@ namespace Vulkyrie::Renderer {
         // ========================================
         // GPU Buffer Setup
         // ========================================
-
         _vertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
 
         // Create and configure vertex buffer with layout information
@@ -102,6 +102,8 @@ namespace Vulkyrie::Renderer {
         u32 specularNr = 1;
         u32 normalNr = 1;
         u32 heightNr = 1;
+
+        VDEBUG("Generating texture uniform names for {} total textures.", _textures.TotalCount());
 
         // NOTE: Shader sampler naming convention:
         // Each texture type follows the pattern 'texture_<type>N' where N starts at 1

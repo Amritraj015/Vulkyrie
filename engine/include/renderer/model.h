@@ -31,6 +31,13 @@ namespace Vulkyrie::Renderer {
                 return _meshes;
             }
 
+            // TODO: Needs to be removed.
+            inline void BindTextures() const {
+                for (const auto &mesh : _meshes) {
+                    mesh->BindTextures();
+                }
+            }
+
             /** @brief Draws the model using the specified shader.
              * @param shader The shader to use for rendering.
              */
@@ -41,8 +48,11 @@ namespace Vulkyrie::Renderer {
                 }
             }
 
-
         protected:
+            /** @brief Constructs a model with the specified file path and gamma correction setting.
+             * @param path The file path to the 3D model.
+             * @param gammaCorrection Whether to apply gamma correction.
+             */
             Model(const std::string &path, bool gammaCorrection) : _path(path), _gammaCorrection(gammaCorrection) {
             }
 
@@ -55,7 +65,7 @@ namespace Vulkyrie::Renderer {
             /** @brief The directory where the model is located. */
             std::filesystem::path _modelDirectory;
 
-            // TODO: stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+            /** @brief A cache of loaded textures to avoid duplicates. */
             std::unordered_map<std::string, Ref<Texture2D>> _loadedTextures;
 
             /** @brief The meshes that make up the model. */

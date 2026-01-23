@@ -24,6 +24,13 @@ namespace Vulkyrie::Renderer {
             //     return _vertexArray->GetVertexBuffer()->GetCount();
             // }
 
+            // TODO: Needs to be removed.
+            inline void BindTextures() const {
+                // for (const auto &texture : _textures) {
+                //     texture->Bind();
+                // }
+            }
+
             /** @brief Gets the number of indices in the mesh.
              * @return The count of indices.
              */

@@ -8,6 +8,7 @@
 #include "sandbox_layer_terrain_generation.h"
 #include "sandbox_layer_attenuation.h"
 #include "sandbox_layer_planet.h"
+#include "sandbox_skybox_layer.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Events;
@@ -36,7 +37,7 @@ namespace Sandbox {
 
                     if (e.KeyCode == KeyCode::J) {
                         if (currentLayer == 0) {
-                            _application.SuspendLayer<SandboxLayerBackPack>();
+                            _application.SuspendLayer<SandboxLayerSkybox>();
 
                             if (_application.HasLayer<SandboxLayerAttenuation>()) {
                                 _application.ResumeLayer<SandboxLayerAttenuation>();
@@ -91,9 +92,17 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerBackPack>(windowWidth, windowHeight);
                             }
+                        } else if (currentLayer == 7) {
+                            _application.SuspendLayer<SandboxLayerBackPack>();
+
+                            if (_application.HasLayer<SandboxLayerSkybox>()) {
+                                _application.ResumeLayer<SandboxLayerSkybox>();
+                            } else {
+                                _application.PushLayer<SandboxLayerSkybox>(windowWidth, windowHeight);
+                            }
                         }
 
-                        currentLayer = (currentLayer + 1) % 7;
+                        currentLayer = (currentLayer + 1) % 8;
 
                         return true;
                     }

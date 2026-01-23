@@ -1,22 +1,19 @@
-
 #pragma once
 
 #include <vulkyrie.h>
 #include "glad/glad.h"
-
-#include "vendor/stb_image.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    constexpr float vertices[] = {
+    constexpr f32 vertices[] = {
         // positions        // texture coords
-        0.5f,  0.5f,  0.0f, // 1.0f, 1.0f, // top right
-        0.5f,  -0.5f, 0.0f, // 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f,  0.0f, // 0.0f, 1.0f, // top left
+        0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
     };
 
     constexpr u32 indices[] = {
@@ -69,23 +66,19 @@ namespace Sandbox {
         1.0f,  -1.0f, 1.0f,  //
     };
 
-    const u16 WIDTH = 100;
-    const u16 HEIGHT = 100;
-
-    class SandboxSkyboxLayer final : public Vulkyrie::Core::Layer {
+    class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
         public:
-            SandboxSkyboxLayer(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerSkybox(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
-                  // texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
-                  terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
-
-                // if (!texture->IsLoaded()) {
-                //     VERROR("SandboxSkyboxLayer: Failed to load texture.");
-                //     return;
-                // }
+                  texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
+                  terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
+                if (!texture->IsLoaded()) {
+                    VERROR("SandboxLayerSkybox: Failed to load texture.");
+                    return;
+                }
 
                 if (!terrainShader->IsValid()) {
-                    VERROR("SandboxSkyboxLayer: Failed to load shaders.");
+                    VERROR("SandboxLayerSkybox: Failed to load shaders.");
                     return;
                 }
 
@@ -94,7 +87,7 @@ namespace Sandbox {
                 Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
-                    // { ShaderDataType::Float2, "aTexCoord" },
+                    { ShaderDataType::Float2, "aTexCoord" },
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
@@ -102,32 +95,21 @@ namespace Sandbox {
                 vertexArray->SetIndexBuffer(indexBuffer);
 
                 // Load sky-box cubemap textures.
-                // stbi_set_flip_vertically_on_load(false);
-                // std::vector<std::string> faces = {
-                //     "assets/cubemaps/skybox/right.jpg",  "assets/cubemaps/skybox/left.jpg",  "assets/cubemaps/skybox/top.jpg",
-                //     "assets/cubemaps/skybox/bottom.jpg", "assets/cubemaps/skybox/front.jpg", "assets/cubemaps/skybox/back.jpg",
-                // };
-                // skyboxTextureId = loadCubemap(faces);
-                // skyboxVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                // Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(skyboxVertices),
-                // sizeof(skyboxVertices)); skyboxVertexBuffer->SetLayout({
-                //     { ShaderDataType::Float3, "aPos" },
-                // });
-                // skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
-                //
-                // // Load skybox shaders.
-                // skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
+                std::vector<std::filesystem::path> faces = {
+                    "assets/cubemaps/skybox/right.jpg",  "assets/cubemaps/skybox/left.jpg",  "assets/cubemaps/skybox/top.jpg",
+                    "assets/cubemaps/skybox/bottom.jpg", "assets/cubemaps/skybox/front.jpg", "assets/cubemaps/skybox/back.jpg",
+                };
+                skyboxTexture = TextureCubeMap::Create(GraphicsAPI::OpenGL, faces);
 
-                noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                    .MapWidth = WIDTH,
-                    .MapHeight = HEIGHT,
-                    .Scale = scale,
-                    .Octaves = octaves,
-                    .Persistence = persistence,
-                    .Lacunarity = lacunarity,
-                    .Seed = seed,
-                    .Offset = offset,
+                skyboxVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(skyboxVertices), sizeof(skyboxVertices));
+                skyboxVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "aPos" },
                 });
+                skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
+
+                // Load skybox shaders.
+                skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
@@ -137,7 +119,7 @@ namespace Sandbox {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                float cameraSpeed = 20.0f;
+                f32 cameraSpeed = 20.0f;
                 auto dt = deltaTime.GetSeconds();
 
                 if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 100.0f;
@@ -146,56 +128,20 @@ namespace Sandbox {
                 if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
                 if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
                 if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
-
-                if (_application.IsKeyPressed(KeyCode::M)) {
-                    if (scale < 100.0f) scale += 1.0f;
-
-                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = WIDTH,
-                        .MapHeight = HEIGHT,
-                        .Scale = scale,
-                        .Octaves = octaves,
-                        .Persistence = persistence,
-                        .Lacunarity = lacunarity,
-                        .Seed = seed,
-                        .Offset = offset,
-                    });
-                }
-
-                if (_application.IsKeyPressed(KeyCode::N)) {
-                    if (scale > 2.0f) scale -= 1.0f;
-
-                    noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                        .MapWidth = WIDTH,
-                        .MapHeight = HEIGHT,
-                        .Scale = scale,
-                        .Octaves = octaves,
-                        .Persistence = persistence,
-                        .Lacunarity = lacunarity,
-                        .Seed = seed,
-                        .Offset = offset,
-                    });
-                }
-
                 // --------------------------------------------------------------------
                 // Render terrain.
                 terrainShader->Use();
 
-                // View Matrix.
-                glm::mat4 view = camera.GetViewMatrix();
-
                 // Projection Matrix.
                 glm::mat4 projection = glm::mat4(1.0f);
                 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
-
-                // glm::mat4 projection = glm::mat4(1.0f);
-                // projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
+                // View Matrix.
                 glm::mat4 viewTerrain = camera.GetViewMatrix();
                 terrainShader->SetMat4Uniform("view", viewTerrain);
 
-                // texture->Bind(0);
+                texture->Bind(0);
 
                 vertexArray->Bind();
 
@@ -210,9 +156,6 @@ namespace Sandbox {
                         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                         terrainShader->SetMat4Uniform("model", model);
 
-                        const glm::vec3 pixelColor = noiseMap[x + j] > 0.5f ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(0.0f, 0.0f, 1.0f);
-                        terrainShader->SetVec3Uniform("pixelColor", pixelColor);
-
                         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                     }
                 }
@@ -223,22 +166,22 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
                 // Sky box.
                 // change depth function so depth test passes when values are equal to depth buffer's content
-                // glDepthFunc(GL_LEQUAL);
-                // skyboxShader->Use();
-                //
-                // skyboxShader->SetMat4Uniform("projection", projection);
-                //
-                // view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-                // skyboxShader->SetMat4Uniform("view", view);
+                glDepthFunc(GL_LEQUAL);
+                skyboxShader->Use();
 
-                // ... set view and projection matrix
-                // skyboxVertexArray->Bind();
-                // glActiveTexture(GL_TEXTURE0);
-                // glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureId);
-                // glDrawArrays(GL_TRIANGLES, 0, 36);
-                // skyboxVertexArray->Unbind();
+                glm::mat4 view = camera.GetViewMatrix();
+                view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+                skyboxShader->SetMat4Uniform("projection", projection);
+                skyboxShader->SetMat4Uniform("view", view);
+
+                skyboxTexture->Bind();
+
+                skyboxVertexArray->Bind();
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+                skyboxVertexArray->Unbind();
+
                 // set depth function back to default
-                // glDepthFunc(GL_LESS);
+                glDepthFunc(GL_LESS);
                 // --------------------------------------------------------------------
             }
 
@@ -265,8 +208,8 @@ namespace Sandbox {
                         firstMouseMove = false;
                     }
 
-                    const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
+                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
+                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
 
                     camera.ProcessMouseMovement(xOffset, yOffset);
 
@@ -282,46 +225,18 @@ namespace Sandbox {
             f32 windowWidth;
             f32 windowHeight;
             bool firstMouseMove = true;
-            float lastMouseX = 0.0f;
-            float lastMouseY = 0.0f;
+            f32 lastMouseX = 0.0f;
+            f32 lastMouseY = 0.0f;
+
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
-            std::vector<f32> noiseMap;
-            // Ref<Texture2D> texture;
-            // Ref<Shader> skyboxShader;
-            // Ref<VertexArray> skyboxVertexArray;
-            // u32 skyboxTextureId;
+            Ref<Texture2D> texture;
 
-            f32 scale = 5.0f;
-            i32 octaves = 4;
-            f32 persistence = 0.5f;
-            f32 lacunarity = 2.0f;
-            u32 seed = 42;
-            glm::vec2 offset = glm::vec2(10.0f, 10.0f);
+            Ref<Shader> skyboxShader;
+            Ref<VertexArray> skyboxVertexArray;
+            Ref<TextureCubeMap> skyboxTexture;
 
-            unsigned int loadCubemap(std::vector<std::string> faces) {
-                unsigned int textureID;
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-                int width, height, nrChannels;
-                for (unsigned int i = 0; i < faces.size(); i++) {
-                    unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-                    if (data) {
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-                        stbi_image_free(data);
-                    } else {
-                        std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
-                        stbi_image_free(data);
-                    }
-                }
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-                return textureID;
-            }
+            static constexpr u16 WIDTH = 100;
+            static constexpr u16 HEIGHT = 100;
     };
 } // namespace Sandbox

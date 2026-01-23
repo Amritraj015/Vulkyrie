@@ -64,8 +64,9 @@ namespace Sandbox {
                 // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
                 // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
                 // -----------------------------------------------------------------------------------------------------------------------------------
+                VDEBUG("Asteroid Mesh Count: {}", asteroidModel->GetMeshCount());
                 for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
-                    const auto &mesh= asteroidModel->GetMeshes()[i];
+                    const auto &mesh = asteroidModel->GetMeshes()[i];
                     mesh->Bind();
 
                     // set attribute pointers for matrix (4 times vec4)
@@ -135,18 +136,27 @@ namespace Sandbox {
                 glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 asteroidShader->SetMat4Uniform("orbitRotation", orbitRotation);
 
-                asteroidShader->SetIntUniform("texture_diffuse", 0);
-                glActiveTexture(GL_TEXTURE0);
+                asteroidShader->SetIntUniform("texture_diffuse1", 0);
+                // glActiveTexture(GL_TEXTURE0);
 
                 // note: we also made the textures_loaded vector public (instead of private) from the model class.
                 // TODO: Remove the following line maybe.
-                // glBindTexture(GL_TEXTURE_2D, asteroidModel->texturesLoaded[0].Id);
+                // glBindTexture(GL_TEXTURE_2D, asteroidModel->_loadedTextures[0].Id);
+                asteroidModel->BindTextures();
                 for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
                     const auto &mesh = asteroidModel->GetMeshes()[i];
                     mesh->Bind();
                     glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(mesh->GetIndexCount()), GL_UNSIGNED_INT, 0, amount);
                     mesh->Unbind();
                 }
+
+// Check for OpenGL errors (optional, for debugging)
+#ifdef VULKYRIE_DEBUG
+                GLenum err;
+                while ((err = glGetError()) != GL_NO_ERROR) {
+                    VERROR("OpenGL error: {}", err);
+                }
+#endif
             }
 
             void OnAttached() override {

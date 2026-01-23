@@ -103,22 +103,9 @@ namespace Sandbox {
                 boxTexture->Bind(0);
                 specularMapTexture->Bind(1);
 
-                SpotLight spotLight = {
-                    { 0.1f, 0.1f, 0.1f },
-                    { 0.8f, 0.8f, 0.8f },
-                    {
-                        1.0f,
-                        1.0f,
-                        1.0f,
-                    },
-                    camera.GetPosition(),
-                    1.0f,
-                    0.022f,
-                    0.0019f,
-                    camera.GetFront(),
-                    glm::cos(glm::radians(12.5f)),
-                    glm::cos(glm::radians(17.5f)),
-                };
+                // Update spotlight position and direction to match the camera.
+                spotLight.Position = camera.GetPosition();
+                spotLight.Direction = camera.GetFront();
 
                 // Set the spotlight properties.
                 objectShader->SetVec3Uniform("light.position", spotLight.Position);
@@ -205,6 +192,22 @@ namespace Sandbox {
             f64 lastMouseY = 300.0f;
             bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
+            SpotLight spotLight = {
+                { 0.1f, 0.1f, 0.1f },
+                { 0.8f, 0.8f, 0.8f },
+                {
+                    1.0f,
+                    1.0f,
+                    1.0f,
+                },
+                camera.GetPosition(),
+                1.0f,
+                0.022f,
+                0.0019f,
+                camera.GetFront(),
+                glm::cos(glm::radians(12.5f)),
+                glm::cos(glm::radians(17.5f)),
+            };
 
             // PointLight pointLight = {
             //     {
