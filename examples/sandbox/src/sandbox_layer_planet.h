@@ -64,7 +64,6 @@ namespace Sandbox {
                 // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
                 // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
                 // -----------------------------------------------------------------------------------------------------------------------------------
-                VDEBUG("Asteroid Mesh Count: {}", asteroidModel->GetMeshCount());
                 for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
                     const auto &mesh = asteroidModel->GetMeshes()[i];
                     mesh->Bind();
