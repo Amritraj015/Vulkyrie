@@ -7,7 +7,7 @@ namespace Vulkyrie::Renderer {
     OpenGLTextureCubeMap::OpenGLTextureCubeMap(const std::vector<std::filesystem::path> &faces) {
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_textureId);
 
-        int width = 0, height = 0, channels = 0;
+        i32 width = 0, height = 0, channels = 0;
 
         stbi_set_flip_vertically_on_load(false);
 
@@ -15,7 +15,7 @@ namespace Vulkyrie::Renderer {
         stbi_uc *data = stbi_load(faces[0].c_str(), &width, &height, &channels, 0);
 
         if (!data) {
-            std::cout << "Cubemap tex failed to load at path: " << faces[0] << std::endl;
+            VERROR("Cubemap tex failed to load at path: {}", faces[0].c_str());
         }
 
         GLenum internalFormat;
