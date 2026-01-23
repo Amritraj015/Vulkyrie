@@ -1,7 +1,7 @@
 # -------------------------------------
 # Global configuration
 # -------------------------------------
-Cmake_Minimum_Required(VERSION 3.27)
+Cmake_Minimum_Required(VERSION 3.31)
 Project(vulkyrie)
 Set(CMAKE_CXX_STANDARD 23)
 Set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

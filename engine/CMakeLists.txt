@@ -1,4 +1,4 @@
-Cmake_Minimum_Required(VERSION 3.27)
+Cmake_Minimum_Required(VERSION 3.31)
 Project(engine)
 Set(CMAKE_CXX_STANDARD 23)
 
