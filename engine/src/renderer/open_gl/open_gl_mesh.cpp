@@ -103,8 +103,6 @@ namespace Vulkyrie::Renderer {
         u32 normalNr = 1;
         u32 heightNr = 1;
 
-        VDEBUG("Generating texture uniform names for {} total textures.", _textures.TotalCount());
-
         // NOTE: Shader sampler naming convention:
         // Each texture type follows the pattern 'texture_<type>N' where N starts at 1
         // Example: texture_diffuse1, texture_diffuse2, texture_specular1, etc.
