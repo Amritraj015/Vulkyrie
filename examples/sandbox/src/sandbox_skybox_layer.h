@@ -8,64 +8,6 @@ namespace Sandbox {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    constexpr f32 vertices[] = {
-        // positions        // texture coords
-        0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
-    };
-
-    constexpr u32 indices[] = {
-        0, 1, 2, // first triangle
-        0, 2, 3  // second triangle
-    };
-
-    constexpr float skyboxVertices[] = {
-        // positions
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  1.0f,  -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-
-        -1.0f, -1.0f, 1.0f,  //
-        -1.0f, -1.0f, -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, 1.0f,  -1.0f, //
-        -1.0f, 1.0f,  1.0f,  //
-        -1.0f, -1.0f, 1.0f,  //
-
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, 1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-
-        -1.0f, -1.0f, 1.0f, //
-        -1.0f, 1.0f,  1.0f, //
-        1.0f,  1.0f,  1.0f, //
-        1.0f,  1.0f,  1.0f, //
-        1.0f,  -1.0f, 1.0f, //
-        -1.0f, -1.0f, 1.0f, //
-
-        -1.0f, 1.0f,  -1.0f, //
-        1.0f,  1.0f,  -1.0f, //
-        1.0f,  1.0f,  1.0f,  //
-        1.0f,  1.0f,  1.0f,  //
-        -1.0f, 1.0f,  1.0f,  //
-        -1.0f, 1.0f,  -1.0f, //
-
-        -1.0f, -1.0f, -1.0f, //
-        -1.0f, -1.0f, 1.0f,  //
-        1.0f,  -1.0f, -1.0f, //
-        1.0f,  -1.0f, -1.0f, //
-        -1.0f, -1.0f, 1.0f,  //
-        1.0f,  -1.0f, 1.0f,  //
-    };
-
     class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerSkybox(Application &application, f32 windowWidth, f32 windowHeight)
@@ -84,25 +26,34 @@ namespace Sandbox {
 
                 vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
 
-                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(vertices), sizeof(vertices));
+                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                     { ShaderDataType::Float2, "aTexCoord" },
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
-                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, const_cast<u32 *>(indices), sizeof(indices) / sizeof(u32));
+                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
                 vertexArray->SetIndexBuffer(indexBuffer);
 
                 // Load sky-box cubemap textures.
-                std::vector<std::filesystem::path> faces = {
-                    "assets/cubemaps/skybox/right.jpg",  "assets/cubemaps/skybox/left.jpg",  "assets/cubemaps/skybox/top.jpg",
-                    "assets/cubemaps/skybox/bottom.jpg", "assets/cubemaps/skybox/front.jpg", "assets/cubemaps/skybox/back.jpg",
-                };
-                skyboxTexture = TextureCubeMap::Create(GraphicsAPI::OpenGL, faces);
+                skyboxTexture = TextureCubeMap::Create(GraphicsAPI::OpenGL,
+                                                       {
+                                                           "assets/cubemaps/skybox/right.jpg",
+                                                           "assets/cubemaps/skybox/left.jpg",
+                                                           "assets/cubemaps/skybox/top.jpg",
+                                                           "assets/cubemaps/skybox/bottom.jpg",
+                                                           "assets/cubemaps/skybox/front.jpg",
+                                                           "assets/cubemaps/skybox/back.jpg",
+                                                       });
+
+                if (!skyboxTexture->IsValid()) {
+                    VERROR("SandboxLayerSkybox: Failed to load skybox cubemap texture.");
+                    return;
+                }
 
                 skyboxVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, const_cast<float *>(skyboxVertices), sizeof(skyboxVertices));
+                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, skyboxVertices.data(), skyboxVertices.size() * sizeof(f32));
                 skyboxVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                 });
@@ -243,6 +194,64 @@ namespace Sandbox {
             Ref<Shader> skyboxShader;
             Ref<VertexArray> skyboxVertexArray;
             Ref<TextureCubeMap> skyboxTexture;
+
+            std::vector<f32> vertices = {
+                // positions        // texture coords
+                0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+                0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+                -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+                -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
+            };
+
+            std::vector<u32> indices = {
+                0, 1, 2, // first triangle
+                0, 2, 3  // second triangle
+            };
+
+            std::vector<f32> skyboxVertices = {
+                // positions
+                -1.0f, 1.0f,  -1.0f, //
+                -1.0f, -1.0f, -1.0f, //
+                1.0f,  -1.0f, -1.0f, //
+                1.0f,  -1.0f, -1.0f, //
+                1.0f,  1.0f,  -1.0f, //
+                -1.0f, 1.0f,  -1.0f, //
+
+                -1.0f, -1.0f, 1.0f,  //
+                -1.0f, -1.0f, -1.0f, //
+                -1.0f, 1.0f,  -1.0f, //
+                -1.0f, 1.0f,  -1.0f, //
+                -1.0f, 1.0f,  1.0f,  //
+                -1.0f, -1.0f, 1.0f,  //
+
+                1.0f,  -1.0f, -1.0f, //
+                1.0f,  -1.0f, 1.0f,  //
+                1.0f,  1.0f,  1.0f,  //
+                1.0f,  1.0f,  1.0f,  //
+                1.0f,  1.0f,  -1.0f, //
+                1.0f,  -1.0f, -1.0f, //
+
+                -1.0f, -1.0f, 1.0f, //
+                -1.0f, 1.0f,  1.0f, //
+                1.0f,  1.0f,  1.0f, //
+                1.0f,  1.0f,  1.0f, //
+                1.0f,  -1.0f, 1.0f, //
+                -1.0f, -1.0f, 1.0f, //
+
+                -1.0f, 1.0f,  -1.0f, //
+                1.0f,  1.0f,  -1.0f, //
+                1.0f,  1.0f,  1.0f,  //
+                1.0f,  1.0f,  1.0f,  //
+                -1.0f, 1.0f,  1.0f,  //
+                -1.0f, 1.0f,  -1.0f, //
+
+                -1.0f, -1.0f, -1.0f, //
+                -1.0f, -1.0f, 1.0f,  //
+                1.0f,  -1.0f, -1.0f, //
+                1.0f,  -1.0f, -1.0f, //
+                -1.0f, -1.0f, 1.0f,  //
+                1.0f,  -1.0f, 1.0f,  //
+            };
 
             static constexpr u16 WIDTH = 100;
             static constexpr u16 HEIGHT = 100;

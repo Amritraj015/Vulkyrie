@@ -9,10 +9,10 @@ namespace Vulkyrie::Renderer {
             /** @brief Constructs an OpenGL cube map texture from the specified file paths.
              * @param faces The file paths for the cube map faces.
              */
-            OpenGLTextureCubeMap(const std::vector<std::filesystem::path> &faces);
+            explicit OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces);
 
             /** @brief Destructor for the OpenGLTextureCubeMap class. */
-            ~OpenGLTextureCubeMap();
+            ~OpenGLTextureCubeMap() noexcept override;
 
             /** @brief Binds the cube map texture to the specified slot.
              * @param slot The texture slot to bind to. Default is 0.
