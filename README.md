@@ -42,20 +42,32 @@ The project supports several CMake options to control what gets built:
 
 The project includes CMake presets for different build configurations. **All presets use the Ninja generator.**
 
-| Preset Name | Compiler | Targets | Configure & Build Commands |
-|-------------|----------|---------|----------------------------|
-| `all-debug` | System Default | All (Engine, Examples, CLI, Tests) | `cmake --preset all-debug && cmake --build --preset all-debug` |
-| `examples-debug` | System Default | Examples only | `cmake --preset examples-debug && cmake --build --preset examples-debug` |
-| `cli-debug` | System Default | CLI only | `cmake --preset cli-debug && cmake --build --preset cli-debug` |
-| `tests-debug` | System Default | Tests only | `cmake --preset tests-debug && cmake --build --preset tests-debug` |
-| `gcc-all-debug` | GCC | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug && cmake --build --preset gcc-all-debug` |
-| `gcc-examples-debug` | GCC | Examples only | `cmake --preset gcc-examples-debug && cmake --build --preset gcc-examples-debug` |
-| `gcc-cli-debug` | GCC | CLI only | `cmake --preset gcc-cli-debug && cmake --build --preset gcc-cli-debug` |
-| `gcc-tests-debug` | GCC | Tests only | `cmake --preset gcc-tests-debug && cmake --build --preset gcc-tests-debug` |
-| `clang-all-debug` | Clang | All (Engine, Examples, CLI, Tests) | `cmake --preset clang-all-debug && cmake --build --preset clang-all-debug` |
-| `clang-examples-debug` | Clang | Examples only | `cmake --preset clang-examples-debug && cmake --build --preset clang-examples-debug` |
-| `clang-cli-debug` | Clang | CLI only | `cmake --preset clang-cli-debug && cmake --build --preset clang-cli-debug` |
-| `clang-tests-debug` | Clang | Tests only | `cmake --preset clang-tests-debug && cmake --build --preset clang-tests-debug` |
+#### System Default Compiler
+
+| Preset Name | Targets | Configure & Build Commands |
+|-------------|---------|----------------------------|
+| `all-debug` | All (Engine, Examples, CLI, Tests) | `cmake --preset all-debug && cmake --build --preset all-debug` |
+| `examples-debug` | Examples only | `cmake --preset examples-debug && cmake --build --preset examples-debug` |
+| `cli-debug` | CLI only | `cmake --preset cli-debug && cmake --build --preset cli-debug` |
+| `tests-debug` | Tests only | `cmake --preset tests-debug && cmake --build --preset tests-debug` |
+
+#### GCC
+
+| Preset Name | Targets | Configure & Build Commands |
+|-------------|---------|----------------------------|
+| `gcc-all-debug` | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug && cmake --build --preset gcc-all-debug` |
+| `gcc-examples-debug` | Examples only | `cmake --preset gcc-examples-debug && cmake --build --preset gcc-examples-debug` |
+| `gcc-cli-debug` | CLI only | `cmake --preset gcc-cli-debug && cmake --build --preset gcc-cli-debug` |
+| `gcc-tests-debug` | Tests only | `cmake --preset gcc-tests-debug && cmake --build --preset gcc-tests-debug` |
+
+#### Clang
+
+| Preset Name | Targets | Configure & Build Commands |
+|-------------|---------|----------------------------|
+| `clang-all-debug` | All (Engine, Examples, CLI, Tests) | `cmake --preset clang-all-debug && cmake --build --preset clang-all-debug` |
+| `clang-examples-debug` | Examples only | `cmake --preset clang-examples-debug && cmake --build --preset clang-examples-debug` |
+| `clang-cli-debug` | CLI only | `cmake --preset clang-cli-debug && cmake --build --preset clang-cli-debug` |
+| `clang-tests-debug` | Tests only | `cmake --preset clang-tests-debug && cmake --build --preset clang-tests-debug` |
 
 ### Building without Presets
 
