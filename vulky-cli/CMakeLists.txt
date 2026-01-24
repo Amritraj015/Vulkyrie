@@ -1,16 +1,12 @@
-Cmake_Minimum_Required(VERSION 3.27)
-project(vulky)
-set(CMAKE_CXX_STANDARD 23)
-
-File(GLOB_RECURSE VULKY_CLI_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-
-Add_Executable(${PROJECT_NAME})
-
-Target_Sources(${PROJECT_NAME} PRIVATE ${VULKY_CLI_SOURCES})
-Target_Link_Libraries(${PROJECT_NAME} PRIVATE engine)
-
-Target_Compile_Definitions(${PROJECT_NAME}
-    PRIVATE 
-        VULKYRIE_EXPORTS
-        VULKYRIE_DEBUG
+file(GLOB_RECURSE VULKY_CLI_SOURCES
+    CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
+
+add_executable(vulky ${VULKY_CLI_SOURCES})
+
+# Require C++23 properly
+target_compile_features(vulky PRIVATE cxx_std_23)
+
+# Link engine
+target_link_libraries(vulky PRIVATE engine)
