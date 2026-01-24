@@ -2,12 +2,12 @@
   "configurations": [
     {
       "name": "Win32",
-      "compileCommands": ["${workspaceFolder}/build/compile_commands.json"]
+      "compileCommands": ["${workspaceFolder}/compile_commands.json"]
     },
     {
       "name": "Linux",
       "includePath": ["${workspaceFolder}/**"],
-      "compileCommands": ["${workspaceFolder}/build/compile_commands.json"],
+      "compileCommands": ["${workspaceFolder}/compile_commands.json"],
       "defines": [],
       "compilerPath": "/usr/bin/g++",
       "cStandard": "c17",

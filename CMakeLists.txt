@@ -1,53 +1,68 @@
 # -------------------------------------
 # Global configuration
 # -------------------------------------
-Cmake_Minimum_Required(VERSION 3.27)
-Project(vulkyrie)
-Set(CMAKE_CXX_STANDARD 23)
+cmake_minimum_required(VERSION 3.27)
+project(vulkyrie)
+set(CMAKE_CXX_STANDARD 23)
 
 # -------------------------------------
 # Options
 # -------------------------------------
-Option(VULKYRIE_BUILD_EXAMPLES "Build Vulkyrie examples" ON)
-Option(VULKYRIE_BUILD_CLI "Build vulky-cli" ON)
-Option(VULKYRIE_BUILD_TESTS "Build Vulkyrie tests" ON)
-Option(VULKYRIE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json" ON)
+option(VULKYRIE_BUILD_EXAMPLES "Build Vulkyrie examples" ON)
+option(VULKYRIE_BUILD_CLI "Build vulky-cli" ON)
+option(VULKYRIE_BUILD_TESTS "Build Vulkyrie tests" ON)
+option(VULKYRIE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json" ON)
 
 # -------------------------------------
 # Export compile commands
 # -------------------------------------
-if (VULKYRIE_EXPORT_COMPILE_COMMANDS)
-    Set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ${VULKYRIE_EXPORT_COMPILE_COMMANDS})
+
+if(VULKYRIE_EXPORT_COMPILE_COMMANDS)
+    set(CC_JSON "${CMAKE_BINARY_DIR}/compile_commands.json")
+    set(CC_JSON_LINK "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
+    if(EXISTS "${CC_JSON}")
+        if(EXISTS "${CC_JSON_LINK}" OR IS_SYMLINK "${CC_JSON_LINK}")
+            file(REMOVE "${CC_JSON_LINK}")
+        endif()
+
+        if(WIN32)
+            file(COPY "${CC_JSON}" DESTINATION "${CMAKE_SOURCE_DIR}/compile_commands.json" FILE_PERMISSIONS OWNER_READ OWNER_WRITE)
+        else()
+            file(CREATE_LINK "${CC_JSON}" "${CC_JSON_LINK}" SYMBOLIC)
+        endif()
+    endif()
 endif()
 
 # -------------------------------------
 # Include dependencies configuration
 # -------------------------------------
-Include(Dependencies.cmake)
+include(Dependencies.cmake)
 
 # -------------------------------------
 # Build the Vulkyrie Engine.
 # -------------------------------------
-Add_Subdirectory(engine)
+add_subdirectory(engine)
 
 # -------------------------------------
 # Build the Vulkyrie CLI tool.
 # -------------------------------------
-if (VULKYRIE_BUILD_CLI)
-    Add_Subdirectory(vulky-cli)
+if(VULKYRIE_BUILD_CLI)
+    add_subdirectory(vulky-cli)
 endif()
 
 # -------------------------------------
 # Examples/Games based on the Vulkyrie engine
 # -------------------------------------
-if (VULKYRIE_BUILD_EXAMPLES)
-    Add_Subdirectory(examples/asteroids)
-    Add_Subdirectory(examples/sandbox)
+if(VULKYRIE_BUILD_EXAMPLES)
+    add_subdirectory(examples/asteroids)
+    add_subdirectory(examples/sandbox)
 endif()
 
 # -------------------------------------
 # Build tests
 # -------------------------------------
-if (VULKYRIE_BUILD_TESTS)
-    Add_Subdirectory(tests)
+if(VULKYRIE_BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
