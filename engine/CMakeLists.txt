@@ -1,14 +1,22 @@
-Cmake_Minimum_Required(VERSION 3.27)
-Project(engine)
-Set(CMAKE_CXX_STANDARD 23)
+# ---------------------------
+# Sources
+# ---------------------------
+file(GLOB_RECURSE ENGINE_SOURCES
+    CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 
-File(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-# File(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS include/*.h)
+add_library(engine STATIC ${ENGINE_SOURCES})
 
-# Add_Library(${PROJECT_NAME} STATIC ${ENGINE_HEADERS} ${ENGINE_SOURCES})
-Add_Library(${PROJECT_NAME} STATIC ${ENGINE_SOURCES})
+# ---------------------------
+# C++ Standard
+# ---------------------------
+target_compile_features(engine PUBLIC cxx_std_23)
 
-Target_Include_Directories(${PROJECT_NAME}
+# ---------------------------
+# Include Paths
+# ---------------------------
+target_include_directories(engine
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -16,20 +24,49 @@ Target_Include_Directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-
-# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad assimp)
-Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad assimp)
-
-Target_Compile_Definitions(${PROJECT_NAME}
-    PRIVATE 
-        VULKYRIE_EXPORTS
-        VULKYRIE_DEBUG
+# ---------------------------
+# Dependencies
+# ---------------------------
+target_link_libraries(engine
+    PUBLIC
+        glm
+        glfw
+        glad
+        assimp
 )
 
-Target_Precompile_Headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/vlkypch.h)
+# ---------------------------
+# Compile Definitions (Propagate to all dependents)
+# ---------------------------
+target_compile_definitions(engine
+    PUBLIC
+        VULKYRIE_EXPORTS
+        $<$<CONFIG:Debug>:VULKYRIE_DEBUG>
+)
 
+# ---------------------------
+# Precompiled Headers
+# ---------------------------
+target_precompile_headers(engine
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/vlkypch.h
+)
+
+# ---------------------------
+# Warnings & Errors (Propagate)
+# ---------------------------
 if (MSVC)
-    Target_Compile_Options(${PROJECT_NAME} PRIVATE /W4 /WX)
+    target_compile_options(engine
+       PRIVATE 
+            /W4
+            /WX
+    )
 else()
-    Target_Compile_Options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(engine
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+            -Werror
+    )
 endif()

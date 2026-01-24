@@ -1,22 +1,45 @@
 {
-  "version": 3,
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+
   "configurePresets": [
     {
       "name": "base-debug",
       "hidden": true,
       "generator": "Ninja",
+      "binaryDir": "build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
+    {
+      "name": "gcc-base",
+      "hidden": true,
+      "inherits": "base-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "clang-base",
+      "hidden": true,
+      "inherits": "base-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      }
+    },
+
     {
       "name": "all-debug",
       "displayName": "All Targets (Debug)",
       "inherits": "base-debug",
-      "binaryDir": "build/all-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -27,7 +50,6 @@
       "name": "examples-debug",
       "displayName": "Examples (Debug)",
       "inherits": "base-debug",
-      "binaryDir": "build/examples-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -38,7 +60,6 @@
       "name": "cli-debug",
       "displayName": "CLI (Debug)",
       "inherits": "base-debug",
-      "binaryDir": "build/cli-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -49,7 +70,88 @@
       "name": "tests-debug",
       "displayName": "Tests (Debug)",
       "inherits": "base-debug",
-      "binaryDir": "build/tests-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "gcc-all-debug",
+      "displayName": "(GCC) - All Targets (Debug)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-examples-debug",
+      "displayName": "(GCC) - Examples (Debug)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-cli-debug",
+      "displayName": "(GCC) - CLI (Debug)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-tests-debug",
+      "displayName": "(GCC) - Tests (Debug)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "clang-all-debug",
+      "displayName": "(Clang) - All Targets (Debug)",
+      "inherits": "clang-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "clang-examples-debug",
+      "displayName": "(Clang) - Examples (Debug)",
+      "inherits": "clang-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "clang-cli-debug",
+      "displayName": "(Clang) - CLI (Debug)",
+      "inherits": "clang-base",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "clang-tests-debug",
+      "displayName": "(Clang) - Tests (Debug)",
+      "inherits": "clang-base",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -57,22 +159,24 @@
       }
     }
   ],
+
   "buildPresets": [
+    { "name": "all-debug", "configurePreset": "all-debug" },
+    { "name": "examples-debug", "configurePreset": "examples-debug" },
+    { "name": "cli-debug", "configurePreset": "cli-debug" },
+    { "name": "tests-debug", "configurePreset": "tests-debug" },
+
+    { "name": "gcc-all-debug", "configurePreset": "gcc-all-debug" },
+    { "name": "gcc-examples-debug", "configurePreset": "gcc-examples-debug" },
+    { "name": "gcc-cli-debug", "configurePreset": "gcc-cli-debug" },
+    { "name": "gcc-tests-debug", "configurePreset": "gcc-tests-debug" },
+
+    { "name": "clang-all-debug", "configurePreset": "clang-all-debug" },
     {
-      "name": "all-debug",
-      "configurePreset": "all-debug"
+      "name": "clang-examples-debug",
+      "configurePreset": "clang-examples-debug"
     },
-    {
-      "name": "examples-debug",
-      "configurePreset": "examples-debug"
-    },
-    {
-      "name": "cli-debug",
-      "configurePreset": "cli-debug"
-    },
-    {
-      "name": "tests-debug",
-      "configurePreset": "tests-debug"
-    }
+    { "name": "clang-cli-debug", "configurePreset": "clang-cli-debug" },
+    { "name": "clang-tests-debug", "configurePreset": "clang-tests-debug" }
   ]
 }

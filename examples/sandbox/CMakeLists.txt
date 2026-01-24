@@ -1,24 +1,22 @@
-Cmake_Minimum_Required(VERSION 3.27)
-Project(sandbox)
-Set(CMAKE_CXX_STANDARD 23)
-
-File(GLOB_RECURSE SANDBOX_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-
-Add_Executable(${PROJECT_NAME})
-
-Target_Sources(${PROJECT_NAME} PRIVATE ${SANDBOX_SOURCES})
-Target_Link_Libraries(${PROJECT_NAME} PRIVATE engine)
-
-Target_Compile_Definitions(${PROJECT_NAME}
-    PRIVATE 
-        VULKYRIE_EXPORTS
-        VULKYRIE_DEBUG
+file(GLOB_RECURSE SANDBOX_SOURCES
+    CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-Add_Custom_Target(copy_sandbox_assets ALL
+add_executable(sandbox ${SANDBOX_SOURCES})
+
+# Require C++23 properly
+target_compile_features(sandbox PRIVATE cxx_std_23)
+
+# Link engine
+target_link_libraries(sandbox PRIVATE engine)
+
+# Copy assets after build
+add_custom_command(
+    TARGET sandbox
+    POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
+        $<TARGET_FILE_DIR:sandbox>/assets
+    COMMENT "Copying sandbox assets"
 )
-
-Add_Dependencies(${PROJECT_NAME} copy_sandbox_assets)
