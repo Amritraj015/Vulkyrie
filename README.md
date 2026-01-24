@@ -27,6 +27,8 @@ The project supports several CMake options to control what gets built:
 
 The project includes CMake presets for different build configurations. From the root project directory:
 
+#### Generic Presets (uses system default compiler)
+
 **Build all targets (engine, examples, CLI, tests):**
 ```bash
 cmake --preset all-debug
@@ -51,6 +53,58 @@ cmake --preset tests-debug
 cmake --build --preset tests-debug
 ```
 
+#### GCC-Specific Presets
+
+**Build all targets with GCC:**
+```bash
+cmake --preset gcc-all-debug
+cmake --build --preset gcc-all-debug
+```
+
+**Build only examples with GCC:**
+```bash
+cmake --preset gcc-examples-debug
+cmake --build --preset gcc-examples-debug
+```
+
+**Build only CLI with GCC:**
+```bash
+cmake --preset gcc-cli-debug
+cmake --build --preset gcc-cli-debug
+```
+
+**Build only tests with GCC:**
+```bash
+cmake --preset gcc-tests-debug
+cmake --build --preset gcc-tests-debug
+```
+
+#### Clang-Specific Presets
+
+**Build all targets with Clang:**
+```bash
+cmake --preset clang-all-debug
+cmake --build --preset clang-all-debug
+```
+
+**Build only examples with Clang:**
+```bash
+cmake --preset clang-examples-debug
+cmake --build --preset clang-examples-debug
+```
+
+**Build only CLI with Clang:**
+```bash
+cmake --preset clang-cli-debug
+cmake --build --preset clang-cli-debug
+```
+
+**Build only tests with Clang:**
+```bash
+cmake --preset clang-tests-debug
+cmake --build --preset clang-tests-debug
+```
+
 ### Building without Presets
 
 If you prefer not to use presets:
@@ -63,12 +117,15 @@ cmake --build build
 
 ### Sandbox Application
 ```bash
-cd build/all-debug/examples/sandbox && ./sandbox
+cd build/gcc-all-debug/examples/sandbox && ./sandbox
 ```
 
 ### Asteroids Application
 ```bash
-cd build/all-debug/examples/asteroids && ./asteroids
+cd build/gcc-all-debug/examples/asteroids && ./asteroids
 ```
 
-**Note:** Adjust the build directory path based on which preset you used (e.g., `build/examples-debug` if you used the `examples-debug` preset).
+**Note:** Adjust the build directory path based on which preset you used:
+- Generic presets: `build/all-debug`, `build/examples-debug`, etc.
+- GCC presets: `build/gcc-all-debug`, `build/gcc-examples-debug`, etc.
+- Clang presets: `build/clang-all-debug`, `build/clang-examples-debug`, etc.
