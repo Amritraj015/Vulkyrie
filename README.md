@@ -3,6 +3,20 @@
 > [!WARNING]
 > This project is a work in progress.
 
+## Table of Contents
+
+- [How to build from source](#how-to-build-from-source)
+  - [Prerequisites](#prerequisites)
+  - [Build Options](#build-options)
+  - [Building with CMake Presets (Recommended)](#building-with-cmake-presets-recommended)
+    - [Generic Presets (uses system default compiler)](#generic-presets-uses-system-default-compiler)
+    - [GCC-Specific Presets](#gcc-specific-presets)
+    - [Clang-Specific Presets](#clang-specific-presets)
+  - [Building without Presets](#building-without-presets)
+- [Running the Applications](#running-the-applications)
+  - [Sandbox Application](#sandbox-application)
+  - [Asteroids Application](#asteroids-application)
+
 ## How to build from source
 
 ### Prerequisites
@@ -14,7 +28,9 @@ Make sure you have the following installed:
   - **GCC**
   - **MSVC**
   - **Clang**
-- **Ninja** build system ([Can be downloaded from here](https://github.com/ninja-build/ninja/releases))
+- **Ninja** build system (required for CMake presets) ([Can be downloaded from here](https://github.com/ninja-build/ninja/releases))
+
+If you prefer not to use Ninja, you can build without presets as described [here](#building-without-presets).
 
 ### Build Options
 
@@ -27,7 +43,7 @@ The project supports several CMake options to control what gets built:
 
 ### Building with CMake Presets (Recommended)
 
-The project includes CMake presets for different build configurations. From the root project directory:
+The project includes CMake presets for different build configurations. **All presets use the Ninja generator.** From the root project directory:
 
 #### Generic Presets (uses system default compiler)
 
@@ -121,7 +137,7 @@ cmake --build --preset clang-tests-debug
 
 ### Building without Presets
 
-If you prefer not to use presets:
+If you prefer not to use presets (does not require Ninja):
 
 ```bash
 cmake -S . -B build
