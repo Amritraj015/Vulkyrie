@@ -4,7 +4,7 @@
 
 namespace Vulkyrie::Renderer {
     /** @brief OpenGL implementation of a cube map texture. */
-    class OpenGLTextureCubeMap : public TextureCubeMap {
+    class OpenGLTextureCubeMap final : public TextureCubeMap {
         public:
             /** @brief Constructs an OpenGL cube map texture from the specified file paths.
              * @param faces The file paths for the cube map faces.
