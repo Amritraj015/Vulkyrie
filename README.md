@@ -5,33 +5,70 @@
 
 ## How to build from source
 
-Make sure you have the following prerequisites installed.
-- A C/C++ compiler, __(GCC v15.2.0+ or MSVC v19+ or Clang v20+ is recommended)__.
-- [Ninja](https://github.com/ninja-build/ninja/releases/tag/v1.13.2)
+### Prerequisites
 
-Run the following commands from the root project directory:
-```
-mkdir build
-cmake ..
-cmake --build .
+Make sure you have the following installed:
+- **CMake** (version 3.27 or higher)
+- A C/C++ compiler:
+  - **GCC** v15.2.0+ (recommended for Linux)
+  - **MSVC** v19+ (recommended for Windows)
+  - **Clang** v20+
+- **Ninja** build system ([download here](https://github.com/ninja-build/ninja/releases/tag/v1.13.2))
+
+### Build Options
+
+The project supports several CMake options to control what gets built:
+- `VULKYRIE_BUILD_EXAMPLES` - Build example applications (default: ON)
+- `VULKYRIE_BUILD_CLI` - Build the vulky-cli tool (default: ON)
+- `VULKYRIE_BUILD_TESTS` - Build tests (default: ON)
+- `VULKYRIE_EXPORT_COMPILE_COMMANDS` - Export compile_commands.json (default: ON)
+
+### Building with CMake Presets (Recommended)
+
+The project includes CMake presets for different build configurations. From the root project directory:
+
+**Build all targets (engine, examples, CLI, tests):**
+```bash
+cmake --preset all-debug
+cmake --build --preset all-debug
 ```
 
-Then you can run the project by running the executables under
-
-- Sandbox Application.
-```
-(On Linux)
-cd build/examples/sandbox && ./sandbox
-
-(On Windows)
-cd build/examples/sandbox/Debug && ./sandbox.exe
+**Build only examples:**
+```bash
+cmake --preset examples-debug
+cmake --build --preset examples-debug
 ```
 
-- Asteroids Application.
+**Build only CLI:**
+```bash
+cmake --preset cli-debug
+cmake --build --preset cli-debug
 ```
-(On Linux)
-cd build/examples/asteroids && ./asteroids
 
-(On Windows)
-cd build/examples/asteroids/Debug && ./asteroids.exe
+**Build only tests:**
+```bash
+cmake --preset tests-debug
+cmake --build --preset tests-debug
 ```
+
+### Building without Presets
+
+If you prefer not to use presets:
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+## Running the Applications
+
+### Sandbox Application
+```bash
+cd build/all-debug/examples/sandbox && ./sandbox
+```
+
+### Asteroids Application
+```bash
+cd build/all-debug/examples/asteroids && ./asteroids
+```
+
+**Note:** Adjust the build directory path based on which preset you used (e.g., `build/examples-debug` if you used the `examples-debug` preset).
