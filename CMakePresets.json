@@ -31,8 +31,8 @@
       "hidden": true,
       "inherits": "base-debug",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang",
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       }
     },
 
