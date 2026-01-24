@@ -6,10 +6,8 @@
 			"label": "CMake: Configure",
 			"command": "cmake",
 			"args": [
-				"-S",
-				".",
-				"-B",
-				"build"
+				"--preset",
+				"gcc-all-debug"
 			],
 			"group": "build",
 			"problemMatcher": []
@@ -20,7 +18,8 @@
 			"command": "cmake",
 			"args": [
 				"--build",
-				"build"
+				"--preset",
+				"gcc-all-debug"
 			],
 			"group": {
 				"kind": "build",
@@ -35,7 +34,7 @@
 			"command": "cmake",
 			"args": [
 				"--build",
-				"build",
+				"build/gcc-all-debug",
 				"--target",
 				"clean"
 			],
@@ -47,10 +46,10 @@
 			"label": "Run Sandbox",
 			"command": "sandbox",
 			"options": {
-				"cwd": "${workspaceFolder}/build/examples/sandbox"
+				"cwd": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox"
 			},
 			"windows": {
-				"command": "${workspaceFolder}/build/examples/sandbox/sandbox.exe"
+				"command": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox.exe"
 			},
 			"group": "test",
 			"problemMatcher": [],

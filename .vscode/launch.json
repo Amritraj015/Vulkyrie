@@ -8,19 +8,19 @@
             "name": "Launch Sandbox",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/examples/sandbox/sandbox",
-            "cwd": "${workspaceFolder}/build/examples/sandbox",
+            "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox",
+            "cwd": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/examples/sandbox/sandbox",
+                "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/examples/sandbox/sandbox.exe",
+                "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
@@ -40,19 +40,19 @@
             "name": "Launch Asteroids",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/examples/asteroids/asteroids",
-            "cwd": "${workspaceFolder}/build/examples/asteroids",
+            "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids",
+            "cwd": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/examples/asteroids/asteroids",
+                "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/examples/asteroids/Debug/asteroids.exe",
+                "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
