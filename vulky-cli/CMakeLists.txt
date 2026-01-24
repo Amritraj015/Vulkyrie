@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+Cmake_Minimum_Required(VERSION 3.27)
 project(vulky)
 set(CMAKE_CXX_STANDARD 23)
 

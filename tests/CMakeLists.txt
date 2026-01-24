@@ -1,4 +1,4 @@
-Cmake_Minimum_Required(VERSION 3.31)
+Cmake_Minimum_Required(VERSION 3.27)
 Set(CMAKE_CXX_STANDARD 23)
 
 Include(FetchContent)

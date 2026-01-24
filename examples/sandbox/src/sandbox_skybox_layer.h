@@ -185,6 +185,14 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Skybox");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Attached: Skybox");
+            }
+
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
 

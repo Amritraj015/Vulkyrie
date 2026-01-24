@@ -1,4 +1,4 @@
-Cmake_Minimum_Required(VERSION 3.31)
+Cmake_Minimum_Required(VERSION 3.27)
 Project(asteroids)
 Set(CMAKE_CXX_STANDARD 23)
 
