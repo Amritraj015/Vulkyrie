@@ -5,12 +5,9 @@
 namespace Asteroids {
     class AsteroidsApplication : public Vulkyrie::Core::Application {
         public:
-            AsteroidsApplication(Vulkyrie::Core::WindowProps windowProps, Vulkyrie::Core::ApplicationConfig config)
-                : Vulkyrie::Core::Application(windowProps, config) {
+            AsteroidsApplication(const Vulkyrie::Core::WindowProps &windowProps) : Vulkyrie::Core::Application(windowProps) {
             }
 
-            ~AsteroidsApplication();
-
-            // Additional methods and members specific to Asteroids can be added here.
+            ~AsteroidsApplication() override = default;
     };
 } // namespace Asteroids

@@ -1,0 +1,78 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base-debug",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      }
+    },
+    {
+      "name": "all-debug",
+      "displayName": "All Targets (Debug)",
+      "inherits": "base-debug",
+      "binaryDir": "build/all-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "examples-debug",
+      "displayName": "Examples (Debug)",
+      "inherits": "base-debug",
+      "binaryDir": "build/examples-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "cli-debug",
+      "displayName": "CLI (Debug)",
+      "inherits": "base-debug",
+      "binaryDir": "build/cli-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "tests-debug",
+      "displayName": "Tests (Debug)",
+      "inherits": "base-debug",
+      "binaryDir": "build/tests-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "all-debug",
+      "configurePreset": "all-debug"
+    },
+    {
+      "name": "examples-debug",
+      "configurePreset": "examples-debug"
+    },
+    {
+      "name": "cli-debug",
+      "configurePreset": "cli-debug"
+    },
+    {
+      "name": "tests-debug",
+      "configurePreset": "tests-debug"
+    }
+  ]
+}
