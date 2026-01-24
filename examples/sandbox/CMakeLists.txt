@@ -15,10 +15,10 @@ Target_Compile_Definitions(${PROJECT_NAME}
         VULKYRIE_DEBUG
 )
 
-Add_Custom_Target(copy_assets ALL
+Add_Custom_Target(copy_sandbox_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/src/assets
             $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
 
-Add_Dependencies(${PROJECT_NAME} copy_assets)
+Add_Dependencies(${PROJECT_NAME} copy_sandbox_assets)

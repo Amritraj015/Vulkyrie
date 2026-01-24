@@ -17,8 +17,8 @@ namespace Vulkyrie::Core {
     }
 
     Application::Application(const WindowProps &windowProps)
-        : _windowProps(windowProps), _running(false), _lastFrameTime(0.0f),
-          _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })) {
+        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })), _windowProps(windowProps), _running(false),
+          _lastFrameTime(0.0f) {
     }
 
     Application::~Application() {
@@ -117,13 +117,13 @@ namespace Vulkyrie::Core {
         return false;
     }
 
-    bool Application::OnWindowClosed(Vulkyrie::Events::WindowClosedEvent &event) {
+    bool Application::OnWindowClosed([[maybe_unused]] Vulkyrie::Events::WindowClosedEvent &event) {
         Stop();
 
         return false;
     }
 
-    bool Application::OnInit(Vulkyrie::Events::WindowCreatedEvent &event) {
+    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) {
         return false;
     }
 } // namespace Vulkyrie::Core

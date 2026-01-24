@@ -8,12 +8,18 @@ namespace Vulkyrie::Renderer {
         glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
     }
 
-    OpenGLVertexBuffer::OpenGLVertexBuffer(float *vertices, size_t size) {
+    OpenGLVertexBuffer::OpenGLVertexBuffer(f32 *vertices, size_t size) {
         glCreateBuffers(1, &_vboId);
         // glBindBuffer(GL_ARRAY_BUFFER, _vboId);
         // glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 
         glNamedBufferData(_vboId, size, vertices, GL_STATIC_DRAW);
+    }
+
+    OpenGLVertexBuffer::OpenGLVertexBuffer(const std::vector<Vertex> &vertices) {
+        glCreateBuffers(1, &_vboId);
+        glBindBuffer(GL_ARRAY_BUFFER, _vboId);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
     }
 
     OpenGLVertexBuffer::~OpenGLVertexBuffer() {
@@ -31,13 +37,5 @@ namespace Vulkyrie::Renderer {
     void OpenGLVertexBuffer::SetData(const void *data, size_t size) {
         glBindBuffer(GL_ARRAY_BUFFER, _vboId);
         glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
-    }
-
-    const BufferLayout &OpenGLVertexBuffer::GetLayout() const {
-        return _layout;
-    }
-
-    void OpenGLVertexBuffer::SetLayout(const BufferLayout &layout) {
-        _layout = layout;
     }
 } // namespace Vulkyrie::Renderer

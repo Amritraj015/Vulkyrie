@@ -24,4 +24,15 @@ namespace Vulkyrie::Renderer {
                 return nullptr;
         }
     }
+
+    Ref<VertexBuffer> VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI api, const std::vector<Vertex> &vertices) {
+        switch (api) {
+            case Vulkyrie::Core::GraphicsAPI::OpenGL:
+                return CreateRef<OpenGLVertexBuffer>(vertices);
+            case Vulkyrie::Core::GraphicsAPI::Vulkan:
+            default:
+                VFATAL("Unsupported Graphics API for VertexBuffer creation!");
+                return nullptr;
+        }
+    }
 } // namespace Vulkyrie::Renderer

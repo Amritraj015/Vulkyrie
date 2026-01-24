@@ -8,5 +8,7 @@ namespace Vulkyrie::Renderer {
         public:
             static Ref<Texture2D> Create(Vulkyrie::Core::GraphicsAPI api, const TextureSpecification &specification);
             static Ref<Texture2D> Create(Vulkyrie::Core::GraphicsAPI api, const std::filesystem::path &path);
+
+            static Ref<Texture2D> CreateCubeMap(Vulkyrie::Core::GraphicsAPI api, const std::vector<std::filesystem::path> &paths);
     };
 } // namespace Vulkyrie::Renderer

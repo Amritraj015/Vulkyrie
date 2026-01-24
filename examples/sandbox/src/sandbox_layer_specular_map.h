@@ -65,11 +65,11 @@ namespace Sandbox {
 
             ~SandboxLayerSpecularMap() = default;
 
-            void OnAttach() override {
+            void OnAttached() override {
                 VDEBUG("Layer Attached: Specular Map");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Specular Map");
             }
 

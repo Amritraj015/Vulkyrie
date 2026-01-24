@@ -2,15 +2,14 @@
 
 Vulkyrie::Core::Application *CreateApplication() {
     Vulkyrie::Core::WindowProps windowProps;
-    windowProps.height = 600;
-    windowProps.width = 800;
-    windowProps.startX = 100;
-    windowProps.startY = 100;
-    windowProps.title = "Asteroids (Powered by The Vulkyrie Game Engine)";
+    windowProps.Height = 600;
+    windowProps.Width = 800;
+    windowProps.StartX = 100;
+    windowProps.StartY = 100;
+    windowProps.VSync = false;
+    windowProps.Title = "Asteroids (Powered by The Vulkyrie Game Engine)";
 
-    Vulkyrie::Core::ApplicationConfig appConfig;
-    appConfig.graphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
-    // appConfig.loggerType = Vulkyrie::Core::LoggerType::Console;
+    Asteroids::AsteroidsApplication *asteroidsApp = new Asteroids::AsteroidsApplication(windowProps);
 
-    return new Asteroids::AsteroidsApplication(windowProps, appConfig);
+    return asteroidsApp;
 }

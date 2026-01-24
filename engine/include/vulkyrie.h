@@ -29,10 +29,13 @@
 #include "renderer/vertex_buffer.h"
 #include "renderer/index_buffer.h"
 #include "renderer/light.h"
+#include "renderer/mesh.h"
+#include "renderer/model.h"
 #include "renderer/texture_image_format.h"
 #include "renderer/texture_specification.h"
 #include "renderer/texture.h"
 #include "renderer/texture_2D.h"
+#include "renderer/texture_cube_map.h"
 
 // Material includes
 #include "materials/material_library.h"

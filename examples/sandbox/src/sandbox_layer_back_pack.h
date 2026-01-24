@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkyrie.h>
-#include "model.h"
+#include "glad/glad.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Core;
@@ -11,26 +11,27 @@ namespace Sandbox {
     class SandboxLayerBackPack final : public Layer {
         public:
             SandboxLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight),
-                  backPackModel(CreateRef<Model>("assets/models/backpack/backpack.obj")) {
+                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight) {
+
+                backPackModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/backpack/backpack.obj");
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
-                    VERROR("Failed to compile shaders.");
+                    VERROR("Failed to compile shaders.")
                 }
 
+                // Enable depth testing for proper 3D rendering.
                 glEnable(GL_DEPTH_TEST);
+
+                // Enable face culling to improve performance.
+                // glEnable(GL_CULL_FACE);
             };
 
             ~SandboxLayerBackPack() = default;
 
-            void OnAttach() override {
-                VDEBUG("Layer Attached: Backpack", _id.GetUUID());
-            };
+            void OnAttached() override { VDEBUG("Layer Attached: Backpack", _id.GetUUID()) };
 
-            void OnDetach() override {
-                VDEBUG("Layer Detached: Backpack");
-            };
+            void OnDetached() override { VDEBUG("Layer Detached: Backpack") };
 
             void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
                 glClearColor(0.05f, 0.05f, 0.05f, 1.0f);

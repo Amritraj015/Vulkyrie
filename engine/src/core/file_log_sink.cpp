@@ -21,14 +21,7 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    static constexpr std::string_view fileLogPrefixes[] = {
-        "[FATAL]: ",
-        "[ERROR]: ",
-        "[WARN]: ",
-        "[INFO]: ",
-        "[DEBUG]: ",
-        "[TRACE]: "
-    };
+    static constexpr std::string_view fileLogPrefixes[] = { "[FATAL]: ", "[ERROR]: ", "[WARN]: ", "[INFO]: ", "[DEBUG]: ", "[TRACE]: " };
 
     void FileLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
         if (nullptr == _logFile) return;

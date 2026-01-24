@@ -1,4 +1,7 @@
 {
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
     "editor.tabSize": 4,
     "prettier.printWidth": 160,
     "files.associations": {

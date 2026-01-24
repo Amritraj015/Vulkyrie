@@ -2,7 +2,6 @@
 
 #include <vulkyrie.h>
 #include "glad/glad.h"
-#include "model.h"
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
@@ -14,8 +13,8 @@ namespace Sandbox {
         public:
             SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
-                planetModel = CreateRef<Model>("assets/models/planet/planet.obj");
-                asteroidModel = CreateRef<Model>("assets/models/asteroid/rock.obj");
+                planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
+                asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
 
                 planetShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
                 asteroidShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/asteroid.glsl");
@@ -65,9 +64,9 @@ namespace Sandbox {
                 // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
                 // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
                 // -----------------------------------------------------------------------------------------------------------------------------------
-                for (u32 i = 0; i < asteroidModel->meshes.size(); i++) {
-                    u32 VAO = asteroidModel->meshes[i].VAO;
-                    glBindVertexArray(VAO);
+                for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
+                    const auto &mesh = asteroidModel->GetMeshes()[i];
+                    mesh->Bind();
 
                     // set attribute pointers for matrix (4 times vec4)
                     glEnableVertexAttribArray(3);
@@ -84,10 +83,14 @@ namespace Sandbox {
                     glVertexAttribDivisor(5, 1);
                     glVertexAttribDivisor(6, 1);
 
-                    glBindVertexArray(0);
+                    mesh->Unbind();
                 }
 
+                // Enable depth testing for correct 3D rendering.
                 glEnable(GL_DEPTH_TEST);
+
+                // Enable face culling to improve performance.
+                // glEnable(GL_CULL_FACE);
             }
 
             void OnUpdate(const Timestep deltaTime) override {
@@ -132,23 +135,34 @@ namespace Sandbox {
                 glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 asteroidShader->SetMat4Uniform("orbitRotation", orbitRotation);
 
-                asteroidShader->SetIntUniform("texture_diffuse", 0);
-                glActiveTexture(GL_TEXTURE0);
+                asteroidShader->SetIntUniform("texture_diffuse1", 0);
+                // glActiveTexture(GL_TEXTURE0);
 
                 // note: we also made the textures_loaded vector public (instead of private) from the model class.
-                glBindTexture(GL_TEXTURE_2D, asteroidModel->textures_loaded[0].id);
-                for (u32 i = 0; i < asteroidModel->meshes.size(); i++) {
-                    glBindVertexArray(asteroidModel->meshes[i].VAO);
-                    glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(asteroidModel->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
-                    glBindVertexArray(0);
+                // TODO: Remove the following line maybe.
+                // glBindTexture(GL_TEXTURE_2D, asteroidModel->_loadedTextures[0].Id);
+                asteroidModel->BindTextures();
+                for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
+                    const auto &mesh = asteroidModel->GetMeshes()[i];
+                    mesh->Bind();
+                    glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(mesh->GetIndexCount()), GL_UNSIGNED_INT, 0, amount);
+                    mesh->Unbind();
                 }
+
+// Check for OpenGL errors (optional, for debugging)
+#ifdef VULKYRIE_DEBUG
+                GLenum err;
+                while ((err = glGetError()) != GL_NO_ERROR) {
+                    VERROR("OpenGL error: {}", err);
+                }
+#endif
             }
 
-            void OnAttach() override {
-                VDEBUG("Layer Detached: Planet");
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Planet");
             }
 
-            void OnDetach() override {
+            void OnDetached() override {
                 VDEBUG("Layer Detached: Planet");
             }
 

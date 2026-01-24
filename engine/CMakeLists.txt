@@ -3,9 +3,10 @@ Project(engine)
 Set(CMAKE_CXX_STANDARD 23)
 
 File(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-File(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS include/*.h)
+# File(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS include/*.h)
 
-Add_Library(${PROJECT_NAME} STATIC ${ENGINE_HEADERS} ${ENGINE_SOURCES})
+# Add_Library(${PROJECT_NAME} STATIC ${ENGINE_HEADERS} ${ENGINE_SOURCES})
+Add_Library(${PROJECT_NAME} STATIC ${ENGINE_SOURCES})
 
 Target_Include_Directories(${PROJECT_NAME}
     PUBLIC
@@ -15,7 +16,8 @@ Target_Include_Directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad)
+
+# Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm PRIVATE glfw glad assimp)
 Target_Link_Libraries(${PROJECT_NAME} PUBLIC glm glfw glad assimp)
 
 Target_Compile_Definitions(${PROJECT_NAME}
@@ -25,3 +27,9 @@ Target_Compile_Definitions(${PROJECT_NAME}
 )
 
 Target_Precompile_Headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/vlkypch.h)
+
+if (MSVC)
+    Target_Compile_Options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+    Target_Compile_Options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()

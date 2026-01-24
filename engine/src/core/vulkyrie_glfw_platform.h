@@ -16,7 +16,7 @@ namespace Vulkyrie::Core {
             StatusCode Close() override;
 
             inline void SetVSync(bool enabled) override {
-                glfwSwapInterval(_windowProps.VSync ? 1 : 0);
+                glfwSwapInterval(static_cast<i32>(enabled));
             }
 
             inline void OnUpdate() const override {

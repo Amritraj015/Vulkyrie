@@ -19,5 +19,4 @@ namespace Vulkyrie::Renderer {
                 return nullptr;
         }
     }
-
 } // namespace Vulkyrie::Renderer
