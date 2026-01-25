@@ -48,3 +48,6 @@ out/
 
 # Ignore compile commands database
 compile_commands.json
+
+# Ignore local notes.
+NOTES.md

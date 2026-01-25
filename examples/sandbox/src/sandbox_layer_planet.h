@@ -23,7 +23,7 @@ namespace Sandbox {
                     VERROR("Failed to compile shaders.");
                 }
 
-                amount = 1000000;
+                amount = 100000;
                 modelMatrices.reserve(amount);
                 srand(glfwGetTime()); // initialize random seed
                 f32 radius = 500.0;
