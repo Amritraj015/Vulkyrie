@@ -8,6 +8,158 @@
 
   "configurePresets": [
     {
+      "name": "base-release",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "gcc-base-release",
+      "hidden": true,
+      "inherits": "base-release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "clang-base-release",
+      "hidden": true,
+      "inherits": "base-release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+
+    {
+      "name": "all-release",
+      "displayName": "All Targets (Release)",
+      "inherits": "base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "examples-release",
+      "displayName": "Examples (Release)",
+      "inherits": "base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "cli-release",
+      "displayName": "CLI (Release)",
+      "inherits": "base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "tests-release",
+      "displayName": "Tests (Release)",
+      "inherits": "base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "gcc-all-release",
+      "displayName": "(GCC) - All Targets (Release)",
+      "inherits": "gcc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-examples-release",
+      "displayName": "(GCC) - Examples (Release)",
+      "inherits": "gcc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-cli-release",
+      "displayName": "(GCC) - CLI (Release)",
+      "inherits": "gcc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-tests-release",
+      "displayName": "(GCC) - Tests (Release)",
+      "inherits": "gcc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "clang-all-release",
+      "displayName": "(Clang) - All Targets (Release)",
+      "inherits": "clang-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "clang-examples-release",
+      "displayName": "(Clang) - Examples (Release)",
+      "inherits": "clang-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "clang-cli-release",
+      "displayName": "(Clang) - CLI (Release)",
+      "inherits": "clang-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "clang-tests-release",
+      "displayName": "(Clang) - Tests (Release)",
+      "inherits": "clang-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
       "name": "base-debug",
       "hidden": true,
       "generator": "Ninja",
@@ -18,7 +170,7 @@
       }
     },
     {
-      "name": "gcc-base",
+      "name": "gcc-base-debug",
       "hidden": true,
       "inherits": "base-debug",
       "cacheVariables": {
@@ -27,7 +179,7 @@
       }
     },
     {
-      "name": "clang-base",
+      "name": "clang-base-debug",
       "hidden": true,
       "inherits": "base-debug",
       "cacheVariables": {
@@ -80,7 +232,7 @@
     {
       "name": "gcc-all-debug",
       "displayName": "(GCC) - All Targets (Debug)",
-      "inherits": "gcc-base",
+      "inherits": "gcc-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -90,7 +242,7 @@
     {
       "name": "gcc-examples-debug",
       "displayName": "(GCC) - Examples (Debug)",
-      "inherits": "gcc-base",
+      "inherits": "gcc-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -100,7 +252,7 @@
     {
       "name": "gcc-cli-debug",
       "displayName": "(GCC) - CLI (Debug)",
-      "inherits": "gcc-base",
+      "inherits": "gcc-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -110,7 +262,7 @@
     {
       "name": "gcc-tests-debug",
       "displayName": "(GCC) - Tests (Debug)",
-      "inherits": "gcc-base",
+      "inherits": "gcc-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -121,7 +273,7 @@
     {
       "name": "clang-all-debug",
       "displayName": "(Clang) - All Targets (Debug)",
-      "inherits": "clang-base",
+      "inherits": "clang-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -131,7 +283,7 @@
     {
       "name": "clang-examples-debug",
       "displayName": "(Clang) - Examples (Debug)",
-      "inherits": "clang-base",
+      "inherits": "clang-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -141,7 +293,7 @@
     {
       "name": "clang-cli-debug",
       "displayName": "(Clang) - CLI (Debug)",
-      "inherits": "clang-base",
+      "inherits": "clang-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -151,7 +303,7 @@
     {
       "name": "clang-tests-debug",
       "displayName": "(Clang) - Tests (Debug)",
-      "inherits": "clang-base",
+      "inherits": "clang-base-debug",
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -177,6 +329,27 @@
       "configurePreset": "clang-examples-debug"
     },
     { "name": "clang-cli-debug", "configurePreset": "clang-cli-debug" },
-    { "name": "clang-tests-debug", "configurePreset": "clang-tests-debug" }
+    { "name": "clang-tests-debug", "configurePreset": "clang-tests-debug" },
+
+    { "name": "all-release", "configurePreset": "all-release" },
+    { "name": "examples-release", "configurePreset": "examples-release" },
+    { "name": "cli-release", "configurePreset": "cli-release" },
+    { "name": "tests-release", "configurePreset": "tests-release" },
+
+    { "name": "gcc-all-release", "configurePreset": "gcc-all-release" },
+    {
+      "name": "gcc-examples-release",
+      "configurePreset": "gcc-examples-release"
+    },
+    { "name": "gcc-cli-release", "configurePreset": "gcc-cli-release" },
+    { "name": "gcc-tests-release", "configurePreset": "gcc-tests-release" },
+
+    { "name": "clang-all-release", "configurePreset": "clang-all-release" },
+    {
+      "name": "clang-examples-release",
+      "configurePreset": "clang-examples-release"
+    },
+    { "name": "clang-cli-release", "configurePreset": "clang-cli-release" },
+    { "name": "clang-tests-release", "configurePreset": "clang-tests-release" }
   ]
 }

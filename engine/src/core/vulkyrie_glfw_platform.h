@@ -12,7 +12,7 @@ namespace Vulkyrie::Core {
             VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
             ~VulkyrieGLFWPlatform() override;
 
-            StatusCode CreateWindow() override;
+            [[nodiscard]] StatusCode CreateWindow() override;
             StatusCode Close() override;
 
             inline void SetVSync(bool enabled) override {
@@ -36,35 +36,8 @@ namespace Vulkyrie::Core {
                 return static_cast<float>(glfwGetTime());
             }
 
-            [[nodiscard]] inline bool IsKeyPressed(const Vulkyrie::Events::KeyCode key) const override {
-                return glfwGetKey(_window, static_cast<u16>(key)) == GLFW_PRESS;
-            }
-
-            [[nodiscard]] inline bool IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button) const override {
-                return glfwGetMouseButton(_window, static_cast<u8>(button)) == GLFW_PRESS;
-            }
-
-            [[nodiscard]] inline std::pair<f32, f32> GetMousePosition() const override {
-                double xpos, ypos;
-                glfwGetCursorPos(_window, &xpos, &ypos);
-
-                return { (f32)xpos, (f32)ypos };
-            }
-
-            [[nodiscard]] inline f32 GetMouseX() const override {
-                double xpos;
-
-                glfwGetCursorPos(_window, &xpos, nullptr);
-
-                return xpos;
-            }
-
-            [[nodiscard]] inline f32 GetMouseY() const override {
-                double ypos;
-
-                glfwGetCursorPos(_window, nullptr, &ypos);
-
-                return ypos;
+            [[nodiscard]] inline void *GetWindowHandle() const override {
+                return _window;
             }
 
         private:

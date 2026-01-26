@@ -22,14 +22,14 @@ namespace Vulkyrie::Core {
             /** @brief Gets the time duration in seconds.
              * @returns The time duration in seconds.
              */
-            [[nodiscard]] f32 GetSeconds() const {
+            [[nodiscard]] inline f32 GetSeconds() const {
                 return _time;
             }
 
             /** @brief Gets the time duration in milliseconds.
              * @returns The time duration in milliseconds.
              */
-            [[nodiscard]] f32 GetMilliseconds() const {
+            [[nodiscard]] inline f32 GetMilliseconds() const {
                 return _time * 1000.0f;
             }
 

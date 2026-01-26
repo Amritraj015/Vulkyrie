@@ -12,7 +12,10 @@ namespace Sandbox {
     class SandboxLayerPlanet final : public Layer {
         public:
             SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
                 planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
                 asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
 
@@ -20,10 +23,10 @@ namespace Sandbox {
                 asteroidShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/asteroid.glsl");
 
                 if (!planetShader->IsValid() || !asteroidShader->IsValid()) {
-                    VERROR("Failed to compile shaders.");
+                    VERROR("Failed to compile shaders.")
                 }
 
-                amount = 1000000;
+                amount = 100000;
                 modelMatrices.reserve(amount);
                 srand(glfwGetTime()); // initialize random seed
                 f32 radius = 500.0;
@@ -93,19 +96,11 @@ namespace Sandbox {
                 // glEnable(GL_CULL_FACE);
             }
 
-            void OnUpdate(const Timestep deltaTime) override {
+            void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                f32 cameraSpeed = 100.0f;
-                auto dt = deltaTime.GetSeconds();
-
-                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 500.0f;
-
-                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                camera.OnUpdate(deltaTime);
 
                 planetShader->Use();
 
@@ -170,36 +165,14 @@ namespace Sandbox {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
-                    auto scrollEvent = static_cast<MouseScrolledEvent>(e);
-                    camera.ProcessMouseScroll(scrollEvent.OffsetY);
+                    camera.ProcessMouseScroll(e.OffsetY);
 
                     return true;
                 });
 
                 dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
                     glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)ev.Width / (f32)ev.Height, 0.1f, 100.0f);
-
-                    return true;
-                });
-
-                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
-                    auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
-
-                    if (firstMouseMove) {
-                        lastMouseX = mouseMovedEvent.MouseX;
-                        lastMouseY = mouseMovedEvent.MouseY;
-                        firstMouseMove = false;
-                    }
-
-                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
-
-                    camera.ProcessMouseMovement(xOffset, yOffset);
-
-                    lastMouseX = mouseMovedEvent.MouseX;
-                    lastMouseY = mouseMovedEvent.MouseY;
+                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
 
                     return true;
                 });
@@ -213,9 +186,6 @@ namespace Sandbox {
             f32 windowHeight;
             f32 windowWidth;
             Camera camera;
-            bool firstMouseMove = true;
-            f64 lastMouseX = 400.0f;
-            f64 lastMouseY = 300.0f;
             u32 amount;
             std::vector<glm::mat4> modelMatrices;
     };

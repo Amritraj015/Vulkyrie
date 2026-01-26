@@ -3,8 +3,6 @@
 #include "core/window_props.h"
 #include "core/status_codes.h"
 #include "events/event.h"
-#include "events/enums/key_code.h"
-#include "events/enums/mouse_button.h"
 
 namespace Vulkyrie::Core {
     using EventCallbackFn = std::function<void(Vulkyrie::Events::Event &)>;
@@ -26,10 +24,15 @@ namespace Vulkyrie::Core {
             /** @brief Default constructor for the Window class. */
             virtual ~Platform() = default;
 
+            /** @brief Gets the native window handle.
+             * @returns A pointer to the native window.
+             */
+            [[nodiscard]] inline virtual void *GetWindowHandle() const = 0;
+
             /** @brief Creates a new window for the application.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
              * */
-            virtual Vulkyrie::Core::StatusCode CreateWindow() = 0;
+            [[nodiscard]] virtual Vulkyrie::Core::StatusCode CreateWindow() = 0;
 
             /** @brief Enables or disables vertical synchronization (VSync) for the window.
              * @param enabled True to enable VSync, false to disable.
@@ -53,33 +56,6 @@ namespace Vulkyrie::Core {
              * @param enable True to capture the mouse on focus, false to release it.
              */
             virtual inline void CaptureMouseOnFocus(bool enable) = 0;
-
-            /** @brief Checks if a specific key is currently pressed.
-             * @param key The key code to check.
-             * @returns True if the key is pressed, false otherwise.
-             */
-            [[nodiscard]] virtual inline bool IsKeyPressed(const Vulkyrie::Events::KeyCode key) const = 0;
-
-            /** @brief Checks if a specific mouse button is currently pressed.
-             * @param button The mouse button to check.
-             * @returns True if the mouse button is pressed, false otherwise.
-             */
-            [[nodiscard]] virtual inline bool IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button) const = 0;
-
-            /** @brief Gets the current position of the mouse cursor.
-             * @returns A pair of floats representing the X and Y coordinates of the mouse cursor.
-             */
-            [[nodiscard]] virtual inline std::pair<f32, f32> GetMousePosition() const = 0;
-
-            /** @brief Gets the current X position of the mouse cursor.
-             * @returns The X coordinate of the mouse cursor.
-             */
-            [[nodiscard]] virtual inline f32 GetMouseX() const = 0;
-
-            /** @brief Gets the current Y position of the mouse cursor.
-             * @returns The Y coordinate of the mouse cursor.
-             */
-            [[nodiscard]] virtual inline f32 GetMouseY() const = 0;
 
         protected:
             /** @brief The properties of the window. */

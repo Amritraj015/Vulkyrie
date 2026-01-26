@@ -12,6 +12,9 @@ NamespaceIndentation: All
 ColumnLimit: 160
 Cpp11BracedListStyle: false
 IndentCaseLabels: true
+BreakConstructorInitializers: BeforeComma
+AllowAllConstructorInitializersOnNextLine: false
+ConstructorInitializerIndentWidth: 4
 
 # Format options for controlling bin packing of function parameters and arguments
 BinPackArguments: false

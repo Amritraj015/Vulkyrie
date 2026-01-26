@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Events {
     enum class KeyCode : u16 {
         Space = 32,
