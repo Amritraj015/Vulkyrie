@@ -42,9 +42,21 @@ namespace Vulkyrie::Renderer {
                    Vulkyrie::Events::KeyCode speedModifierKey = Vulkyrie::Events::KeyCode::LeftShift,
                    f32 movementSpeed = 2.5f,
                    f32 modifiedMovementSpeed = 5.0f)
-                : _position(cameraPosition), _front(glm::vec3(0.0f, 0.0f, -1.0f)), _worldUp(up), _yaw(yaw), _pitch(pitch), _mouseSensitivity(0.1f),
-                  _zoom(45.0f), _moveForwardKey(moveForwardKey), _moveBackwardKey(moveBackwardKey), _moveLeftKey(moveLeftKey), _moveRightKey(moveRightKey),
-                  _speedModifierKey(speedModifierKey), _movementSpeed(movementSpeed), _modifiedMovementSpeed(modifiedMovementSpeed), _firstMouseMove(true) {
+                : _position(cameraPosition)
+                , _front(glm::vec3(0.0f, 0.0f, -1.0f))
+                , _worldUp(up)
+                , _yaw(yaw)
+                , _pitch(pitch)
+                , _mouseSensitivity(0.1f)
+                , _zoom(45.0f)
+                , _moveForwardKey(moveForwardKey)
+                , _moveBackwardKey(moveBackwardKey)
+                , _moveLeftKey(moveLeftKey)
+                , _moveRightKey(moveRightKey)
+                , _speedModifierKey(speedModifierKey)
+                , _movementSpeed(movementSpeed)
+                , _modifiedMovementSpeed(modifiedMovementSpeed)
+                , _firstMouseMove(true) {
                 UpdateCameraVectors();
             };
 
@@ -72,6 +84,9 @@ namespace Vulkyrie::Renderer {
                 }
             }
 
+            /** @brief Updates the camera's position and orientation based on input. Should be called every frame.
+             * @param deltaTime The time elapsed since the last frame.
+             */
             inline void OnUpdate(const Vulkyrie::Core::Timestep &deltaTime) {
                 f32 dt = static_cast<f32>(deltaTime);
 
@@ -202,8 +217,11 @@ namespace Vulkyrie::Renderer {
             /** @brief Flag to indicate if this is the first mouse movement event. */
             bool _firstMouseMove;
 
-            f64 _lastMouseX = 400.0f;
-            f64 _lastMouseY = 300.0f;
+            /** @brief The last recorded mouse X position. */
+            f64 _lastMouseX;
+
+            /** @brief The last recorded mouse Y position. */
+            f64 _lastMouseY;
 
             /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
             inline void UpdateCameraVectors() {

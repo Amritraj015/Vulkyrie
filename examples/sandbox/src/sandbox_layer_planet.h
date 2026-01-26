@@ -12,7 +12,10 @@ namespace Sandbox {
     class SandboxLayerPlanet final : public Layer {
         public:
             SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
                 planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
                 asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
 

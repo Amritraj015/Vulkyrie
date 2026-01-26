@@ -12,7 +12,10 @@ namespace Sandbox {
     class SandboxLayerCubes final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerCubes(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // Load and compile shader program.
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl");

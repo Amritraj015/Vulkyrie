@@ -11,9 +11,12 @@ namespace Sandbox {
     class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerSkybox(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)),
-                  texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg")),
-                  terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                , texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg"))
+                , terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
                 if (!texture->IsLoaded()) {
                     VERROR("SandboxLayerSkybox: Failed to load texture.");
                     return;

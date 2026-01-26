@@ -20,8 +20,10 @@ namespace Vulkyrie::Core {
     }
 
     Application::Application(const WindowProps &windowProps)
-        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
-          _windowProps(windowProps), _running(false), _lastFrameTime(0.0f) {
+        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
+        , _windowProps(windowProps)
+        , _running(false)
+        , _lastFrameTime(0.0f) {
         _instance = this;
     }
 

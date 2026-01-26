@@ -11,7 +11,11 @@ namespace Sandbox {
     class SandboxDepthAndStencilTesting final : public Layer {
         public:
             SandboxDepthAndStencilTesting(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 5.0f)), windowWidth(windowWidth), windowHeight(windowHeight), showDepthValues(false) {
+                : Layer(application)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , showDepthValues(false) {
 
                 // Load cube and plane textures.
                 cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/marble.jpg");

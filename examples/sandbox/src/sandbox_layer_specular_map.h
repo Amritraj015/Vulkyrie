@@ -12,7 +12,10 @@ namespace Sandbox {
     class SandboxLayerSpecularMap : public Layer {
         public:
             SandboxLayerSpecularMap(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // Initial light position.
                 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);

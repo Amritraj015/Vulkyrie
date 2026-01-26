@@ -11,7 +11,10 @@ namespace Sandbox {
     class SandboxLayerBackPack final : public Layer {
         public:
             SandboxLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 8.0f)), windowWidth(windowWidth), windowHeight(windowHeight) {
+                : Layer(application)
+                , camera(glm::vec3(0.0f, 0.0f, 8.0f))
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight) {
 
                 backPackModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/backpack/backpack.obj");
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");

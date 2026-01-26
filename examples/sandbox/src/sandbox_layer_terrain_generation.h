@@ -17,8 +17,10 @@ namespace Sandbox {
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerTerrainGeneration(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight),
-                  terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
                     VERROR("Failed to load terrain shaders.");

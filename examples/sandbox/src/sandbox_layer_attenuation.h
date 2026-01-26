@@ -10,7 +10,10 @@ namespace Sandbox {
     class SandboxLayerAttenuation : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerAttenuation(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight), camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // load and compile the shader programs.
                 // objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/attenuation.glsl");

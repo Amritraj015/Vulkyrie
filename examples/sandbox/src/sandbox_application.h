@@ -6,7 +6,8 @@
 namespace Sandbox {
     class SandboxApplication : public Vulkyrie::Core::Application {
         public:
-            SandboxApplication(const Vulkyrie::Core::WindowProps &windowProps) : Vulkyrie::Core::Application(windowProps) {
+            SandboxApplication(const Vulkyrie::Core::WindowProps &windowProps)
+                : Vulkyrie::Core::Application(windowProps) {
             }
 
             ~SandboxApplication() override = default;

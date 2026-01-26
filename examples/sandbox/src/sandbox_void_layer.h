@@ -18,7 +18,9 @@ namespace Sandbox {
     class SandboxVoidLayer final : public Vulkyrie::Core::Layer {
         public:
             SandboxVoidLayer(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), windowWidth(windowWidth), windowHeight(windowHeight) {};
+                : Layer(application)
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight) {};
 
             ~SandboxVoidLayer() = default;
 
