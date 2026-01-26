@@ -19,6 +19,9 @@
 #include "events/mouse/mouse_moved_event.h"
 #include "events/mouse/mouse_scrolled_event.h"
 
+// Input includes
+#include "input/inputs.h"
+
 // Renderer includes
 #include "renderer/renderer.h"
 #include "renderer/shader.h"

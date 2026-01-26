@@ -1,0 +1,33 @@
+#pragma once
+
+#include "events/enums/key_code.h"
+#include "events/enums/mouse_button.h"
+
+namespace Vulkyrie::Input {
+    /** @brief Checks if a specific key is currently pressed.
+     * @param key The key code to check.
+     * @returns True if the key is pressed, false otherwise.
+     */
+    [[nodiscard]] bool IsKeyPressed(const Vulkyrie::Events::KeyCode key);
+
+    /** @brief Checks if a specific mouse button is currently pressed.
+     * @param button The mouse button to check.
+     * @returns True if the mouse button is pressed, false otherwise.
+     */
+    [[nodiscard]] bool IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button);
+
+    /** @brief Gets the current position of the mouse cursor.
+     * @returns A pair of floats representing the X and Y coordinates of the mouse cursor.
+     */
+    [[nodiscard]] std::pair<f32, f32> GetMousePosition();
+
+    /** @brief Gets the current X position of the mouse cursor.
+     * @returns The X coordinate of the mouse cursor.
+     */
+    [[nodiscard]] f32 GetMouseX();
+
+    /** @brief Gets the current Y position of the mouse cursor.
+     * @returns The Y coordinate of the mouse cursor.
+     */
+    [[nodiscard]] f32 GetMouseY();
+} // namespace Vulkyrie::Input

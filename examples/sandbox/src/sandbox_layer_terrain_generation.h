@@ -41,56 +41,48 @@ namespace Sandbox {
                 VDEBUG("Layer Detached: Terrain Generation");
             }
 
-            void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
+            void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                f32 cameraSpeed = 20.0f;
-                auto dt = deltaTime.GetSeconds();
+                camera.OnUpdate(deltaTime);
 
-                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 100.0f;
-
-                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
-
-                if (_application.IsKeyPressed(KeyCode::M)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::M)) {
                     if (scale < 100.0f) scale += 1.0f;
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::N)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::N)) {
                     if (scale > 2.0f) scale -= 1.0f;
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::Y)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::Y)) {
                     seed += 1.0f;
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::U)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::U)) {
                     persistence += 0.001f;
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::H)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::H)) {
                     offset = glm::vec2(offset.x - 0.01f, offset.y);
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::L)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::L)) {
                     offset = glm::vec2(offset.x, offset.y + 0.01f);
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::I)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::I)) {
                     lacunarity += 0.1f;
                     CreateVertexBufferElements();
                 }
 
-                if (_application.IsKeyPressed(KeyCode::O)) {
+                if (Vulkyrie::Input::IsKeyPressed(KeyCode::O)) {
                     octaves += 1.0f;
                     CreateVertexBufferElements();
                 }
@@ -121,32 +113,10 @@ namespace Sandbox {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
 
                 dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    auto ev = static_cast<Vulkyrie::Events::WindowResizedEvent>(e);
-
                     glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)ev.Width / (f32)ev.Height, 0.1f, 100.0f);
+                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
 
                     terrainShader->SetMat4Uniform("projection", projection);
-
-                    return true;
-                });
-
-                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
-                    auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
-
-                    if (firstMouseMove) {
-                        lastMouseX = mouseMovedEvent.MouseX;
-                        lastMouseY = mouseMovedEvent.MouseY;
-                        firstMouseMove = false;
-                    }
-
-                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
-
-                    camera.ProcessMouseMovement(xOffset, yOffset);
-
-                    lastMouseX = mouseMovedEvent.MouseX;
-                    lastMouseY = mouseMovedEvent.MouseY;
 
                     return true;
                 });
@@ -156,9 +126,6 @@ namespace Sandbox {
             Camera camera;
             f32 windowWidth;
             f32 windowHeight;
-            bool firstMouseMove = true;
-            f32 lastMouseX = 0.0f;
-            f32 lastMouseY = 0.0f;
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
             std::vector<f32> noiseMap;

@@ -11,7 +11,7 @@ namespace Sandbox {
     class SandboxDepthAndStencilTesting final : public Layer {
         public:
             SandboxDepthAndStencilTesting(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 5.0f)), windowWidth(windowWidth), windowHeight(windowHeight) {
+                : Layer(application), camera(glm::vec3(0.0f, 0.0f, 5.0f)), windowWidth(windowWidth), windowHeight(windowHeight), showDepthValues(false) {
 
                 // Load cube and plane textures.
                 cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/marble.jpg");
@@ -22,9 +22,10 @@ namespace Sandbox {
                 }
 
                 // Load and compile shader program.
-                shader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/texture.glsl");
+                textureShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/texture_2D.glsl");
+                depthTestShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/depth_test.glsl");
 
-                if (!shader->IsValid()) {
+                if (!textureShader->IsValid() || !depthTestShader->IsValid()) {
                     VERROR("Failed to create shader program!");
                 }
 
@@ -48,36 +49,30 @@ namespace Sandbox {
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
-                glDepthFunc(GL_LESS);
             }
 
             ~SandboxDepthAndStencilTesting() override = default;
 
-            void OnUpdate(const Timestep deltaTime) override {
+            void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Update Camera position based on input.
-                f32 cameraSpeed = 5.0f;
-                auto dt = deltaTime.GetSeconds();
+                camera.OnUpdate(deltaTime);
 
-                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 20.0f;
-
-                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                // Choose shader based on whether to show depth values.
+                auto shaderToUse = showDepthValues ? depthTestShader : textureShader;
 
                 // Use the shader program.
-                shader->Use();
+                shaderToUse->Use();
 
                 // Projection transformations.
                 glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
-                shader->SetMat4Uniform("projection", projection);
+                shaderToUse->SetMat4Uniform("projection", projection);
 
                 // View transform
                 glm::mat4 view = camera.GetViewMatrix();
-                shader->SetMat4Uniform("view", view);
+                shaderToUse->SetMat4Uniform("view", view);
 
                 // Draw cubes
                 cubeTexture->Bind(0);
@@ -85,12 +80,12 @@ namespace Sandbox {
 
                 // First cube
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, -1.0f));
-                shader->SetMat4Uniform("model", model);
+                shaderToUse->SetMat4Uniform("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
 
                 // Second cube
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
-                shader->SetMat4Uniform("model", model);
+                shaderToUse->SetMat4Uniform("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
                 cubeVertexArray->Unbind();
 
@@ -98,7 +93,7 @@ namespace Sandbox {
                 planeVertexArray->Bind();
                 planeTexture->Bind(0);
                 model = glm::mat4(1.0f);
-                shader->SetMat4Uniform("model", model);
+                shaderToUse->SetMat4Uniform("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
                 planeVertexArray->Unbind();
             }
@@ -114,32 +109,19 @@ namespace Sandbox {
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
 
-                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
-                    auto mouseMovedEvent = static_cast<MouseMovedEvent>(e);
+                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::U) {
+                        showDepthValues = !showDepthValues;
 
-                    if (firstMouseMove) {
-                        lastMouseX = mouseMovedEvent.MouseX;
-                        lastMouseY = mouseMovedEvent.MouseY;
-                        firstMouseMove = false;
+                        return true;
                     }
 
-                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
-
-                    camera.ProcessMouseMovement(xOffset, yOffset);
-
-                    lastMouseX = mouseMovedEvent.MouseX;
-                    lastMouseY = mouseMovedEvent.MouseY;
-
-                    return true;
+                    return false;
                 });
             }
 
         private:
             Camera camera;
-            f64 lastMouseX = 400.0f;
-            f64 lastMouseY = 300.0f;
-            bool firstMouseMove = true;
             f32 windowHeight;
             f32 windowWidth;
 
@@ -149,7 +131,10 @@ namespace Sandbox {
             Ref<Texture2D> planeTexture;
             Ref<VertexArray> planeVertexArray;
 
-            Ref<Shader> shader;
+            Ref<Shader> textureShader;
+            Ref<Shader> depthTestShader;
+
+            bool showDepthValues;
 
             std::vector<f32> cubeVertices = {
                 // positions          // texture Coords

@@ -68,20 +68,12 @@ namespace Sandbox {
                 VDEBUG("Layer Detached: Attenuation");
             }
 
-            void OnUpdate(const Timestep deltaTime) override {
+            void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Update Camera position based on input.
-                f32 cameraSpeed = 5.0f;
-                auto dt = deltaTime.GetSeconds();
-
-                if (_application.IsKeyPressed(KeyCode::LeftShift)) cameraSpeed = 20.0f;
-
-                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                camera.OnUpdate(deltaTime);
 
                 objectShader->Use();
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
@@ -151,30 +143,6 @@ namespace Sandbox {
                 // lightVertexArray->Unbind();
             }
 
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
-                    auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
-
-                    if (firstMouseMove) {
-                        lastMouseX = mouseMovedEvent.MouseX;
-                        lastMouseY = mouseMovedEvent.MouseY;
-                        firstMouseMove = false;
-                    }
-
-                    const f32 xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const f32 yOffset = lastMouseY - mouseMovedEvent.MouseY;
-
-                    camera.ProcessMouseMovement(xOffset, yOffset);
-
-                    lastMouseX = mouseMovedEvent.MouseX;
-                    lastMouseY = mouseMovedEvent.MouseY;
-
-                    return true;
-                });
-            }
-
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;
@@ -188,9 +156,6 @@ namespace Sandbox {
             Ref<Texture2D> specularMapTexture;
 
             Camera camera;
-            f64 lastMouseX = 400.0f;
-            f64 lastMouseY = 300.0f;
-            bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
             SpotLight spotLight = {
                 { 0.1f, 0.1f, 0.1f },

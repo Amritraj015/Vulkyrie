@@ -5,6 +5,9 @@
 #include "events/event_dispatcher.h"
 
 namespace Vulkyrie::Core {
+
+    Application *Application::_instance = nullptr;
+
     constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
         switch (api) {
             case GraphicsAPI::OpenGL:
@@ -19,6 +22,7 @@ namespace Vulkyrie::Core {
     Application::Application(const WindowProps &windowProps)
         : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); })),
           _windowProps(windowProps), _running(false), _lastFrameTime(0.0f) {
+        _instance = this;
     }
 
     Application::~Application() {

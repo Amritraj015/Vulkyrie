@@ -19,6 +19,13 @@ namespace Vulkyrie::Core {
             /** @brief Destructor to clean up the application and its resources. */
             virtual ~Application();
 
+            /** @brief Gets the singleton instance of the application.
+             * @returns A reference to the application instance.
+             */
+            [[nodiscard]] inline static Application &Get() {
+                return *_instance;
+            }
+
             /** @brief Starts the application's main loop.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
              */
@@ -105,41 +112,11 @@ namespace Vulkyrie::Core {
                 return _layers.GetActiveLayer<TLayer>();
             }
 
-            /** @brief Checks if a specific key is currently pressed.
-             * @param key The key code to check.
-             * @returns True if the key is pressed, false otherwise.
+            /** @brief Gets the native window handle.
+             * @returns A pointer to the native window.
              */
-            [[nodiscard]] inline bool IsKeyPressed(const Vulkyrie::Events::KeyCode key) const {
-                return _platform->IsKeyPressed(key);
-            }
-
-            /** @brief Checks if a specific mouse button is currently pressed.
-             * @param button The mouse button to check.
-             * @returns True if the mouse button is pressed, false otherwise.
-             */
-            [[nodiscard]] inline bool IsMouseButtonPressed(Vulkyrie::Events::MouseButton button) const {
-                return _platform->IsMouseButtonPressed(button);
-            }
-
-            /** @brief Gets the current position of the mouse cursor.
-             * @returns A pair of floats representing the X and Y coordinates of the mouse cursor.
-             */
-            [[nodiscard]] inline std::pair<f32, f32> GetMousePosition() const {
-                return _platform->GetMousePosition();
-            }
-
-            /** @brief Gets the current X position of the mouse cursor.
-             * @returns The X coordinate of the mouse cursor.
-             */
-            [[nodiscard]] inline f32 GetMouseX() const {
-                return _platform->GetMouseX();
-            }
-
-            /** @brief Gets the current Y position of the mouse cursor.
-             * @returns The Y coordinate of the mouse cursor.
-             */
-            [[nodiscard]] inline f32 GetMouseY() const {
-                return _platform->GetMouseY();
+            [[nodiscard]] inline void *GetWindowHandle() const {
+                return _platform->GetWindowHandle();
             }
 
         protected:
@@ -150,6 +127,9 @@ namespace Vulkyrie::Core {
             virtual bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event);
 
         private:
+            /** @brief The singleton instance of the application. */
+            static Application *_instance;
+
             /** @brief The main application window. */
             Ref<Platform> _platform;
 

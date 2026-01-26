@@ -125,5 +125,4 @@ namespace Sandbox {
             f32 windowHeight, windowWidth;
             u8 currentLayer = 1;
     };
-
 } // namespace Sandbox

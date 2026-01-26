@@ -1,6 +1,9 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "events/enums/key_code.h"
+#include "core/time_step.h"
+#include "input/inputs.h"
 
 namespace Vulkyrie::Renderer {
 
@@ -20,10 +23,28 @@ namespace Vulkyrie::Renderer {
              * @param up The up vector of the world. Default is (0, 1, 0).
              * @param yaw The initial yaw angle (in degrees) of the camera. Default is -90 degrees.
              * @param pitch The initial pitch angle (in degrees) of the camera. Default is 0 degrees.
+             * @param moveForwardKey The key code for moving the camera forward. Default is 'W'.
+             * @param moveBackwardKey The key code for moving the camera backward. Default is 'S'.
+             * @param moveLeftKey The key code for moving the camera left. Default is 'A'.
+             * @param moveRightKey The key code for moving the camera right. Default is 'D'.
+             * @param speedModifierKey The key code for modifying the camera movement speed. Default is 'LeftShift'.
+             * @param movementSpeed The normal movement speed of the camera. Default is 2.5 units per second.
+             * @param modifiedMovementSpeed The modified movement speed of the camera when the speed modifier key is pressed. Default is 5.0 units per second.
              */
-            Camera(glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), f32 yaw = -90.0f, f32 pitch = 0.0f)
+            Camera(glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f),
+                   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+                   f32 yaw = -90.0f,
+                   f32 pitch = 0.0f,
+                   Vulkyrie::Events::KeyCode moveForwardKey = Vulkyrie::Events::KeyCode::W,
+                   Vulkyrie::Events::KeyCode moveBackwardKey = Vulkyrie::Events::KeyCode::S,
+                   Vulkyrie::Events::KeyCode moveLeftKey = Vulkyrie::Events::KeyCode::A,
+                   Vulkyrie::Events::KeyCode moveRightKey = Vulkyrie::Events::KeyCode::D,
+                   Vulkyrie::Events::KeyCode speedModifierKey = Vulkyrie::Events::KeyCode::LeftShift,
+                   f32 movementSpeed = 2.5f,
+                   f32 modifiedMovementSpeed = 5.0f)
                 : _position(cameraPosition), _front(glm::vec3(0.0f, 0.0f, -1.0f)), _worldUp(up), _yaw(yaw), _pitch(pitch), _mouseSensitivity(0.1f),
-                  _zoom(45.0f) {
+                  _zoom(45.0f), _moveForwardKey(moveForwardKey), _moveBackwardKey(moveBackwardKey), _moveLeftKey(moveLeftKey), _moveRightKey(moveRightKey),
+                  _speedModifierKey(speedModifierKey), _movementSpeed(movementSpeed), _modifiedMovementSpeed(modifiedMovementSpeed), _firstMouseMove(true) {
                 UpdateCameraVectors();
             };
 
@@ -49,6 +70,33 @@ namespace Vulkyrie::Renderer {
                         _position += _right * velocity;
                         break;
                 }
+            }
+
+            inline void OnUpdate(const Vulkyrie::Core::Timestep &deltaTime) {
+                f32 dt = static_cast<f32>(deltaTime);
+
+                f32 cameraSpeed = Vulkyrie::Input::IsKeyPressed(_speedModifierKey) ? _modifiedMovementSpeed : _movementSpeed;
+
+                if (Vulkyrie::Input::IsKeyPressed(_moveForwardKey)) ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+                if (Vulkyrie::Input::IsKeyPressed(_moveBackwardKey)) ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+                if (Vulkyrie::Input::IsKeyPressed(_moveLeftKey)) ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+                if (Vulkyrie::Input::IsKeyPressed(_moveRightKey)) ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+
+                std::pair<f32, f32> mousePosition = Vulkyrie::Input::GetMousePosition();
+
+                if (_firstMouseMove) {
+                    _lastMouseX = mousePosition.first;
+                    _lastMouseY = mousePosition.second;
+                    _firstMouseMove = false;
+                }
+
+                const f32 xOffset = mousePosition.first - _lastMouseX;
+                const f32 yOffset = _lastMouseY - mousePosition.second;
+
+                ProcessMouseMovement(xOffset, yOffset);
+
+                _lastMouseX = mousePosition.first;
+                _lastMouseY = mousePosition.second;
             }
 
             /** @brief Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis.
@@ -130,8 +178,35 @@ namespace Vulkyrie::Renderer {
             /** @brief The zoom level (field of view) of the camera, affecting how wide the camera's view is. */
             f32 _zoom;
 
+            /** @brief Forward movement key code. */
+            Vulkyrie::Events::KeyCode _moveForwardKey;
+
+            /** @brief Backward movement key code. */
+            Vulkyrie::Events::KeyCode _moveBackwardKey;
+
+            /** @brief Left movement key code. */
+            Vulkyrie::Events::KeyCode _moveLeftKey;
+
+            /** @brief Right movement key code. */
+            Vulkyrie::Events::KeyCode _moveRightKey;
+
+            /** @brief Speed modifier key code. */
+            Vulkyrie::Events::KeyCode _speedModifierKey;
+
+            /** @brief Normal movement speed of the camera. */
+            f32 _movementSpeed;
+
+            /** @brief Modified movement speed of the camera when the speed modifier key is pressed. */
+            f32 _modifiedMovementSpeed;
+
+            /** @brief Flag to indicate if this is the first mouse movement event. */
+            bool _firstMouseMove;
+
+            f64 _lastMouseX = 400.0f;
+            f64 _lastMouseY = 300.0f;
+
             /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
-            void UpdateCameraVectors() {
+            inline void UpdateCameraVectors() {
                 // calculate the new Front vector
                 glm::vec3 front;
                 front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));

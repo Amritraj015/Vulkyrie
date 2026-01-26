@@ -58,18 +58,12 @@ namespace Sandbox {
                 VDEBUG("Layer Detached: Phong Lighting");
             }
 
-            void OnUpdate(const Vulkyrie::Core::Timestep deltaTime) override {
+            void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Update Camera position based on input.
-                constexpr float cameraSpeed = 5.0f;
-                auto dt = deltaTime.GetSeconds();
-
-                if (_application.IsKeyPressed(KeyCode::W)) camera.ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::S)) camera.ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::A)) camera.ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (_application.IsKeyPressed(KeyCode::D)) camera.ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                camera.OnUpdate(deltaTime);
 
                 objectShader->Use();
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
@@ -129,30 +123,6 @@ namespace Sandbox {
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
 
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
-                    auto mouseMovedEvent = static_cast<Vulkyrie::Events::MouseMovedEvent>(e);
-
-                    if (firstMouseMove) {
-                        lastMouseX = mouseMovedEvent.MouseX;
-                        lastMouseY = mouseMovedEvent.MouseY;
-                        firstMouseMove = false;
-                    }
-
-                    const float xOffset = mouseMovedEvent.MouseX - lastMouseX;
-                    const float yOffset = lastMouseY - mouseMovedEvent.MouseY;
-
-                    camera.ProcessMouseMovement(xOffset, yOffset);
-
-                    lastMouseX = mouseMovedEvent.MouseX;
-                    lastMouseY = mouseMovedEvent.MouseY;
-
-                    return true;
-                });
-            }
-
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;
@@ -163,9 +133,6 @@ namespace Sandbox {
             Ref<Shader> lightShader;
 
             Camera camera;
-            f64 lastMouseX = 400.0f;
-            f64 lastMouseY = 300.0f;
-            bool firstMouseMove = true;
             f32 windowHeight, windowWidth;
 
             glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
