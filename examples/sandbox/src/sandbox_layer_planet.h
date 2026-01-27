@@ -26,6 +26,8 @@ namespace Sandbox {
                     VERROR("Failed to compile shaders.")
                 }
 
+                camera.SetMovementSpeed(100.0f, 500.0f);
+
                 amount = 100000;
                 modelMatrices.reserve(amount);
                 srand(glfwGetTime()); // initialize random seed
@@ -93,7 +95,15 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
 
                 // Enable face culling to improve performance.
-                // glEnable(GL_CULL_FACE);
+                glEnable(GL_CULL_FACE);
+            }
+
+            void OnResumed() override {
+                glEnable(GL_CULL_FACE);
+            }
+
+            void OnSuspended() override {
+                glDisable(GL_CULL_FACE);
             }
 
             void OnUpdate(const Timestep &deltaTime) override {

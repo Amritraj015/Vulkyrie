@@ -60,6 +60,15 @@ namespace Vulkyrie::Renderer {
                 UpdateCameraVectors();
             };
 
+            /** @brief Sets the movement speeds for the camera.
+             * @param movementSpeed The normal movement speed of the camera.
+             * @param modifiedSpeed The modified movement speed of the camera when the speed modifier key is pressed.
+             */
+            void SetMovementSpeed(f32 movementSpeed, f32 modifiedSpeed) {
+                _movementSpeed = movementSpeed;
+                _modifiedMovementSpeed = modifiedSpeed;
+            }
+
             /** @brief Processes input received from any keyboard-like input system to move the camera's position.
              * @param direction The direction in which to move the camera.
              * @param deltaTime The time elapsed since the last frame. Used to ensure consistent movement speed regardless of frame rate.

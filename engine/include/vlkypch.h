@@ -45,7 +45,7 @@ typedef float f32;
 typedef double f64;
 
 // Platform detection
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
 
 // Windows OS.
 #define PLATFORM_WINDOWS 1
@@ -60,7 +60,7 @@ typedef double f64;
 
 // Linux OS.
 #define PLATFORM_LINUX 1
-#define VULKYRIE_API
+#define VULKYRIE_API __attribute__((visibility("default")))
 
 #else
 
