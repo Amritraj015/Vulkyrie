@@ -60,6 +60,15 @@ namespace Vulkyrie::Renderer {
                 UpdateCameraVectors();
             };
 
+            /** @brief Sets the movement speeds for the camera.
+             * @param movementSpeed The normal movement speed of the camera.
+             * @param modifiedSpeed The modified movement speed of the camera when the speed modifier key is pressed.
+             */
+            void SetMovementSpeed(f32 movementSpeed, f32 modifiedSpeed) {
+                _movementSpeed = movementSpeed;
+                _modifiedMovementSpeed = modifiedSpeed;
+            }
+
             /** @brief Processes input received from any keyboard-like input system to move the camera's position.
              * @param direction The direction in which to move the camera.
              * @param deltaTime The time elapsed since the last frame. Used to ensure consistent movement speed regardless of frame rate.
@@ -97,6 +106,8 @@ namespace Vulkyrie::Renderer {
                 if (Vulkyrie::Input::IsKeyPressed(_moveLeftKey)) ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
                 if (Vulkyrie::Input::IsKeyPressed(_moveRightKey)) ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
+                // TODO: Optimize mouse movement handling to avoid unnecessary calculations when the mouse hasn't moved.
+                // TODO: Consider implementing event-based mouse movement handling instead of polling every frame.
                 std::pair<f32, f32> mousePosition = Vulkyrie::Input::GetMousePosition();
 
                 if (_firstMouseMove) {

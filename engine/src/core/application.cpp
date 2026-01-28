@@ -8,7 +8,7 @@ namespace Vulkyrie::Core {
 
     Application *Application::_instance = nullptr;
 
-    constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
+    [[maybe_unused]] constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
         switch (api) {
             case GraphicsAPI::OpenGL:
                 return "OpenGL";

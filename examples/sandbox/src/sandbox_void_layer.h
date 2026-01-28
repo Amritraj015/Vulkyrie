@@ -9,7 +9,7 @@
 #include "sandbox_layer_attenuation.h"
 #include "sandbox_layer_planet.h"
 #include "sandbox_skybox_layer.h"
-#include "sandbox_depth_and_stencil_testing.h"
+#include "sandbox_layer_depth_and_stencil_testing.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Events;
@@ -42,13 +42,13 @@ namespace Sandbox {
                         if (currentLayer == 0) {
                             _application.SuspendLayer<SandboxLayerSkybox>();
 
-                            if (_application.HasLayer<SandboxDepthAndStencilTesting>()) {
-                                _application.ResumeLayer<SandboxDepthAndStencilTesting>();
+                            if (_application.HasLayer<SandboxLayerDepthAndStencilTesting>()) {
+                                _application.ResumeLayer<SandboxLayerDepthAndStencilTesting>();
                             } else {
-                                _application.PushLayer<SandboxDepthAndStencilTesting>(windowWidth, windowHeight);
+                                _application.PushLayer<SandboxLayerDepthAndStencilTesting>(windowWidth, windowHeight);
                             }
                         } else if (currentLayer == 1) {
-                            _application.SuspendLayer<SandboxDepthAndStencilTesting>();
+                            _application.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
 
                             if (_application.HasLayer<SandboxLayerAttenuation>()) {
                                 _application.ResumeLayer<SandboxLayerAttenuation>();

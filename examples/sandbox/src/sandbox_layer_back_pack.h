@@ -32,7 +32,7 @@ namespace Sandbox {
 
             ~SandboxLayerBackPack() = default;
 
-            void OnAttached() override { VDEBUG("Layer Attached: Backpack", _id.GetUUID()) };
+            void OnAttached() override { VDEBUG("Layer Attached: Backpack") };
 
             void OnDetached() override { VDEBUG("Layer Detached: Backpack") };
 
