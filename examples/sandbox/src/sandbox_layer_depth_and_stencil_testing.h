@@ -2,26 +2,33 @@
 
 #include <vulkyrie.h>
 #include "glad/glad.h"
+#include <map>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 
 namespace Sandbox {
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
 
-    class SandboxDepthAndStencilTesting final : public Layer {
+    class SandboxLayerDepthAndStencilTesting final : public Layer {
         public:
-            SandboxDepthAndStencilTesting(Application &application, f32 windowWidth, f32 windowHeight)
+            SandboxLayerDepthAndStencilTesting(Application &application, f32 windowWidth, f32 windowHeight)
                 : Layer(application)
                 , camera(glm::vec3(0.0f, 0.0f, 5.0f))
                 , windowWidth(windowWidth)
                 , windowHeight(windowHeight)
                 , showDepthValues(false) {
 
+                camera.SetMovementSpeed(5.0f, 20.0f);
+
                 // Load cube and plane textures.
                 cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/marble.jpg");
                 planeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/metal.png");
+                transparentTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/transparent_window.png");
 
-                if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded()) {
+                if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded() || !transparentTexture->IsLoaded()) {
                     VERROR("Failed to load one or more textures!");
                 }
 
@@ -51,11 +58,31 @@ namespace Sandbox {
                 });
                 planeVertexArray->AddVertexBuffer(planeVertexBuffer);
 
+                // Create vegetation vertex array.
+                transparentTextureVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                Ref<VertexBuffer> vegetationVertexBuffer =
+                    VertexBuffer::Create(GraphicsAPI::OpenGL, transparentTextureVertices.data(), transparentTextureVertices.size() * sizeof(glm::vec3));
+                vegetationVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "position" },
+                    { ShaderDataType::Float2, "texture_coordinates" },
+                });
+                transparentTextureVertexArray->AddVertexBuffer(vegetationVertexBuffer);
+
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
+
+                // Enable blending for transparency.
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                // Sort the transparent textures based on the initial distance from the camera.
+                for (u32 i = 0; i < transparentTextureLocations.size(); i++) {
+                    f32 distance = glm::length2(camera.GetPosition() - transparentTextureLocations[i]);
+                    sortedTransparentTextures[distance] = transparentTextureLocations[i];
+                }
             }
 
-            ~SandboxDepthAndStencilTesting() override = default;
+            ~SandboxLayerDepthAndStencilTesting() override = default;
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -100,6 +127,16 @@ namespace Sandbox {
                 shaderToUse->SetMat4Uniform("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
                 planeVertexArray->Unbind();
+
+                // Draw vegetation
+                transparentTextureVertexArray->Bind();
+                transparentTexture->Bind(0);
+                for (std::map<f32, glm::vec3>::reverse_iterator it = sortedTransparentTextures.rbegin(); it != sortedTransparentTextures.rend(); ++it) {
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), it->second);
+                    shaderToUse->SetMat4Uniform("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 6);
+                }
+                transparentTextureVertexArray->Unbind();
             }
 
             void OnAttached() override {
@@ -120,6 +157,16 @@ namespace Sandbox {
                         return true;
                     }
 
+                    if (e.KeyCode == KeyCode::W || e.KeyCode == KeyCode::A || e.KeyCode == KeyCode::S || e.KeyCode == KeyCode::D) {
+                        sortedTransparentTextures.clear();
+                        for (u32 i = 0; i < transparentTextureLocations.size(); i++) {
+                            f32 distance = glm::length2(camera.GetPosition() - transparentTextureLocations[i]);
+                            sortedTransparentTextures[distance] = transparentTextureLocations[i];
+                        }
+
+                        return true;
+                    }
+
                     return false;
                 });
             }
@@ -135,10 +182,15 @@ namespace Sandbox {
             Ref<Texture2D> planeTexture;
             Ref<VertexArray> planeVertexArray;
 
+            Ref<Texture2D> transparentTexture;
+            Ref<VertexArray> transparentTextureVertexArray;
+
             Ref<Shader> textureShader;
             Ref<Shader> depthTestShader;
 
             bool showDepthValues;
+
+            std::map<f32, glm::vec3> sortedTransparentTextures;
 
             std::vector<f32> cubeVertices = {
                 // positions          // texture Coords
@@ -196,6 +248,25 @@ namespace Sandbox {
                 5.0f,  -0.5f, 5.0f,  2.0f, 0.0f, //
                 -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, //
                 5.0f,  -0.5f, -5.0f, 2.0f, 2.0f  //
+            };
+
+            std::vector<f32> transparentTextureVertices = {
+                // positions       // texture Coords (swapped y coordinates because texture is flipped upside down)
+                0.0f, 0.5f,  0.0f, 0.0f, 1.0f, //
+                0.0f, -0.5f, 0.0f, 0.0f, 0.0f, //
+                1.0f, -0.5f, 0.0f, 1.0f, 0.0f, //
+
+                0.0f, 0.5f,  0.0f, 0.0f, 1.0f, //
+                1.0f, -0.5f, 0.0f, 1.0f, 0.0f, //
+                1.0f, 0.5f,  0.0f, 1.0f, 1.0f  //
+            };
+
+            std::vector<glm::vec3> transparentTextureLocations = {
+                glm::vec3(-1.5f, 0.0f, -0.48f), //
+                glm::vec3(1.5f, 0.0f, 0.51f),   //
+                glm::vec3(0.0f, 0.0f, 0.7f),    //
+                glm::vec3(-0.3f, 0.0f, -2.3f),  //
+                glm::vec3(0.5f, 0.0f, -0.6f),   //
             };
     };
 } // namespace Sandbox

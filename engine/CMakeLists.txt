@@ -68,5 +68,7 @@ else()
             -Wextra
             -Wpedantic
             -Werror
+            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility=hidden>
+            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility-inlines-hidden>
     )
 endif()

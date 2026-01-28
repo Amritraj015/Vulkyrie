@@ -39,7 +39,10 @@ namespace Vulkyrie::Renderer {
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &specification)
-        : _specification(specification), _fileName(_path.filename().string()), _width(_specification.Width), _height(_specification.Height) {
+        : _specification(specification)
+        , _fileName(_path.filename().string())
+        , _width(_specification.Width)
+        , _height(_specification.Height) {
 
         _imageFormat = VulkyrieImageFormatToOpenGLInternalFormat(_specification.Format);
         _dataFormat = VulkyrieImageFormatToOpenGLDataFormat(_specification.Format);
@@ -58,7 +61,9 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path) : _path(path), _fileName(_path.filename().string()) {
+    OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path)
+        : _path(path)
+        , _fileName(_path.filename().string()) {
         int width, height, channels;
 
         stbi_set_flip_vertically_on_load(true);

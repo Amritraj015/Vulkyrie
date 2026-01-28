@@ -106,6 +106,8 @@ namespace Vulkyrie::Renderer {
                 if (Vulkyrie::Input::IsKeyPressed(_moveLeftKey)) ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
                 if (Vulkyrie::Input::IsKeyPressed(_moveRightKey)) ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
 
+                // TODO: Optimize mouse movement handling to avoid unnecessary calculations when the mouse hasn't moved.
+                // TODO: Consider implementing event-based mouse movement handling instead of polling every frame.
                 std::pair<f32, f32> mousePosition = Vulkyrie::Input::GetMousePosition();
 
                 if (_firstMouseMove) {
