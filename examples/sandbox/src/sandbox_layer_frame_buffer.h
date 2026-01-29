@@ -1,0 +1,293 @@
+#pragma once
+
+#include <vulkyrie.h>
+#include "glad/glad.h"
+#include <map>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
+
+namespace Sandbox {
+    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie::Core;
+    using namespace Vulkyrie::Renderer;
+
+    class SandboxLayerFrameBuffer final : public Layer {
+        public:
+            SandboxLayerFrameBuffer(Application &application, f32 windowWidth, f32 windowHeight)
+                : Layer(application)
+                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                , windowWidth(windowWidth)
+                , windowHeight(windowHeight)
+                , showDepthValues(false) {
+
+                camera.SetMovementSpeed(5.0f, 20.0f);
+
+                glGenFramebuffers(1, &framebuffer);
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+                // generate texture
+                glGenTextures(1, &textureColorbuffer);
+                glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                // attach it to currently bound framebuffer object
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+                glGenRenderbuffers(1, &rbo);
+                glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+                glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+                if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                    VERROR("Failed to create framebuffer!")
+                }
+
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                // Load cube and plane textures.
+                cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container.jpg");
+                planeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/metal.png");
+
+                if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded()) {
+                    VERROR("Failed to load one or more textures!");
+                }
+
+                // Load and compile shader program.
+                textureShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/texture_2D.glsl");
+                depthTestShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/depth_test.glsl");
+                quadShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/frame_buffer.glsl");
+
+                if (!textureShader->IsValid() || !depthTestShader->IsValid() || !quadShader->IsValid()) {
+                    VERROR("Failed to create shader program!");
+                }
+
+                // Create cube vertex array.
+                cubeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, cubeVertices.data(), cubeVertices.size() * sizeof(f32));
+                cubeVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "position" },
+                    { ShaderDataType::Float2, "texture_coordinates" },
+                });
+                cubeVertexArray->AddVertexBuffer(cubeVertexBuffer);
+
+                // Create plane vertex array.
+                planeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                Ref<VertexBuffer> planeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, planeVertices.data(), planeVertices.size() * sizeof(f32));
+                planeVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "position" },
+                    { ShaderDataType::Float2, "texture_coordinates" },
+                });
+                planeVertexArray->AddVertexBuffer(planeVertexBuffer);
+
+                // Create quad vertex array.
+                quadVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                Ref<VertexBuffer> quadVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, quadVertices.data(), quadVertices.size() * sizeof(f32));
+                quadVertexBuffer->SetLayout({
+                    { ShaderDataType::Float2, "position" },
+                    { ShaderDataType::Float2, "texture_coordinates" },
+                });
+                quadVertexArray->AddVertexBuffer(quadVertexBuffer);
+
+                // Enable depth testing.
+                glEnable(GL_DEPTH_TEST);
+            }
+
+            ~SandboxLayerFrameBuffer() override {
+                glDeleteTextures(1, &textureColorbuffer);
+                glDeleteRenderbuffers(1, &rbo);
+                glDeleteFramebuffers(1, &framebuffer);
+            };
+
+            void OnUpdate(const Timestep &deltaTime) override {
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+                glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+
+                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                // Update Camera position based on input.
+                camera.OnUpdate(deltaTime);
+
+                // Choose shader based on whether to show depth values.
+                auto shaderToUse = showDepthValues ? depthTestShader : textureShader;
+
+                // Use the shader program.
+                shaderToUse->Use();
+
+                // Projection transformations.
+                glm::mat4 projection = glm::perspective(glm::radians(44.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                shaderToUse->SetMat4Uniform("projection", projection);
+
+                // View transform
+                glm::mat4 view = camera.GetViewMatrix();
+                shaderToUse->SetMat4Uniform("view", view);
+
+                // Draw cubes
+                cubeTexture->Bind(0);
+                cubeVertexArray->Bind();
+
+                // First cube
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, -1.0f));
+                shaderToUse->SetMat4Uniform("model", model);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                // Second cube
+                model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
+                shaderToUse->SetMat4Uniform("model", model);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+                cubeVertexArray->Unbind();
+
+                // Draw plane
+                planeVertexArray->Bind();
+                planeTexture->Bind(0);
+                model = glm::mat4(1.0f);
+                shaderToUse->SetMat4Uniform("model", model);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+                planeVertexArray->Unbind();
+
+                // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+                // clear all relevant buffers
+                // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+                glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                quadShader->Use();
+                quadShader->SetIntUniform("screenTexture", 0);
+                quadVertexArray->Bind();
+                glBindTexture(GL_TEXTURE_2D, textureColorbuffer); // use the color attachment texture as the texture of the quad plane
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+                quadVertexArray->Unbind();
+            }
+
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Depth and Stencil Testing");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Depth and Stencil Testing");
+            }
+
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<WindowResizedEvent>([this](const WindowResizedEvent &e) {
+                    windowWidth = (f32)e.Width;
+                    windowHeight = (f32)e.Height;
+                    glViewport(0, 0, e.Width, e.Height);
+
+                    return false;
+                });
+
+                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::U) {
+                        showDepthValues = !showDepthValues;
+
+                        return true;
+                    }
+
+                    return false;
+                });
+            }
+
+        private:
+            Camera camera;
+            f32 windowHeight;
+            f32 windowWidth;
+
+            u32 framebuffer;
+            u32 textureColorbuffer;
+            u32 rbo;
+
+            Ref<Texture2D> cubeTexture;
+            Ref<VertexArray> cubeVertexArray;
+
+            Ref<Texture2D> planeTexture;
+            Ref<VertexArray> planeVertexArray;
+
+            Ref<VertexArray> quadVertexArray;
+
+            Ref<Shader> textureShader;
+            Ref<Shader> depthTestShader;
+            Ref<Shader> quadShader;
+
+            bool showDepthValues;
+
+            std::vector<f32> cubeVertices = {
+                // positions          // texture Coords
+                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+                0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
+                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+
+                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+                -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, //
+                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+
+                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+                -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+                0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+
+                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+                0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, //
+                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+
+                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+                -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
+                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f  //
+            };
+
+            std::vector<f32> planeVertices = {
+                // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause
+                // the
+                // floor texture to repeat)
+                5.0f,  -0.5f, 5.0f,  2.0f, 0.0f, //
+                -5.0f, -0.5f, 5.0f,  0.0f, 0.0f, //
+                -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, //
+
+                5.0f,  -0.5f, 5.0f,  2.0f, 0.0f, //
+                -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, //
+                5.0f,  -0.5f, -5.0f, 2.0f, 2.0f  //
+            };
+
+            std::vector<f32> quadVertices = {
+                // positions  // texCoords
+                -1.0f, 1.0f,  0.0f, 1.0f, //
+                -1.0f, -1.0f, 0.0f, 0.0f, //
+                1.0f,  -1.0f, 1.0f, 0.0f, //
+
+                -1.0f, 1.0f,  0.0f, 1.0f, //
+                1.0f,  -1.0f, 1.0f, 0.0f, //
+                1.0f,  1.0f,  1.0f, 1.0f  //
+            };
+    };
+} // namespace Sandbox

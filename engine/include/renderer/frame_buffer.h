@@ -5,6 +5,9 @@
 namespace Vulkyrie::Renderer {
     class FrameBuffer {
         public:
+            virtual ~FrameBuffer() = default;
+
+        public:
             static Ref<FrameBuffer> Create(Vulkyrie::Core::GraphicsAPI api);
     };
 } // namespace Vulkyrie::Renderer

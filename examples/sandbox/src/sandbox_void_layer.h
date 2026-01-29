@@ -3,12 +3,13 @@
 #include <vulkyrie.h>
 #include "sandbox_layer_back_pack.h"
 #include "sandbox_layer_cubes.h"
+#include "sandbox_layer_frame_buffer.h"
 #include "sandbox_layer_phong_lighting.h"
 #include "sandbox_layer_specular_map.h"
 #include "sandbox_layer_terrain_generation.h"
 #include "sandbox_layer_attenuation.h"
 #include "sandbox_layer_planet.h"
-#include "sandbox_skybox_layer.h"
+#include "sandbox_layer_skybox.h"
 #include "sandbox_layer_depth_and_stencil_testing.h"
 
 namespace Sandbox {
@@ -39,15 +40,24 @@ namespace Sandbox {
                     }
 
                     if (e.KeyCode == KeyCode::J) {
+
                         if (currentLayer == 0) {
                             _application.SuspendLayer<SandboxLayerSkybox>();
+
+                            if (_application.HasLayer<SandboxLayerFrameBuffer>()) {
+                                _application.ResumeLayer<SandboxLayerFrameBuffer>();
+                            } else {
+                                _application.PushLayer<SandboxLayerFrameBuffer>(windowWidth, windowHeight);
+                            }
+                        } else if (currentLayer == 1) {
+                            _application.SuspendLayer<SandboxLayerFrameBuffer>();
 
                             if (_application.HasLayer<SandboxLayerDepthAndStencilTesting>()) {
                                 _application.ResumeLayer<SandboxLayerDepthAndStencilTesting>();
                             } else {
                                 _application.PushLayer<SandboxLayerDepthAndStencilTesting>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 1) {
+                        } else if (currentLayer == 2) {
                             _application.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
 
                             if (_application.HasLayer<SandboxLayerAttenuation>()) {
@@ -55,7 +65,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerAttenuation>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 2) {
+                        } else if (currentLayer == 3) {
                             _application.SuspendLayer<SandboxLayerAttenuation>();
 
                             if (_application.HasLayer<SandboxLayerPlanet>()) {
@@ -63,7 +73,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerPlanet>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 3) {
+                        } else if (currentLayer == 4) {
                             _application.SuspendLayer<SandboxLayerPlanet>();
 
                             if (_application.HasLayer<SandboxLayerCubes>()) {
@@ -71,7 +81,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerCubes>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 4) {
+                        } else if (currentLayer == 5) {
                             _application.SuspendLayer<SandboxLayerCubes>();
 
                             if (_application.HasLayer<SandboxLayerPhongLighting>()) {
@@ -79,7 +89,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerPhongLighting>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 5) {
+                        } else if (currentLayer == 6) {
                             _application.SuspendLayer<SandboxLayerPhongLighting>();
 
                             if (_application.HasLayer<SandboxLayerSpecularMap>()) {
@@ -87,7 +97,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerSpecularMap>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 6) {
+                        } else if (currentLayer == 7) {
                             _application.SuspendLayer<SandboxLayerSpecularMap>();
 
                             if (_application.HasLayer<SandboxLayerTerrainGeneration>()) {
@@ -95,7 +105,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerTerrainGeneration>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 7) {
+                        } else if (currentLayer == 8) {
                             _application.SuspendLayer<SandboxLayerTerrainGeneration>();
 
                             if (_application.HasLayer<SandboxLayerBackPack>()) {
@@ -103,7 +113,7 @@ namespace Sandbox {
                             } else {
                                 _application.PushLayer<SandboxLayerBackPack>(windowWidth, windowHeight);
                             }
-                        } else if (currentLayer == 8) {
+                        } else if (currentLayer == 9) {
                             _application.SuspendLayer<SandboxLayerBackPack>();
 
                             if (_application.HasLayer<SandboxLayerSkybox>()) {
@@ -113,7 +123,7 @@ namespace Sandbox {
                             }
                         }
 
-                        currentLayer = (currentLayer + 1) % 9;
+                        currentLayer = (currentLayer + 1) % 10;
 
                         return true;
                     }

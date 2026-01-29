@@ -3,10 +3,11 @@
 #include <glad/glad.h>
 
 namespace Vulkyrie::Renderer {
-    Renderer::Renderer(const Vulkyrie::Core::Platform &platform) : _platform(platform) {
+    Renderer::Renderer(const Vulkyrie::Core::Platform &platform)
+        : _platform(platform) {
     }
 
-    Vulkyrie::Core::StatusCode Renderer::Initialize() {
+    Vulkyrie::Core::StatusCode Renderer::Initialize([[maybe_unused]] Vulkyrie::Core::GraphicsAPI api) {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
