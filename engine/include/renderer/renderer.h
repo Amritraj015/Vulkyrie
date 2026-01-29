@@ -17,7 +17,7 @@ namespace Vulkyrie::Renderer {
         public:
             Renderer(const Vulkyrie::Core::Platform &platform);
 
-            Vulkyrie::Core::StatusCode Initialize();
+            Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
             Vulkyrie::Core::StatusCode Terminate();
 
             void BeginScene(const Scene &scene);
