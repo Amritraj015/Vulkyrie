@@ -2,7 +2,6 @@
 
 #include <vulkyrie.h>
 #include "glad/glad.h"
-#include <map>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
@@ -15,10 +14,10 @@ namespace Sandbox {
     class SandboxLayerFrameBuffer final : public Layer {
         public:
             SandboxLayerFrameBuffer()
-                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                : camera(Camera::Create())
                 , showDepthValues(false) {
 
-                camera.SetMovementSpeed(5.0f, 20.0f);
+                camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
                 glGenFramebuffers(1, &framebuffer);
                 glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -174,13 +173,26 @@ namespace Sandbox {
                 glBindTexture(GL_TEXTURE_2D, textureColorbuffer); // use the color attachment texture as the texture of the quad plane
                 glDrawArrays(GL_TRIANGLES, 0, 6);
                 quadVertexArray->Unbind();
+
+                // NOTE: This is needed for other layers, but this can be done with layer events.
+                glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
-            void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Depth and Stencil Testing");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Depth and Stencil Testing");
+            }
 
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::U) {

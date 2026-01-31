@@ -328,7 +328,8 @@ namespace Vulkyrie::Core {
     }
 
     VulkyrieGLFWPlatform::VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
-        : Platform(windowProps, eventCallbackFn), _window(nullptr) {};
+        : Platform(windowProps, eventCallbackFn)
+        , _window(nullptr) {};
 
     VulkyrieGLFWPlatform::~VulkyrieGLFWPlatform() {
         glfwDestroyWindow(_window);
@@ -344,7 +345,14 @@ namespace Vulkyrie::Core {
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        if (_windowProps.GraphicsApi == Vulkyrie::Core::GraphicsAPI::OpenGL) {
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#if defined(VULKYRIE_DEBUG)
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+        }
 
         // GLFW window creation
         _window = glfwCreateWindow(_windowProps.Width, _windowProps.Height, _windowProps.Title.c_str(), nullptr, nullptr);
@@ -361,7 +369,7 @@ namespace Vulkyrie::Core {
         }
 
         // Set the window user pointer to this instance.
-        glfwSetWindowUserPointer(_window, (void *)&_eventCallbackFn);
+        glfwSetWindowUserPointer(_window, &_eventCallbackFn);
 
         // Set window event callbacks.
         glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, int width, int height) {
@@ -501,7 +509,9 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    void VulkyrieGLFWPlatform::SetVSync(bool enabled) { glfwSwapInterval(static_cast<i32>(enabled)); }
+    void VulkyrieGLFWPlatform::SetVSync(bool enabled) {
+        glfwSwapInterval(static_cast<i32>(enabled));
+    }
 
     void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {
         if (enable) {

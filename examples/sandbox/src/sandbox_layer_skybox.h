@@ -11,7 +11,7 @@ namespace Sandbox {
     class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerSkybox()
-                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                : camera(Camera::Create())
                 , texture(Texture2D::Create("assets/textures/wall.jpg"))
                 , terrainShader(Shader::Create("assets/shaders/triangle.glsl")) {
                 if (!texture->IsLoaded()) {

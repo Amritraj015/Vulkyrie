@@ -1,5 +1,6 @@
 #include "renderer/open_gl/open_gl_shader.h"
 #include "core/utilities.h"
+#include "core/asserts.h"
 #include "glad/glad.h"
 
 namespace Vulkyrie::Renderer {
@@ -10,6 +11,8 @@ namespace Vulkyrie::Renderer {
         if (type == "fragment") return GL_FRAGMENT_SHADER;
         if (type == "geometry") return GL_GEOMETRY_SHADER;
         if (type == "compute") return GL_COMPUTE_SHADER;
+        if (type == "tess_control") return GL_TESS_CONTROL_SHADER;
+        if (type == "tess_evaluation") return GL_TESS_EVALUATION_SHADER;
 
         return INVALID_SHADER_TYPE;
     }
@@ -26,15 +29,8 @@ namespace Vulkyrie::Renderer {
 
             size_t lineEnd = source.find_first_of("\r\n", tagPos);
 
-            // -----------------------------------------------------------------------------
-            // TODO: Write an assert macro for this.
-            // TODO: Write an assert macro for this.
-            // TODO: Write an assert macro for this.
-            if (lineEnd == std::string_view::npos) throw std::runtime_error("Malformed #type line");
-            // TODO: Write an assert macro for this.
-            // TODO: Write an assert macro for this.
-            // TODO: Write an assert macro for this.
-            // -----------------------------------------------------------------------------
+            VASSERT_EXPR(lineEnd != std::string_view::npos, "Malformed #type line in shader source.");
+            // if (lineEnd == std::string_view::npos) throw std::runtime_error("Malformed #type line");
 
             // Parse shader type
             size_t typeStart = tagPos + tag.size();
@@ -59,29 +55,22 @@ namespace Vulkyrie::Renderer {
         return result;
     }
 
-    OpenGLShader::OpenGLShader(const std::filesystem::path &shaderSourcePath) : _shaderSourcePath(shaderSourcePath) {
+    OpenGLShader::OpenGLShader(const std::filesystem::path &shaderSourcePath)
+        : _shaderSourcePath(shaderSourcePath) {
         _shaderProgramID = LoadAndCompile();
     }
 
-    OpenGLShader::~OpenGLShader() {
-        glDeleteProgram(_shaderProgramID);
-    }
+    OpenGLShader::~OpenGLShader() { glDeleteProgram(_shaderProgramID); }
 
-    void OpenGLShader::Use() const {
-        glUseProgram(_shaderProgramID);
-    }
+    void OpenGLShader::Use() const { glUseProgram(_shaderProgramID); }
 
     void OpenGLShader::SetBoolUniform(const std::string_view name, const bool value) const {
         glUniform1i(GetUniformLocation(name.data()), static_cast<int>(value));
     }
 
-    void OpenGLShader::SetIntUniform(const std::string_view name, const int value) const {
-        glUniform1i(GetUniformLocation(name.data()), value);
-    }
+    void OpenGLShader::SetIntUniform(const std::string_view name, const int value) const { glUniform1i(GetUniformLocation(name.data()), value); }
 
-    void OpenGLShader::SetFloatUniform(const std::string_view name, const float value) const {
-        glUniform1f(GetUniformLocation(name.data()), value);
-    }
+    void OpenGLShader::SetFloatUniform(const std::string_view name, const float value) const { glUniform1f(GetUniformLocation(name.data()), value); }
 
     void OpenGLShader::SetMat2Uniform(const std::string_view name, const glm::mat2 &mat) const {
         glUniformMatrix2fv(GetUniformLocation(name.data()), 1, GL_FALSE, &mat[0][0]);
@@ -99,9 +88,7 @@ namespace Vulkyrie::Renderer {
         glUniform3fv(GetUniformLocation(name.data()), 1, &value[0]);
     }
 
-    void OpenGLShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const {
-        glUniform3f(GetUniformLocation(name.data()), x, y, z);
-    }
+    void OpenGLShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const { glUniform3f(GetUniformLocation(name.data()), x, y, z); }
 
     i32 OpenGLShader::GetUniformLocation(const std::string &name) const {
         if (auto it = _uniformLocationCache.find(name); it != _uniformLocationCache.end()) {
@@ -110,11 +97,9 @@ namespace Vulkyrie::Renderer {
 
         const i32 location = glGetUniformLocation(_shaderProgramID, name.c_str());
 
-#if defined(VULKYRIE_DEBUG)
         if (location == -1) {
             VERROR("Uniform '{}' does not exist in shader program: {}.", name, _shaderProgramID);
         }
-#endif
 
         _uniformLocationCache[name] = location;
 

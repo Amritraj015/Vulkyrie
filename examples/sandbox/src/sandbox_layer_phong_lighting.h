@@ -12,7 +12,7 @@ namespace Sandbox {
     class SandboxLayerPhongLighting final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerPhongLighting()
-                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+                : camera(Camera::Create()) {
                 // Load and compile shader programs.
                 objectShader = Shader::Create("assets/shaders/reflective-object.glsl");
                 lightShader = Shader::Create("assets/shaders/light-source.glsl");

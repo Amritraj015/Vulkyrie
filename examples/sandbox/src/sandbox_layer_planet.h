@@ -12,7 +12,7 @@ namespace Sandbox {
     class SandboxLayerPlanet final : public Layer {
         public:
             SandboxLayerPlanet()
-                : camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
+                : camera(Camera::Create()) {
                 planetModel = Model::Create("assets/models/planet/planet.obj");
                 asteroidModel = Model::Create("assets/models/asteroid/rock.obj");
 
@@ -23,7 +23,7 @@ namespace Sandbox {
                     VERROR("Failed to compile shaders.")
                 }
 
-                camera.SetMovementSpeed(100.0f, 500.0f);
+                camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
 
                 amount = 100000;
                 modelMatrices.reserve(amount);
