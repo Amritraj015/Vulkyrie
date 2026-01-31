@@ -11,11 +11,8 @@ namespace Sandbox {
 
     class SandboxLayerPhongLighting final : public Vulkyrie::Core::Layer {
         public:
-            SandboxLayerPhongLighting(Vulkyrie::Core::Application &application, f32 windowWidth, f32 windowHeight)
-                : Vulkyrie::Core::Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+            SandboxLayerPhongLighting()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
                 // Load and compile shader programs.
                 objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/reflective-object.glsl");
                 lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
@@ -53,13 +50,9 @@ namespace Sandbox {
 
             ~SandboxLayerPhongLighting() = default;
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Phong Lighting");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Phong Lighting"); }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Phong Lighting");
-            }
+            void OnDetached() override { VDEBUG("Layer Detached: Phong Lighting"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -72,7 +65,10 @@ namespace Sandbox {
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
                 // view/projection transformations
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 objectShader->SetMat4Uniform("projection", projection);
                 objectShader->SetMat4Uniform("view", view);
@@ -136,7 +132,6 @@ namespace Sandbox {
             Ref<Shader> lightShader;
 
             Camera camera;
-            f32 windowHeight, windowWidth;
 
             glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 

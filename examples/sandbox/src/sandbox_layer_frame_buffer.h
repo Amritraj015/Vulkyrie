@@ -14,11 +14,8 @@ namespace Sandbox {
 
     class SandboxLayerFrameBuffer final : public Layer {
         public:
-            SandboxLayerFrameBuffer(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
+            SandboxLayerFrameBuffer()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
                 , showDepthValues(false) {
 
                 camera.SetMovementSpeed(5.0f, 20.0f);
@@ -29,7 +26,15 @@ namespace Sandbox {
                 // generate texture
                 glGenTextures(1, &textureColorbuffer);
                 glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                glTexImage2D(GL_TEXTURE_2D,
+                             0,
+                             GL_RGB,
+                             Application::GetSingleton().GetWindowWidth(),
+                             Application::GetSingleton().GetWindowHeight(),
+                             0,
+                             GL_RGB,
+                             GL_UNSIGNED_BYTE,
+                             NULL);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glBindTexture(GL_TEXTURE_2D, 0);
@@ -121,7 +126,10 @@ namespace Sandbox {
                 shaderToUse->Use();
 
                 // Projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(44.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 shaderToUse->SetMat4Uniform("projection", projection);
 
                 // View transform
@@ -168,24 +176,12 @@ namespace Sandbox {
                 quadVertexArray->Unbind();
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Depth and Stencil Testing");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Depth and Stencil Testing");
-            }
+            void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
 
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<WindowResizedEvent>([this](const WindowResizedEvent &e) {
-                    windowWidth = (f32)e.Width;
-                    windowHeight = (f32)e.Height;
-                    glViewport(0, 0, e.Width, e.Height);
-
-                    return false;
-                });
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::U) {
@@ -200,8 +196,6 @@ namespace Sandbox {
 
         private:
             Camera camera;
-            f32 windowHeight;
-            f32 windowWidth;
 
             u32 framebuffer;
             u32 textureColorbuffer;

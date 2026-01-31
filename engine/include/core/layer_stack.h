@@ -33,22 +33,26 @@ namespace Vulkyrie::Core {
              * @param layerToPush The layer to push onto the stack.
              */
             explicit LayerOperation(OperationType operation, Scope<Layer> layerToPush)
-                : Type(operation), LayerToPush(std::move(layerToPush)), LayerToPop(typeid(void)) {
-            }
+                : Type(operation)
+                , LayerToPush(std::move(layerToPush))
+                , LayerToPop(typeid(void)) {}
 
             /** @brief Constructs a LayerOperation for popping a layer.
              * @param operation The type of operation (PopLayer).
              * @param layerToPop The type index of the layer to pop.
              */
-            explicit LayerOperation(OperationType operation, std::type_index layerToPop) : Type(operation), LayerToPush(nullptr), LayerToPop(layerToPop) {
-            }
+            explicit LayerOperation(OperationType operation, std::type_index layerToPop)
+                : Type(operation)
+                , LayerToPush(nullptr)
+                , LayerToPop(layerToPop) {}
     };
 
     /** @brief Manages a stack of layers and overlays for the application. */
     class LayerStack {
         public:
             /** @brief Default constructor for the LayerStack class. */
-            LayerStack() : _layerInsertIndex(0) {
+            LayerStack()
+                : _layerInsertIndex(0) {
                 // Reserve space for layer operations to minimize reallocations.
                 _layerOperations.reserve(MAX_LAYER_OPERATIONS);
 
@@ -338,31 +342,15 @@ namespace Vulkyrie::Core {
                 _layerOperations.clear();
             }
 
-            auto begin() {
-                return _activeLayers.begin();
-            }
-            auto end() {
-                return _activeLayers.end();
-            }
-            [[nodiscard]] auto begin() const {
-                return _activeLayers.begin();
-            }
-            [[nodiscard]] auto end() const {
-                return _activeLayers.end();
-            }
+            auto begin() { return _activeLayers.begin(); }
+            auto end() { return _activeLayers.end(); }
+            [[nodiscard]] auto begin() const { return _activeLayers.begin(); }
+            [[nodiscard]] auto end() const { return _activeLayers.end(); }
 
-            auto rbegin() {
-                return _activeLayers.rbegin();
-            }
-            auto rend() {
-                return _activeLayers.rend();
-            }
-            [[nodiscard]] auto rbegin() const {
-                return _activeLayers.rbegin();
-            }
-            [[nodiscard]] auto rend() const {
-                return _activeLayers.rend();
-            }
+            auto rbegin() { return _activeLayers.rbegin(); }
+            auto rend() { return _activeLayers.rend(); }
+            [[nodiscard]] auto rbegin() const { return _activeLayers.rbegin(); }
+            [[nodiscard]] auto rend() const { return _activeLayers.rend(); }
 
         private:
             /** @brief List of layers in the stack. */

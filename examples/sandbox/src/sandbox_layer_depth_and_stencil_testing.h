@@ -14,11 +14,8 @@ namespace Sandbox {
 
     class SandboxLayerDepthAndStencilTesting final : public Layer {
         public:
-            SandboxLayerDepthAndStencilTesting(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
+            SandboxLayerDepthAndStencilTesting()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
                 , showDepthValues(false) {
 
                 camera.SetMovementSpeed(5.0f, 20.0f);
@@ -98,7 +95,10 @@ namespace Sandbox {
                 shaderToUse->Use();
 
                 // Projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 shaderToUse->SetMat4Uniform("projection", projection);
 
                 // View transform
@@ -139,13 +139,9 @@ namespace Sandbox {
                 transparentTextureVertexArray->Unbind();
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Depth and Stencil Testing");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Depth and Stencil Testing");
-            }
+            void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
 
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
@@ -173,8 +169,6 @@ namespace Sandbox {
 
         private:
             Camera camera;
-            f32 windowHeight;
-            f32 windowWidth;
 
             Ref<Texture2D> cubeTexture;
             Ref<VertexArray> cubeVertexArray;

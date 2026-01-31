@@ -13,6 +13,11 @@ namespace Vulkyrie::Renderer {
             u32 TrianglesRendered = 0;
     };
 
+    void Initialize(Vulkyrie::Core::GraphicsAPI api);
+    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI();
+
+    std::string_view GetCurrentGraphicsAPIName();
+
     class Renderer {
         public:
             Renderer(const Vulkyrie::Core::Platform &platform);

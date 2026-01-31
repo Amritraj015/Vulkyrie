@@ -10,11 +10,8 @@ namespace Sandbox {
 
     class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
         public:
-            SandboxLayerSkybox(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f))
+            SandboxLayerSkybox()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
                 , texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg"))
                 , terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
                 if (!texture->IsLoaded()) {
@@ -79,8 +76,10 @@ namespace Sandbox {
                 terrainShader->Use();
 
                 // Projection Matrix.
-                glm::mat4 projection = glm::mat4(1.0f);
-                projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
                 // View Matrix.
@@ -131,31 +130,11 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Skybox");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Attached: Skybox");
-            }
-
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
-
-                    terrainShader->SetMat4Uniform("projection", projection);
-
-                    return true;
-                });
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Skybox"); }
+            void OnDetached() override { VDEBUG("Layer Attached: Skybox"); }
 
         private:
             Camera camera;
-            f32 windowWidth;
-            f32 windowHeight;
 
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;

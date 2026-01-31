@@ -9,11 +9,8 @@ namespace Sandbox {
 
     class SandboxLayerAttenuation : public Vulkyrie::Core::Layer {
         public:
-            SandboxLayerAttenuation(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+            SandboxLayerAttenuation()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // load and compile the shader programs.
                 // objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/attenuation.glsl");
@@ -63,13 +60,9 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Attenuation");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Attenuation"); }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Attenuation");
-            }
+            void OnDetached() override { VDEBUG("Layer Detached: Attenuation"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -82,7 +75,10 @@ namespace Sandbox {
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
                 // projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 objectShader->SetMat4Uniform("projection", projection);
 
                 // view matrix.
@@ -159,7 +155,6 @@ namespace Sandbox {
             Ref<Texture2D> specularMapTexture;
 
             Camera camera;
-            f32 windowHeight, windowWidth;
             SpotLight spotLight = {
                 { 0.1f, 0.1f, 0.1f },
                 { 0.8f, 0.8f, 0.8f },

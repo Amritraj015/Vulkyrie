@@ -11,11 +11,8 @@ namespace Sandbox {
 
     class SandboxLayerCubes final : public Vulkyrie::Core::Layer {
         public:
-            SandboxLayerCubes(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+            SandboxLayerCubes()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // Load and compile shader program.
                 graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl");
@@ -47,8 +44,10 @@ namespace Sandbox {
 
                 // Projection matrix hardly ever changes, so it can live outside the main application loop.
                 graphicsShader->Use();
-                glm::mat4 projection = glm::mat4(1.0f);
-                projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
 
                 graphicsShader->SetMat4Uniform("projection", projection);
 
@@ -61,13 +60,9 @@ namespace Sandbox {
 
             ~SandboxLayerCubes() = default;
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Cubes");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Cubes"); }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Cubes");
-            }
+            void OnDetached() override { VDEBUG("Layer Detached: Cubes"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 // clear the color and depth buffer
@@ -103,17 +98,6 @@ namespace Sandbox {
                 }
             }
 
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    windowWidth = static_cast<f32>(e.Width);
-                    windowHeight = static_cast<f32>(e.Height);
-
-                    return true;
-                });
-            }
-
         private:
             Ref<Texture2D> texture1;
             Ref<Texture2D> texture2;
@@ -121,7 +105,6 @@ namespace Sandbox {
             Ref<VertexArray> vertexArray;
             Ref<Shader> graphicsShader;
             Camera camera;
-            f32 windowHeight, windowWidth;
 
             std::vector<glm::vec3> cubePositions = {
                 glm::vec3(0.0f, 0.0f, 0.0f),     // Cube 1

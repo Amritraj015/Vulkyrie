@@ -1,23 +1,11 @@
 #include "vlkypch.h"
 #include "core/application.h"
 #include "core/vulkyrie_glfw_platform.h"
-#include "core/graphics_api.h"
 #include "events/event_dispatcher.h"
 
 namespace Vulkyrie::Core {
 
     Application *Application::_instance = nullptr;
-
-    [[maybe_unused]] constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
-        switch (api) {
-            case GraphicsAPI::OpenGL:
-                return "OpenGL";
-            case GraphicsAPI::Vulkan:
-                return "Vulkan";
-            default:
-                return "Unknown";
-        }
-    }
 
     Application::Application(const WindowProps &windowProps)
         : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
@@ -42,6 +30,8 @@ namespace Vulkyrie::Core {
             return statusCode;
         }
 
+        Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi);
+
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
@@ -53,7 +43,7 @@ namespace Vulkyrie::Core {
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", GetGraphicsApiName(_windowProps.GraphicsApi))
+        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName())
         VINFO("*****************************************************************************************")
 
         // Mark the application as running.
@@ -92,9 +82,7 @@ namespace Vulkyrie::Core {
         return statusCode;
     }
 
-    void Application::Stop() {
-        _running = false;
-    }
+    void Application::Stop() { _running = false; }
 
     void Application::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
@@ -129,7 +117,5 @@ namespace Vulkyrie::Core {
         return false;
     }
 
-    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) {
-        return false;
-    }
+    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) { return false; }
 } // namespace Vulkyrie::Core

@@ -22,9 +22,7 @@ namespace Vulkyrie::Core {
             /** @brief Gets the singleton instance of the application.
              * @returns A reference to the application instance.
              */
-            [[nodiscard]] inline static Application &Get() {
-                return *_instance;
-            }
+            [[nodiscard]] inline static Application &GetSingleton() { return *_instance; }
 
             /** @brief Starts the application's main loop.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
@@ -41,7 +39,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushLayer(TArgs &&...args) {
-                _layers.QueuePushLayerOperation<TLayer>(*this, std::forward<TArgs>(args)...);
+                _layers.QueuePushLayerOperation<TLayer>(std::forward<TArgs>(args)...);
             }
 
             /** @brief Pushes a new overlay onto the layer stack if the application is running.
@@ -51,7 +49,7 @@ namespace Vulkyrie::Core {
             template <typename TLayer, typename... TArgs>
                 requires std::derived_from<TLayer, Layer>
             void PushOverlay(TArgs &&...args) {
-                _layers.QueuePushOverlayOperation<TLayer>(*this, std::forward<TArgs>(args)...);
+                _layers.QueuePushOverlayOperation<TLayer>(std::forward<TArgs>(args)...);
             }
 
             /** @brief Pops a layer from the layer stack.
@@ -115,9 +113,17 @@ namespace Vulkyrie::Core {
             /** @brief Gets the native window handle.
              * @returns A pointer to the native window.
              */
-            [[nodiscard]] inline void *GetWindowHandle() const {
-                return _platform->GetWindowHandle();
-            }
+            [[nodiscard]] inline void *GetWindowHandle() const { return _platform->GetWindowHandle(); }
+
+            /** @brief Gets the width of the application window.
+             * @returns The width of the window in pixels.
+             */
+            inline u32 GetWindowWidth() const { return _windowProps.Width; }
+
+            /** @brief Gets the height of the application window.
+             * @returns The height of the window in pixels.
+             */
+            inline u32 GetWindowHeight() const { return _windowProps.Height; }
 
         protected:
             /** @brief Called when the application window is created.
