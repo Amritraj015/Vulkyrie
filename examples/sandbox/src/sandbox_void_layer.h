@@ -18,11 +18,7 @@ namespace Sandbox {
 
     class SandboxVoidLayer final : public Vulkyrie::Core::Layer {
         public:
-            SandboxVoidLayer(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight) {};
-
+            SandboxVoidLayer() {}
             ~SandboxVoidLayer() = default;
 
             void OnEvent(Event &event) override {
@@ -42,84 +38,84 @@ namespace Sandbox {
                     if (e.KeyCode == KeyCode::J) {
 
                         if (currentLayer == 0) {
-                            _application.SuspendLayer<SandboxLayerSkybox>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerSkybox>();
 
-                            if (_application.HasLayer<SandboxLayerFrameBuffer>()) {
-                                _application.ResumeLayer<SandboxLayerFrameBuffer>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerFrameBuffer>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerFrameBuffer>();
                             } else {
-                                _application.PushLayer<SandboxLayerFrameBuffer>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerFrameBuffer>();
                             }
                         } else if (currentLayer == 1) {
-                            _application.SuspendLayer<SandboxLayerFrameBuffer>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerFrameBuffer>();
 
-                            if (_application.HasLayer<SandboxLayerDepthAndStencilTesting>()) {
-                                _application.ResumeLayer<SandboxLayerDepthAndStencilTesting>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerDepthAndStencilTesting>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerDepthAndStencilTesting>();
                             } else {
-                                _application.PushLayer<SandboxLayerDepthAndStencilTesting>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerDepthAndStencilTesting>();
                             }
                         } else if (currentLayer == 2) {
-                            _application.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerDepthAndStencilTesting>();
 
-                            if (_application.HasLayer<SandboxLayerAttenuation>()) {
-                                _application.ResumeLayer<SandboxLayerAttenuation>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerAttenuation>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerAttenuation>();
                             } else {
-                                _application.PushLayer<SandboxLayerAttenuation>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerAttenuation>();
                             }
                         } else if (currentLayer == 3) {
-                            _application.SuspendLayer<SandboxLayerAttenuation>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerAttenuation>();
 
-                            if (_application.HasLayer<SandboxLayerPlanet>()) {
-                                _application.ResumeLayer<SandboxLayerPlanet>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerPlanet>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerPlanet>();
                             } else {
-                                _application.PushLayer<SandboxLayerPlanet>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerPlanet>();
                             }
                         } else if (currentLayer == 4) {
-                            _application.SuspendLayer<SandboxLayerPlanet>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerPlanet>();
 
-                            if (_application.HasLayer<SandboxLayerCubes>()) {
-                                _application.ResumeLayer<SandboxLayerCubes>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerCubes>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerCubes>();
                             } else {
-                                _application.PushLayer<SandboxLayerCubes>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerCubes>();
                             }
                         } else if (currentLayer == 5) {
-                            _application.SuspendLayer<SandboxLayerCubes>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerCubes>();
 
-                            if (_application.HasLayer<SandboxLayerPhongLighting>()) {
-                                _application.ResumeLayer<SandboxLayerPhongLighting>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerPhongLighting>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerPhongLighting>();
                             } else {
-                                _application.PushLayer<SandboxLayerPhongLighting>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerPhongLighting>();
                             }
                         } else if (currentLayer == 6) {
-                            _application.SuspendLayer<SandboxLayerPhongLighting>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerPhongLighting>();
 
-                            if (_application.HasLayer<SandboxLayerSpecularMap>()) {
-                                _application.ResumeLayer<SandboxLayerSpecularMap>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerSpecularMap>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerSpecularMap>();
                             } else {
-                                _application.PushLayer<SandboxLayerSpecularMap>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerSpecularMap>();
                             }
                         } else if (currentLayer == 7) {
-                            _application.SuspendLayer<SandboxLayerSpecularMap>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerSpecularMap>();
 
-                            if (_application.HasLayer<SandboxLayerTerrainGeneration>()) {
-                                _application.ResumeLayer<SandboxLayerTerrainGeneration>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerTerrainGeneration>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerTerrainGeneration>();
                             } else {
-                                _application.PushLayer<SandboxLayerTerrainGeneration>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerTerrainGeneration>();
                             }
                         } else if (currentLayer == 8) {
-                            _application.SuspendLayer<SandboxLayerTerrainGeneration>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerTerrainGeneration>();
 
-                            if (_application.HasLayer<SandboxLayerBackPack>()) {
-                                _application.ResumeLayer<SandboxLayerBackPack>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerBackPack>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerBackPack>();
                             } else {
-                                _application.PushLayer<SandboxLayerBackPack>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerBackPack>();
                             }
                         } else if (currentLayer == 9) {
-                            _application.SuspendLayer<SandboxLayerBackPack>();
+                            Application::GetSingleton().SuspendLayer<SandboxLayerBackPack>();
 
-                            if (_application.HasLayer<SandboxLayerSkybox>()) {
-                                _application.ResumeLayer<SandboxLayerSkybox>();
+                            if (Application::GetSingleton().HasLayer<SandboxLayerSkybox>()) {
+                                Application::GetSingleton().ResumeLayer<SandboxLayerSkybox>();
                             } else {
-                                _application.PushLayer<SandboxLayerSkybox>(windowWidth, windowHeight);
+                                Application::GetSingleton().PushLayer<SandboxLayerSkybox>();
                             }
                         }
 
@@ -134,7 +130,6 @@ namespace Sandbox {
 
         private:
             bool showWireFrame = false;
-            f32 windowHeight, windowWidth;
             u8 currentLayer = 1;
     };
 } // namespace Sandbox

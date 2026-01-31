@@ -5,16 +5,18 @@
 
 namespace Vulkyrie::Input {
     [[nodiscard]] bool IsKeyPressed(const Vulkyrie::Events::KeyCode key) {
-        return glfwGetKey(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::Get().GetWindowHandle()), static_cast<u16>(key)) == GLFW_PRESS;
+        return glfwGetKey(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::GetSingleton().GetWindowHandle()), static_cast<u16>(key)) == GLFW_PRESS;
     }
 
     [[nodiscard]] bool IsMouseButtonPressed(const Vulkyrie::Events::MouseButton button) {
-        return glfwGetMouseButton(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::Get().GetWindowHandle()), static_cast<u8>(button)) == GLFW_PRESS;
+        return glfwGetMouseButton(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::GetSingleton().GetWindowHandle()), static_cast<u8>(button)) ==
+               GLFW_PRESS;
     }
 
     [[nodiscard]] std::pair<f32, f32> GetMousePosition() {
         double xpos, ypos;
-        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::Get().GetWindowHandle()), &xpos, &ypos);
+
+        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::GetSingleton().GetWindowHandle()), &xpos, &ypos);
 
         return { (f32)xpos, (f32)ypos };
     }
@@ -22,7 +24,7 @@ namespace Vulkyrie::Input {
     [[nodiscard]] f32 GetMouseX() {
         double xpos;
 
-        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::Get().GetWindowHandle()), &xpos, nullptr);
+        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::GetSingleton().GetWindowHandle()), &xpos, nullptr);
 
         return xpos;
     }
@@ -30,7 +32,7 @@ namespace Vulkyrie::Input {
     [[nodiscard]] f32 GetMouseY() {
         double ypos;
 
-        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::Get().GetWindowHandle()), nullptr, &ypos);
+        glfwGetCursorPos(static_cast<GLFWwindow *>(Vulkyrie::Core::Application::GetSingleton().GetWindowHandle()), nullptr, &ypos);
 
         return ypos;
     }

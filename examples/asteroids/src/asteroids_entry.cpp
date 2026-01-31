@@ -6,7 +6,6 @@ Vulkyrie::Core::Application *CreateApplication() {
     windowProps.Width = 800;
     windowProps.StartX = 100;
     windowProps.StartY = 100;
-    windowProps.VSync = false;
     windowProps.Title = "Asteroids (Powered by The Vulkyrie Game Engine)";
 
     Asteroids::AsteroidsApplication *asteroidsApp = new Asteroids::AsteroidsApplication(windowProps);

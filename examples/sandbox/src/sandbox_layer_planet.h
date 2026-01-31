@@ -11,16 +11,13 @@ namespace Sandbox {
 
     class SandboxLayerPlanet final : public Layer {
         public:
-            SandboxLayerPlanet(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
-                planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
-                asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
+            SandboxLayerPlanet()
+                : camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
+                planetModel = Model::Create("assets/models/planet/planet.obj");
+                asteroidModel = Model::Create("assets/models/asteroid/rock.obj");
 
-                planetShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
-                asteroidShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/asteroid.glsl");
+                planetShader = Shader::Create("assets/shaders/model.glsl");
+                asteroidShader = Shader::Create("assets/shaders/asteroid.glsl");
 
                 if (!planetShader->IsValid() || !asteroidShader->IsValid()) {
                     VERROR("Failed to compile shaders.")
@@ -98,13 +95,8 @@ namespace Sandbox {
                 glEnable(GL_CULL_FACE);
             }
 
-            void OnResumed() override {
-                glEnable(GL_CULL_FACE);
-            }
-
-            void OnSuspended() override {
-                glDisable(GL_CULL_FACE);
-            }
+            void OnResumed() override { glEnable(GL_CULL_FACE); }
+            void OnSuspended() override { glDisable(GL_CULL_FACE); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -115,7 +107,10 @@ namespace Sandbox {
                 planetShader->Use();
 
                 // view/projection transformations
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)windowWidth / (f32)windowHeight, 0.1f, 20000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        5000.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 planetShader->SetMat4Uniform("projection", projection);
                 planetShader->SetMat4Uniform("view", view);
@@ -163,26 +158,14 @@ namespace Sandbox {
 #endif
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Planet");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Planet");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Planet"); }
+            void OnDetached() override { VDEBUG("Layer Detached: Planet"); }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
                     camera.ProcessMouseScroll(e.OffsetY);
-
-                    return true;
-                });
-
-                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
 
                     return true;
                 });
@@ -193,8 +176,6 @@ namespace Sandbox {
             Ref<Model> asteroidModel;
             Ref<Shader> planetShader;
             Ref<Shader> asteroidShader;
-            f32 windowHeight;
-            f32 windowWidth;
             Camera camera;
             u32 amount;
             std::vector<glm::mat4> modelMatrices;

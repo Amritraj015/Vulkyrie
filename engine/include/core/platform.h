@@ -45,7 +45,7 @@ namespace Vulkyrie::Core {
             /** @brief Closes the application window.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
              * */
-            virtual Vulkyrie::Core::StatusCode Close() = 0;
+            virtual Vulkyrie::Core::StatusCode CloseWindow() = 0;
 
             /** @brief Gets the current time in seconds since the window was created.
              * @returns The current time in seconds.

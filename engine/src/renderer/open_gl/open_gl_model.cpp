@@ -189,7 +189,7 @@ namespace Vulkyrie::Renderer {
             }
 
             // Texture not in cache - load it from disk
-            auto texture = Texture2D::Create(Core::GraphicsAPI::OpenGL, path);
+            auto texture = Texture2D::Create(path);
             out.emplace_back(texture);
             // Cache the texture for future reuse
             _loadedTextures.emplace(std::move(key), texture);

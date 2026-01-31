@@ -4,23 +4,16 @@
 
 namespace Vulkyrie::Renderer {
     Renderer::Renderer(const Vulkyrie::Core::Platform &platform)
-        : _platform(platform) {
-    }
+        : _platform(platform) {}
 
-    Vulkyrie::Core::StatusCode Renderer::Initialize([[maybe_unused]] Vulkyrie::Core::GraphicsAPI api) {
-        return Vulkyrie::Core::StatusCode::Successful;
-    }
-
-    Vulkyrie::Core::StatusCode Renderer::Terminate() {
-        return Vulkyrie::Core::StatusCode::Successful;
-    }
+    // Vulkyrie::Core::StatusCode Renderer::Terminate() {
+    //     return Vulkyrie::Core::StatusCode::Successful;
+    // }
 
     // void Renderer::BeginScene(const Scene &scene) {
     // }
 
-    void Renderer::OnWindowResize(u32 width, u32 height) {
-        glViewport(0, 0, width, height);
-    }
+    void Renderer::OnWindowResize(u32 width, u32 height) { glViewport(0, 0, width, height); }
 
     void Renderer::SetPolygonFillMode(PolygonFillMode mode) {
         switch (mode) {
@@ -37,6 +30,5 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-    void Renderer::EndScene() {
-    }
+    void Renderer::EndScene() {}
 } // namespace Vulkyrie::Renderer

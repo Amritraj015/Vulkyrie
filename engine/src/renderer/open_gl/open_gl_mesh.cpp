@@ -72,15 +72,15 @@ namespace Vulkyrie::Renderer {
         // ========================================
         // GPU Buffer Setup
         // ========================================
-        _vertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
+        _vertexArray = VertexArray::Create();
 
         // Create and configure vertex buffer with layout information
-        const Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, _vertices);
+        const Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(_vertices);
         vertexBuffer->SetLayout(Vertex::GetLayout());
         _vertexArray->AddVertexBuffer(vertexBuffer);
 
         // Create and attach index buffer
-        const Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, _indices.data(), _indices.size());
+        const Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(_indices.data(), _indices.size());
         _vertexArray->SetIndexBuffer(indexBuffer);
 
         // Release CPU-side copies now that the data lives on the GPU

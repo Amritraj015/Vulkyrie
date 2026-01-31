@@ -1,10 +1,11 @@
 #include "renderer/frame_buffer.h"
 #include "core/logger.h"
 #include "renderer/open_gl/open_gl_frame_buffer.h"
+#include "renderer/renderer.h"
 
 namespace Vulkyrie::Renderer {
-    Ref<FrameBuffer> FrameBuffer::Create(Vulkyrie::Core::GraphicsAPI api) {
-        switch (api) {
+    Ref<FrameBuffer> FrameBuffer::Create() {
+        switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
             case Vulkyrie::Core::GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLFrameBuffer>();
             case Vulkyrie::Core::GraphicsAPI::Vulkan:

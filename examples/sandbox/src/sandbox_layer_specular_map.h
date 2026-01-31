@@ -11,18 +11,15 @@ namespace Sandbox {
 
     class SandboxLayerSpecularMap : public Layer {
         public:
-            SandboxLayerSpecularMap(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+            SandboxLayerSpecularMap()
+                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // Initial light position.
                 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
                 // load and compile the shader programs.
-                objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.glsl");
-                lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
+                objectShader = Shader::Create("assets/shaders/specular-highlight.glsl");
+                lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
                 // Check if shaders are loaded successfully.
                 if (!objectShader->IsValid() || !lightShader->IsValid()) {
@@ -31,8 +28,8 @@ namespace Sandbox {
                 }
 
                 // load the textures.
-                boxTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container2.png");
-                specularMapTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container2_specular.png");
+                boxTexture = Texture2D::Create("assets/textures/container2.png");
+                specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
 
                 // Check if textures are loaded successfully.
                 if (!boxTexture->IsLoaded() || !specularMapTexture->IsLoaded()) {
@@ -41,10 +38,10 @@ namespace Sandbox {
                 }
 
                 // Create Vertex Array.
-                objectVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -57,7 +54,7 @@ namespace Sandbox {
                 objectVertexArray->AddVertexBuffer(objectVertexBuffer);
 
                 // Create the vertex array for the light source.
-                lightVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                lightVertexArray = VertexArray::Create();
 
                 // Reuse the same vertex buffer for the light source.
                 lightVertexArray->AddVertexBuffer(objectVertexBuffer);
@@ -68,13 +65,8 @@ namespace Sandbox {
 
             ~SandboxLayerSpecularMap() = default;
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Specular Map");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Specular Map");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Specular Map"); }
+            void OnDetached() override { VDEBUG("Layer Detached: Specular Map"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -87,7 +79,10 @@ namespace Sandbox {
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
                 // projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 objectShader->SetMat4Uniform("projection", projection);
 
                 // view matrix.
@@ -148,7 +143,6 @@ namespace Sandbox {
             Ref<Texture2D> specularMapTexture;
 
             Camera camera;
-            f32 windowHeight, windowWidth;
 
             std::vector<f32> vertices = {
                 // positions         // normals          // texture coords

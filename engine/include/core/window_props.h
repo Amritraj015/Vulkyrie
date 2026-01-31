@@ -21,9 +21,6 @@ namespace Vulkyrie::Core {
             /** @brief Title of the window. */
             std::string Title;
 
-            /** @brief Enable or disable VSync. */
-            bool VSync = true;
-
             /** @brief The graphics API to use for rendering. */
             Vulkyrie::Core::GraphicsAPI GraphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
     };

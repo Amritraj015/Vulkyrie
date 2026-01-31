@@ -1,23 +1,19 @@
+#include "core/status_codes.h"
 #include "vlkypch.h"
 #include "core/application.h"
 #include "core/vulkyrie_glfw_platform.h"
-#include "core/graphics_api.h"
 #include "events/event_dispatcher.h"
+#include "renderer/renderer.h"
 
 namespace Vulkyrie::Core {
 
-    Application *Application::_instance = nullptr;
+#define RETURN_ON_FAILURE(expr)                                                                                                                                \
+    do {                                                                                                                                                       \
+        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                                      \
+        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                                           \
+    } while (false)
 
-    [[maybe_unused]] constexpr static std::string_view GetGraphicsApiName(GraphicsAPI api) {
-        switch (api) {
-            case GraphicsAPI::OpenGL:
-                return "OpenGL";
-            case GraphicsAPI::Vulkan:
-                return "Vulkan";
-            default:
-                return "Unknown";
-        }
-    }
+    Application *Application::_instance = nullptr;
 
     Application::Application(const WindowProps &windowProps)
         : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
@@ -35,13 +31,11 @@ namespace Vulkyrie::Core {
 
     StatusCode Application::Run() {
         // Create the application window.
-        StatusCode statusCode = _platform->CreateWindow();
+        RETURN_ON_FAILURE(_platform->CreateWindow());
 
         // If window creation failed, return the status code.
-        if (StatusCode::Successful != statusCode) {
-            return statusCode;
-        }
-
+        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi));
+        
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
@@ -53,7 +47,7 @@ namespace Vulkyrie::Core {
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", GetGraphicsApiName(_windowProps.GraphicsApi))
+        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName())
         VINFO("*****************************************************************************************")
 
         // Mark the application as running.
@@ -83,18 +77,11 @@ namespace Vulkyrie::Core {
             _platform->OnUpdate();
         }
 
-        // TODO: The following causes a segfault in OpenGLVertexArray class's destructor,
-        // TODO: This needs to happen after all other openGL resources have been cleaned up.
-        // Close the application window.
-        statusCode = _platform->Close();
-
         // Return the status code.
-        return statusCode;
+        return StatusCode::Successful;
     }
 
-    void Application::Stop() {
-        _running = false;
-    }
+    void Application::Stop() { _running = false; }
 
     void Application::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
@@ -129,7 +116,5 @@ namespace Vulkyrie::Core {
         return false;
     }
 
-    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) {
-        return false;
-    }
+    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) { return false; }
 } // namespace Vulkyrie::Core

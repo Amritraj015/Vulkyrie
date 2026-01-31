@@ -10,12 +10,11 @@ namespace Vulkyrie::Renderer {
     class Model {
         public:
             /** @brief Creates a model from the specified file path.
-             * @param api The graphics API to use.
              * @param path The file path to the 3D model.
              * @param gamma Whether to apply gamma correction. Default is false.
              * @return A reference to the created Model.
              */
-            static Ref<Model> Create(Vulkyrie::Core::GraphicsAPI api, const std::filesystem::path &path, bool gamma = false);
+            static Ref<Model> Create(const std::filesystem::path &path, bool gamma = false);
 
             /** @brief Gets the number of meshes in the model.
              * @return The count of meshes.

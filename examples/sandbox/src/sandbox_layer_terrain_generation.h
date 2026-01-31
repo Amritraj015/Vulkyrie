@@ -16,11 +16,8 @@ namespace Sandbox {
 
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
-            SandboxLayerTerrainGeneration(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight)
-                , terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
+            SandboxLayerTerrainGeneration()
+                : terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
                     VERROR("Failed to load terrain shaders.");
@@ -35,13 +32,8 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Terrain Generation");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Terrain Generation");
-            }
+            void OnAttached() override { VDEBUG("Layer Attached: Terrain Generation"); }
+            void OnDetached() override { VDEBUG("Layer Detached: Terrain Generation"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
@@ -94,7 +86,10 @@ namespace Sandbox {
                 terrainShader->Use();
 
                 // Projection Matrix.
-                glm::mat4 projection = glm::perspective(glm::radians(45.0f), (f32)windowWidth / (f32)windowHeight, 0.1f, 1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
                 // View Matrix.
@@ -111,23 +106,8 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
-
-                    terrainShader->SetMat4Uniform("projection", projection);
-
-                    return true;
-                });
-            }
-
         private:
             Camera camera;
-            f32 windowWidth;
-            f32 windowHeight;
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
             std::vector<f32> noiseMap;
@@ -207,16 +187,16 @@ namespace Sandbox {
                         }
                     }
 
-                    vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                    vertexArray = VertexArray::Create();
 
-                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                     vertexBuffer->SetLayout({
                         { ShaderDataType::Float3, "position" },
                         { ShaderDataType::Float3, "color" },
                     });
                     vertexArray->AddVertexBuffer(vertexBuffer);
 
-                    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
+                    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
                     vertexArray->SetIndexBuffer(indexBuffer);
                 } else {
                     vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));

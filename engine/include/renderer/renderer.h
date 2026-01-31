@@ -13,12 +13,27 @@ namespace Vulkyrie::Renderer {
             u32 TrianglesRendered = 0;
     };
 
+    /** @brief Initializes the renderer with the specified graphics API.
+     * @param api The graphics API to initialize the renderer with.
+     * @returns StatusCode indicating success or failure.
+     */
+    Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
+
+    /** @brief Gets the current graphics API being used by the renderer.
+     * @returns The current graphics API.
+     */
+    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI();
+
+    /** @brief Gets the name of the current graphics API as a string view.
+     * @returns A string view representing the name of the current graphics API.
+     */
+    std::string_view GetCurrentGraphicsAPIName();
+
+    // void SetViewport(u32 x, u32 y, u32 width, u32 height);
+
     class Renderer {
         public:
             Renderer(const Vulkyrie::Core::Platform &platform);
-
-            Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
-            Vulkyrie::Core::StatusCode Terminate();
 
             void BeginScene(const Scene &scene);
             void EndScene();

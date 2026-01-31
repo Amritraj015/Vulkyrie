@@ -10,14 +10,11 @@ namespace Sandbox {
 
     class SandboxLayerBackPack final : public Layer {
         public:
-            SandboxLayerBackPack(Application &application, f32 windowWidth, f32 windowHeight)
-                : Layer(application)
-                , camera(glm::vec3(0.0f, 0.0f, 8.0f))
-                , windowWidth(windowWidth)
-                , windowHeight(windowHeight) {
+            SandboxLayerBackPack()
+                : camera(glm::vec3(0.0f, 0.0f, 8.0f)) {
 
-                backPackModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/backpack/backpack.obj");
-                graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
+                backPackModel = Model::Create("assets/models/backpack/backpack.obj");
+                graphicsShader = Shader::Create("assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
                     VERROR("Failed to compile shaders.")
@@ -45,7 +42,10 @@ namespace Sandbox {
                 graphicsShader->Use();
 
                 // view/projection transformations
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                        0.1f,
+                                                        1000.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 graphicsShader->SetMat4Uniform("projection", projection);
                 graphicsShader->SetMat4Uniform("view", view);
@@ -67,19 +67,11 @@ namespace Sandbox {
 
                     return true;
                 });
-
-                dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](const Vulkyrie::Events::WindowResizedEvent &e) {
-                    glm::mat4 projection = glm::mat4(1.0f);
-                    projection = glm::perspective(glm::radians(45.0f), (f32)e.Width / (f32)e.Height, 0.1f, 100.0f);
-
-                    return true;
-                });
             };
 
         private:
             Ref<Model> backPackModel;
             Ref<Shader> graphicsShader;
             Camera camera;
-            f32 windowHeight, windowWidth;
     };
 } // namespace Sandbox
