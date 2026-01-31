@@ -17,7 +17,8 @@ namespace Sandbox {
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerTerrainGeneration()
-                : terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
+                : camera(Camera::Create())
+                , terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
                     VERROR("Failed to load terrain shaders.");

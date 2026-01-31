@@ -11,7 +11,7 @@ namespace Sandbox {
     class SandboxLayerBackPack final : public Layer {
         public:
             SandboxLayerBackPack()
-                : camera(glm::vec3(0.0f, 0.0f, 8.0f)) {
+                : camera(Camera::Create()) {
 
                 backPackModel = Model::Create("assets/models/backpack/backpack.obj");
                 graphicsShader = Shader::Create("assets/shaders/model.glsl");

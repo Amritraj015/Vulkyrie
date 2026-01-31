@@ -15,10 +15,10 @@ namespace Sandbox {
     class SandboxLayerDepthAndStencilTesting final : public Layer {
         public:
             SandboxLayerDepthAndStencilTesting()
-                : camera(glm::vec3(0.0f, 0.0f, 5.0f))
+                : camera(Camera::Create())
                 , showDepthValues(false) {
 
-                camera.SetMovementSpeed(5.0f, 20.0f);
+                camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
                 // Load cube and plane textures.
                 cubeTexture = Texture2D::Create("assets/textures/marble.jpg");
@@ -139,11 +139,21 @@ namespace Sandbox {
                 transparentTextureVertexArray->Unbind();
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
-            void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Depth and Stencil Testing");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Depth and Stencil Testing");
+            }
 
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::U) {

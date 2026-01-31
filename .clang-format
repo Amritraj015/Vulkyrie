@@ -1,6 +1,6 @@
 # BasedOnStyle: Google
 AlignTrailingComments: true
-AllowShortFunctionsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 BreakBeforeBinaryOperators: false

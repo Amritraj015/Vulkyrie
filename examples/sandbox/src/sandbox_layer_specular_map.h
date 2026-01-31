@@ -12,7 +12,7 @@ namespace Sandbox {
     class SandboxLayerSpecularMap : public Layer {
         public:
             SandboxLayerSpecularMap()
-                : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
+                : camera(Camera::Create()) {
 
                 // Initial light position.
                 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);

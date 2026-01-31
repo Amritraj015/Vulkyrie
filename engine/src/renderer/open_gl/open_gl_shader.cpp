@@ -97,11 +97,9 @@ namespace Vulkyrie::Renderer {
 
         const i32 location = glGetUniformLocation(_shaderProgramID, name.c_str());
 
-#if defined(VULKYRIE_DEBUG)
         if (location == -1) {
             VERROR("Uniform '{}' does not exist in shader program: {}.", name, _shaderProgramID);
         }
-#endif
 
         _uniformLocationCache[name] = location;
 
