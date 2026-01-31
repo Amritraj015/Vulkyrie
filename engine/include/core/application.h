@@ -6,7 +6,6 @@
 #include "events/application/window_closed_event.h"
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
-#include "renderer/renderer.h"
 
 namespace Vulkyrie::Core {
     class Application {
@@ -150,9 +149,6 @@ namespace Vulkyrie::Core {
 
             /** @brief The layers in the stack. */
             LayerStack _layers;
-
-            /** @brief The renderer used for rendering graphics. */
-            Ref<Vulkyrie::Renderer::Renderer> _renderer;
 
             /** @brief Raises an event to be handled by the application or other systems.
              * @param event The event to raise.

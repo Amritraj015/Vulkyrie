@@ -18,8 +18,8 @@ namespace Sandbox {
                 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
                 // load and compile the shader programs.
-                objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/specular-highlight.glsl");
-                lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
+                objectShader = Shader::Create("assets/shaders/specular-highlight.glsl");
+                lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
                 // Check if shaders are loaded successfully.
                 if (!objectShader->IsValid() || !lightShader->IsValid()) {
@@ -28,8 +28,8 @@ namespace Sandbox {
                 }
 
                 // load the textures.
-                boxTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container2.png");
-                specularMapTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container2_specular.png");
+                boxTexture = Texture2D::Create("assets/textures/container2.png");
+                specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
 
                 // Check if textures are loaded successfully.
                 if (!boxTexture->IsLoaded() || !specularMapTexture->IsLoaded()) {
@@ -38,10 +38,10 @@ namespace Sandbox {
                 }
 
                 // Create Vertex Array.
-                objectVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -54,7 +54,7 @@ namespace Sandbox {
                 objectVertexArray->AddVertexBuffer(objectVertexBuffer);
 
                 // Create the vertex array for the light source.
-                lightVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                lightVertexArray = VertexArray::Create();
 
                 // Reuse the same vertex buffer for the light source.
                 lightVertexArray->AddVertexBuffer(objectVertexBuffer);

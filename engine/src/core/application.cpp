@@ -1,9 +1,17 @@
+#include "core/status_codes.h"
 #include "vlkypch.h"
 #include "core/application.h"
 #include "core/vulkyrie_glfw_platform.h"
 #include "events/event_dispatcher.h"
+#include "renderer/renderer.h"
 
 namespace Vulkyrie::Core {
+
+#define RETURN_ON_FAILURE(expr)                                                                                                                                \
+    do {                                                                                                                                                       \
+        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                                      \
+        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                                           \
+    } while (false)
 
     Application *Application::_instance = nullptr;
 
@@ -23,15 +31,11 @@ namespace Vulkyrie::Core {
 
     StatusCode Application::Run() {
         // Create the application window.
-        StatusCode statusCode = _platform->CreateWindow();
+        RETURN_ON_FAILURE(_platform->CreateWindow());
 
         // If window creation failed, return the status code.
-        if (StatusCode::Successful != statusCode) {
-            return statusCode;
-        }
-
-        Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi);
-
+        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi));
+        
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
@@ -73,13 +77,8 @@ namespace Vulkyrie::Core {
             _platform->OnUpdate();
         }
 
-        // TODO: The following causes a segfault in OpenGLVertexArray class's destructor,
-        // TODO: This needs to happen after all other openGL resources have been cleaned up.
-        // Close the application window.
-        statusCode = _platform->Close();
-
         // Return the status code.
-        return statusCode;
+        return StatusCode::Successful;
     }
 
     void Application::Stop() { _running = false; }

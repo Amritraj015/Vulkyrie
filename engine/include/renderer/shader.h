@@ -74,12 +74,11 @@ namespace Vulkyrie::Renderer {
              */
             virtual void SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const = 0;
 
-            /** @brief Creates a shader program based on the specified graphics API and shader source path.
-             * @param api The graphics API to use.
+            /** @brief Creates a shader program based from the provided source path.
              * @param shaderSourcePath The file path to the shader source code.
              * @returns A reference to the created Shader.
              */
-            static Ref<Shader> Create(GraphicsAPI api, const std::filesystem::path &shaderSourcePath);
+            static Ref<Shader> Create(const std::filesystem::path &shaderSourcePath);
 
         protected:
             /** @brief The ID of the created shader program. */

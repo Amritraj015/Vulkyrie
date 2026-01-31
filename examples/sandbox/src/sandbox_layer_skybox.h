@@ -12,8 +12,8 @@ namespace Sandbox {
         public:
             SandboxLayerSkybox()
                 : camera(glm::vec3(0.0f, 0.0f, 5.0f))
-                , texture(Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg"))
-                , terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl")) {
+                , texture(Texture2D::Create("assets/textures/wall.jpg"))
+                , terrainShader(Shader::Create("assets/shaders/triangle.glsl")) {
                 if (!texture->IsLoaded()) {
                     VERROR("SandboxLayerSkybox: Failed to load texture.");
                     return;
@@ -24,21 +24,20 @@ namespace Sandbox {
                     return;
                 }
 
-                vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                vertexArray = VertexArray::Create();
 
-                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                     { ShaderDataType::Float2, "aTexCoord" },
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
-                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
+                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
                 vertexArray->SetIndexBuffer(indexBuffer);
 
                 // Load sky-box cubemap textures.
-                skyboxTexture = TextureCubeMap::Create(GraphicsAPI::OpenGL,
-                                                       {
+                skyboxTexture = TextureCubeMap::Create({
                                                            "assets/cubemaps/skybox/right.jpg",
                                                            "assets/cubemaps/skybox/left.jpg",
                                                            "assets/cubemaps/skybox/top.jpg",
@@ -52,15 +51,15 @@ namespace Sandbox {
                     return;
                 }
 
-                skyboxVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, skyboxVertices.data(), skyboxVertices.size() * sizeof(f32));
+                skyboxVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices.data(), skyboxVertices.size() * sizeof(f32));
                 skyboxVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                 });
                 skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
 
                 // Load skybox shaders.
-                skyboxShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/skybox.glsl");
+                skyboxShader = Shader::Create("assets/shaders/skybox.glsl");
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);

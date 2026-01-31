@@ -17,8 +17,8 @@ namespace Vulkyrie::Renderer {
             // virtual void Unbind() const = 0;
             // virtual void GetFrameBufferObjectID() const = 0;
 
-            // static Ref<FrameBuffer> Create(Vulkyrie::Core::GraphicsAPI api, const FrameBufferSpecification &specification);
-            static Ref<FrameBuffer> Create(Vulkyrie::Core::GraphicsAPI api);
+            // static Ref<FrameBuffer> Create(const FrameBufferSpecification &specification);
+            static Ref<FrameBuffer> Create();
 
         protected:
             FrameBufferSpecification _specification;

@@ -56,25 +56,25 @@ namespace Sandbox {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
                 // Load cube and plane textures.
-                cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/container.jpg");
-                planeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/metal.png");
+                cubeTexture = Texture2D::Create("assets/textures/container.jpg");
+                planeTexture = Texture2D::Create("assets/textures/metal.png");
 
                 if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded()) {
                     VERROR("Failed to load one or more textures!");
                 }
 
                 // Load and compile shader program.
-                textureShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/texture_2D.glsl");
-                depthTestShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/depth_test.glsl");
-                quadShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/frame_buffer.glsl");
+                textureShader = Shader::Create("assets/shaders/texture_2D.glsl");
+                depthTestShader = Shader::Create("assets/shaders/depth_test.glsl");
+                quadShader = Shader::Create("assets/shaders/frame_buffer.glsl");
 
                 if (!textureShader->IsValid() || !depthTestShader->IsValid() || !quadShader->IsValid()) {
                     VERROR("Failed to create shader program!");
                 }
 
                 // Create cube vertex array.
-                cubeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, cubeVertices.data(), cubeVertices.size() * sizeof(f32));
+                cubeVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(cubeVertices.data(), cubeVertices.size() * sizeof(f32));
                 cubeVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -82,8 +82,8 @@ namespace Sandbox {
                 cubeVertexArray->AddVertexBuffer(cubeVertexBuffer);
 
                 // Create plane vertex array.
-                planeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> planeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, planeVertices.data(), planeVertices.size() * sizeof(f32));
+                planeVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> planeVertexBuffer = VertexBuffer::Create(planeVertices.data(), planeVertices.size() * sizeof(f32));
                 planeVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -91,8 +91,8 @@ namespace Sandbox {
                 planeVertexArray->AddVertexBuffer(planeVertexBuffer);
 
                 // Create quad vertex array.
-                quadVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> quadVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, quadVertices.data(), quadVertices.size() * sizeof(f32));
+                quadVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> quadVertexBuffer = VertexBuffer::Create(quadVertices.data(), quadVertices.size() * sizeof(f32));
                 quadVertexBuffer->SetLayout({
                     { ShaderDataType::Float2, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -177,7 +177,6 @@ namespace Sandbox {
             }
 
             void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
-
             void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
 
             void OnEvent(Event &event) override {

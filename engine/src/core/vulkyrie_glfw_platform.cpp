@@ -286,12 +286,12 @@ namespace Vulkyrie::Core {
         }
     }
 
-    constexpr u8 shiftKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
-    constexpr u8 controlKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
-    constexpr u8 altKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Alt);
-    constexpr u8 superKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Super);
-    constexpr u8 capsLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::CapsLock);
-    constexpr u8 numLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
+    static constexpr u8 shiftKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
+    static constexpr u8 controlKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
+    static constexpr u8 altKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Alt);
+    static constexpr u8 superKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Super);
+    static constexpr u8 capsLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::CapsLock);
+    static constexpr u8 numLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
 
     /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
      * @param glfwMods The GLFW modifier flags.
@@ -494,29 +494,6 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
-        // Create the graphics context.
-        _graphicsContext = Vulkyrie::Core::GraphicsContext::Create(_windowProps.GraphicsApi, _window);
-
-        // Check if graphics context creation failed.
-        if (nullptr == _graphicsContext) {
-            VFATAL("Failed to create graphics context for the specified graphics API.");
-
-            // Destroy the window.
-            glfwDestroyWindow(_window);
-            glfwTerminate();
-
-            return StatusCode::FailedToCreateGraphicsContext;
-        }
-
-        // Initialize the graphics context.
-        _graphicsContext->Initialize();
-
-        // Enable or disable V-Sync.
-        SetVSync(_windowProps.VSync);
-
-        // set the viewport
-        glViewport(0, 0, _windowProps.Width, _windowProps.Height);
-
         // TODO: remove this.
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -524,7 +501,17 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    StatusCode VulkyrieGLFWPlatform::Close() {
+    void VulkyrieGLFWPlatform::SetVSync(bool enabled) { glfwSwapInterval(static_cast<i32>(enabled)); }
+
+    void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {
+        if (enable) {
+            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        } else {
+            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+
+    StatusCode VulkyrieGLFWPlatform::CloseWindow() {
         // glfw: terminate, clearing all previously allocated GLFW resources.
         // glfwDestroyWindow(_window);
         // glfwTerminate();

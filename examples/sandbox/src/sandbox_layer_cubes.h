@@ -15,7 +15,7 @@ namespace Sandbox {
                 : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
 
                 // Load and compile shader program.
-                graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/triangle.glsl");
+                graphicsShader = Shader::Create("assets/shaders/triangle.glsl");
 
                 // Check if shader program creation failed.
                 if (!graphicsShader->IsValid()) {
@@ -25,8 +25,8 @@ namespace Sandbox {
                     return;
                 }
 
-                vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                vertexArray = VertexArray::Create();
+                vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                     { ShaderDataType::Float2, "aTexCoord" },
@@ -35,8 +35,8 @@ namespace Sandbox {
 
                 // -----------------------------------------------
                 // Textures.
-                texture1 = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/wall.jpg");
-                texture2 = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/awesomeface.png");
+                texture1 = Texture2D::Create("assets/textures/wall.jpg");
+                texture2 = Texture2D::Create("assets/textures/awesomeface.png");
 
                 if (!texture1->IsLoaded() || !texture2->IsLoaded()) {
                     VERROR("Failed to load one or more textures!");

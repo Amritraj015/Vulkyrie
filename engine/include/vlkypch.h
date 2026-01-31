@@ -70,18 +70,22 @@ typedef double f64;
 
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define FORCE_INLINE __attribute__((always_inline)) inline
+#elif defined(_MSC_VER)
+#define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE inline
+#endif
+
 /** @brief A scoped pointer type alias using std::unique_ptr.
  * @tparam T The type of the object being pointed to.
  */
 template <typename T> using Scope = std::unique_ptr<T>;
-template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&...args) {
-    return std::make_unique<T>(std::forward<Args>(args)...);
-}
+template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&...args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
 /** @brief A reference counted pointer type alias using std::shared_ptr.
  * @tparam T The type of the object being pointed to.
  */
 template <typename T> using Ref = std::shared_ptr<T>;
-template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) {
-    return std::make_shared<T>(std::forward<Args>(args)...);
-}
+template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) { return std::make_shared<T>(std::forward<Args>(args)...); }

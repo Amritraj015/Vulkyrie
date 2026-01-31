@@ -35,27 +35,24 @@ namespace Vulkyrie::Renderer {
              */
             virtual void SetData(const void *data, size_t size) = 0;
 
-            /** @brief Creates a vertex buffer based on the specified graphics API and size.
-             * @param api The graphics API to use.
+            /** @brief Creates a vertex buffer based on the specified size.
              * @param size Size of the vertex buffer in bytes.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, size_t size);
+            static Ref<VertexBuffer> Create(size_t size);
 
-            /** @brief Creates a vertex buffer based on the specified graphics API, vertices, and size.
-             * @param api The graphics API to use.
+            /** @brief Creates a vertex buffer based on the specified vertices and size.
              * @param vertices Pointer to the vertex data.
              * @param size Size of the vertex data in bytes.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, float *vertices, size_t size);
+            static Ref<VertexBuffer> Create(float *vertices, size_t size);
 
-            /** @brief Creates a vertex buffer based on the specified graphics API and a vector of vertices.
-             * @param api The graphics API to use.
+            /** @brief Creates a vertex buffer based on a vector of vertices.
              * @param vertices The vector of vertices.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(Vulkyrie::Core::GraphicsAPI api, const std::vector<Vertex> &vertices);
+            static Ref<VertexBuffer> Create(const std::vector<Vertex> &vertices);
 
         private:
             BufferLayout _layout;

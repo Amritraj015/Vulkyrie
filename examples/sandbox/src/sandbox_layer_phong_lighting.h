@@ -14,8 +14,8 @@ namespace Sandbox {
             SandboxLayerPhongLighting()
                 : camera(glm::vec3(0.0f, 0.0f, 5.0f)) {
                 // Load and compile shader programs.
-                objectShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/reflective-object.glsl");
-                lightShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/light-source.glsl");
+                objectShader = Shader::Create("assets/shaders/reflective-object.glsl");
+                lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
                 // Check if shaders are valid.
                 if (!objectShader->IsValid() || !lightShader->IsValid()) {
@@ -24,10 +24,10 @@ namespace Sandbox {
                 }
 
                 // Create Vertex Array.
-                objectVertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
+                objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(Vulkyrie::Core::GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -39,7 +39,7 @@ namespace Sandbox {
                 objectVertexArray->AddVertexBuffer(objectVertexBuffer);
 
                 // Create the vertex array for the light source.
-                lightVertexArray = VertexArray::Create(Vulkyrie::Core::GraphicsAPI::OpenGL);
+                lightVertexArray = VertexArray::Create();
 
                 // Reuse the same vertex buffer for the light source.
                 lightVertexArray->AddVertexBuffer(objectVertexBuffer);
@@ -51,7 +51,6 @@ namespace Sandbox {
             ~SandboxLayerPhongLighting() = default;
 
             void OnAttached() override { VDEBUG("Layer Attached: Phong Lighting"); }
-
             void OnDetached() override { VDEBUG("Layer Detached: Phong Lighting"); }
 
             void OnUpdate(const Timestep &deltaTime) override {

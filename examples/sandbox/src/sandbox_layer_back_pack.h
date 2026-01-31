@@ -13,8 +13,8 @@ namespace Sandbox {
             SandboxLayerBackPack()
                 : camera(glm::vec3(0.0f, 0.0f, 8.0f)) {
 
-                backPackModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/backpack/backpack.obj");
-                graphicsShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
+                backPackModel = Model::Create("assets/models/backpack/backpack.obj");
+                graphicsShader = Shader::Create("assets/shaders/model.glsl");
 
                 if (!graphicsShader->IsValid()) {
                     VERROR("Failed to compile shaders.")

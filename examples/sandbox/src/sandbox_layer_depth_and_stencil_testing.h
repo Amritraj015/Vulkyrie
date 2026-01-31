@@ -21,25 +21,25 @@ namespace Sandbox {
                 camera.SetMovementSpeed(5.0f, 20.0f);
 
                 // Load cube and plane textures.
-                cubeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/marble.jpg");
-                planeTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/metal.png");
-                transparentTexture = Texture2D::Create(GraphicsAPI::OpenGL, "assets/textures/transparent_window.png");
+                cubeTexture = Texture2D::Create("assets/textures/marble.jpg");
+                planeTexture = Texture2D::Create("assets/textures/metal.png");
+                transparentTexture = Texture2D::Create("assets/textures/transparent_window.png");
 
                 if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded() || !transparentTexture->IsLoaded()) {
                     VERROR("Failed to load one or more textures!");
                 }
 
                 // Load and compile shader program.
-                textureShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/texture_2D.glsl");
-                depthTestShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/depth_test.glsl");
+                textureShader = Shader::Create("assets/shaders/texture_2D.glsl");
+                depthTestShader = Shader::Create("assets/shaders/depth_test.glsl");
 
                 if (!textureShader->IsValid() || !depthTestShader->IsValid()) {
                     VERROR("Failed to create shader program!");
                 }
 
                 // Create cube vertex array.
-                cubeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, cubeVertices.data(), cubeVertices.size() * sizeof(f32));
+                cubeVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(cubeVertices.data(), cubeVertices.size() * sizeof(f32));
                 cubeVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -47,8 +47,8 @@ namespace Sandbox {
                 cubeVertexArray->AddVertexBuffer(cubeVertexBuffer);
 
                 // Create plane vertex array.
-                planeVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
-                Ref<VertexBuffer> planeVertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, planeVertices.data(), planeVertices.size() * sizeof(f32));
+                planeVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> planeVertexBuffer = VertexBuffer::Create(planeVertices.data(), planeVertices.size() * sizeof(f32));
                 planeVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -56,9 +56,9 @@ namespace Sandbox {
                 planeVertexArray->AddVertexBuffer(planeVertexBuffer);
 
                 // Create vegetation vertex array.
-                transparentTextureVertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                transparentTextureVertexArray = VertexArray::Create();
                 Ref<VertexBuffer> vegetationVertexBuffer =
-                    VertexBuffer::Create(GraphicsAPI::OpenGL, transparentTextureVertices.data(), transparentTextureVertices.size() * sizeof(glm::vec3));
+                    VertexBuffer::Create(transparentTextureVertices.data(), transparentTextureVertices.size() * sizeof(glm::vec3));
                 vegetationVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
@@ -140,7 +140,6 @@ namespace Sandbox {
             }
 
             void OnAttached() override { VDEBUG("Layer Attached: Depth and Stencil Testing"); }
-
             void OnDetached() override { VDEBUG("Layer Detached: Depth and Stencil Testing"); }
 
             void OnEvent(Event &event) override {

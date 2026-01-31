@@ -17,7 +17,7 @@ namespace Sandbox {
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerTerrainGeneration()
-                : terrainShader(Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/terrain.glsl")) {
+                : terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
 
                 if (!terrainShader->IsValid()) {
                     VERROR("Failed to load terrain shaders.");
@@ -33,7 +33,6 @@ namespace Sandbox {
             }
 
             void OnAttached() override { VDEBUG("Layer Attached: Terrain Generation"); }
-
             void OnDetached() override { VDEBUG("Layer Detached: Terrain Generation"); }
 
             void OnUpdate(const Timestep &deltaTime) override {
@@ -188,16 +187,16 @@ namespace Sandbox {
                         }
                     }
 
-                    vertexArray = VertexArray::Create(GraphicsAPI::OpenGL);
+                    vertexArray = VertexArray::Create();
 
-                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(GraphicsAPI::OpenGL, vertices.data(), vertices.size() * sizeof(f32));
+                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                     vertexBuffer->SetLayout({
                         { ShaderDataType::Float3, "position" },
                         { ShaderDataType::Float3, "color" },
                     });
                     vertexArray->AddVertexBuffer(vertexBuffer);
 
-                    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(GraphicsAPI::OpenGL, indices.data(), indices.size());
+                    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
                     vertexArray->SetIndexBuffer(indexBuffer);
                 } else {
                     vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));

@@ -13,11 +13,11 @@ namespace Sandbox {
         public:
             SandboxLayerPlanet()
                 : camera(glm::vec3(0.0f, 50.0f, 1000.0f)) {
-                planetModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/planet/planet.obj");
-                asteroidModel = Model::Create(GraphicsAPI::OpenGL, "assets/models/asteroid/rock.obj");
+                planetModel = Model::Create("assets/models/planet/planet.obj");
+                asteroidModel = Model::Create("assets/models/asteroid/rock.obj");
 
-                planetShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/model.glsl");
-                asteroidShader = Shader::Create(GraphicsAPI::OpenGL, "assets/shaders/asteroid.glsl");
+                planetShader = Shader::Create("assets/shaders/model.glsl");
+                asteroidShader = Shader::Create("assets/shaders/asteroid.glsl");
 
                 if (!planetShader->IsValid() || !asteroidShader->IsValid()) {
                     VERROR("Failed to compile shaders.")
@@ -96,7 +96,6 @@ namespace Sandbox {
             }
 
             void OnResumed() override { glEnable(GL_CULL_FACE); }
-
             void OnSuspended() override { glDisable(GL_CULL_FACE); }
 
             void OnUpdate(const Timestep &deltaTime) override {
@@ -111,7 +110,7 @@ namespace Sandbox {
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
                                                         (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
                                                         0.1f,
-                                                        1000.0f);
+                                                        5000.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 planetShader->SetMat4Uniform("projection", projection);
                 planetShader->SetMat4Uniform("view", view);
@@ -160,7 +159,6 @@ namespace Sandbox {
             }
 
             void OnAttached() override { VDEBUG("Layer Attached: Planet"); }
-
             void OnDetached() override { VDEBUG("Layer Detached: Planet"); }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {

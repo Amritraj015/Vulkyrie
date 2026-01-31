@@ -36,10 +36,9 @@ namespace Vulkyrie::Renderer {
              */
             virtual const Ref<IndexBuffer> &GetIndexBuffer() const = 0;
 
-            /** @brief Creates a vertex array for the specified graphics API.
-             * @param api The graphics API to use.
+            /** @brief Creates a vertex array.
              * @returns A reference to the created VertexArray.
              */
-            static Ref<VertexArray> Create(Vulkyrie::Core::GraphicsAPI api);
+            static Ref<VertexArray> Create();
     };
 } // namespace Vulkyrie::Renderer

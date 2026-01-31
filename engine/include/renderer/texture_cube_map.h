@@ -9,11 +9,10 @@ namespace Vulkyrie::Renderer {
             virtual ~TextureCubeMap() noexcept = default;
 
             /** @brief Creates a cube map texture from the specified file paths.
-             * @param api The graphics API to use.
              * @param faces The file paths for the cube map faces.
              * @return A reference to the created TextureCubeMap.
              */
-            static Ref<TextureCubeMap> Create(Vulkyrie::Core::GraphicsAPI api, std::array<std::filesystem::path, 6> faces);
+            static Ref<TextureCubeMap> Create(std::array<std::filesystem::path, 6> faces);
 
             /** @brief Gets the renderer-specific texture ID.
              * @returns The texture ID.
