@@ -100,9 +100,7 @@ namespace Vulkyrie::Renderer {
              * @param movementSpeed The speed to set for all movement modes.
              */
             void SetConstantMovementSpeed(f32 movementSpeed) {
-                _settings.SlowMovementSpeed = movementSpeed;
-                _settings.RegularMovementSpeed = movementSpeed;
-                _settings.FastMovementSpeed = movementSpeed;
+                _settings.SlowMovementSpeed = _settings.RegularMovementSpeed = _settings.FastMovementSpeed = movementSpeed;
             }
 
             /** @brief Processes input received from any keyboard-like input system to move the camera's position.
@@ -151,10 +149,11 @@ namespace Vulkyrie::Renderer {
             }
 
             /** @brief Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis.
-             * @param yOffset The offset value of the scroll in the y direction. Positive values indicate scrolling up, negative values indicate scrolling down.
+             * @param scrollOffset The offset value of the scroll in the y direction. Positive values indicate scrolling up, negative values indicate scrolling
+             * down.
              */
-            inline void ProcessMouseScroll(f32 yOffset) {
-                _settings.Zoom -= yOffset;
+            inline void ProcessMouseScroll(f32 scrollOffset) {
+                _settings.Zoom -= scrollOffset;
 
                 if (_settings.Zoom < 1.0f) _settings.Zoom = 1.0f;
                 if (_settings.Zoom > 45.0f) _settings.Zoom = 45.0f;
@@ -256,7 +255,9 @@ namespace Vulkyrie::Renderer {
                 _up = glm::normalize(glm::cross(_right, _settings.Front));
             }
 
-            // Default settings factory
+            /** @brief Creates a CameraSettings object with default values.
+             * @return A CameraSettings object initialized with default values.
+             */
             static CameraSettings MakeDefaultCameraSettings() {
                 return CameraSettings{}; // uses member defaults
             }

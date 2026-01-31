@@ -1,8 +1,8 @@
-[] Implement Framebuffer Support
-[] Optimize Rendering Performance
-[] Start work on the Physics Engine
-[] Expand Asset Library
-[] Create In-Game Scripting System
-[] Start work on the Audio System
-[] Add Multiplayer Functionality
-[] Build Editor
+- [] Implement Framebuffer Support
+- [] Optimize Rendering Performance
+- [] Start work on the Physics Engine
+- [] Expand Asset Library
+- [] Create In-Game Scripting System
+- [] Start work on the Audio System
+- [] Add Multiplayer Functionality
+- [] Build Editor

@@ -9,8 +9,8 @@ namespace Vulkyrie::Core {
 
 #define RETURN_ON_FAILURE(expr)                                                                                                                                \
     do {                                                                                                                                                       \
-        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                                      \
-        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                                           \
+        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                \
+        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                           \
     } while (false)
 
     Application *Application::_instance = nullptr;
@@ -18,8 +18,7 @@ namespace Vulkyrie::Core {
     Application::Application(const WindowProps &windowProps)
         : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
         , _windowProps(windowProps)
-        , _running(false)
-        , _lastFrameTime(0.0f) {
+        , _running(false) {
         _instance = this;
     }
 
@@ -53,6 +52,7 @@ namespace Vulkyrie::Core {
         // Mark the application as running.
         // This is placed here to prevent the user from altering the layer stack before the application starts.
         _running = true;
+        f32 lastFrameTime = 0.0f;
 
         // Raise the window created event.
         Vulkyrie::Events::WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
@@ -65,8 +65,8 @@ namespace Vulkyrie::Core {
 
             // Calculate the time since the last frame.
             const f32 time = _platform->GetTime();
-            Timestep deltaTime(std::min(time - _lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
-            _lastFrameTime = time;
+            Timestep deltaTime(std::min(time - lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
+            lastFrameTime = time;
 
             // Update each layer.
             for (const auto &layer : _layers) {
@@ -102,10 +102,8 @@ namespace Vulkyrie::Core {
     }
 
     bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {
-        const auto resizeEvent = static_cast<Vulkyrie::Events::WindowResizedEvent>(event);
-
-        _windowProps.Height = resizeEvent.Height;
-        _windowProps.Width = resizeEvent.Width;
+        _windowProps.Height = event.Height;
+        _windowProps.Width = event.Width;
 
         return false;
     }

@@ -144,9 +144,6 @@ namespace Vulkyrie::Core {
             /** @brief Indicates whether the application is running. */
             bool _running;
 
-            /** @brief The time of the last frame, used for timestep calculations. */
-            f32 _lastFrameTime;
-
             /** @brief The layers in the stack. */
             LayerStack _layers;
 
