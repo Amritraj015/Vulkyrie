@@ -30,9 +30,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     // Clean up the application instance.
     delete application;
 
-    // Terminate the logger sub-system.
-    Vulkyrie::Core::Logger::TerminateLogger();
-
     // Terminate the logger sub-system and return its status code.
     return std::to_underlying(statusCode);
 }

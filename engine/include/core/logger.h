@@ -23,8 +23,6 @@ namespace Vulkyrie::Core {
                 _logSink->LogMessage(logLevel, fmt, std::make_format_args(args...));
             }
 
-            static void TerminateLogger();
-
         private:
             static Scope<LogSink> _logSink;
     };

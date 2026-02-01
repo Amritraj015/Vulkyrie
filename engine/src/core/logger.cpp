@@ -8,22 +8,17 @@ namespace Vulkyrie::Core {
 
     StatusCode Logger::InitializeLogger(LoggerType loggerType) {
         switch (loggerType) {
-        case LoggerType::Console:
-            _logSink = CreateScope<ConsoleLogSink>();
-            break;
-        case LoggerType::File:
-            _logSink = CreateScope<FileLogSink>();
-            break;
-        default:
-            return StatusCode::UnsupportedLoggerType;
+            case LoggerType::Console:
+                _logSink = CreateScope<ConsoleLogSink>();
+                break;
+            case LoggerType::File:
+                _logSink = CreateScope<FileLogSink>();
+                break;
+            default:
+                return StatusCode::UnsupportedLoggerType;
         }
 
         return _logSink->Initialize();
     }
 
-    void Logger::TerminateLogger() {
-        if (_logSink != nullptr) {
-            _logSink->Dispose();
-        }
-    }
 } // namespace Vulkyrie::Core

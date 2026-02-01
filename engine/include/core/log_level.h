@@ -1,6 +1,7 @@
 #pragma once
 
-#define VULKYRIE_FATAL_LEVEL_LOG 0
+// The following macro expansion values must align with the LogLevel enum values.
+#define VULKYRIE_FATAL_LEVEL_LOG 0 // This is not required but added for completeness.
 #define VULKYRIE_ERROR_LEVEL_LOG 1
 #define VULKYRIE_WARN_LEVEL_LOG 2
 #define VULKYRIE_INFO_LEVEL_LOG 3
@@ -10,11 +11,11 @@
 namespace Vulkyrie::Core {
     /** @brief This `enum` defines various log levels for logging messages. */
     enum class LogLevel {
-        Fatal = 0, // Represents fatal errors that cause the application to terminate.
-        Error = 1, // Represents error conditions that need attention.
-        Warn = 2,  // Represents warning conditions that are not critical.
-        Info = 3,  // Represents informational messages.
-        Debug = 4, // Represents debug-level messages for development and troubleshooting.
-        Trace = 5, // Represents trace-level messages for detailed debugging.
+        Fatal = VULKYRIE_FATAL_LEVEL_LOG, // Represents fatal errors that cause the application to terminate.
+        Error = VULKYRIE_ERROR_LEVEL_LOG, // Represents error conditions that need attention.
+        Warn = VULKYRIE_WARN_LEVEL_LOG,   // Represents warning conditions that are not critical.
+        Info = VULKYRIE_INFO_LEVEL_LOG,   // Represents informational messages.
+        Debug = VULKYRIE_DEBUG_LEVEL_LOG, // Represents debug-level messages for development and troubleshooting.
+        Trace = VULKYRIE_TRACE_LEVEL_LOG, // Represents trace-level messages for detailed debugging.
     };
 } // namespace Vulkyrie::Core
