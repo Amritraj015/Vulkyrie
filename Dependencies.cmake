@@ -4,6 +4,7 @@
 # Fetch GLFW
 Include(FetchContent)
 
+Message("Fetching and building GLFW...")
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -11,7 +12,7 @@ FetchContent_Declare(
 )
 
 # -------------------------------------------------
-# Optional: disable stuff you don't need
+# We don't need to build the examples, tests, or docs.
 Set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 Set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 Set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -21,9 +22,9 @@ FetchContent_MakeAvailable(glfw)
 # -------------------------------------------------
 
 # -------------------------------------------------
-# GLAD (simple static library)
+# GLAD
 Add_Library(glad STATIC external/glad/src/glad.c)
-Target_Include_Directories(glad PUBLIC external/glad/include)
+Target_Include_Directories(glad PUBLIC external/glad/include) # TODO Change this to private include directory.
 # -------------------------------------------------
 
 # -------------------------------------------------
@@ -33,6 +34,7 @@ Find_Package(glm 1.0.1 QUIET)
 Message(STATUS "GLM found: ${glm_FOUND}")
 
 if (NOT glm_FOUND)
+    Message("Fetching and building GLM...")
     FetchContent_Declare(
         glm
         DOWNLOAD_EXTRACT_TIMESTAMP OFF

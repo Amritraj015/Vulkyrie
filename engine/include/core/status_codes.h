@@ -7,7 +7,7 @@
     } while (false)
 
 namespace Vulkyrie::Core {
-    /// @brief This `enum` defines status codes to represent various operation results.
+    /** @brief This `enum` defines status codes to represent various operation results. */
     enum class StatusCode : int {
         Successful = 0,                // Operation Successful.
         InvalidApplication,            // Invalid application error.
