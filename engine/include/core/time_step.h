@@ -4,37 +4,38 @@
 
 namespace Vulkyrie::Core {
     /** @brief Represents a duration of time in seconds and provides utility methods for time conversion. */
-    class Timestep {
+    struct Timestep {
         public:
             /** @brief Constructs a Timestep object representing a duration of time.
              * @param time The time duration in seconds. Default is 0.0f.
              */
-            explicit Timestep(const float time = 0.0f) : _time(time) {
+            constexpr explicit Timestep(const f32 seconds = 0.0f)
+                : _seconds(seconds) {
             }
 
             /** @brief Converts the Timestep to a float representing seconds.
              * @returns The time duration in seconds.
              */
-            explicit operator f32() const {
-                return _time;
+            constexpr explicit operator f32() const {
+                return _seconds;
             }
 
             /** @brief Gets the time duration in seconds.
              * @returns The time duration in seconds.
              */
-            [[nodiscard]] inline f32 GetSeconds() const {
-                return _time;
+            [[nodiscard]] constexpr inline f32 GetSeconds() const {
+                return _seconds;
             }
 
             /** @brief Gets the time duration in milliseconds.
              * @returns The time duration in milliseconds.
              */
-            [[nodiscard]] inline f32 GetMilliseconds() const {
-                return _time * 1000.0f;
+            [[nodiscard]] constexpr inline f32 GetMilliseconds() const {
+                return _seconds * 1000.0f;
             }
 
         private:
             /** @brief The time duration in seconds. */
-            f32 _time;
+            const f32 _seconds;
     };
 } // namespace Vulkyrie::Core

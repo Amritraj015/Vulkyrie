@@ -5,6 +5,8 @@
 
 namespace Vulkyrie::Renderer {
     Ref<Shader> Shader::Create(const std::filesystem::path &shaderSourcePath) {
+        using Vulkyrie::Core::GraphicsAPI;
+
         switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLShader>(shaderSourcePath);

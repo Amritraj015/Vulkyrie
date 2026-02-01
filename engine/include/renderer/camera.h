@@ -130,7 +130,7 @@ namespace Vulkyrie::Renderer {
             /** @brief Updates the camera's position and orientation based on input. Should be called every frame.
              * @param deltaTime The time elapsed since the last frame.
              */
-            inline void OnUpdate(const Vulkyrie::Core::Timestep &deltaTime) {
+            inline void OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
                 f32 dt = static_cast<f32>(deltaTime);
                 f32 cameraSpeed = _settings.RegularMovementSpeed;
 

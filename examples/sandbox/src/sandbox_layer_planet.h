@@ -95,10 +95,14 @@ namespace Sandbox {
                 glEnable(GL_CULL_FACE);
             }
 
-            void OnResumed() override { glEnable(GL_CULL_FACE); }
-            void OnSuspended() override { glDisable(GL_CULL_FACE); }
+            void OnResumed() override {
+                glEnable(GL_CULL_FACE);
+            }
+            void OnSuspended() override {
+                glDisable(GL_CULL_FACE);
+            }
 
-            void OnUpdate(const Timestep &deltaTime) override {
+            void OnUpdate(Timestep deltaTime) override {
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -158,8 +162,12 @@ namespace Sandbox {
 #endif
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Planet"); }
-            void OnDetached() override { VDEBUG("Layer Detached: Planet"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Planet");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Planet");
+            }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);

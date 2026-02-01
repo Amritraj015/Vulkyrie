@@ -60,11 +60,15 @@ namespace Sandbox {
 
             ~SandboxLayerCubes() = default;
 
-            void OnAttached() override { VDEBUG("Layer Attached: Cubes"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Cubes");
+            }
 
-            void OnDetached() override { VDEBUG("Layer Detached: Cubes"); }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Cubes");
+            }
 
-            void OnUpdate(const Timestep &deltaTime) override {
+            void OnUpdate(Timestep deltaTime) override {
                 // clear the color and depth buffer
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

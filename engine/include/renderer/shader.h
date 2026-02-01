@@ -1,11 +1,8 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {
-    using namespace Vulkyrie::Core;
-
     class Shader {
         public:
             /** @brief Returns whether the shader is valid (compiled and linked successfully). */
@@ -40,7 +37,7 @@ namespace Vulkyrie::Renderer {
              * @param name The name of the uniform variable.
              * @param value The float value to set.
              */
-            virtual void SetFloatUniform(std::string_view name, float value) const = 0;
+            virtual void SetFloatUniform(std::string_view name, f32 value) const = 0;
 
             /** @brief Sets a 2x2 matrix uniform variable in the shader program.
              * @param name The name of the uniform variable.
