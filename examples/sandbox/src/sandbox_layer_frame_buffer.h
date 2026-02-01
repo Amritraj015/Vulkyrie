@@ -179,10 +179,10 @@ namespace Sandbox {
             }
 
             void OnAttached() override {
-                VDEBUG("Layer Attached: Depth and Stencil Testing");
+                VDEBUG("Layer Attached: Frame buffer");
             }
             void OnDetached() override {
-                VDEBUG("Layer Detached: Depth and Stencil Testing");
+                VDEBUG("Layer Detached: Frame buffer");
             }
 
             void OnEvent(Event &event) override {

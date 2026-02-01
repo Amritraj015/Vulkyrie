@@ -133,7 +133,7 @@ namespace Sandbox {
                 VDEBUG("Layer Attached: Skybox");
             }
             void OnDetached() override {
-                VDEBUG("Layer Attached: Skybox");
+                VDEBUG("Layer Detached: Skybox");
             }
 
         private:
