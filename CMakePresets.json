@@ -14,7 +14,8 @@
       "binaryDir": "build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VULKYRIE_LOG_LEVEL": "1"
       }
     },
     {
@@ -166,7 +167,8 @@
       "binaryDir": "build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VULKYRIE_LOG_LEVEL": "5"
       }
     },
     {

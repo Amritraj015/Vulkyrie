@@ -42,6 +42,7 @@ target_compile_definitions(engine
     PUBLIC
         VULKYRIE_EXPORTS
         $<$<CONFIG:Debug>:VULKYRIE_DEBUG>
+        VULKYRIE_LOG_LEVEL=${VULKYRIE_LOG_LEVEL}
 )
 
 # ---------------------------
