@@ -7,12 +7,6 @@
 
 namespace Vulkyrie::Core {
 
-#define RETURN_ON_FAILURE(expr)                                                                                                                                \
-    do {                                                                                                                                                       \
-        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                \
-        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                           \
-    } while (false)
-
     Application *Application::_instance = nullptr;
 
     Application::Application(const WindowProps &windowProps)
@@ -22,19 +16,13 @@ namespace Vulkyrie::Core {
         _instance = this;
     }
 
-    Application::~Application() {
-        // for (auto &layer : _layers) {
-        //     layer->OnDetach();
-        // }
-    }
-
     StatusCode Application::Run() {
         // Create the application window.
         RETURN_ON_FAILURE(_platform->CreateWindow());
 
         // If window creation failed, return the status code.
         RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi));
-        
+
         VINFO("*****************************************************************************************")
         VINFO("Application details")
         VINFO("*****************************************************************************************")
@@ -81,7 +69,9 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    void Application::Stop() { _running = false; }
+    void Application::Stop() {
+        _running = false;
+    }
 
     void Application::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
@@ -114,5 +104,7 @@ namespace Vulkyrie::Core {
         return false;
     }
 
-    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) { return false; }
+    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) {
+        return false;
+    }
 } // namespace Vulkyrie::Core

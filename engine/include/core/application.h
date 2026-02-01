@@ -16,12 +16,14 @@ namespace Vulkyrie::Core {
             Application(const WindowProps &windowProps);
 
             /** @brief Destructor to clean up the application and its resources. */
-            virtual ~Application();
+            virtual ~Application() = default;
 
             /** @brief Gets the singleton instance of the application.
              * @returns A reference to the application instance.
              */
-            [[nodiscard]] inline static Application &GetSingleton() { return *_instance; }
+            [[nodiscard]] inline static Application &GetSingleton() {
+                return *_instance;
+            }
 
             /** @brief Starts the application's main loop.
              * @returns Vulkyrie::Core::StatusCode indicating success or failure.
@@ -112,17 +114,23 @@ namespace Vulkyrie::Core {
             /** @brief Gets the native window handle.
              * @returns A pointer to the native window.
              */
-            [[nodiscard]] inline void *GetWindowHandle() const { return _platform->GetWindowHandle(); }
+            [[nodiscard]] inline void *GetWindowHandle() const {
+                return _platform->GetWindowHandle();
+            }
 
             /** @brief Gets the width of the application window.
              * @returns The width of the window in pixels.
              */
-            inline u32 GetWindowWidth() const { return _windowProps.Width; }
+            inline u32 GetWindowWidth() const {
+                return _windowProps.Width;
+            }
 
             /** @brief Gets the height of the application window.
              * @returns The height of the window in pixels.
              */
-            inline u32 GetWindowHeight() const { return _windowProps.Height; }
+            inline u32 GetWindowHeight() const {
+                return _windowProps.Height;
+            }
 
         protected:
             /** @brief Called when the application window is created.

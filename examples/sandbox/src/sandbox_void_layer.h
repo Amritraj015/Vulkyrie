@@ -18,7 +18,9 @@ namespace Sandbox {
 
     class SandboxVoidLayer final : public Vulkyrie::Core::Layer {
         public:
-            SandboxVoidLayer() {}
+            SandboxVoidLayer() {
+                InitializeLayerSwitcher();
+            }
             ~SandboxVoidLayer() = default;
 
             void OnEvent(Event &event) override {
@@ -36,91 +38,7 @@ namespace Sandbox {
                     }
 
                     if (e.KeyCode == KeyCode::J) {
-
-                        if (currentLayer == 0) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerSkybox>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerFrameBuffer>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerFrameBuffer>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerFrameBuffer>();
-                            }
-                        } else if (currentLayer == 1) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerFrameBuffer>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerDepthAndStencilTesting>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerDepthAndStencilTesting>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerDepthAndStencilTesting>();
-                            }
-                        } else if (currentLayer == 2) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerDepthAndStencilTesting>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerAttenuation>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerAttenuation>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerAttenuation>();
-                            }
-                        } else if (currentLayer == 3) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerAttenuation>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerPlanet>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerPlanet>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerPlanet>();
-                            }
-                        } else if (currentLayer == 4) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerPlanet>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerCubes>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerCubes>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerCubes>();
-                            }
-                        } else if (currentLayer == 5) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerCubes>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerPhongLighting>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerPhongLighting>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerPhongLighting>();
-                            }
-                        } else if (currentLayer == 6) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerPhongLighting>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerSpecularMap>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerSpecularMap>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerSpecularMap>();
-                            }
-                        } else if (currentLayer == 7) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerSpecularMap>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerTerrainGeneration>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerTerrainGeneration>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerTerrainGeneration>();
-                            }
-                        } else if (currentLayer == 8) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerTerrainGeneration>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerBackPack>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerBackPack>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerBackPack>();
-                            }
-                        } else if (currentLayer == 9) {
-                            Application::GetSingleton().SuspendLayer<SandboxLayerBackPack>();
-
-                            if (Application::GetSingleton().HasLayer<SandboxLayerSkybox>()) {
-                                Application::GetSingleton().ResumeLayer<SandboxLayerSkybox>();
-                            } else {
-                                Application::GetSingleton().PushLayer<SandboxLayerSkybox>();
-                            }
-                        }
-
-                        currentLayer = (currentLayer + 1) % 10;
-
+                        SwitchToNextLayer();
                         return true;
                     }
 
@@ -131,5 +49,57 @@ namespace Sandbox {
         private:
             bool showWireFrame = false;
             u8 currentLayer = 1;
+
+            // Layer switcher function type
+            using LayerSwitchFn = std::function<void()>;
+            std::vector<LayerSwitchFn> layerSwitchers;
+
+            void InitializeLayerSwitcher() {
+                layerSwitchers = {
+                    [this]() { SwitchLayer<SandboxLayerSkybox>(); },
+                    [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },
+                    [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); },
+                    [this]() { SwitchLayer<SandboxLayerAttenuation>(); },
+                    [this]() { SwitchLayer<SandboxLayerPlanet>(); },
+                    [this]() { SwitchLayer<SandboxLayerCubes>(); },
+                    [this]() { SwitchLayer<SandboxLayerPhongLighting>(); },
+                    [this]() { SwitchLayer<SandboxLayerSpecularMap>(); },
+                    [this]() { SwitchLayer<SandboxLayerTerrainGeneration>(); },
+                    [this]() { SwitchLayer<SandboxLayerBackPack>(); }
+                };
+            }
+
+            template<typename T>
+            void SwitchLayer() {
+                auto& app = Application::GetSingleton();
+                
+                if (app.HasLayer<T>()) {
+                    app.ResumeLayer<T>();
+                } else {
+                    app.PushLayer<T>();
+                }
+            }
+
+            void SwitchToNextLayer() {
+                auto& app = Application::GetSingleton();
+                
+                // Suspend all known layers
+                app.SuspendLayer<SandboxLayerSkybox>();
+                app.SuspendLayer<SandboxLayerFrameBuffer>();
+                app.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
+                app.SuspendLayer<SandboxLayerAttenuation>();
+                app.SuspendLayer<SandboxLayerPlanet>();
+                app.SuspendLayer<SandboxLayerCubes>();
+                app.SuspendLayer<SandboxLayerPhongLighting>();
+                app.SuspendLayer<SandboxLayerSpecularMap>();
+                app.SuspendLayer<SandboxLayerTerrainGeneration>();
+                app.SuspendLayer<SandboxLayerBackPack>();
+                
+                // Move to next layer
+                currentLayer = (currentLayer + 1) % layerSwitchers.size();
+                
+                // Activate the new layer
+                layerSwitchers[currentLayer]();
+            }
     };
 } // namespace Sandbox

@@ -4,16 +4,15 @@
 #include "core/logger.h"
 #include "core/application.h"
 
-
 namespace Vulkyrie::Renderer {
 
-    Ref<GraphicsContext> GraphicsContext::Create() {
+    Scope<GraphicsContext> GraphicsContext::Create() {
         using Vulkyrie::Core::Application;
         using Vulkyrie::Core::GraphicsAPI;
 
         switch (GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
-                return CreateRef<OpenGLGraphicsContext>(Application::GetSingleton().GetWindowHandle());
+                return CreateScope<OpenGLGraphicsContext>(Application::GetSingleton().GetWindowHandle());
             default:
                 VERROR("Unsupported graphics API specified for graphics context creation.");
                 return nullptr;

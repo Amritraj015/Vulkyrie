@@ -13,11 +13,12 @@ namespace Vulkyrie::Renderer {
             virtual Vulkyrie::Core::StatusCode Initialize() = 0;
 
             /** @brief Swaps the front and back buffers, presenting the rendered image to the screen. */
-            inline virtual void SwapBuffers() {}
+            inline virtual void SwapBuffers() {
+            }
 
             /** @brief Creates a graphics context for the currently active graphics API.
              * @returns A smart pointer to the created GraphicsContext.
              */
-            static Ref<GraphicsContext> Create();
+            static Scope<GraphicsContext> Create();
     };
 } // namespace Vulkyrie::Renderer
