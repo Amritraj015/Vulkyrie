@@ -14,7 +14,7 @@ namespace Vulkyrie::Renderer {
             case GraphicsAPI::OpenGL:
                 return CreateScope<OpenGLGraphicsContext>(Application::GetSingleton().GetWindowHandle());
             default:
-                VERROR("Unsupported graphics API specified for graphics context creation.");
+                VFATAL("Unsupported graphics API '{}' specified for graphics context creation.", GetCurrentGraphicsAPIName());
                 return nullptr;
         }
     }

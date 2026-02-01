@@ -346,7 +346,7 @@ namespace Vulkyrie::Core {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-        if (_windowProps.GraphicsApi == Vulkyrie::Core::GraphicsAPI::OpenGL) {
+        if (_windowProps.GraphicsAPI == Vulkyrie::Core::GraphicsAPI::OpenGL) {
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #if defined(VULKYRIE_DEBUG)

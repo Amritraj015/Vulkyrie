@@ -12,6 +12,10 @@ namespace Vulkyrie::Renderer {
         return _renderer;
     }
 
+    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {
+        return RendererAPI;
+    }
+
     Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api) {
         RendererAPI = api;
 
@@ -21,7 +25,7 @@ namespace Vulkyrie::Renderer {
         // Check if graphics context creation failed.
         if (nullptr == _graphicsContext) {
             VFATAL("Failed to create graphics context for the specified graphics API.");
-            return Vulkyrie::Core::StatusCode::FailedToCreateGraphicsContext;
+            return Vulkyrie::Core::StatusCode::UnsupportedGraphicsAPI;
         }
 
         // Try to initialize the graphics context.
@@ -40,10 +44,6 @@ namespace Vulkyrie::Renderer {
 
         // Return success.
         return Vulkyrie::Core::StatusCode::Successful;
-    }
-
-    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {
-        return RendererAPI;
     }
 
     std::string_view GetCurrentGraphicsAPIName() {
