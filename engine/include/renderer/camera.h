@@ -132,14 +132,12 @@ namespace Vulkyrie::Renderer {
              */
             inline void OnUpdate(const Vulkyrie::Core::Timestep &deltaTime) {
                 f32 dt = static_cast<f32>(deltaTime);
-                f32 cameraSpeed;
+                f32 cameraSpeed = _settings.RegularMovementSpeed;
 
                 if (Vulkyrie::Input::IsKeyPressed(_settings.FastSpeedModifierKey)) {
                     cameraSpeed = _settings.FastMovementSpeed;
                 } else if (Vulkyrie::Input::IsKeyPressed(_settings.SlowSpeedModifierKey)) {
                     cameraSpeed = _settings.SlowMovementSpeed;
-                } else {
-                    cameraSpeed = _settings.RegularMovementSpeed;
                 }
 
                 if (Vulkyrie::Input::IsKeyPressed(_settings.MoveForwardKey)) ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);

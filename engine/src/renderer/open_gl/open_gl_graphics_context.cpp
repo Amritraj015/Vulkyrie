@@ -4,7 +4,8 @@
 
 namespace Vulkyrie::Renderer {
     OpenGLGraphicsContext::OpenGLGraphicsContext(void *windowHandle)
-        : _windowHandle(static_cast<GLFWwindow *>(windowHandle)) {}
+        : _windowHandle(static_cast<GLFWwindow *>(windowHandle)) {
+    }
 
     Vulkyrie::Core::StatusCode OpenGLGraphicsContext::Initialize() {
         using Vulkyrie::Core::Application;
@@ -117,5 +118,7 @@ namespace Vulkyrie::Renderer {
         return Vulkyrie::Core::StatusCode::Successful;
     };
 
-    void OpenGLGraphicsContext::SwapBuffers() { glfwSwapBuffers(_windowHandle); }
+    void OpenGLGraphicsContext::SwapBuffers() {
+        glfwSwapBuffers(_windowHandle);
+    }
 } // namespace Vulkyrie::Renderer

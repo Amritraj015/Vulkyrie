@@ -1,15 +1,21 @@
 #pragma once
 
 #include "core/status_codes.h"
-#include "core/platform.h"
-#include "renderer/scene.h"
+#include "core/graphics_api.h"
+#include "renderer/camera.h"
 #include "renderer/polygon_fill_mode.h"
 
 namespace Vulkyrie::Renderer {
+    /** @brief Renderer statistics structure to hold performance metrics. */
     struct RendererStatistics {
         public:
+            /** @brief Number of frames rendered during rendering. */
             u32 FramesRendered = 0;
+
+            /** @brief Number of draw calls made during rendering. */
             u32 DrawCalls = 0;
+
+            /** @brief Number of triangles rendered during rendering. */
             u32 TrianglesRendered = 0;
     };
 
@@ -17,26 +23,35 @@ namespace Vulkyrie::Renderer {
      * @param api The graphics API to initialize the renderer with.
      * @returns StatusCode indicating success or failure.
      */
-    Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
+    [[nodiscard]] Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
 
     /** @brief Gets the current graphics API being used by the renderer.
      * @returns The current graphics API.
      */
-    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI();
+    [[nodiscard]] Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI();
 
     /** @brief Gets the name of the current graphics API as a string view.
      * @returns A string view representing the name of the current graphics API.
      */
-    std::string_view GetCurrentGraphicsAPIName();
+    [[nodiscard]] std::string_view GetCurrentGraphicsAPIName();
 
     // void SetViewport(u32 x, u32 y, u32 width, u32 height);
 
+    class CommandBuffer {
+        public:
+            virtual ~CommandBuffer() = default;
+
+            virtual void Begin() = 0;
+            virtual void End() = 0;
+    };
+
     class Renderer {
         public:
-            Renderer(const Vulkyrie::Core::Platform &platform);
+            virtual ~Renderer() = default;
 
-            void BeginScene(const Scene &scene);
-            void EndScene();
+            virtual void BeginScene(const Camera &camera) = 0;
+            virtual void EndScene() = 0;
+            virtual Scope<CommandBuffer> CreateCommandBuffer() = 0;
 
             /** @brief Handles window resize events.
              * @param width The new width of the window.
@@ -50,8 +65,5 @@ namespace Vulkyrie::Renderer {
             void SetPolygonFillMode(PolygonFillMode mode);
 
             void Submit();
-
-        private:
-            const Vulkyrie::Core::Platform &_platform;
     };
 } // namespace Vulkyrie::Renderer
