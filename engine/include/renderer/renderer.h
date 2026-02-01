@@ -45,6 +45,14 @@ namespace Vulkyrie::Renderer {
             virtual void End() = 0;
     };
 
+    class RenderPass {
+        public:
+            virtual ~RenderPass() = default;
+
+            virtual void Begin() = 0;
+            virtual void End() = 0;
+    };
+
     class Renderer {
         public:
             virtual ~Renderer() = default;

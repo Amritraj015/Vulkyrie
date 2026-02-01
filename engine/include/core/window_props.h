@@ -22,6 +22,6 @@ namespace Vulkyrie::Core {
             std::string Title;
 
             /** @brief The graphics API to use for rendering. */
-            Vulkyrie::Core::GraphicsAPI GraphicsApi = Vulkyrie::Core::GraphicsAPI::OpenGL;
+            Vulkyrie::Core::GraphicsAPI GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL;
     };
 } // namespace Vulkyrie::Core

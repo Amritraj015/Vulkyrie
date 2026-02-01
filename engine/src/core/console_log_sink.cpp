@@ -1,14 +1,8 @@
 #include "console_log_sink.h"
-#include "vlkypch.h"
 
 namespace Vulkyrie::Core {
     static constexpr std::string_view consoleLogPrefixes[] = {
-        "\033[41m[FATAL]: ",
-        "\033[31m[ERROR]: ",
-        "\033[33m[WARN]: ",
-        "\033[32m[INFO]: ",
-        "\033[34m[DEBUG]: ",
-        "\033[90m[TRACE]: "
+        "\033[41m[FATAL]: ", "\033[31m[ERROR]: ", "\033[33m[WARN]: ", "\033[32m[INFO]: ", "\033[34m[DEBUG]: ", "\033[90m[TRACE]: ",
     };
 
     void ConsoleLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {

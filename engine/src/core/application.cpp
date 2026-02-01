@@ -21,7 +21,7 @@ namespace Vulkyrie::Core {
         RETURN_ON_FAILURE(_platform->CreateWindow());
 
         // If window creation failed, return the status code.
-        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsApi));
+        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
 
         VINFO("*****************************************************************************************")
         VINFO("Application details")

@@ -1,17 +1,12 @@
 #pragma once
 
-#include "status_codes.h"
-#include "logger_type.h"
-#include "log_level.h"
-#include "log_sink.h"
+#include "core/status_codes.h"
+#include "core/logger_type.h"
+#include "core/log_level.h"
+#include "core/log_sink.h"
 
-// Enable log levels based on build configuration.
-// FATAL and ERROR level logs are always enabled.
-#if defined(VULKYRIE_DEBUG)
-#define V_LOG_WARN_ENABLED
-#define V_LOG_INFO_ENABLED
-#define V_LOG_DEBUG_ENABLED
-#define V_LOG_TRACE_ENABLED
+#if not defined(VULKYRIE_LOG_LEVEL)
+#define VULKYRIE_LOG_LEVEL VULKYRIE_ERROR_LEVEL_LOG
 #endif
 
 namespace Vulkyrie::Core {
@@ -28,8 +23,6 @@ namespace Vulkyrie::Core {
                 _logSink->LogMessage(logLevel, fmt, std::make_format_args(args...));
             }
 
-            static void TerminateLogger();
-
         private:
             static Scope<LogSink> _logSink;
     };
@@ -44,28 +37,28 @@ namespace Vulkyrie::Core {
 #define VERROR(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Error, fmt __VA_OPT__(,) __VA_ARGS__);
 
 // Logs a warning message if warning level logs are enabled else noop.
-#if defined(V_LOG_WARN_ENABLED)
+#if VULKYRIE_LOG_LEVEL >= VULKYRIE_WARN_LEVEL_LOG
 #define VWARN(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Warn, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VWARN(fmt, ...)
 #endif
 
 // Logs an info message if info level logs are enabled else noop.
-#if defined(V_LOG_INFO_ENABLED)
+#if VULKYRIE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
 #define VINFO(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Info, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VINFO(fmt, ...)
 #endif
 
 // Logs a debug message if debug level logs are enabled else noop.
-#if defined(V_LOG_DEBUG_ENABLED)
+#if VULKYRIE_LOG_LEVEL >= VULKYRIE_DEBUG_LEVEL_LOG
 #define VDEBUG(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Debug, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VDEBUG(fmt, ...)
 #endif
 
 // Logs a trace message if trace level logs are enabled else noop.
-#if defined(V_LOG_TRACE_ENABLED)
+#if VULKYRIE_LOG_LEVEL >= VULKYRIE_TRACE_LEVEL_LOG
 #define VTRACE(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Trace, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VTRACE(fmt, ...)
