@@ -48,21 +48,35 @@ namespace Vulkyrie::Core {
 
         // Main application loop.
         while (_running) {
-            // Process any pending layer operations.
-            _layers.ProcessQueuedOperations();
+            VLKY_PROFILE_SCOPE("MainApplicationLoop");
 
-            // Calculate the time since the last frame.
-            const f32 time = _platform->GetTime();
-            Timestep deltaTime(std::min(time - lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
-            lastFrameTime = time;
+            {
+                VLKY_PROFILE_SCOPE("ApplicationLayerProcessQueuedOperations");
 
-            // Update each layer.
-            for (const auto &layer : _layers) {
-                layer->OnUpdate(deltaTime);
+                // Process any pending layer operations.
+                _layers.ProcessQueuedOperations();
             }
 
-            // Update the application window.
-            _platform->OnUpdate();
+            {
+                VLKY_PROFILE_SCOPE("ApplicationLayerUpdate");
+
+                // Calculate the time since the last frame.
+                const f32 time = _platform->GetTime();
+                Timestep deltaTime(std::min(time - lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
+                lastFrameTime = time;
+
+                // Update each layer.
+                for (const auto &layer : _layers) {
+                    layer->OnUpdate(deltaTime);
+                }
+            }
+
+            {
+                VLKY_PROFILE_SCOPE("ApplicationWindowUpdate");
+
+                // Update the application window.
+                _platform->OnUpdate();
+            }
         }
 
         // Return the status code.

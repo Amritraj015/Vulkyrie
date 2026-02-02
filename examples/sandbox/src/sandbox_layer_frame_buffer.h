@@ -109,6 +109,8 @@ namespace Sandbox {
             };
 
             void OnUpdate(Timestep deltaTime) override {
+                VLKY_PROFILE_FUNCTION();
+
                 glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
                 glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 

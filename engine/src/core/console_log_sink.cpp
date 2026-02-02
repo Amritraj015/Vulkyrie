@@ -1,4 +1,4 @@
-#include "console_log_sink.h"
+#include "core/console_log_sink.h"
 
 namespace Vulkyrie::Core {
     static constexpr std::string_view consoleLogPrefixes[] = {

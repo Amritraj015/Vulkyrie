@@ -1,5 +1,4 @@
 #include "renderer/open_gl/open_gl_frame_buffer.h"
-// #include "core/logger.h"
 #include <glad/glad.h>
 
 namespace Vulkyrie::Renderer {

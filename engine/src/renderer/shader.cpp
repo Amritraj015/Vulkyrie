@@ -1,4 +1,4 @@
-#include "core/logger.h"
+#include "vlkypch.h"
 #include "renderer/shader.h"
 #include "renderer/open_gl/open_gl_shader.h"
 #include "renderer/renderer.h"

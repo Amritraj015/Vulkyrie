@@ -26,7 +26,7 @@ namespace Sandbox {
                 }
 
                 vertexArray = VertexArray::Create();
-                vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                     { ShaderDataType::Float2, "aTexCoord" },
@@ -69,6 +69,8 @@ namespace Sandbox {
             }
 
             void OnUpdate(Timestep deltaTime) override {
+                VLKY_PROFILE_FUNCTION();
+
                 // clear the color and depth buffer
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -105,7 +107,6 @@ namespace Sandbox {
         private:
             Ref<Texture2D> texture1;
             Ref<Texture2D> texture2;
-            Ref<VertexBuffer> vertexBuffer;
             Ref<VertexArray> vertexArray;
             Ref<Shader> graphicsShader;
             Camera camera;

@@ -1,6 +1,6 @@
-#include "core/logger.h"
-#include "console_log_sink.h"
-#include "file_log_sink.h"
+#include "vlkypch.h"
+#include "core/console_log_sink.h"
+#include "core/file_log_sink.h"
 
 namespace Vulkyrie::Core {
     // Define the static member variable

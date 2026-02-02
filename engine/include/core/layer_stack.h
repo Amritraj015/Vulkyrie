@@ -1,7 +1,6 @@
 #pragma once
 
 #include "layer.h"
-#include "core/logger.h"
 #include <typeindex>
 
 namespace Vulkyrie::Core {
@@ -35,7 +34,8 @@ namespace Vulkyrie::Core {
             explicit LayerOperation(OperationType operation, Scope<Layer> layerToPush)
                 : Type(operation)
                 , LayerToPush(std::move(layerToPush))
-                , LayerToPop(typeid(void)) {}
+                , LayerToPop(typeid(void)) {
+            }
 
             /** @brief Constructs a LayerOperation for popping a layer.
              * @param operation The type of operation (PopLayer).
@@ -44,7 +44,8 @@ namespace Vulkyrie::Core {
             explicit LayerOperation(OperationType operation, std::type_index layerToPop)
                 : Type(operation)
                 , LayerToPush(nullptr)
-                , LayerToPop(layerToPop) {}
+                , LayerToPop(layerToPop) {
+            }
     };
 
     /** @brief Manages a stack of layers and overlays for the application. */
@@ -342,15 +343,31 @@ namespace Vulkyrie::Core {
                 _layerOperations.clear();
             }
 
-            auto begin() { return _activeLayers.begin(); }
-            auto end() { return _activeLayers.end(); }
-            [[nodiscard]] auto begin() const { return _activeLayers.begin(); }
-            [[nodiscard]] auto end() const { return _activeLayers.end(); }
+            auto begin() {
+                return _activeLayers.begin();
+            }
+            auto end() {
+                return _activeLayers.end();
+            }
+            [[nodiscard]] auto begin() const {
+                return _activeLayers.begin();
+            }
+            [[nodiscard]] auto end() const {
+                return _activeLayers.end();
+            }
 
-            auto rbegin() { return _activeLayers.rbegin(); }
-            auto rend() { return _activeLayers.rend(); }
-            [[nodiscard]] auto rbegin() const { return _activeLayers.rbegin(); }
-            [[nodiscard]] auto rend() const { return _activeLayers.rend(); }
+            auto rbegin() {
+                return _activeLayers.rbegin();
+            }
+            auto rend() {
+                return _activeLayers.rend();
+            }
+            [[nodiscard]] auto rbegin() const {
+                return _activeLayers.rbegin();
+            }
+            [[nodiscard]] auto rend() const {
+                return _activeLayers.rend();
+            }
 
         private:
             /** @brief List of layers in the stack. */

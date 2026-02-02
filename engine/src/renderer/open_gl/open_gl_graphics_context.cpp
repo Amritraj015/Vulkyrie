@@ -1,6 +1,6 @@
-#include "renderer/open_gl/open_gl_graphics_context.h"
-#include "core/logger.h"
+#include "vlkypch.h"
 #include "core/application.h"
+#include "renderer/open_gl/open_gl_graphics_context.h"
 
 namespace Vulkyrie::Renderer {
     OpenGLGraphicsContext::OpenGLGraphicsContext(void *windowHandle)

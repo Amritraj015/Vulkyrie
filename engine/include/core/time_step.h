@@ -36,6 +36,6 @@ namespace Vulkyrie::Core {
 
         private:
             /** @brief The time duration in seconds. */
-            const f32 _seconds;
+            f32 _seconds;
     };
 } // namespace Vulkyrie::Core

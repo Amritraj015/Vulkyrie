@@ -1,5 +1,5 @@
 #include <glad/glad.h>
-#include "core/logger.h"
+#include "vlkypch.h"
 #include "open_gl_vertex_array.h"
 
 namespace Vulkyrie::Renderer {

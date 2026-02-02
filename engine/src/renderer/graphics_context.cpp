@@ -1,7 +1,7 @@
+#include "vlkypch.h"
 #include "renderer/graphics_context.h"
 #include "renderer/renderer.h"
 #include "renderer/open_gl/open_gl_graphics_context.h"
-#include "core/logger.h"
 #include "core/application.h"
 
 namespace Vulkyrie::Renderer {
