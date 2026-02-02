@@ -24,8 +24,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
         return std::to_underlying(Vulkyrie::Core::StatusCode::InvalidApplication);
     }
 
+    VLKY_PROFILE_BEGIN_SESSION("Game Loop", "profile_results.json");
+
     // Run the application and get its status code.
     statusCode = application->Run();
+
+    VLKY_PROFILE_END_SESSION();
 
     // Clean up the application instance.
     delete application;

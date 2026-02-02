@@ -1,15 +1,48 @@
 #pragma once
 
 #include "core/status_codes.h"
-#include "core/logger_type.h"
-#include "core/log_level.h"
-#include "core/log_sink.h"
+
+// The following macro expansion values must align with the LogLevel enum values.
+#define VULKYRIE_FATAL_LEVEL_LOG 0 // This is not required but added for completeness.
+#define VULKYRIE_ERROR_LEVEL_LOG 1
+#define VULKYRIE_WARN_LEVEL_LOG 2
+#define VULKYRIE_INFO_LEVEL_LOG 3
+#define VULKYRIE_DEBUG_LEVEL_LOG 4
+#define VULKYRIE_TRACE_LEVEL_LOG 5
 
 #if not defined(VULKYRIE_LOG_LEVEL)
 #define VULKYRIE_LOG_LEVEL VULKYRIE_ERROR_LEVEL_LOG
 #endif
 
 namespace Vulkyrie::Core {
+
+    enum class LoggerType { Console, File };
+
+    /** @brief This `enum` defines various log levels for logging messages. */
+    enum class LogLevel {
+        Fatal = VULKYRIE_FATAL_LEVEL_LOG, // Represents fatal errors that cause the application to terminate.
+        Error = VULKYRIE_ERROR_LEVEL_LOG, // Represents error conditions that need attention.
+        Warn = VULKYRIE_WARN_LEVEL_LOG,   // Represents warning conditions that are not critical.
+        Info = VULKYRIE_INFO_LEVEL_LOG,   // Represents informational messages.
+        Debug = VULKYRIE_DEBUG_LEVEL_LOG, // Represents debug-level messages for development and troubleshooting.
+        Trace = VULKYRIE_TRACE_LEVEL_LOG, // Represents trace-level messages for detailed debugging.
+    };
+
+    class LogSink {
+        public:
+            virtual ~LogSink() = default;
+
+            /** Initializes the logger. */
+            virtual StatusCode Initialize() {
+                return StatusCode::Successful;
+            }
+
+            virtual void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) = 0;
+
+        protected:
+            static constexpr unsigned short LOG_BUFFER_SIZE = 512;
+    };
+
     class Logger {
         public:
             // Deleted copy constructor and assignment operator to prevent copies.
@@ -24,7 +57,7 @@ namespace Vulkyrie::Core {
             }
 
         private:
-            static Scope<LogSink> _logSink;
+            static std::unique_ptr<LogSink> _logSink;
     };
 } // namespace Vulkyrie::Core
 

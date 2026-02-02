@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <functional>
 #include <random>
+#include <chrono>
 
 #include <string>
 #include <string_view>
@@ -27,6 +28,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "core/logger.h"
+#include "debug/profiler.h"
 
 // Unsigned int types.
 typedef uint8_t u8;
@@ -82,10 +86,14 @@ typedef double f64;
  * @tparam T The type of the object being pointed to.
  */
 template <typename T> using Scope = std::unique_ptr<T>;
-template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&...args) { return std::make_unique<T>(std::forward<Args>(args)...); }
+template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&...args) {
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
 
 /** @brief A reference counted pointer type alias using std::shared_ptr.
  * @tparam T The type of the object being pointed to.
  */
 template <typename T> using Ref = std::shared_ptr<T>;
-template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) { return std::make_shared<T>(std::forward<Args>(args)...); }
+template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) {
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}

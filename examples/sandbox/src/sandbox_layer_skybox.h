@@ -38,13 +38,13 @@ namespace Sandbox {
 
                 // Load sky-box cubemap textures.
                 skyboxTexture = TextureCubeMap::Create({
-                                                           "assets/cubemaps/skybox/right.jpg",
-                                                           "assets/cubemaps/skybox/left.jpg",
-                                                           "assets/cubemaps/skybox/top.jpg",
-                                                           "assets/cubemaps/skybox/bottom.jpg",
-                                                           "assets/cubemaps/skybox/front.jpg",
-                                                           "assets/cubemaps/skybox/back.jpg",
-                                                       });
+                    "assets/cubemaps/skybox/right.jpg",
+                    "assets/cubemaps/skybox/left.jpg",
+                    "assets/cubemaps/skybox/top.jpg",
+                    "assets/cubemaps/skybox/bottom.jpg",
+                    "assets/cubemaps/skybox/front.jpg",
+                    "assets/cubemaps/skybox/back.jpg",
+                });
 
                 if (!skyboxTexture->IsValid()) {
                     VERROR("SandboxLayerSkybox: Failed to load skybox cubemap texture.");
@@ -65,7 +65,9 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnUpdate(const Timestep &deltaTime) override {
+            void OnUpdate(Timestep deltaTime) override {
+                VLKY_PROFILE_FUNCTION();
+
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -129,8 +131,12 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Skybox"); }
-            void OnDetached() override { VDEBUG("Layer Attached: Skybox"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Skybox");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Skybox");
+            }
 
         private:
             Camera camera;

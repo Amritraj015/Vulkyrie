@@ -33,10 +33,16 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Terrain Generation"); }
-            void OnDetached() override { VDEBUG("Layer Detached: Terrain Generation"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Terrain Generation");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Terrain Generation");
+            }
 
-            void OnUpdate(const Timestep &deltaTime) override {
+            void OnUpdate(Timestep deltaTime) override {
+                VLKY_PROFILE_FUNCTION();
+
                 glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

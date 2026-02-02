@@ -1,5 +1,5 @@
+#include "vlkypch.h"
 #include "open_gl_texture_2D.h"
-#include "core/logger.h"
 #include "vendor/stb_image.h"
 
 namespace Vulkyrie::Renderer {

@@ -1,4 +1,4 @@
-#include "core/logger.h"
+#include "vlkypch.h"
 #include "renderer/vertex_array.h"
 #include "renderer/open_gl/open_gl_vertex_array.h"
 #include "renderer/renderer.h"

@@ -35,7 +35,7 @@ namespace Vulkyrie::Renderer {
              * @param name The name of the uniform variable.
              * @param value The float value to set.
              */
-            void SetFloatUniform(std::string_view name, float value) const override;
+            void SetFloatUniform(std::string_view name, f32 value) const override;
 
             /** @brief Sets a 2x2 matrix uniform variable in the shader program.
              * @param name The name of the uniform variable.

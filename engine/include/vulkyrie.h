@@ -6,6 +6,9 @@
 #include "core/logger.h"
 #include "core/noise_generator.h"
 
+// Debug includes
+#include "debug/profiler.h"
+
 // Events includes
 #include "events/event_dispatcher.h"
 #include "events/application/window_closed_event.h"

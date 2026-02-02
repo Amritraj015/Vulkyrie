@@ -60,17 +60,25 @@ namespace Vulkyrie::Renderer {
         _shaderProgramID = LoadAndCompile();
     }
 
-    OpenGLShader::~OpenGLShader() { glDeleteProgram(_shaderProgramID); }
+    OpenGLShader::~OpenGLShader() {
+        glDeleteProgram(_shaderProgramID);
+    }
 
-    void OpenGLShader::Use() const { glUseProgram(_shaderProgramID); }
+    void OpenGLShader::Use() const {
+        glUseProgram(_shaderProgramID);
+    }
 
     void OpenGLShader::SetBoolUniform(const std::string_view name, const bool value) const {
         glUniform1i(GetUniformLocation(name.data()), static_cast<int>(value));
     }
 
-    void OpenGLShader::SetIntUniform(const std::string_view name, const int value) const { glUniform1i(GetUniformLocation(name.data()), value); }
+    void OpenGLShader::SetIntUniform(const std::string_view name, const int value) const {
+        glUniform1i(GetUniformLocation(name.data()), value);
+    }
 
-    void OpenGLShader::SetFloatUniform(const std::string_view name, const float value) const { glUniform1f(GetUniformLocation(name.data()), value); }
+    void OpenGLShader::SetFloatUniform(const std::string_view name, const f32 value) const {
+        glUniform1f(GetUniformLocation(name.data()), value);
+    }
 
     void OpenGLShader::SetMat2Uniform(const std::string_view name, const glm::mat2 &mat) const {
         glUniformMatrix2fv(GetUniformLocation(name.data()), 1, GL_FALSE, &mat[0][0]);
@@ -88,7 +96,9 @@ namespace Vulkyrie::Renderer {
         glUniform3fv(GetUniformLocation(name.data()), 1, &value[0]);
     }
 
-    void OpenGLShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const { glUniform3f(GetUniformLocation(name.data()), x, y, z); }
+    void OpenGLShader::SetVec3Uniform(const std::string_view name, f32 x, f32 y, f32 z) const {
+        glUniform3f(GetUniformLocation(name.data()), x, y, z);
+    }
 
     i32 OpenGLShader::GetUniformLocation(const std::string &name) const {
         if (auto it = _uniformLocationCache.find(name); it != _uniformLocationCache.end()) {

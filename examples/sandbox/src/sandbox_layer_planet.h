@@ -25,7 +25,7 @@ namespace Sandbox {
 
                 camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
 
-                amount = 100000;
+                amount = 1000000;
                 modelMatrices.reserve(amount);
                 srand(glfwGetTime()); // initialize random seed
                 f32 radius = 500.0;
@@ -95,10 +95,16 @@ namespace Sandbox {
                 glEnable(GL_CULL_FACE);
             }
 
-            void OnResumed() override { glEnable(GL_CULL_FACE); }
-            void OnSuspended() override { glDisable(GL_CULL_FACE); }
+            void OnResumed() override {
+                glEnable(GL_CULL_FACE);
+            }
+            void OnSuspended() override {
+                glDisable(GL_CULL_FACE);
+            }
 
-            void OnUpdate(const Timestep &deltaTime) override {
+            void OnUpdate(Timestep deltaTime) override {
+                VLKY_PROFILE_FUNCTION();
+
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -158,8 +164,12 @@ namespace Sandbox {
 #endif
             }
 
-            void OnAttached() override { VDEBUG("Layer Attached: Planet"); }
-            void OnDetached() override { VDEBUG("Layer Detached: Planet"); }
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Planet");
+            }
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Planet");
+            }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);

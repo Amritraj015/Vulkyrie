@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/log_sink.h"
+#include "core/logger.h"
 #include <cstdio>
 
 namespace Vulkyrie::Core {

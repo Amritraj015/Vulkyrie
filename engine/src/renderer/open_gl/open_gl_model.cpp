@@ -1,6 +1,6 @@
+#include "vlkypch.h"
 #include "renderer/open_gl/open_gl_model.h"
 #include "vendor/stb_image.h"
-#include "core/logger.h"
 
 namespace Vulkyrie::Renderer {
     /**
@@ -9,7 +9,8 @@ namespace Vulkyrie::Renderer {
      * @param path The filesystem path to the 3D model file (supports formats: OBJ, FBX, GLTF, etc.)
      * @param gammaCorrection Whether to apply gamma correction to textures
      */
-    OpenGLModel::OpenGLModel(std::filesystem::path const &path, bool gammaCorrection) : Model(path, gammaCorrection) {
+    OpenGLModel::OpenGLModel(std::filesystem::path const &path, bool gammaCorrection)
+        : Model(path, gammaCorrection) {
         LoadModel(path);
     }
 

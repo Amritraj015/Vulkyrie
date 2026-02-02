@@ -1,10 +1,11 @@
 #include "renderer/open_gl/open_gl_texture_cube_map.h"
-#include "core/logger.h"
+#include "vlkypch.h"
 #include "glad/glad.h"
 #include "vendor/stb_image.h"
 
 namespace Vulkyrie::Renderer {
-    OpenGLTextureCubeMap::OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces) : TextureCubeMap(std::move(faces)) {
+    OpenGLTextureCubeMap::OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces)
+        : TextureCubeMap(std::move(faces)) {
         // Create texture object
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_textureId);
         if (_textureId == 0) {

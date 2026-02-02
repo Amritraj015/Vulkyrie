@@ -1,7 +1,7 @@
+#include "vlkypch.h"
 #include "renderer/renderer.h"
 #include "renderer/graphics_context.h"
 #include "renderer/open_gl/open_gl_renderer.h"
-#include "core/logger.h"
 
 namespace Vulkyrie::Renderer {
     static Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
