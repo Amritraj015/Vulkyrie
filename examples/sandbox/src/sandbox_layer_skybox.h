@@ -131,6 +131,16 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
+            }
+
             void OnAttached() override {
                 VDEBUG("Layer Attached: Skybox");
             }

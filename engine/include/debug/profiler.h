@@ -167,7 +167,7 @@ namespace Vulkyrie::Debug {
 
 } // namespace Vulkyrie::Debug
 
-#define VLKY_PROFILE 1
+#define VLKY_PROFILE 0
 #if VLKY_PROFILE
   // Resolve which function signature macro will be used. Note that this only
 // is resolved when the (pre)compiler starts, so the syntax highlighting

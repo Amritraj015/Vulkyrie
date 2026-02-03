@@ -134,6 +134,16 @@ namespace Sandbox {
                 lightVertexArray->Unbind();
             }
 
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
+            }
+
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;
