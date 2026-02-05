@@ -31,6 +31,7 @@
 #include "renderer/camera.h"
 #include "renderer/buffer_element.h"
 #include "renderer/buffer_layout.h"
+#include "renderer/frame_buffer.h"
 #include "renderer/vertex_array.h"
 #include "renderer/vertex_buffer.h"
 #include "renderer/index_buffer.h"

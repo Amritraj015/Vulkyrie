@@ -4,10 +4,11 @@
 #include "renderer/renderer.h"
 
 namespace Vulkyrie::Renderer {
-    Ref<FrameBuffer> FrameBuffer::Create() {
-        switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
+
+    Ref<FrameBuffer> FrameBuffer::Create(const FrameBufferSpecification &specification) {
+        switch (GetCurrentGraphicsAPI()) {
             case Vulkyrie::Core::GraphicsAPI::OpenGL:
-                return CreateRef<OpenGLFrameBuffer>();
+                return CreateRef<OpenGLFrameBuffer>(specification);
             case Vulkyrie::Core::GraphicsAPI::Vulkan:
             default:
                 VFATAL("Unsupported Graphics API specified for FrameBuffer creation!")

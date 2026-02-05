@@ -116,7 +116,7 @@ namespace Vulkyrie::Renderer {
         glViewport(0, 0, Application::GetSingleton().GetWindowWidth(), Application::GetSingleton().GetWindowHeight());
 
         return Vulkyrie::Core::StatusCode::Successful;
-    };
+    }
 
     void OpenGLGraphicsContext::SwapBuffers() {
         glfwSwapBuffers(_windowHandle);

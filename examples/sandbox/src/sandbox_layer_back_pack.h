@@ -22,9 +22,6 @@ namespace Sandbox {
 
                 // Enable depth testing for proper 3D rendering.
                 glEnable(GL_DEPTH_TEST);
-
-                // Enable face culling to improve performance.
-                // glEnable(GL_CULL_FACE);
             };
 
             ~SandboxLayerBackPack() = default;
