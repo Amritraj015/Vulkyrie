@@ -113,6 +113,16 @@ namespace Sandbox {
                 // --------------------------------------------------------------------
             }
 
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
+            }
+
         private:
             Camera camera;
             Ref<Shader> terrainShader;
@@ -196,12 +206,13 @@ namespace Sandbox {
 
                     vertexArray = VertexArray::Create();
 
-                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.size() * sizeof(f32));
                     vertexBuffer->SetLayout({
                         { ShaderDataType::Float3, "position" },
                         { ShaderDataType::Float3, "color" },
                     });
                     vertexArray->AddVertexBuffer(vertexBuffer);
+                    vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));
 
                     Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
                     vertexArray->SetIndexBuffer(indexBuffer);

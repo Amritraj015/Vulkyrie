@@ -127,6 +127,16 @@ namespace Sandbox {
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
 
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
+            }
+
         private:
             Ref<VertexArray> objectVertexArray;
             Ref<VertexBuffer> objectVertexBuffer;

@@ -104,6 +104,16 @@ namespace Sandbox {
                 }
             }
 
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
+            }
+
         private:
             Ref<Texture2D> texture1;
             Ref<Texture2D> texture2;

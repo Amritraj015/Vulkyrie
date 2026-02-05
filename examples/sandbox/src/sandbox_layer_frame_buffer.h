@@ -19,40 +19,24 @@ namespace Sandbox {
 
                 camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
-                glGenFramebuffers(1, &framebuffer);
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-                // generate texture
-                glGenTextures(1, &textureColorbuffer);
-                glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-                glTexImage2D(GL_TEXTURE_2D,
-                             0,
-                             GL_RGB,
-                             Application::GetSingleton().GetWindowWidth(),
-                             Application::GetSingleton().GetWindowHeight(),
-                             0,
-                             GL_RGB,
-                             GL_UNSIGNED_BYTE,
-                             NULL);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glBindTexture(GL_TEXTURE_2D, 0);
-
-                // attach it to currently bound framebuffer object
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-
-                glGenRenderbuffers(1, &rbo);
-                glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
-                glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-                if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-                    VERROR("Failed to create framebuffer!")
-                }
-
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                frameBuffer = FrameBuffer::Create({
+                    .Width = Application::GetSingleton().GetWindowWidth(),
+                    .Height = Application::GetSingleton().GetWindowHeight(),
+                    .ColorAttachments = {
+                        {
+                            .Format = ColorFormat::RGBA8,
+                            .Type = AttachmentType::Texture,
+                            .Samples = 1,
+                        },
+                    },
+                    .DepthAttachment = std::make_optional<DepthAttachmentSpecification>({
+                        .Format = DepthStencilFormat::Depth24Stencil8,
+                        .Type = AttachmentType::RenderBuffer,
+                        .Samples = 1,
+                    }),
+                    .SwapchainTarget = false,
+                    .DebugName = nullptr,
+                });
 
                 // Load cube and plane textures.
                 cubeTexture = Texture2D::Create("assets/textures/container.jpg");
@@ -102,16 +86,12 @@ namespace Sandbox {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            ~SandboxLayerFrameBuffer() override {
-                glDeleteTextures(1, &textureColorbuffer);
-                glDeleteRenderbuffers(1, &rbo);
-                glDeleteFramebuffers(1, &framebuffer);
-            };
+            ~SandboxLayerFrameBuffer() = default;
 
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
 
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+                frameBuffer->Bind();
                 glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -161,7 +141,7 @@ namespace Sandbox {
                 planeVertexArray->Unbind();
 
                 // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                frameBuffer->Unbind();
 
                 glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
                 // clear all relevant buffers
@@ -172,7 +152,7 @@ namespace Sandbox {
                 quadShader->Use();
                 quadShader->SetIntUniform("screenTexture", 0);
                 quadVertexArray->Bind();
-                glBindTexture(GL_TEXTURE_2D, textureColorbuffer); // use the color attachment texture as the texture of the quad plane
+                glBindTexture(GL_TEXTURE_2D, frameBuffer->GetColorAttachmentResourceID(0)); // use the color attachment texture as the texture of the quad plane
                 glDrawArrays(GL_TRIANGLES, 0, 6);
                 quadVertexArray->Unbind();
 
@@ -189,6 +169,12 @@ namespace Sandbox {
 
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<WindowResizedEvent>([this](const WindowResizedEvent &e) {
+                    frameBuffer->Resize(e.Width, e.Height);
+
+                    return false;
+                });
 
                 dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
@@ -209,10 +195,7 @@ namespace Sandbox {
 
         private:
             Camera camera;
-
-            u32 framebuffer;
-            u32 textureColorbuffer;
-            u32 rbo;
+            Ref<FrameBuffer> frameBuffer;
 
             Ref<Texture2D> cubeTexture;
             Ref<VertexArray> cubeVertexArray;

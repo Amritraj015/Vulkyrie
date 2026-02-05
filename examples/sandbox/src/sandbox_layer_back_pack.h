@@ -22,9 +22,6 @@ namespace Sandbox {
 
                 // Enable depth testing for proper 3D rendering.
                 glEnable(GL_DEPTH_TEST);
-
-                // Enable face culling to improve performance.
-                // glEnable(GL_CULL_FACE);
             };
 
             ~SandboxLayerBackPack() = default;
@@ -63,6 +60,12 @@ namespace Sandbox {
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+
+                    return true;
+                });
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
                     camera.ProcessMouseScroll(e.OffsetY);
