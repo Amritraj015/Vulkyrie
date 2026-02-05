@@ -51,7 +51,7 @@ namespace Vulkyrie::Renderer {
         // --- Color attachments ---
         for (const auto &attachment : _specification.ColorAttachments) {
             const bool multisample = attachment.Samples > 1;
-            GLAttachment colorAttachment;
+            OpenGLFrameBufferAttachment colorAttachment;
             colorAttachment.Type = attachment.Type;
 
             if (attachment.Type == AttachmentType::Texture) {
@@ -88,9 +88,11 @@ namespace Vulkyrie::Renderer {
             }
 
             _colorAttachments.emplace_back(colorAttachment);
-            drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + colorIndex);
+            drawBuffers.emplace_back(GL_COLOR_ATTACHMENT0 + colorIndex);
             colorIndex++;
         }
+
+        VASSERT_EXPR(_colorAttachments.size() == _specification.ColorAttachments.size(), "Color attachment count mismatch!");
 
         if (!drawBuffers.empty())
             glNamedFramebufferDrawBuffers(_fboId, static_cast<GLsizei>(drawBuffers.size()), drawBuffers.data());
@@ -196,6 +198,7 @@ namespace Vulkyrie::Renderer {
             _depthAttachment = {};
         }
     }
+
     OpenGLFrameBuffer::~OpenGLFrameBuffer() {
         Destroy();
     }
