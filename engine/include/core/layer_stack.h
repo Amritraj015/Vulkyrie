@@ -12,7 +12,7 @@ namespace Vulkyrie::Core {
     struct LayerOperation {
         public:
             /** @brief The type of operation to perform on the layer stack. */
-            enum class OperationType : u8 {
+            enum class OperationType : u32 {
                 PushLayer,
                 PopLayer,
                 PushOverlay,

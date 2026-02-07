@@ -1,17 +1,17 @@
 #pragma once
 
 namespace Vulkyrie::Renderer {
-    enum class AttachmentType : u8 { Texture, RenderBuffer };
-    enum class ColorFormat : u8 { RGBA8, RGBA16F, RGBA32F, R32I };
-    enum class DepthStencilFormat : u8 { Depth24Stencil8, Depth32F };
+    enum class AttachmentType : u32 { Texture, RenderBuffer };
+    enum class ColorFormat : u32 { RGBA8, RGBA16F, RGBA32F, R32I };
+    enum class DepthStencilFormat : u32 { Depth24Stencil8, Depth32F };
 
-    enum class LoadOp {
+    enum class LoadOp : u32 {
         Load,  // Preserve previous contents
         Clear, // Clear at pass start
         DontCare
     };
 
-    enum class StoreOp {
+    enum class StoreOp : u32 {
         Store, // Keep results
         DontCare
     };

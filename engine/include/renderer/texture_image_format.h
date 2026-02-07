@@ -4,7 +4,7 @@
 
 namespace Vulkyrie::Renderer {
     /** @brief Supported image formats for textures. */
-    enum class TextureImageFormat : u8 {
+    enum class TextureImageFormat : u32 {
         None = 0,
         R8,
         RGB8,

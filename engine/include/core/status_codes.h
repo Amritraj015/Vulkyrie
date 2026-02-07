@@ -8,7 +8,7 @@
 
 namespace Vulkyrie::Core {
     /** @brief This `enum` defines status codes to represent various operation results. */
-    enum class StatusCode : int {
+    enum class StatusCode : int32_t {
         Successful = 0,               // Operation Successful.
         InvalidApplication,           // Invalid application error.
         FailedToInitializeLogger,     // Failed to initialize logger error.
