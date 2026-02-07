@@ -5,14 +5,14 @@
 
 namespace Vulkyrie::Core {
 
-    constexpr static u8 MAX_LAYER_OPERATIONS = 10;
-    constexpr static u8 MAX_LAYERS = 10;
+    constexpr static u8 MAX_LAYER_OPERATIONS = 20;
+    constexpr static u8 MAX_LAYERS = 20;
 
     /** @brief Represents an operation to be performed on the layer stack. */
     struct LayerOperation {
         public:
             /** @brief The type of operation to perform on the layer stack. */
-            enum class OperationType : u8 {
+            enum class OperationType : u32 {
                 PushLayer,
                 PopLayer,
                 PushOverlay,

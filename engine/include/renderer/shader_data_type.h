@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 
 namespace Vulkyrie::Renderer {
-    enum class ShaderDataType : u8 {
+    enum class ShaderDataType : u32 {
         None = 0,
         Float,
         Float2,

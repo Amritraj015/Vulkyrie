@@ -24,7 +24,7 @@ namespace Vulkyrie::Renderer {
 
         // Check if graphics context creation failed.
         if (nullptr == _graphicsContext) {
-            VFATAL("Failed to create graphics context for the specified graphics API.");
+            VFATAL("Failed to create graphics context for the specified graphics API: {}.", GetCurrentGraphicsAPIName());
             return Vulkyrie::Core::StatusCode::UnsupportedGraphicsAPI;
         }
 

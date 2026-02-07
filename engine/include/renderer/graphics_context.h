@@ -6,6 +6,12 @@
 namespace Vulkyrie::Renderer {
     class GraphicsContext {
         public:
+            GraphicsContext(const GraphicsContext &) = delete;
+            GraphicsContext &operator=(const GraphicsContext &) = delete;
+
+            GraphicsContext(GraphicsContext &&) = delete;
+            GraphicsContext &operator=(GraphicsContext &&) = delete;
+
             virtual ~GraphicsContext() = default;
 
             /** @brief Initializes the graphics context.
@@ -20,5 +26,8 @@ namespace Vulkyrie::Renderer {
              * @returns A smart pointer to the created GraphicsContext.
              */
             static Scope<GraphicsContext> Create();
+
+        protected:
+            GraphicsContext() = default;
     };
 } // namespace Vulkyrie::Renderer

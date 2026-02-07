@@ -12,10 +12,16 @@ namespace Vulkyrie::Renderer {
              */
             OpenGLGraphicsContext(void *windowHandle);
 
+            OpenGLGraphicsContext(const OpenGLGraphicsContext &) = delete;
+            OpenGLGraphicsContext &operator=(const OpenGLGraphicsContext &) = delete;
+
+            OpenGLGraphicsContext(OpenGLGraphicsContext &&) = delete;
+            OpenGLGraphicsContext &operator=(OpenGLGraphicsContext &&) = delete;
+
             Vulkyrie::Core::StatusCode Initialize() override;
             void SwapBuffers() override;
 
         private:
             GLFWwindow *_windowHandle;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie::Renderer

@@ -32,7 +32,11 @@ namespace Vulkyrie::Renderer {
              * @param normalized Whether the buffer element is normalized.
              */
             BufferElement(const ShaderDataType type, const std::string_view name, const bool normalized = false)
-                : Type(type), Name(name), Size(GetShaderDataTypeSize(type)), Offset(0), Normalized(normalized) {
+                : Type(type)
+                , Name(name)
+                , Size(GetShaderDataTypeSize(type))
+                , Offset(0)
+                , Normalized(normalized) {
             }
 
             /** @brief Gets the number of components in the buffer element based on its shader data type.
