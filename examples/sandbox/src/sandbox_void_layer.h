@@ -3,6 +3,7 @@
 #include <vulkyrie.h>
 #include "sandbox_layer_back_pack.h"
 #include "sandbox_layer_cubes.h"
+#include "sandbox_layer_blinn_phong_lighting.h"
 #include "sandbox_layer_frame_buffer.h"
 #include "sandbox_layer_phong_lighting.h"
 #include "sandbox_layer_specular_map.h"
@@ -56,23 +57,23 @@ namespace Sandbox {
 
             void InitializeLayerSwitcher() {
                 layerSwitchers = {
-                    [this]() { SwitchLayer<SandboxLayerSkybox>(); },
-                    [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },
-                    [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); },
-                    [this]() { SwitchLayer<SandboxLayerAttenuation>(); },
-                    [this]() { SwitchLayer<SandboxLayerPlanet>(); },
-                    [this]() { SwitchLayer<SandboxLayerCubes>(); },
-                    [this]() { SwitchLayer<SandboxLayerPhongLighting>(); },
-                    [this]() { SwitchLayer<SandboxLayerSpecularMap>(); },
-                    [this]() { SwitchLayer<SandboxLayerTerrainGeneration>(); },
-                    [this]() { SwitchLayer<SandboxLayerBackPack>(); }
+                    [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },            // Frame buffer example.
+                    [this]() { SwitchLayer<SandboxLayerBlinnPhongLighting>(); },     // Blinn-Phong lighting example.
+                    [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); }, // Depth and stencil testing example.
+                    [this]() { SwitchLayer<SandboxLayerAttenuation>(); },            // Attenuation example.
+                    [this]() { SwitchLayer<SandboxLayerPlanet>(); },                 // Planet rendering example.
+                    [this]() { SwitchLayer<SandboxLayerCubes>(); },                  // Cube rendering example.
+                    [this]() { SwitchLayer<SandboxLayerPhongLighting>(); },          // Phong lighting example.
+                    [this]() { SwitchLayer<SandboxLayerSpecularMap>(); },            // Specular mapping example.
+                    [this]() { SwitchLayer<SandboxLayerTerrainGeneration>(); },      // Terrain generation example.
+                    [this]() { SwitchLayer<SandboxLayerBackPack>(); },               // Backpack model rendering example.
+                    [this]() { SwitchLayer<SandboxLayerSkybox>(); },                 // Skybox rendering example.
                 };
             }
 
-            template<typename T>
-            void SwitchLayer() {
-                auto& app = Application::GetSingleton();
-                
+            template <typename T> void SwitchLayer() {
+                auto &app = Application::GetSingleton();
+
                 if (app.HasLayer<T>()) {
                     app.ResumeLayer<T>();
                 } else {
@@ -81,10 +82,11 @@ namespace Sandbox {
             }
 
             void SwitchToNextLayer() {
-                auto& app = Application::GetSingleton();
-                
+                auto &app = Application::GetSingleton();
+
                 // Suspend all known layers
                 app.SuspendLayer<SandboxLayerSkybox>();
+                app.SuspendLayer<SandboxLayerBlinnPhongLighting>();
                 app.SuspendLayer<SandboxLayerFrameBuffer>();
                 app.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
                 app.SuspendLayer<SandboxLayerAttenuation>();
@@ -94,10 +96,10 @@ namespace Sandbox {
                 app.SuspendLayer<SandboxLayerSpecularMap>();
                 app.SuspendLayer<SandboxLayerTerrainGeneration>();
                 app.SuspendLayer<SandboxLayerBackPack>();
-                
+
                 // Move to next layer
                 currentLayer = (currentLayer + 1) % layerSwitchers.size();
-                
+
                 // Activate the new layer
                 layerSwitchers[currentLayer]();
             }

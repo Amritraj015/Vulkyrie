@@ -166,7 +166,7 @@ namespace Vulkyrie::Renderer {
         }
 
         // Clear depth/stencil
-        if (_specification.DepthStencilAttachment) {
+        if (_specification.DepthStencilAttachment.has_value()) {
             const auto &depth = *_specification.DepthStencilAttachment;
 
             if (depth.Load == LoadOp::Clear) {
@@ -196,14 +196,13 @@ namespace Vulkyrie::Renderer {
         _colorAttachments.clear();
 
         // Delete depth attachment if present
-        if (_depthAttachment.ResourceID) {
-            if (_specification.DepthStencilAttachment) {
-                if (_specification.DepthStencilAttachment->Type == AttachmentType::Texture) {
-                    glDeleteTextures(1, &_depthAttachment.ResourceID);
-                } else {
-                    glDeleteRenderbuffers(1, &_depthAttachment.ResourceID);
-                }
+        if (_specification.DepthStencilAttachment.has_value() && _depthAttachment.ResourceID) {
+            if (_specification.DepthStencilAttachment->Type == AttachmentType::Texture) {
+                glDeleteTextures(1, &_depthAttachment.ResourceID);
+            } else {
+                glDeleteRenderbuffers(1, &_depthAttachment.ResourceID);
             }
+
             _depthAttachment = {};
         }
     }

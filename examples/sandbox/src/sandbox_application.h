@@ -7,12 +7,13 @@ namespace Sandbox {
     class SandboxApplication : public Vulkyrie::Core::Application {
         public:
             SandboxApplication(const Vulkyrie::Core::WindowProps &windowProps)
-                : Vulkyrie::Core::Application(windowProps) {}
+                : Vulkyrie::Core::Application(windowProps) {
+            }
 
             ~SandboxApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<SandboxLayerFrameBuffer>();
+                PushLayer<SandboxLayerBlinnPhongLighting>();
                 PushOverlay<SandboxVoidLayer>();
 
                 return true;

@@ -1,19 +1,58 @@
 #pragma once
 
 namespace Vulkyrie::Renderer {
-    enum class AttachmentType : u32 { Texture, RenderBuffer };
-    enum class ColorFormat : u32 { RGBA8, RGBA16F, RGBA32F, R32I };
-    enum class DepthStencilFormat : u32 { Depth24Stencil8, Depth32F };
+    /** @brief Types of attachments for framebuffers. */
+    enum class AttachmentType : u32 {
+        /** @brief Attachment is a texture. */
+        Texture,
 
-    enum class LoadOp : u32 {
-        Load,  // Preserve previous contents
-        Clear, // Clear at pass start
-        DontCare
+        /** @brief Attachment is a renderbuffer. */
+        RenderBuffer,
     };
 
+    /** @brief Supported color formats for framebuffer attachments. */
+    enum class ColorFormat : u32 {
+        /** @brief 8-bit RGBA format. */
+        RGBA8,
+
+        /** @brief 16-bit floating-point RGBA format. */
+        RGBA16F,
+
+        /** @brief 32-bit floating-point RGBA format. */
+        RGBA32F,
+
+        /** @brief 32-bit integer Red channel format. */
+        R32I,
+    };
+
+    /** @brief Supported depth and stencil formats for framebuffer attachments. */
+    enum class DepthStencilFormat : u32 {
+        /** @brief 24-bit depth and 8-bit stencil format. */
+        Depth24Stencil8,
+
+        /** @brief 32-bit floating-point depth format. */
+        Depth32F,
+    };
+
+    /** @brief Load operations for framebuffer attachments. */
+    enum class LoadOp : u32 {
+        /** @brief Preserve contents from previous rendering. */
+        Load,
+
+        /** @brief Clear contents at the start of rendering. */
+        Clear,
+
+        /** @brief Discard contents at the start of rendering. */
+        DontCare,
+    };
+
+    /** @brief Store operations for framebuffer attachments. */
     enum class StoreOp : u32 {
-        Store, // Keep results
-        DontCare
+        /** @brief Preserve contents after rendering. */
+        Store,
+
+        /** @brief Discard contents after rendering. */
+        DontCare,
     };
 
     /** @brief Specification structure for color attachment. */
@@ -82,7 +121,7 @@ namespace Vulkyrie::Renderer {
             bool SwapchainTarget = false;
 
             /** @brief Optional debug name for the framebuffer. */
-            const char *DebugName = nullptr;
+            std::string_view DebugName = "Unnamed FrameBuffer";
     };
 
     /** @brief Abstract base class for a Frame Buffer. */

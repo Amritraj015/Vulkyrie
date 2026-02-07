@@ -35,7 +35,7 @@ namespace Sandbox {
                         .Samples = 1,
                     }),
                     .SwapchainTarget = false,
-                    .DebugName = nullptr,
+                    .DebugName = "PostProcessingFrameBuffer",
                 });
 
                 // Load cube and plane textures.
@@ -94,8 +94,8 @@ namespace Sandbox {
                 frameBuffer->Bind();
                 glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+                // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Update Camera position based on input.
                 camera.OnUpdate(deltaTime);
