@@ -92,6 +92,12 @@ namespace Sandbox {
                         return true;
                     }
 
+                    if (e.KeyCode == KeyCode::R) {
+                        shader->Reload();
+
+                        return true;
+                    }
+
                     return false;
                 });
             }

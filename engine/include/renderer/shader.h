@@ -5,6 +5,9 @@
 namespace Vulkyrie::Renderer {
     class Shader {
         public:
+            /** @brief Virtual destructor for the Shader class. */
+            virtual ~Shader() = default;
+
             /** @brief Returns whether the shader is valid (compiled and linked successfully). */
             [[nodiscard]] inline bool IsValid() const {
                 return _isValid;

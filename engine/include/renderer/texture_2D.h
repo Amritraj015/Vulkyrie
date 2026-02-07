@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer/texture.h"
-#include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {
     class Texture2D : public Texture {

@@ -9,6 +9,9 @@ namespace Vulkyrie::Renderer {
     /** @brief Represents a 3D model composed of multiple meshes. */
     class Model {
         public:
+            /** @brief Virtual destructor for the Model class. */
+            virtual ~Model() = default;
+
             /** @brief Creates a model from the specified file path.
              * @param path The file path to the 3D model.
              * @param gamma Whether to apply gamma correction. Default is false.
@@ -52,7 +55,9 @@ namespace Vulkyrie::Renderer {
              * @param path The file path to the 3D model.
              * @param gammaCorrection Whether to apply gamma correction.
              */
-            Model(const std::string &path, bool gammaCorrection) : _path(path), _gammaCorrection(gammaCorrection) {
+            Model(const std::string &path, bool gammaCorrection)
+                : _path(path)
+                , _gammaCorrection(gammaCorrection) {
             }
 
             /** @brief The directory path of the model file. */

@@ -29,8 +29,7 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::Escape) {
-                        auto &app = Application::GetSingleton();
-                        app.Stop();
+                        Application::GetSingleton().Stop();
 
                         return true;
                     }

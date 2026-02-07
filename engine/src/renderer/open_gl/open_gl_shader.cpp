@@ -34,10 +34,16 @@ namespace Vulkyrie::Renderer {
 
             // Parse shader type
             size_t typeStart = tagPos + tag.size();
-            while (typeStart < lineEnd && source[typeStart] == ' ') ++typeStart;
+
+            // Skip whitespace to get to the shader type name
+            while (typeStart < lineEnd && std::isspace(static_cast<u8>(source[typeStart]))) {
+                ++typeStart;
+            }
 
             std::string_view typeName(&source[typeStart], lineEnd - typeStart);
             GLenum shaderType = ShaderTypeFromString(typeName);
+
+            VASSERT_EXPR(shaderType != INVALID_SHADER_TYPE, "Unknown shader type '{}'", typeName);
 
             // Start of GLSL code (exactly after newline)
             size_t codeStart = source.find_first_not_of("\r\n", lineEnd);
@@ -57,6 +63,9 @@ namespace Vulkyrie::Renderer {
 
     OpenGLShader::OpenGLShader(const std::filesystem::path &shaderSourcePath)
         : _shaderSourcePath(shaderSourcePath) {
+
+        VLKY_PROFILE_FUNCTION();
+
         _shaderProgramID = LoadAndCompile();
     }
 
@@ -117,14 +126,23 @@ namespace Vulkyrie::Renderer {
     }
 
     u32 OpenGLShader::Reload() {
+        VLKY_PROFILE_FUNCTION();
+
         // Create a new shader program.
         const u32 newShaderProgram = LoadAndCompile();
 
         // Return old shader program handle if compilation failed.
-        if (newShaderProgram == 0) return _shaderProgramID;
+        if (newShaderProgram == 0) {
+            // TODO: _isValid is set to false in this case even though the old shader program is still valid. Need to revisit this.
+            return _shaderProgramID;
+        }
 
         // Delete the old shader program.
         glDeleteProgram(_shaderProgramID);
+
+        // Clear the uniform location cache since the shader program may have changed
+        // and the old uniform locations may no longer be valid.
+        _uniformLocationCache.clear();
 
         // Update the shader program handle.
         _shaderProgramID = newShaderProgram;
@@ -181,13 +199,17 @@ namespace Vulkyrie::Renderer {
                     // Log an error and return.
                     VERROR("Failed to compile shader: {} - Error: {}", shaderID, infoLog.data());
 
-                    // Delete the shaders because the compilation has failed.
-                    for (const u32 shaderID : shaderIds) {
+                    // Detach and delete the current shader since the compilation has failed.
+                    glDetachShader(program, shaderID);
+                    glDeleteShader(shaderID);
+
+                    // Delete the already added shaders because the compilation has failed.
+                    for (const u32 id : shaderIds) {
                         // Detach the shader from the program.
-                        glDetachShader(program, shaderID);
+                        glDetachShader(program, id);
 
                         // Delete the shader from memory.
-                        glDeleteShader(shaderID);
+                        glDeleteShader(id);
                     }
 
                     // Mark the shader as invalid.
@@ -224,12 +246,44 @@ namespace Vulkyrie::Renderer {
             VERROR("An error occurred while linking graphics shader program: {}", infoLog.data());
 
             // Delete the shaders since the linking has failed.
-            for (const u32 shaderID : shaderIds) {
+            for (const u32 id : shaderIds) {
                 // Detach the shader from the program.
-                glDetachShader(program, shaderID);
+                glDetachShader(program, id);
 
                 // Delete the shader from memory.
-                glDeleteShader(shaderID);
+                glDeleteShader(id);
+            }
+
+            // At this point we can delete the program.
+            glDeleteProgram(program);
+
+            // Mark the shader as invalid.
+            _isValid = false;
+
+            return 0;
+        }
+
+        glValidateProgram(program);
+        glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
+
+        if (GL_FALSE == success) {
+            // Get the validation error length.
+            i32 maxLength = 0;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+            // Get the validation error message.
+            std::vector<char> infoLog(maxLength);
+            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+
+            // Log the validation error.
+            VERROR("An error occurred while validating graphics shader program: {}", infoLog.data());
+
+            // Delete the shaders since the validation has failed.
+            for (const u32 id : shaderIds) {
+                // Detach the shader from the program.
+                glDetachShader(program, id);
+                // Delete the shader from memory.
+                glDeleteShader(id);
             }
 
             // At this point we can delete the program.
