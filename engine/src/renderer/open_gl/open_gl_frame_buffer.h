@@ -59,4 +59,5 @@ namespace Vulkyrie::Renderer {
             /** @brief Destroys the framebuffer and releases its resources. */
             void Destroy();
     };
+
 } // namespace Vulkyrie::Renderer

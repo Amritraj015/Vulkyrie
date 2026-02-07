@@ -3,6 +3,7 @@
 #include "core/asserts.h"
 
 namespace Vulkyrie::Renderer {
+
     static GLenum ToGLInternalFormat(ColorFormat format) {
         switch (format) {
             case ColorFormat::RGBA8:
@@ -50,14 +51,14 @@ namespace Vulkyrie::Renderer {
 
         // --- Color attachments ---
         for (const auto &attachment : _specification.ColorAttachments) {
-            const bool multisample = attachment.Samples > 1;
+            const bool multiSample = attachment.Samples > 1;
             OpenGLFrameBufferAttachment colorAttachment;
             colorAttachment.Type = attachment.Type;
 
             if (attachment.Type == AttachmentType::Texture) {
-                glCreateTextures(multisample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &colorAttachment.ResourceID);
+                glCreateTextures(multiSample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &colorAttachment.ResourceID);
 
-                if (multisample) {
+                if (multiSample) {
                     glTextureStorage2DMultisample(colorAttachment.ResourceID,
                                                   attachment.Samples,
                                                   ToGLInternalFormat(attachment.Format),
@@ -74,11 +75,10 @@ namespace Vulkyrie::Renderer {
                 }
 
                 glNamedFramebufferTexture(_fboId, GL_COLOR_ATTACHMENT0 + colorIndex, colorAttachment.ResourceID, 0);
-            } else // Renderbuffer
-            {
+            } else {
                 glCreateRenderbuffers(1, &colorAttachment.ResourceID);
 
-                if (multisample)
+                if (multiSample)
                     glNamedRenderbufferStorageMultisample(
                         colorAttachment.ResourceID, attachment.Samples, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
                 else
@@ -100,8 +100,8 @@ namespace Vulkyrie::Renderer {
             glNamedFramebufferDrawBuffers(_fboId, 0, nullptr);
 
         // --- Depth attachment ---
-        if (_specification.DepthAttachment.has_value()) {
-            const auto &depth = *_specification.DepthAttachment;
+        if (_specification.DepthStencilAttachment.has_value()) {
+            const auto &depth = *_specification.DepthStencilAttachment;
             const bool multisample = depth.Samples > 1;
             _depthAttachment.Type = depth.Type;
 
@@ -114,6 +114,7 @@ namespace Vulkyrie::Renderer {
                 else
                     glTextureStorage2D(_depthAttachment.ResourceID, 1, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height);
 
+                // TODO: DO NOT hard code the target to DEPTH_STENCIL_ATTACHMENT, make this configurable.
                 glNamedFramebufferTexture(_fboId, GL_DEPTH_STENCIL_ATTACHMENT, _depthAttachment.ResourceID, 0);
             } else {
                 glCreateRenderbuffers(1, &_depthAttachment.ResourceID);
@@ -124,6 +125,7 @@ namespace Vulkyrie::Renderer {
                 else
                     glNamedRenderbufferStorage(_depthAttachment.ResourceID, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height);
 
+                // TODO: DO NOT hard code the target to DEPTH_STENCIL_ATTACHMENT, make this configurable.
                 glNamedFramebufferRenderbuffer(_fboId, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthAttachment.ResourceID);
             }
         }
@@ -159,8 +161,8 @@ namespace Vulkyrie::Renderer {
         }
 
         // Clear depth/stencil
-        if (_specification.DepthAttachment) {
-            const auto &depth = *_specification.DepthAttachment;
+        if (_specification.DepthStencilAttachment) {
+            const auto &depth = *_specification.DepthStencilAttachment;
 
             if (depth.Load == LoadOp::Clear) {
                 glClearNamedFramebufferfi(_fboId, GL_DEPTH_STENCIL, 0, depth.ClearDepth, depth.ClearStencil);
@@ -189,8 +191,8 @@ namespace Vulkyrie::Renderer {
 
         // Delete depth attachment if present
         if (_depthAttachment.ResourceID) {
-            if (_specification.DepthAttachment) {
-                if (_specification.DepthAttachment->Type == AttachmentType::Texture)
+            if (_specification.DepthStencilAttachment) {
+                if (_specification.DepthStencilAttachment->Type == AttachmentType::Texture)
                     glDeleteTextures(1, &_depthAttachment.ResourceID);
                 else
                     glDeleteRenderbuffers(1, &_depthAttachment.ResourceID);
@@ -202,4 +204,5 @@ namespace Vulkyrie::Renderer {
     OpenGLFrameBuffer::~OpenGLFrameBuffer() {
         Destroy();
     }
+
 } // namespace Vulkyrie::Renderer

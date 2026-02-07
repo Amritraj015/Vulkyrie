@@ -29,7 +29,7 @@ namespace Sandbox {
                             .Samples = 1,
                         },
                     },
-                    .DepthAttachment = std::make_optional<DepthAttachmentSpecification>({
+                    .DepthStencilAttachment = std::make_optional<DepthStencilAttachmentSpecification>({
                         .Format = DepthStencilFormat::Depth24Stencil8,
                         .Type = AttachmentType::RenderBuffer,
                         .Samples = 1,

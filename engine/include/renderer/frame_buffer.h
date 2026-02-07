@@ -39,7 +39,7 @@ namespace Vulkyrie::Renderer {
     };
 
     /** @brief Specification structure for depth attachment. */
-    struct DepthAttachmentSpecification {
+    struct DepthStencilAttachmentSpecification {
         public:
             /** @brief Format of the depth/stencil attachment. */
             DepthStencilFormat Format;
@@ -75,8 +75,8 @@ namespace Vulkyrie::Renderer {
             /** @brief Specifications for color attachments. */
             std::vector<ColorAttachmentSpecification> ColorAttachments;
 
-            /** @brief Specification for the depth attachment. */
-            std::optional<DepthAttachmentSpecification> DepthAttachment;
+            /** @brief Specification for the depth and stencil attachments. */
+            std::optional<DepthStencilAttachmentSpecification> DepthStencilAttachment;
 
             /** @brief Indicates if the framebuffer is a swapchain target. */
             bool SwapchainTarget = false;
