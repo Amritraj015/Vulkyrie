@@ -28,6 +28,12 @@ namespace Sandbox {
                 EventDispatcher dispatcher(event);
 
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::Escape) {
+                        Application::GetSingleton().Stop();
+
+                        return true;
+                    }
+
                     if (e.KeyCode == KeyCode::K) {
                         showWireFrame = !showWireFrame;
 

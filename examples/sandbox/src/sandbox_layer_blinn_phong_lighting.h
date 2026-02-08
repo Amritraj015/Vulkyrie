@@ -16,7 +16,8 @@ namespace Sandbox {
         public:
             SandboxLayerBlinnPhongLighting()
                 : camera(Camera::Create())
-                , useBlinnPhong(true) {
+                , useBlinnPhong(true)
+                , lightPosition(3.0f, 4.0f, 3.0f) {
 
                 camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
@@ -66,7 +67,7 @@ namespace Sandbox {
                 shader->SetMat4Uniform("model", glm::mat4(1.0f));
                 shader->SetVec3Uniform("viewPos", camera.GetPosition());
                 auto currentTime = static_cast<f32>(glfwGetTime());
-                shader->SetVec3Uniform("lightPos", glm::vec3(3.0f * sin(currentTime), 0.0f, 3.0f * cos(currentTime)));
+                shader->SetVec3Uniform("lightPos", glm::vec3(lightPosition.x * sin(currentTime), lightPosition.y, lightPosition.z * cos(currentTime)));
                 shader->SetBoolUniform("useBlinnPhong", useBlinnPhong);
 
                 // Draw surface and light.
@@ -88,7 +89,21 @@ namespace Sandbox {
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::U) {
                         useBlinnPhong = !useBlinnPhong;
+                        return true;
+                    }
 
+                    if (e.KeyCode == KeyCode::I) {
+                        lightPosition.y += 0.5f;
+                        return true;
+                    }
+
+                    if (e.KeyCode == KeyCode::O) {
+                        lightPosition.y -= 0.5f;
+                        return true;
+                    }
+
+                    if (e.KeyCode == KeyCode::R) {
+                        shader->Reload();
                         return true;
                     }
 
@@ -109,6 +124,7 @@ namespace Sandbox {
             Ref<VertexArray> vertexArray;
             Ref<Shader> shader;
             bool useBlinnPhong;
+            glm::vec3 lightPosition;
             std::vector<f32> surfaceVertices = {
                 // positions           // normals        // texcoords
                 10.0f,  -0.5f, 10.0f,  0.0f, 1.0f, 0.0f, 10.0f, 0.0f,  //

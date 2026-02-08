@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer/model.h"
-#include "renderer/mesh.h"
 #include "renderer/open_gl/open_gl_mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -10,6 +9,10 @@
 namespace Vulkyrie::Renderer {
     class OpenGLModel : public Vulkyrie::Renderer::Model {
         public:
+            /** @brief Constructs an OpenGLModel by loading a 3D model from the specified file path.
+             * @param path The file path to the 3D model.
+             * @param gammaCorrection Whether to apply gamma correction. Default is false.
+             */
             OpenGLModel(const std::filesystem::path &path, bool gammaCorrection = false);
 
         private:
