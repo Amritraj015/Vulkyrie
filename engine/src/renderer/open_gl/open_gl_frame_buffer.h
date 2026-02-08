@@ -7,6 +7,9 @@ namespace Vulkyrie::Renderer {
     /** @brief Structure representing an OpenGL attachment (color or depth). */
     struct OpenGLFrameBufferAttachment {
         public:
+            /** @brief The attachment point for the framebuffer (e.g., GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT). */
+            u32 AttachmentPoint = 0;
+
             /** @brief The OpenGL resource ID of the attachment. */
             u32 ResourceID = 0;
 
@@ -42,6 +45,11 @@ namespace Vulkyrie::Renderer {
              * @return The resource ID of the specified color attachment.
              */
             u32 GetColorAttachmentResourceID(u32 index = 0) const override;
+
+            /** @brief Retrieves the resource ID of the depth/stencil attachment.
+             * @return The resource ID of the depth/stencil attachment.
+             */
+            u32 GetDepthStencilAttachmentResourceID() const override;
 
         private:
             /** @brief The OpenGL Frame Buffer Object ID. */

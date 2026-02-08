@@ -22,18 +22,19 @@ namespace Sandbox {
                 frameBuffer = FrameBuffer::Create({
                     .Width = Application::GetSingleton().GetWindowWidth(),
                     .Height = Application::GetSingleton().GetWindowHeight(),
-                    .ColorAttachments = {
-                        {
-                            .Format = ColorFormat::RGBA8,
-                            .Type = AttachmentType::Texture,
+                    .ColorAttachments =
+                        std::vector<ColorAttachmentSpecification>{
+                            {
+                                .Format = ColorFormat::RGBA8,
+                                .Type = AttachmentType::Texture,
+                            },
+                        },
+                    .DepthStencilAttachment =
+                        DepthStencilAttachmentSpecification{
+                            .Format = DepthStencilFormat::Depth24Stencil8,
+                            .Type = AttachmentType::RenderBuffer,
                             .Samples = 1,
                         },
-                    },
-                    .DepthStencilAttachment = std::make_optional<DepthStencilAttachmentSpecification>({
-                        .Format = DepthStencilFormat::Depth24Stencil8,
-                        .Type = AttachmentType::RenderBuffer,
-                        .Samples = 1,
-                    }),
                     .SwapchainTarget = false,
                     .DebugName = "PostProcessingFrameBuffer",
                 });

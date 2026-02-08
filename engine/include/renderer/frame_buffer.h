@@ -1,5 +1,8 @@
 #pragma once
 
+#include "renderer/texture_sampler_wrap_mode.h"
+#include "renderer/texture_filter_mode.h"
+
 namespace Vulkyrie::Renderer {
     /** @brief Types of attachments for framebuffers. */
     enum class AttachmentType : u32 {
@@ -64,13 +67,25 @@ namespace Vulkyrie::Renderer {
             /** @brief Type of the attachment (Texture or RenderBuffer). */
             AttachmentType Type = AttachmentType::Texture;
 
-            /** @brief Load operation for the color attachment. */
+            /** @brief Load operation for the attachment. */
             LoadOp Load = LoadOp::Clear;
 
-            /** @brief Store operation for the color attachment. */
+            /** @brief Store operation for the attachment. */
             StoreOp Store = StoreOp::Store;
 
-            /** @brief Number of samples for multi-sampling. */
+            /** @brief Minification filter for the attachment (only applicable if attachment is a texture). */
+            TextureFilterMode MinFilter = TextureFilterMode::Linear;
+
+            /** @brief Magnification filter for the attachment (only applicable if attachment is a texture). */
+            TextureFilterMode MagFilter = TextureFilterMode::Linear;
+
+            /** @brief Wrapping mode for the S (horizontal) texture coordinate (only applicable if attachment is a texture). */
+            TextureSamplerWrapMode WrapS = TextureSamplerWrapMode::ClampToEdge;
+
+            /** @brief Wrapping mode for the T (vertical) texture coordinate (only applicable if attachment is a texture). */
+            TextureSamplerWrapMode WrapT = TextureSamplerWrapMode::ClampToEdge;
+
+            /** @brief Number of samples for multi-sampling (default is 1, meaning no multi-sampling). */
             u32 Samples = 1;
 
             /** @brief Clear color value for the attachment. */
@@ -84,15 +99,27 @@ namespace Vulkyrie::Renderer {
             DepthStencilFormat Format;
 
             /** @brief Type of the attachment (Texture or RenderBuffer). */
-            AttachmentType Type = AttachmentType::RenderBuffer;
+            AttachmentType Type = AttachmentType::Texture;
 
-            /** @brief Load operation for the depth attachment. */
+            /** @brief Load operation for the attachment. */
             LoadOp Load = LoadOp::Clear;
 
-            /** @brief Store operation for the depth attachment. */
+            /** @brief Store operation for the attachment. */
             StoreOp Store = StoreOp::Store;
 
-            /** @brief Number of samples for multi-sampling. */
+            /** @brief Minification filter for the attachment (only applicable if attachment is a texture). */
+            TextureFilterMode MinFilter = TextureFilterMode::Linear;
+
+            /** @brief Magnification filter for the attachment (only applicable if attachment is a texture). */
+            TextureFilterMode MagFilter = TextureFilterMode::Linear;
+
+            /** @brief Wrapping mode for the S (horizontal) texture coordinate (only applicable if attachment is a texture). */
+            TextureSamplerWrapMode WrapS = TextureSamplerWrapMode::ClampToEdge;
+
+            /** @brief Wrapping mode for the T (vertical) texture coordinate (only applicable if attachment is a texture). */
+            TextureSamplerWrapMode WrapT = TextureSamplerWrapMode::ClampToEdge;
+
+            /** @brief Number of samples for multi-sampling (default is 1, meaning no multi-sampling). */
             u32 Samples = 1;
 
             /** @brief Clear value for depth. */
@@ -112,10 +139,10 @@ namespace Vulkyrie::Renderer {
             u32 Height = 0;
 
             /** @brief Specifications for color attachments. */
-            std::vector<ColorAttachmentSpecification> ColorAttachments;
+            std::optional<std::vector<ColorAttachmentSpecification>> ColorAttachments = std::nullopt;
 
             /** @brief Specification for the depth and stencil attachments. */
-            std::optional<DepthStencilAttachmentSpecification> DepthStencilAttachment;
+            std::optional<DepthStencilAttachmentSpecification> DepthStencilAttachment = std::nullopt;
 
             /** @brief Indicates if the framebuffer is a swapchain target. */
             bool SwapchainTarget = false;
@@ -146,6 +173,11 @@ namespace Vulkyrie::Renderer {
              * @return The resource ID of the specified color attachment.
              */
             virtual u32 GetColorAttachmentResourceID(u32 index = 0) const = 0;
+
+            /** @brief Retrieves the resource ID of the depth/stencil attachment.
+             * @return The resource ID of the depth/stencil attachment.
+             */
+            virtual u32 GetDepthStencilAttachmentResourceID() const = 0;
 
             /** @brief Factory method to create a FrameBuffer instance based on the current graphics API.
              * @param specification The specification for the framebuffer to be created.

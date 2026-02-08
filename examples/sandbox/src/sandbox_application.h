@@ -13,7 +13,7 @@ namespace Sandbox {
             ~SandboxApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<SandboxLayerBlinnPhongLighting>();
+                PushLayer<SandboxLayerShadowMapping>();
                 PushOverlay<SandboxVoidLayer>();
 
                 return true;

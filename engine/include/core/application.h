@@ -97,7 +97,7 @@ namespace Vulkyrie::Core {
              */
             template <typename TLayer>
                 requires std::derived_from<TLayer, Layer>
-            bool HasLayer() const {
+            [[nodiscard]] bool HasLayer() const {
                 return _layers.HasLayer<TLayer>();
             }
 
@@ -107,7 +107,7 @@ namespace Vulkyrie::Core {
              */
             template <typename TLayer>
                 requires(std::derived_from<TLayer, Layer>)
-            const TLayer *GetLayer() {
+            [[nodiscard]] const TLayer *GetLayer() {
                 return _layers.GetActiveLayer<TLayer>();
             }
 
@@ -121,15 +121,19 @@ namespace Vulkyrie::Core {
             /** @brief Gets the width of the application window.
              * @returns The width of the window in pixels.
              */
-            inline u32 GetWindowWidth() const {
+            [[nodiscard]] inline u32 GetWindowWidth() const {
                 return _windowProps.Width;
             }
 
             /** @brief Gets the height of the application window.
              * @returns The height of the window in pixels.
              */
-            inline u32 GetWindowHeight() const {
+            [[nodiscard]] inline u32 GetWindowHeight() const {
                 return _windowProps.Height;
+            }
+
+            [[nodiscard]] f32 GetTime() const {
+                return _platform->GetTime();
             }
 
         protected:

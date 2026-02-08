@@ -10,6 +10,7 @@
 #include "sandbox_layer_terrain_generation.h"
 #include "sandbox_layer_attenuation.h"
 #include "sandbox_layer_planet.h"
+#include "sandbox_layer_shadow_mapping.h"
 #include "sandbox_layer_skybox.h"
 #include "sandbox_layer_depth_and_stencil_testing.h"
 
@@ -64,6 +65,7 @@ namespace Sandbox {
             void InitializeLayerSwitcher() {
                 layerSwitchers = {
                     [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },            // Frame buffer example.
+                    [this]() { SwitchLayer<SandboxLayerShadowMapping>(); },          // Shadow mapping example.
                     [this]() { SwitchLayer<SandboxLayerBlinnPhongLighting>(); },     // Blinn-Phong lighting example.
                     [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); }, // Depth and stencil testing example.
                     [this]() { SwitchLayer<SandboxLayerAttenuation>(); },            // Attenuation example.
@@ -92,6 +94,7 @@ namespace Sandbox {
 
                 // Suspend all known layers
                 app.SuspendLayer<SandboxLayerSkybox>();
+                app.SuspendLayer<SandboxLayerShadowMapping>();
                 app.SuspendLayer<SandboxLayerBlinnPhongLighting>();
                 app.SuspendLayer<SandboxLayerFrameBuffer>();
                 app.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
