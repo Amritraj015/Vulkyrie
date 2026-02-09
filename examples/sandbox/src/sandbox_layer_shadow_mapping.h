@@ -113,6 +113,7 @@ namespace Sandbox {
                 {
                     // Render depth map to quad for visual debugging.
                     glViewport(0, 0, app.GetWindowWidth(), app.GetWindowHeight());
+                    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                     // 2. render scene as normal using the generated depth/shadow map

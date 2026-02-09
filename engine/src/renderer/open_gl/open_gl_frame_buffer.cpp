@@ -1,6 +1,7 @@
 #include "renderer/open_gl/open_gl_frame_buffer.h"
 #include <glad/glad.h>
 #include "core/asserts.h"
+#include "renderer/open_gl/open_gl_utilities.h"
 
 namespace Vulkyrie::Renderer {
 
@@ -28,32 +29,6 @@ namespace Vulkyrie::Renderer {
         }
 
         return GL_DEPTH24_STENCIL8;
-    }
-
-    static constexpr GLenum ToGLSamplerWrapMode(TextureSamplerWrapMode mode) {
-        switch (mode) {
-            case TextureSamplerWrapMode::Repeat:
-                return GL_REPEAT;
-            case TextureSamplerWrapMode::MirroredRepeat:
-                return GL_MIRRORED_REPEAT;
-            case TextureSamplerWrapMode::ClampToEdge:
-                return GL_CLAMP_TO_EDGE;
-            case TextureSamplerWrapMode::ClampToBorder:
-                return GL_CLAMP_TO_BORDER;
-        }
-
-        return GL_REPEAT;
-    }
-
-    static constexpr GLenum ToGLTextureFilterMode(TextureFilterMode mode) {
-        switch (mode) {
-            case TextureFilterMode::Nearest:
-                return GL_NEAREST;
-            case TextureFilterMode::Linear:
-                return GL_LINEAR;
-        }
-
-        return GL_LINEAR;
     }
 
     static constexpr bool HasStencil(DepthStencilFormat format) {
@@ -124,10 +99,10 @@ namespace Vulkyrie::Renderer {
                                                       GL_TRUE);
                     } else {
                         glTextureStorage2D(glAttachment.ResourceID, 1, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
-                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToGLTextureFilterMode(attachment.MinFilter));
-                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToGLTextureFilterMode(attachment.MagFilter));
-                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToGLSamplerWrapMode(attachment.WrapS));
-                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToGLSamplerWrapMode(attachment.WrapT));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToOpenGLTextureFilterMode(attachment.MinFilter));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToOpenGLTextureFilterMode(attachment.MagFilter));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrapMode(attachment.WrapS));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrapMode(attachment.WrapT));
                     }
 
                     glNamedFramebufferTexture(_fboId, glAttachment.AttachmentPoint, glAttachment.ResourceID, 0);
@@ -179,10 +154,10 @@ namespace Vulkyrie::Renderer {
                         _depthAttachment.ResourceID, depth.Samples, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height, GL_TRUE);
                 } else {
                     glTextureStorage2D(_depthAttachment.ResourceID, 1, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height);
-                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToGLTextureFilterMode(depth.MinFilter));
-                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToGLTextureFilterMode(depth.MagFilter));
-                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToGLSamplerWrapMode(depth.WrapS));
-                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToGLSamplerWrapMode(depth.WrapT));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToOpenGLTextureFilterMode(depth.MinFilter));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToOpenGLTextureFilterMode(depth.MagFilter));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrapMode(depth.WrapS));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrapMode(depth.WrapT));
                 }
 
                 glNamedFramebufferTexture(_fboId, _depthAttachment.AttachmentPoint, _depthAttachment.ResourceID, 0);

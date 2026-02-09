@@ -1,5 +1,6 @@
 #include "renderer/open_gl/open_gl_texture_cube_map.h"
 #include "vlkypch.h"
+#include "core/asserts.h"
 #include "glad/glad.h"
 #include "vendor/stb_image.h"
 
@@ -8,10 +9,8 @@ namespace Vulkyrie::Renderer {
         : TextureCubeMap(std::move(faces)) {
         // Create texture object
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_textureId);
-        if (_textureId == 0) {
-            VERROR("Failed to create OpenGL texture for cube map");
-            throw std::runtime_error("Failed to create OpenGL texture for cube map");
-        }
+
+        VASSERT_EXPR(_textureId != 0, "Failed to create OpenGL texture for cube map");
 
         stbi_set_flip_vertically_on_load(false);
 
@@ -21,10 +20,10 @@ namespace Vulkyrie::Renderer {
 
         // ---- Load first face to establish format and size ----
         stbi_uc *data = stbi_load(_faces[0].c_str(), &width, &height, &channels, 0);
+
         if (!data) {
             glDeleteTextures(1, &_textureId);
-            VERROR("Failed to load cubemap face: {}", _faces[0].c_str());
-            throw std::runtime_error("Failed to load cubemap face: " + _faces[0].string());
+            VASSERT_EXPR(false, "Failed to load cubemap face: {}", _faces[0].c_str());
         }
 
         GLenum internalFormat = 0;
@@ -39,8 +38,7 @@ namespace Vulkyrie::Renderer {
         } else {
             stbi_image_free(data);
             glDeleteTextures(1, &_textureId);
-            VERROR("Unsupported channel count for cubemap face: {}", _faces[0].c_str());
-            throw std::runtime_error("Unsupported channel count for cubemap face: " + _faces[0].string());
+            VASSERT_EXPR(false, "Unsupported channel count for cubemap face: {}", _faces[0].c_str());
         }
 
         // Allocate immutable storage for all faces
@@ -59,24 +57,21 @@ namespace Vulkyrie::Renderer {
             data = stbi_load(_faces[i].c_str(), &faceWidth, &faceHeight, &faceChannels, 0);
             if (!data) {
                 glDeleteTextures(1, &_textureId);
-                VERROR("Failed to load cubemap face: {}", _faces[i].c_str());
-                throw std::runtime_error("Failed to load cubemap face: " + _faces[i].string());
+                VASSERT_EXPR(false, "Failed to load cubemap face: {}", _faces[i].c_str());
             }
 
             // Validate dimensions
             if (faceWidth != width || faceHeight != height) {
                 stbi_image_free(data);
                 glDeleteTextures(1, &_textureId);
-                VERROR("Cubemap face size mismatch: {}", _faces[i].c_str());
-                throw std::runtime_error("Cubemap face size mismatch: " + _faces[i].string());
+                VASSERT_EXPR(false, "Cubemap face size mismatch: {}", _faces[i].c_str());
             }
 
             // Validate channel count
             if (faceChannels != channels) {
                 stbi_image_free(data);
                 glDeleteTextures(1, &_textureId);
-                VERROR("Cubemap face channel mismatch: {}", _faces[i].c_str());
-                throw std::runtime_error("Cubemap face channel mismatch: " + _faces[i].string());
+                VASSERT_EXPR(false, "Cubemap face channel mismatch: {}", _faces[i].c_str());
             }
 
             // Upload face
@@ -106,4 +101,5 @@ namespace Vulkyrie::Renderer {
             _textureId = 0;
         }
     }
+
 } // namespace Vulkyrie::Renderer
