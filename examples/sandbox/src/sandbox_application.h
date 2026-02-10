@@ -13,7 +13,8 @@ namespace Sandbox {
             ~SandboxApplication() override = default;
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
-                PushLayer<SandboxLayerShadowMapping>();
+                // PushLayer<SandboxLayerShadowMapping>();
+                PushLayer<SandboxLayerNormalMapping>();
                 PushOverlay<SandboxVoidLayer>();
 
                 return true;

@@ -6,6 +6,7 @@
 #include "sandbox_layer_blinn_phong_lighting.h"
 #include "sandbox_layer_frame_buffer.h"
 #include "sandbox_layer_phong_lighting.h"
+#include "sandbox_layer_normal_mapping.h"
 #include "sandbox_layer_specular_map.h"
 #include "sandbox_layer_terrain_generation.h"
 #include "sandbox_layer_attenuation.h"
@@ -70,6 +71,7 @@ namespace Sandbox {
             void InitializeLayerSwitcher() {
                 layerSwitchers = {
                     [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },            // Frame buffer example.
+                    [this]() { SwitchLayer<SandboxLayerNormalMapping>(); },          // Normal mapping example.
                     [this]() { SwitchLayer<SandboxLayerShadowMapping>(); },          // Shadow mapping example.
                     [this]() { SwitchLayer<SandboxLayerBlinnPhongLighting>(); },     // Blinn-Phong lighting example.
                     [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); }, // Depth and stencil testing example.
@@ -99,6 +101,7 @@ namespace Sandbox {
 
                 // Suspend all known layers
                 app.SuspendLayer<SandboxLayerSkybox>();
+                app.SuspendLayer<SandboxLayerNormalMapping>();
                 app.SuspendLayer<SandboxLayerShadowMapping>();
                 app.SuspendLayer<SandboxLayerBlinnPhongLighting>();
                 app.SuspendLayer<SandboxLayerFrameBuffer>();
