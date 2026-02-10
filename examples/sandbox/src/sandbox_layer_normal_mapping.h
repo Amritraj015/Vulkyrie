@@ -17,35 +17,48 @@ namespace Sandbox {
                 , startingLightPosition(0.0f, 0.0f, 3.0f) {
 
                 // Load shaders and textures.
-                shader = Shader::Create("assets/shaders/normal_mapping.glsl");
+                brickWallShader = Shader::Create("assets/shaders/normal_mapping.glsl");
                 brickWallTexture = Texture2D::Create("assets/textures/brickwall/brickwall.jpg");
                 brickWallNormalMap = Texture2D::Create("assets/textures/brickwall/brickwall_normal.jpg");
+                lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
                 // Assert that shader and texture are loaded successfully.
-                assert(shader->IsValid());
+                assert(brickWallShader->IsValid());
                 assert(brickWallTexture->IsLoaded());
                 assert(brickWallNormalMap->IsLoaded());
+                assert(lightShader->IsValid());
 
-                // Create vertex array for the surface.
-                vertexArray = VertexArray::Create();
+                // Create vertex array for the wall.
+                brickWallVertexArray = VertexArray::Create();
                 Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPos" },
                     { ShaderDataType::Float2, "aTexCoord" },
                 });
-                vertexArray->AddVertexBuffer(vertexBuffer);
+                brickWallVertexArray->AddVertexBuffer(vertexBuffer);
 
-                shader->Use();
+                // Create the vertex array for the light source.
+                lightSourceVertexArray = VertexArray::Create();
+                Ref<VertexBuffer> lightVertexBuffer = VertexBuffer::Create(lightCubeVertices.data(), lightCubeVertices.size() * sizeof(f32));
+                lightVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "aPos" },
+                });
+                lightSourceVertexArray->AddVertexBuffer(lightVertexBuffer);
+
+                brickWallShader->Use();
 
                 // Bind Texture and normal map.
                 brickWallTexture->Bind(0);
                 brickWallNormalMap->Bind(1);
 
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
-                shader->SetMat4Uniform("projection", projection);
+                brickWallShader->SetMat4Uniform("projection", projection);
 
                 glm::mat4 model = glm::mat4(1.0f);
-                shader->SetMat4Uniform("model", model);
+                brickWallShader->SetMat4Uniform("model", model);
+
+                lightShader->Use();
+                lightShader->SetMat4Uniform("projection", projection);
 
                 // This is required to make sure 3D rendering works properly.
                 glEnable(GL_DEPTH_TEST);
@@ -72,21 +85,33 @@ namespace Sandbox {
                 camera.OnUpdate(deltaTime);
 
                 // Use the graphics shader program.
-                shader->Use();
+                brickWallShader->Use();
 
                 // Build transformation matrices and set uniforms.
-                shader->SetVec3Uniform("viewPos", camera.GetPosition());
-                shader->SetMat4Uniform("view", camera.GetViewMatrix());
+                brickWallShader->SetVec3Uniform("viewPos", camera.GetPosition());
+                brickWallShader->SetMat4Uniform("view", camera.GetViewMatrix());
                 glm::vec3 lightPos = startingLightPosition;
                 auto currentTime = app.GetTime();
-                lightPos.x = 1.5f * sin(currentTime);
-                lightPos.z = 1.5f * cos(currentTime);
-                shader->SetVec3Uniform("lightPos", lightPos);
+                lightPos.x = 5.0f * sin(currentTime);
+                lightPos.z = 3.0f * cos(currentTime);
+                brickWallShader->SetVec3Uniform("lightPos", lightPos);
 
                 // render container
-                vertexArray->Bind();
+                brickWallVertexArray->Bind();
                 glDrawArrays(GL_TRIANGLES, 0, 6);
-                vertexArray->Unbind();
+                brickWallVertexArray->Unbind();
+
+                lightShader->Use();
+                lightShader->SetMat4Uniform("view", camera.GetViewMatrix());
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, lightPos);
+                model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+                lightShader->SetMat4Uniform("model", model);
+
+                // Draw the light source.
+                lightSourceVertexArray->Bind();
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+                lightSourceVertexArray->Unbind();
             }
 
             void OnEvent(Event &event) override {
@@ -101,12 +126,59 @@ namespace Sandbox {
 
         private:
             Application &app;
+            Camera camera;
+
             Ref<Texture2D> brickWallTexture;
             Ref<Texture2D> brickWallNormalMap;
-            Ref<VertexArray> vertexArray;
-            Ref<Shader> shader;
+            Ref<VertexArray> brickWallVertexArray;
+            Ref<Shader> brickWallShader;
+
             glm::vec3 startingLightPosition;
-            Camera camera;
+            Ref<VertexArray> lightSourceVertexArray;
+            Ref<Shader> lightShader;
+            std::vector<f32> lightCubeVertices = {
+                -0.5f, -0.5f, -0.5f, //
+                0.5f,  -0.5f, -0.5f, //
+                0.5f,  0.5f,  -0.5f, //
+                0.5f,  0.5f,  -0.5f, //
+                -0.5f, 0.5f,  -0.5f, //
+                -0.5f, -0.5f, -0.5f, //
+
+                -0.5f, -0.5f, 0.5f, //
+                0.5f,  -0.5f, 0.5f, //
+                0.5f,  0.5f,  0.5f, //
+                0.5f,  0.5f,  0.5f, //
+                -0.5f, 0.5f,  0.5f, //
+                -0.5f, -0.5f, 0.5f, //
+
+                -0.5f, 0.5f,  0.5f,  //
+                -0.5f, 0.5f,  -0.5f, //
+                -0.5f, -0.5f, -0.5f, //
+                -0.5f, -0.5f, -0.5f, //
+                -0.5f, -0.5f, 0.5f,  //
+                -0.5f, 0.5f,  0.5f,  //
+
+                0.5f,  0.5f,  0.5f,  //
+                0.5f,  0.5f,  -0.5f, //
+                0.5f,  -0.5f, -0.5f, //
+                0.5f,  -0.5f, -0.5f, //
+                0.5f,  -0.5f, 0.5f,  //
+                0.5f,  0.5f,  0.5f,  //
+
+                -0.5f, -0.5f, -0.5f, //
+                0.5f,  -0.5f, -0.5f, //
+                0.5f,  -0.5f, 0.5f,  //
+                0.5f,  -0.5f, 0.5f,  //
+                -0.5f, -0.5f, 0.5f,  //
+                -0.5f, -0.5f, -0.5f, //
+
+                -0.5f, 0.5f,  -0.5f, //
+                0.5f,  0.5f,  -0.5f, //
+                0.5f,  0.5f,  0.5f,  //
+                0.5f,  0.5f,  0.5f,  //
+                -0.5f, 0.5f,  0.5f,  //
+                -0.5f, 0.5f,  -0.5f, //
+            };
 
             std::vector<f32> vertices = {
                 // positions        // texture coords
