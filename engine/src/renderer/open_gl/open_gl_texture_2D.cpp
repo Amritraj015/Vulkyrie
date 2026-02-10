@@ -1,5 +1,6 @@
 #include "vlkypch.h"
 #include "open_gl_texture_2D.h"
+#include "renderer/open_gl/open_gl_utilities.h"
 #include "vendor/stb_image.h"
 
 namespace Vulkyrie::Renderer {
@@ -45,17 +46,23 @@ namespace Vulkyrie::Renderer {
         _imageFormat = VulkyrieImageFormatToOpenGLInternalFormat(_specification.Format);
         _dataFormat = VulkyrieImageFormatToOpenGLDataFormat(_specification.Format);
 
-        glCreateTextures(GL_TEXTURE_2D, 1, &_textureId);
-        glTextureStorage2D(_textureId, 1, _imageFormat, _width, _height);
+        bool multisample = _specification.Samples > 1;
 
-        glTextureParameteri(_textureId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(_textureId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        if (multisample) {
+            glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &_textureId);
+            glTextureStorage2DMultisample(_textureId, _specification.Samples, _imageFormat, _width, _height, GL_TRUE);
+        } else {
+            glCreateTextures(GL_TEXTURE_2D, 1, &_textureId);
+            glTextureStorage2D(_textureId, 1, _imageFormat, _width, _height);
 
-        glTextureParameteri(_textureId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTextureParameteri(_textureId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTextureParameteri(_textureId, GL_TEXTURE_MIN_FILTER, ToOpenGLTextureFilterMode(_specification.MinFilter));
+            glTextureParameteri(_textureId, GL_TEXTURE_MAG_FILTER, ToOpenGLTextureFilterMode(_specification.MagFilter));
+            glTextureParameteri(_textureId, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrapMode(_specification.WrapS));
+            glTextureParameteri(_textureId, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrapMode(_specification.WrapT));
 
-        if (_specification.GenerateMips) {
-            glGenerateTextureMipmap(_textureId);
+            if (_specification.GenerateMips) {
+                glGenerateTextureMipmap(_textureId);
+            }
         }
     }
 

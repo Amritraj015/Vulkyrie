@@ -24,7 +24,7 @@ namespace Vulkyrie::Core {
             void CaptureMouseOnFocus(bool enable) override;
 
             [[nodiscard]] inline f32 GetTime() const override {
-                return static_cast<float>(glfwGetTime());
+                return static_cast<f32>(glfwGetTime());
             }
 
             [[nodiscard]] inline void *GetWindowHandle() const override {

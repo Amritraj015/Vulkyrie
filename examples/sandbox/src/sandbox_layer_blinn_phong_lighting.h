@@ -15,7 +15,8 @@ namespace Sandbox {
     class SandboxLayerBlinnPhongLighting final : public Layer {
         public:
             SandboxLayerBlinnPhongLighting()
-                : camera(Camera::Create())
+                : app(Application::GetSingleton())
+                , camera(Camera::Create())
                 , useBlinnPhong(true)
                 , lightPosition(3.0f, 4.0f, 3.0f) {
 
@@ -61,12 +62,11 @@ namespace Sandbox {
                 shader->SetMat4Uniform("view", camera.GetViewMatrix());
 
                 // Set other uniforms.
-                auto &app = Application::GetSingleton();
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 shader->SetMat4Uniform("projection", projection);
                 shader->SetMat4Uniform("model", glm::mat4(1.0f));
                 shader->SetVec3Uniform("viewPos", camera.GetPosition());
-                auto currentTime = static_cast<f32>(glfwGetTime());
+                auto currentTime = app.GetTime();
                 shader->SetVec3Uniform("lightPos", glm::vec3(lightPosition.x * sin(currentTime), lightPosition.y, lightPosition.z * cos(currentTime)));
                 shader->SetBoolUniform("useBlinnPhong", useBlinnPhong);
 
@@ -114,11 +114,13 @@ namespace Sandbox {
             void OnAttached() override {
                 VDEBUG("Layer Attached: Blinn-Phong Lighting");
             }
+
             void OnDetached() override {
                 VDEBUG("Layer Detached: Blinn-Phong Lighting");
             }
 
         private:
+            Application &app;
             Camera camera;
             Ref<Texture2D> surfaceTexture;
             Ref<VertexArray> vertexArray;

@@ -14,26 +14,28 @@ namespace Sandbox {
     class SandboxLayerFrameBuffer final : public Layer {
         public:
             SandboxLayerFrameBuffer()
-                : camera(Camera::Create())
+                : app(Application::GetSingleton())
+                , camera(Camera::Create())
                 , showDepthValues(false) {
 
                 camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
                 frameBuffer = FrameBuffer::Create({
-                    .Width = Application::GetSingleton().GetWindowWidth(),
-                    .Height = Application::GetSingleton().GetWindowHeight(),
-                    .ColorAttachments = {
-                        {
-                            .Format = ColorFormat::RGBA8,
-                            .Type = AttachmentType::Texture,
+                    .Width = app.GetWindowWidth(),
+                    .Height = app.GetWindowHeight(),
+                    .ColorAttachments =
+                        std::vector<ColorAttachmentSpecification>{
+                            {
+                                .Format = ColorFormat::RGBA8,
+                                .Type = AttachmentType::Texture,
+                            },
+                        },
+                    .DepthStencilAttachment =
+                        DepthStencilAttachmentSpecification{
+                            .Format = DepthStencilFormat::Depth24Stencil8,
+                            .Type = AttachmentType::RenderBuffer,
                             .Samples = 1,
                         },
-                    },
-                    .DepthStencilAttachment = std::make_optional<DepthStencilAttachmentSpecification>({
-                        .Format = DepthStencilFormat::Depth24Stencil8,
-                        .Type = AttachmentType::RenderBuffer,
-                        .Samples = 1,
-                    }),
                     .SwapchainTarget = false,
                     .DebugName = "PostProcessingFrameBuffer",
                 });
@@ -107,10 +109,7 @@ namespace Sandbox {
                 shaderToUse->Use();
 
                 // Projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 shaderToUse->SetMat4Uniform("projection", projection);
 
                 // View transform
@@ -194,6 +193,7 @@ namespace Sandbox {
             }
 
         private:
+            Application &app;
             Camera camera;
             Ref<FrameBuffer> frameBuffer;
 
@@ -212,7 +212,7 @@ namespace Sandbox {
             bool showDepthValues;
 
             std::vector<f32> cubeVertices = {
-                // positions          // texture Coords
+                // positions         // texture Coords
                 -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
                 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
                 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //

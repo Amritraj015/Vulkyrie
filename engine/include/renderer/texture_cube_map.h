@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/graphics_api.h"
-
 namespace Vulkyrie::Renderer {
     /** @brief Abstract base class for a cube map texture. */
     class TextureCubeMap {
@@ -44,7 +42,10 @@ namespace Vulkyrie::Renderer {
             /** @brief Constructs a TextureCubeMap with the specified file paths.
              * @param faces The file paths for the cube map faces.
              */
-            TextureCubeMap(std::array<std::filesystem::path, 6> faces) : _textureId(0), _isValid(false), _faces(std::move(faces)) {
+            TextureCubeMap(std::array<std::filesystem::path, 6> faces)
+                : _textureId(0)
+                , _isValid(false)
+                , _faces(std::move(faces)) {
             }
 
             /** @brief The renderer-specific texture ID. */

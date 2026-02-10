@@ -1,10 +1,11 @@
 #include "renderer/open_gl/open_gl_frame_buffer.h"
 #include <glad/glad.h>
 #include "core/asserts.h"
+#include "renderer/open_gl/open_gl_utilities.h"
 
 namespace Vulkyrie::Renderer {
 
-    static GLenum ToGLInternalFormat(ColorFormat format) {
+    static constexpr GLenum ToGLInternalFormat(ColorFormat format) {
         switch (format) {
             case ColorFormat::RGBA8:
                 return GL_RGBA8;
@@ -19,7 +20,7 @@ namespace Vulkyrie::Renderer {
         return GL_RGBA8;
     }
 
-    static GLenum ToGLInternalFormat(DepthStencilFormat format) {
+    static constexpr GLenum ToGLInternalFormat(DepthStencilFormat format) {
         switch (format) {
             case DepthStencilFormat::Depth24Stencil8:
                 return GL_DEPTH24_STENCIL8;
@@ -30,14 +31,27 @@ namespace Vulkyrie::Renderer {
         return GL_DEPTH24_STENCIL8;
     }
 
+    static constexpr bool HasStencil(DepthStencilFormat format) {
+        return format == DepthStencilFormat::Depth24Stencil8;
+    }
+
     OpenGLFrameBuffer::OpenGLFrameBuffer(const FrameBufferSpecification &specification)
         : FrameBuffer(specification) {
         Create();
     }
 
+    OpenGLFrameBuffer::~OpenGLFrameBuffer() {
+        Destroy();
+    }
+
     u32 OpenGLFrameBuffer::GetColorAttachmentResourceID(u32 index) const {
-        VASSERT_EXPR(index < _colorAttachments.size(), "Color attachment index out of bounds!");
+        VASSERT_EXPR(index < _colorAttachments.size(), "Color attachment index out of bounds");
         return _colorAttachments[index].ResourceID;
+    }
+
+    u32 OpenGLFrameBuffer::GetDepthStencilAttachmentResourceID() const {
+        VASSERT_EXPR(_depthAttachment.ResourceID != 0, "No depth attachment found");
+        return _depthAttachment.ResourceID;
     }
 
     void OpenGLFrameBuffer::Create() {
@@ -45,68 +59,92 @@ namespace Vulkyrie::Renderer {
 
         glCreateFramebuffers(1, &_fboId);
 
-        u32 colorIndex = 0;
-        std::vector<GLenum> drawBuffers;
-        drawBuffers.reserve(_specification.ColorAttachments.size());
-        _colorAttachments.reserve(_specification.ColorAttachments.size());
-
-        // --- Color attachments ---
-        for (const auto &attachment : _specification.ColorAttachments) {
-            const bool multiSample = attachment.Samples > 1;
-            OpenGLFrameBufferAttachment colorAttachment;
-            colorAttachment.Type = attachment.Type;
-
-            if (attachment.Type == AttachmentType::Texture) {
-                glCreateTextures(multiSample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &colorAttachment.ResourceID);
-
-                if (multiSample) {
-                    glTextureStorage2DMultisample(colorAttachment.ResourceID,
-                                                  attachment.Samples,
-                                                  ToGLInternalFormat(attachment.Format),
-                                                  _specification.Width,
-                                                  _specification.Height,
-                                                  GL_TRUE);
-                } else {
-                    glTextureStorage2D(colorAttachment.ResourceID, 1, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
-
-                    glTextureParameteri(colorAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTextureParameteri(colorAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTextureParameteri(colorAttachment.ResourceID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                    glTextureParameteri(colorAttachment.ResourceID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                }
-
-                glNamedFramebufferTexture(_fboId, GL_COLOR_ATTACHMENT0 + colorIndex, colorAttachment.ResourceID, 0);
+        u32 expectedSamples = 1;
+        auto checkSamples = [&](u32 samples) {
+            if (expectedSamples == 1) {
+                expectedSamples = samples;
             } else {
-                glCreateRenderbuffers(1, &colorAttachment.ResourceID);
+                VASSERT_EXPR(samples == expectedSamples, "All framebuffer attachments must have the same sample count");
+            }
+        };
 
-                if (multiSample) {
-                    glNamedRenderbufferStorageMultisample(
-                        colorAttachment.ResourceID, attachment.Samples, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
+        std::vector<GLenum> drawBuffers;
+
+        // Create color attachments if specified.
+        if (_specification.ColorAttachments.has_value()) {
+            u32 colorIndex = 0;
+
+            _colorAttachments.clear();
+            _colorAttachments.reserve(_specification.ColorAttachments->size());
+            drawBuffers.reserve(_specification.ColorAttachments->size());
+
+            for (const auto &attachment : *_specification.ColorAttachments) {
+                checkSamples(attachment.Samples);
+
+                OpenGLFrameBufferAttachment glAttachment{};
+                glAttachment.Type = attachment.Type;
+                glAttachment.AttachmentPoint = GL_COLOR_ATTACHMENT0 + colorIndex;
+
+                const bool multisample = attachment.Samples > 1;
+
+                if (attachment.Type == AttachmentType::Texture) {
+                    glCreateTextures(multisample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &glAttachment.ResourceID);
+
+                    if (multisample) {
+                        glTextureStorage2DMultisample(glAttachment.ResourceID,
+                                                      attachment.Samples,
+                                                      ToGLInternalFormat(attachment.Format),
+                                                      _specification.Width,
+                                                      _specification.Height,
+                                                      GL_TRUE);
+                    } else {
+                        glTextureStorage2D(glAttachment.ResourceID, 1, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToOpenGLTextureFilterMode(attachment.MinFilter));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToOpenGLTextureFilterMode(attachment.MagFilter));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrapMode(attachment.WrapS));
+                        glTextureParameteri(glAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrapMode(attachment.WrapT));
+                    }
+
+                    glNamedFramebufferTexture(_fboId, glAttachment.AttachmentPoint, glAttachment.ResourceID, 0);
                 } else {
-                    glNamedRenderbufferStorage(colorAttachment.ResourceID, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
+                    glCreateRenderbuffers(1, &glAttachment.ResourceID);
+
+                    if (multisample) {
+                        glNamedRenderbufferStorageMultisample(
+                            glAttachment.ResourceID, attachment.Samples, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
+                    } else {
+                        glNamedRenderbufferStorage(glAttachment.ResourceID, ToGLInternalFormat(attachment.Format), _specification.Width, _specification.Height);
+                    }
+
+                    glNamedFramebufferRenderbuffer(_fboId, glAttachment.AttachmentPoint, GL_RENDERBUFFER, glAttachment.ResourceID);
                 }
 
-                glNamedFramebufferRenderbuffer(_fboId, GL_COLOR_ATTACHMENT0 + colorIndex, GL_RENDERBUFFER, colorAttachment.ResourceID);
+                _colorAttachments.emplace_back(glAttachment);
+                drawBuffers.emplace_back(glAttachment.AttachmentPoint);
+                ++colorIndex;
             }
-
-            _colorAttachments.emplace_back(colorAttachment);
-            drawBuffers.emplace_back(GL_COLOR_ATTACHMENT0 + colorIndex);
-            colorIndex++;
         }
-
-        VASSERT_EXPR(_colorAttachments.size() == _specification.ColorAttachments.size(), "Color attachment count mismatch!");
 
         if (!drawBuffers.empty()) {
             glNamedFramebufferDrawBuffers(_fboId, static_cast<GLsizei>(drawBuffers.size()), drawBuffers.data());
+            glNamedFramebufferReadBuffer(_fboId, GL_COLOR_ATTACHMENT0);
         } else {
-            glNamedFramebufferDrawBuffers(_fboId, 0, nullptr);
+            glNamedFramebufferDrawBuffer(_fboId, GL_NONE);
+            glNamedFramebufferReadBuffer(_fboId, GL_NONE);
         }
 
-        // --- Depth attachment ---
+        // Create depth/stencil attachment if specified.
         if (_specification.DepthStencilAttachment.has_value()) {
             const auto &depth = *_specification.DepthStencilAttachment;
+
+            checkSamples(depth.Samples);
+
             const bool multisample = depth.Samples > 1;
+            const bool hasStencil = HasStencil(depth.Format);
+
+            _depthAttachment = {};
             _depthAttachment.Type = depth.Type;
+            _depthAttachment.AttachmentPoint = hasStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
             if (depth.Type == AttachmentType::Texture) {
                 glCreateTextures(multisample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &_depthAttachment.ResourceID);
@@ -116,10 +154,13 @@ namespace Vulkyrie::Renderer {
                         _depthAttachment.ResourceID, depth.Samples, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height, GL_TRUE);
                 } else {
                     glTextureStorage2D(_depthAttachment.ResourceID, 1, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height);
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MIN_FILTER, ToOpenGLTextureFilterMode(depth.MinFilter));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_MAG_FILTER, ToOpenGLTextureFilterMode(depth.MagFilter));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrapMode(depth.WrapS));
+                    glTextureParameteri(_depthAttachment.ResourceID, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrapMode(depth.WrapT));
                 }
 
-                // TODO: DO NOT hard code the target to DEPTH_STENCIL_ATTACHMENT, make this configurable.
-                glNamedFramebufferTexture(_fboId, GL_DEPTH_STENCIL_ATTACHMENT, _depthAttachment.ResourceID, 0);
+                glNamedFramebufferTexture(_fboId, _depthAttachment.AttachmentPoint, _depthAttachment.ResourceID, 0);
             } else {
                 glCreateRenderbuffers(1, &_depthAttachment.ResourceID);
 
@@ -130,17 +171,13 @@ namespace Vulkyrie::Renderer {
                     glNamedRenderbufferStorage(_depthAttachment.ResourceID, ToGLInternalFormat(depth.Format), _specification.Width, _specification.Height);
                 }
 
-                // TODO: DO NOT hard code the target to DEPTH_STENCIL_ATTACHMENT, make this configurable.
-                glNamedFramebufferRenderbuffer(_fboId, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthAttachment.ResourceID);
+                glNamedFramebufferRenderbuffer(_fboId, _depthAttachment.AttachmentPoint, GL_RENDERBUFFER, _depthAttachment.ResourceID);
             }
         }
 
-        // Check completeness
+        // Validate framebuffer completeness.
         GLenum status = glCheckNamedFramebufferStatus(_fboId, GL_FRAMEBUFFER);
-
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            VERROR("Framebuffer is incomplete! Status: {0}", status);
-        }
+        VASSERT_EXPR(GL_FRAMEBUFFER_COMPLETE == status, "Framebuffer is incomplete (status = {})", status);
     }
 
     void OpenGLFrameBuffer::Resize(u32 width, u32 height) {
@@ -156,21 +193,35 @@ namespace Vulkyrie::Renderer {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glViewport(0, 0, _specification.Width, _specification.Height);
 
-        // Clear color attachments
-        for (size_t i = 0; i < _specification.ColorAttachments.size(); ++i) {
-            const auto &attachment = _specification.ColorAttachments[i];
+        // Clear color attachments if needed.
+        if (_specification.ColorAttachments.has_value()) {
+            for (size_t i = 0; i < _colorAttachments.size(); ++i) {
+                const auto &spec = (*_specification.ColorAttachments)[i];
 
-            if (attachment.Load == LoadOp::Clear) {
-                glClearNamedFramebufferfv(_fboId, GL_COLOR, static_cast<GLint>(i), attachment.ClearColor);
+                if (spec.Load != LoadOp::Clear) continue;
+
+                const auto &glAtt = _colorAttachments[i];
+                GLint colorIndex = static_cast<GLint>(glAtt.AttachmentPoint - GL_COLOR_ATTACHMENT0);
+
+                if (spec.Format == ColorFormat::R32I) {
+                    const GLint value[4] = { static_cast<GLint>(spec.ClearColor[0]), 0, 0, 0 };
+                    glClearNamedFramebufferiv(_fboId, GL_COLOR, colorIndex, value);
+                } else {
+                    glClearNamedFramebufferfv(_fboId, GL_COLOR, colorIndex, spec.ClearColor);
+                }
             }
         }
 
-        // Clear depth/stencil
+        // Clear depth/stencil attachment if needed.
         if (_specification.DepthStencilAttachment.has_value()) {
             const auto &depth = *_specification.DepthStencilAttachment;
 
             if (depth.Load == LoadOp::Clear) {
-                glClearNamedFramebufferfi(_fboId, GL_DEPTH_STENCIL, 0, depth.ClearDepth, depth.ClearStencil);
+                if (HasStencil(depth.Format)) {
+                    glClearNamedFramebufferfi(_fboId, GL_DEPTH_STENCIL, 0, depth.ClearDepth, depth.ClearStencil);
+                } else {
+                    glClearNamedFramebufferfv(_fboId, GL_DEPTH, 0, &depth.ClearDepth);
+                }
             }
         }
     }
@@ -185,8 +236,9 @@ namespace Vulkyrie::Renderer {
             _fboId = 0;
         }
 
-        // Delete all color attachments
         for (auto &att : _colorAttachments) {
+            if (att.ResourceID == 0) continue;
+
             if (att.Type == AttachmentType::Texture) {
                 glDeleteTextures(1, &att.ResourceID);
             } else {
@@ -195,9 +247,8 @@ namespace Vulkyrie::Renderer {
         }
         _colorAttachments.clear();
 
-        // Delete depth attachment if present
-        if (_specification.DepthStencilAttachment.has_value() && _depthAttachment.ResourceID) {
-            if (_specification.DepthStencilAttachment->Type == AttachmentType::Texture) {
+        if (_depthAttachment.ResourceID) {
+            if (_depthAttachment.Type == AttachmentType::Texture) {
                 glDeleteTextures(1, &_depthAttachment.ResourceID);
             } else {
                 glDeleteRenderbuffers(1, &_depthAttachment.ResourceID);
@@ -205,10 +256,6 @@ namespace Vulkyrie::Renderer {
 
             _depthAttachment = {};
         }
-    }
-
-    OpenGLFrameBuffer::~OpenGLFrameBuffer() {
-        Destroy();
     }
 
 } // namespace Vulkyrie::Renderer

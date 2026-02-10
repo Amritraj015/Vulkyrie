@@ -6,10 +6,12 @@
 #include "sandbox_layer_blinn_phong_lighting.h"
 #include "sandbox_layer_frame_buffer.h"
 #include "sandbox_layer_phong_lighting.h"
+#include "sandbox_layer_normal_mapping.h"
 #include "sandbox_layer_specular_map.h"
 #include "sandbox_layer_terrain_generation.h"
 #include "sandbox_layer_attenuation.h"
 #include "sandbox_layer_planet.h"
+#include "sandbox_layer_shadow_mapping.h"
 #include "sandbox_layer_skybox.h"
 #include "sandbox_layer_depth_and_stencil_testing.h"
 
@@ -45,7 +47,12 @@ namespace Sandbox {
                     }
 
                     if (e.KeyCode == KeyCode::J) {
-                        SwitchToNextLayer();
+                        SwitchToNextLayer(true);
+                        return true;
+                    }
+
+                    if (e.KeyCode == KeyCode::H) {
+                        SwitchToNextLayer(false);
                         return true;
                     }
 
@@ -64,6 +71,8 @@ namespace Sandbox {
             void InitializeLayerSwitcher() {
                 layerSwitchers = {
                     [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },            // Frame buffer example.
+                    [this]() { SwitchLayer<SandboxLayerNormalMapping>(); },          // Normal mapping example.
+                    [this]() { SwitchLayer<SandboxLayerShadowMapping>(); },          // Shadow mapping example.
                     [this]() { SwitchLayer<SandboxLayerBlinnPhongLighting>(); },     // Blinn-Phong lighting example.
                     [this]() { SwitchLayer<SandboxLayerDepthAndStencilTesting>(); }, // Depth and stencil testing example.
                     [this]() { SwitchLayer<SandboxLayerAttenuation>(); },            // Attenuation example.
@@ -87,11 +96,13 @@ namespace Sandbox {
                 }
             }
 
-            void SwitchToNextLayer() {
+            void SwitchToNextLayer(bool add) {
                 auto &app = Application::GetSingleton();
 
                 // Suspend all known layers
                 app.SuspendLayer<SandboxLayerSkybox>();
+                app.SuspendLayer<SandboxLayerNormalMapping>();
+                app.SuspendLayer<SandboxLayerShadowMapping>();
                 app.SuspendLayer<SandboxLayerBlinnPhongLighting>();
                 app.SuspendLayer<SandboxLayerFrameBuffer>();
                 app.SuspendLayer<SandboxLayerDepthAndStencilTesting>();
@@ -103,8 +114,12 @@ namespace Sandbox {
                 app.SuspendLayer<SandboxLayerTerrainGeneration>();
                 app.SuspendLayer<SandboxLayerBackPack>();
 
-                // Move to next layer
-                currentLayer = (currentLayer + 1) % layerSwitchers.size();
+                // Move to next/previous layer
+                if (add) {
+                    currentLayer = (currentLayer + 1) % layerSwitchers.size();
+                } else {
+                    currentLayer = (currentLayer + layerSwitchers.size() - 1) % layerSwitchers.size();
+                }
 
                 // Activate the new layer
                 layerSwitchers[currentLayer]();
