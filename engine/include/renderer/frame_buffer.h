@@ -154,6 +154,7 @@ namespace Vulkyrie::Renderer {
     /** @brief Abstract base class for a Frame Buffer. */
     class FrameBuffer {
         public:
+            /** @brief Default destructor for the FrameBuffer class. */
             virtual ~FrameBuffer() = default;
 
             /** @brief Resizes the framebuffer to the specified width and height.

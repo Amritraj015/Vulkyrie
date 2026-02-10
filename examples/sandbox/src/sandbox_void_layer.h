@@ -46,7 +46,12 @@ namespace Sandbox {
                     }
 
                     if (e.KeyCode == KeyCode::J) {
-                        SwitchToNextLayer();
+                        SwitchToNextLayer(true);
+                        return true;
+                    }
+
+                    if (e.KeyCode == KeyCode::H) {
+                        SwitchToNextLayer(false);
                         return true;
                     }
 
@@ -89,7 +94,7 @@ namespace Sandbox {
                 }
             }
 
-            void SwitchToNextLayer() {
+            void SwitchToNextLayer(bool add) {
                 auto &app = Application::GetSingleton();
 
                 // Suspend all known layers
@@ -106,8 +111,12 @@ namespace Sandbox {
                 app.SuspendLayer<SandboxLayerTerrainGeneration>();
                 app.SuspendLayer<SandboxLayerBackPack>();
 
-                // Move to next layer
-                currentLayer = (currentLayer + 1) % layerSwitchers.size();
+                // Move to next/previous layer
+                if (add) {
+                    currentLayer = (currentLayer + 1) % layerSwitchers.size();
+                } else {
+                    currentLayer = (currentLayer + layerSwitchers.size() - 1) % layerSwitchers.size();
+                }
 
                 // Activate the new layer
                 layerSwitchers[currentLayer]();
