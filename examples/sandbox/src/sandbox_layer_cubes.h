@@ -102,6 +102,8 @@ namespace Sandbox {
 
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                 }
+
+                vertexArray->Unbind();
             }
 
             void OnEvent(Event &event) override {
