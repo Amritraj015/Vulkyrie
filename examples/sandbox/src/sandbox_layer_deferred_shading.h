@@ -40,7 +40,7 @@ namespace Sandbox {
                 quadVertexArray = VertexArray::Create();
                 Ref<VertexBuffer> quadVertexBuffer = VertexBuffer::Create(quadVertices.data(), quadVertices.size() * sizeof(f32));
                 quadVertexBuffer->SetLayout({
-                    { ShaderDataType::Float2, "position" },
+                    { ShaderDataType::Float3, "position" },
                     { ShaderDataType::Float2, "texture_coordinates" },
                 });
                 quadVertexArray->AddVertexBuffer(quadVertexBuffer);
