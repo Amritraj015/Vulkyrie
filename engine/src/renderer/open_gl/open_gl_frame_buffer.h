@@ -51,7 +51,7 @@ namespace Vulkyrie::Renderer {
              */
             [[nodiscard]] u32 GetDepthStencilAttachmentResourceID() const override;
 
-            /** @brief Retrieves the resource ID of the framebuffer itself (e.g., FBO ID in OpenGL).
+            /** @brief Retrieves the resource ID of the framebuffer itself (i.e., FBO ID in OpenGL).
              * @return The resource ID of the framebuffer.
              */
             [[nodiscard]] inline u32 GetFrameBufferID() const override {
