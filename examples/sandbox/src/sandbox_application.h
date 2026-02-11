@@ -14,7 +14,8 @@ namespace Sandbox {
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
                 // PushLayer<SandboxLayerShadowMapping>();
-                PushLayer<SandboxLayerNormalMapping>();
+                // PushLayer<SandboxLayerNormalMapping>();
+                PushLayer<SandboxLayerDeferredShading>();
                 PushOverlay<SandboxVoidLayer>();
 
                 return true;

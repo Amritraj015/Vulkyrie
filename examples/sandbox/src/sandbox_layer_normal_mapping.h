@@ -54,9 +54,6 @@ namespace Sandbox {
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 brickWallShader->SetMat4Uniform("projection", projection);
 
-                glm::mat4 model = glm::mat4(1.0f);
-                brickWallShader->SetMat4Uniform("model", model);
-
                 lightShader->Use();
                 lightShader->SetMat4Uniform("projection", projection);
 
@@ -90,10 +87,14 @@ namespace Sandbox {
                 // Build transformation matrices and set uniforms.
                 brickWallShader->SetVec3Uniform("viewPos", camera.GetPosition());
                 brickWallShader->SetMat4Uniform("view", camera.GetViewMatrix());
-                glm::vec3 lightPos = startingLightPosition;
+
                 auto currentTime = app.GetTime();
+                glm::mat4 model = glm::mat4(1.0f);
+                brickWallShader->SetMat4Uniform("model", model);
+
+                glm::vec3 lightPos = startingLightPosition;
                 lightPos.x = 5.0f * sin(currentTime);
-                lightPos.z = 3.0f * cos(currentTime);
+                lightPos.z = 5.0f * cos(currentTime);
                 brickWallShader->SetVec3Uniform("lightPos", lightPos);
 
                 // render container
@@ -103,10 +104,10 @@ namespace Sandbox {
 
                 lightShader->Use();
                 lightShader->SetMat4Uniform("view", camera.GetViewMatrix());
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, lightPos);
-                model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-                lightShader->SetMat4Uniform("model", model);
+                glm::mat4 lightModelMatrix = glm::mat4(1.0f);
+                lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
+                lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(0.2f)); // a smaller cube
+                lightShader->SetMat4Uniform("model", lightModelMatrix);
 
                 // Draw the light source.
                 lightSourceVertexArray->Bind();
