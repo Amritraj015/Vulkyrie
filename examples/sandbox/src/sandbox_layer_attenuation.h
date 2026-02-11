@@ -10,35 +10,26 @@ namespace Sandbox {
     class SandboxLayerAttenuation : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerAttenuation()
-                : camera(Camera::Create()) {
+                : app(Application::GetSingleton())
+                , camera(Camera::Create()) {
 
                 // load and compile the shader programs.
-                // objectShader = Shader::Create("assets/shaders/attenuation.glsl");
                 objectShader = Shader::Create("assets/shaders/spotlight.glsl");
-                // lightShader = Shader::Create("assets/shaders/light-source.glsl");
-
-                // Check if shaders are loaded successfully.
-                // if (!objectShader->IsValid() || !lightShader->IsValid()) {
-                if (!objectShader->IsValid()) {
-                    VERROR("Failed to load shaders.");
-                    return;
-                }
 
                 // load the textures.
                 boxTexture = Texture2D::Create("assets/textures/container2.png");
                 specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
 
-                // Check if textures are loaded successfully.
-                if (!boxTexture->IsLoaded() || !specularMapTexture->IsLoaded()) {
-                    VERROR("Failed to load one or more textures!");
-                    return;
-                }
+                // Assert that shader and textures are loaded successfully.
+                assert(objectShader->IsValid());
+                assert(boxTexture->IsLoaded());
+                assert(specularMapTexture->IsLoaded());
 
                 // Create Vertex Array.
                 objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                auto objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -50,32 +41,8 @@ namespace Sandbox {
                 // Add Vertex Buffer to the vertex array.
                 objectVertexArray->AddVertexBuffer(objectVertexBuffer);
 
-                // Create the vertex array for the light source.
-                lightVertexArray = VertexArray::Create();
-
-                // Reuse the same vertex buffer for the light source.
-                lightVertexArray->AddVertexBuffer(objectVertexBuffer);
-
                 // This is required to make sure 3D rendering works properly.
                 glEnable(GL_DEPTH_TEST);
-            }
-
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Attenuation");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Attenuation");
-            }
-
-            void OnEvent(Event &event) override {
-                EventDispatcher dispatcher(event);
-
-                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
-                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
-                    return true;
-                });
             }
 
             void OnUpdate(Timestep deltaTime) override {
@@ -91,10 +58,7 @@ namespace Sandbox {
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
                 // projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 objectShader->SetMat4Uniform("projection", projection);
 
                 // view matrix.
@@ -128,49 +92,45 @@ namespace Sandbox {
 
                 // Issue a draw call to draw the reflecting object.
                 objectVertexArray->Bind();
+                {
+                    for (const auto location : cubePositions) {
+                        // world transformation.
+                        glm::mat4 model = glm::mat4(1.0f);
+                        model = glm::translate(model, location);
+                        objectShader->SetMat4Uniform("model", model);
 
-                for (const auto location : cubePositions) {
-                    // world transformation.
-                    glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, location);
-                    objectShader->SetMat4Uniform("model", model);
-
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    }
                 }
-
                 objectVertexArray->Unbind();
+            }
 
-                // -----------------------------------------------------------------------------------
-                // also draw the lamp object
-                // pointLight.Position = glm::vec3(5.0f * sin(glfwGetTime()), 0.0f, 5.0f * cos(glfwGetTime()));
-                //
-                // lightShader->Use();
-                // lightShader->SetMat4Uniform("projection", projection);
-                // lightShader->SetMat4Uniform("view", view);
-                // glm::mat4 model = glm::mat4(1.0f);
-                // model = glm::translate(model, pointLight.Position);
-                // model = glm::scale(model, glm::vec3(0.1f)); // a smaller cube
-                // lightShader->SetMat4Uniform("model", model);
-                //
-                // // Issue a draw call to draw the light source.
-                // lightVertexArray->Bind();
-                // glDrawArrays(GL_TRIANGLES, 0, 36);
-                // lightVertexArray->Unbind();
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
+
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+                    return true;
+                });
+            }
+
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Attenuation");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Attenuation");
             }
 
         private:
+            Application &app;
+            Camera camera;
+
             Ref<VertexArray> objectVertexArray;
-            Ref<VertexBuffer> objectVertexBuffer;
             Ref<Shader> objectShader;
-
-            Ref<VertexArray> lightVertexArray;
-            Ref<VertexBuffer> lightVertexBuffer;
-            // Ref<Shader> lightShader;
-
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;
 
-            Camera camera;
             SpotLight spotLight = {
                 { 0.1f, 0.1f, 0.1f },
                 { 0.8f, 0.8f, 0.8f },
@@ -187,32 +147,6 @@ namespace Sandbox {
                 glm::cos(glm::radians(12.5f)),
                 glm::cos(glm::radians(17.5f)),
             };
-
-            // PointLight pointLight = {
-            //     {
-            //         0.2f,
-            //         0.2f,
-            //         0.2f,
-            //     },
-            //     {
-            //         0.5f,
-            //         0.5f,
-            //         0.5f,
-            //     },
-            //     {
-            //         1.0f,
-            //         1.0f,
-            //         1.0f,
-            //     },
-            //     {
-            //         1.2f,
-            //         1.0f,
-            //         2.0f,
-            //     },
-            //     1.0f,
-            //     0.09f,
-            //     0.032f,
-            // };
 
             std::vector<f32> vertices = {
                 // positions         // normals    // texture coords

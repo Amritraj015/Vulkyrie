@@ -12,18 +12,20 @@ namespace Sandbox {
     class SandboxLayerCubes final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerCubes()
-                : camera(Camera::Create()) {
+                : app(Application::GetSingleton())
+                , camera(Camera::Create()) {
 
                 // Load and compile shader program.
                 graphicsShader = Shader::Create("assets/shaders/triangle.glsl");
 
-                // Check if shader program creation failed.
-                if (!graphicsShader->IsValid()) {
-                    // Log a fatal error.
-                    VFATAL("Failed to create graphics shader");
+                // Textures.
+                texture1 = Texture2D::Create("assets/textures/wall.jpg");
+                texture2 = Texture2D::Create("assets/textures/awesomeface.png");
 
-                    return;
-                }
+                // Assert that shader and textures are loaded successfully.
+                assert(graphicsShader->IsValid());
+                assert(texture1->IsLoaded());
+                assert(texture2->IsLoaded());
 
                 vertexArray = VertexArray::Create();
                 Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
@@ -33,40 +35,11 @@ namespace Sandbox {
                 });
                 vertexArray->AddVertexBuffer(vertexBuffer);
 
-                // -----------------------------------------------
-                // Textures.
-                texture1 = Texture2D::Create("assets/textures/wall.jpg");
-                texture2 = Texture2D::Create("assets/textures/awesomeface.png");
-
-                if (!texture1->IsLoaded() || !texture2->IsLoaded()) {
-                    VERROR("Failed to load one or more textures!");
-                }
-
-                // Projection matrix hardly ever changes, so it can live outside the main application loop.
-                graphicsShader->Use();
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
-
-                graphicsShader->SetMat4Uniform("projection", projection);
-
                 // This is required to make sure 3D rendering works properly.
                 glEnable(GL_DEPTH_TEST);
-
-                // Enable face culling to improve performance.
-                // glDisable(GL_CULL_FACE);
             }
 
             ~SandboxLayerCubes() = default;
-
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Cubes");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Cubes");
-            }
 
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
@@ -85,24 +58,26 @@ namespace Sandbox {
                 texture1->Bind(0);
                 texture2->Bind(1);
 
-                auto view = camera.GetViewMatrix();
-
+                glm::mat4 view = camera.GetViewMatrix();
                 graphicsShader->SetMat4Uniform("view", view);
+
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
+                graphicsShader->SetMat4Uniform("projection", projection);
 
                 // render container
                 vertexArray->Bind();
+                {
+                    for (u32 i = 0; i < cubePositions.size(); i++) {
+                        glm::mat4 model = glm::mat4(1.0f);
+                        model = glm::translate(model, cubePositions[i]);
+                        f32 angle = 20.0f * (i + 1);
 
-                for (u32 i = 0; i < cubePositions.size(); i++) {
-                    glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, cubePositions[i]);
-                    f32 angle = 20.0f * (i + 1);
+                        model = glm::rotate(model, (f32)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+                        graphicsShader->SetMat4Uniform("model", model);
 
-                    model = glm::rotate(model, (f32)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
-                    graphicsShader->SetMat4Uniform("model", model);
-
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    }
                 }
-
                 vertexArray->Unbind();
             }
 
@@ -116,12 +91,21 @@ namespace Sandbox {
                 });
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Cubes");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Cubes");
+            }
+
         private:
+            Application &app;
+            Camera camera;
             Ref<Texture2D> texture1;
             Ref<Texture2D> texture2;
             Ref<VertexArray> vertexArray;
             Ref<Shader> graphicsShader;
-            Camera camera;
 
             std::vector<glm::vec3> cubePositions = {
                 glm::vec3(0.0f, 0.0f, 0.0f),     // Cube 1

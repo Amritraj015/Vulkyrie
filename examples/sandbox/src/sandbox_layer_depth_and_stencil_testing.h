@@ -15,7 +15,8 @@ namespace Sandbox {
     class SandboxLayerDepthAndStencilTesting final : public Layer {
         public:
             SandboxLayerDepthAndStencilTesting()
-                : camera(Camera::Create())
+                : app(Application::GetSingleton())
+                , camera(Camera::Create())
                 , showDepthValues(false) {
 
                 camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
@@ -25,17 +26,16 @@ namespace Sandbox {
                 planeTexture = Texture2D::Create("assets/textures/metal.png");
                 transparentTexture = Texture2D::Create("assets/textures/transparent_window.png");
 
-                if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded() || !transparentTexture->IsLoaded()) {
-                    VERROR("Failed to load one or more textures!");
-                }
-
                 // Load and compile shader program.
                 textureShader = Shader::Create("assets/shaders/texture_2D.glsl");
                 depthTestShader = Shader::Create("assets/shaders/depth_test.glsl");
 
-                if (!textureShader->IsValid() || !depthTestShader->IsValid()) {
-                    VERROR("Failed to create shader program!");
-                }
+                // Assert that textures and shaders are loaded successfully.
+                assert(cubeTexture->IsLoaded());
+                assert(planeTexture->IsLoaded());
+                assert(transparentTexture->IsLoaded());
+                assert(textureShader->IsValid());
+                assert(depthTestShader->IsValid());
 
                 // Create cube vertex array.
                 cubeVertexArray = VertexArray::Create();
@@ -97,10 +97,7 @@ namespace Sandbox {
                 shaderToUse->Use();
 
                 // Projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 shaderToUse->SetMat4Uniform("projection", projection);
 
                 // View transform
@@ -141,13 +138,6 @@ namespace Sandbox {
                 transparentTextureVertexArray->Unbind();
             }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Depth and Stencil Testing");
-            }
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Depth and Stencil Testing");
-            }
-
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
 
@@ -178,7 +168,16 @@ namespace Sandbox {
                 });
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Depth and Stencil Testing");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Depth and Stencil Testing");
+            }
+
         private:
+            Application &app;
             Camera camera;
 
             Ref<Texture2D> cubeTexture;

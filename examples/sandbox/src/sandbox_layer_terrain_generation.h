@@ -17,13 +17,14 @@ namespace Sandbox {
     class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
         public:
             SandboxLayerTerrainGeneration()
-                : camera(Camera::Create())
-                , terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
+                : app(Application::GetSingleton())
+                , camera(Camera::Create()) {
 
-                if (!terrainShader->IsValid()) {
-                    VERROR("Failed to load terrain shaders.");
-                    return;
-                }
+                // Load and compile shader program.
+                terrainShader = Shader::Create("assets/shaders/terrain.glsl");
+
+                // Assert that shader is loaded successfully.
+                assert(terrainShader->IsValid());
 
                 vertices.reserve(WIDTH * HEIGHT * 3);
 
@@ -31,13 +32,6 @@ namespace Sandbox {
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
-            }
-
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Terrain Generation");
-            }
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Terrain Generation");
             }
 
             void OnUpdate(Timestep deltaTime) override {
@@ -48,55 +42,11 @@ namespace Sandbox {
 
                 camera.OnUpdate(deltaTime);
 
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::M)) {
-                    if (scale < 100.0f) scale += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::N)) {
-                    if (scale > 2.0f) scale -= 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::Y)) {
-                    seed += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::U)) {
-                    persistence += 0.001f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::H)) {
-                    offset = glm::vec2(offset.x - 0.01f, offset.y);
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::L)) {
-                    offset = glm::vec2(offset.x, offset.y + 0.01f);
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::I)) {
-                    lacunarity += 0.1f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::O)) {
-                    octaves += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                // --------------------------------------------------------------------
                 // Render terrain.
                 terrainShader->Use();
 
                 // Projection Matrix.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
                 // View Matrix.
@@ -110,7 +60,6 @@ namespace Sandbox {
                 vertexArray->Bind();
                 glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                 vertexArray->Unbind();
-                // --------------------------------------------------------------------
             }
 
             void OnEvent(Event &event) override {
@@ -118,12 +67,64 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
                     return true;
+                });
+
+                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::M) {
+                        if (scale < 100.0f) scale += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::N) {
+                        if (scale > 2.0f) scale -= 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::Y) {
+                        seed += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::U) {
+                        persistence += 0.001f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::H) {
+                        offset = glm::vec2(offset.x - 0.01f, offset.y);
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::L) {
+                        offset = glm::vec2(offset.x, offset.y + 0.01f);
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::I) {
+                        lacunarity += 0.1f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::O) {
+                        octaves += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    return false;
                 });
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Terrain Generation");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Terrain Generation");
+            }
+
         private:
+            Application &app;
             Camera camera;
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;

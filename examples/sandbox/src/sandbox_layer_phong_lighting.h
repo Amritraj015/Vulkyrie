@@ -17,17 +17,15 @@ namespace Sandbox {
                 objectShader = Shader::Create("assets/shaders/reflective-object.glsl");
                 lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
-                // Check if shaders are valid.
-                if (!objectShader->IsValid() || !lightShader->IsValid()) {
-                    VERROR("Failed to load shaders.");
-                    return;
-                }
+                // Assert that shaders are loaded successfully.
+                assert(objectShader->IsValid());
+                assert(lightShader->IsValid());
 
                 // Create Vertex Array.
                 objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                auto objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -138,15 +136,13 @@ namespace Sandbox {
             }
 
         private:
+            Camera camera;
+
             Ref<VertexArray> objectVertexArray;
-            Ref<VertexBuffer> objectVertexBuffer;
             Ref<Shader> objectShader;
 
             Ref<VertexArray> lightVertexArray;
-            Ref<VertexBuffer> lightVertexBuffer;
             Ref<Shader> lightShader;
-
-            Camera camera;
 
             glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 

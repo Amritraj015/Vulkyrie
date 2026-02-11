@@ -12,20 +12,20 @@ namespace Sandbox {
     class SandboxLayerPlanet final : public Layer {
         public:
             SandboxLayerPlanet()
-                : camera(Camera::Create()) {
+                : camera(Camera::Create())
+                , amount(100000) {
+
+                camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
+
                 planetModel = Model::Create("assets/models/planet/planet.obj");
                 asteroidModel = Model::Create("assets/models/asteroid/rock.obj");
 
                 planetShader = Shader::Create("assets/shaders/model.glsl");
                 asteroidShader = Shader::Create("assets/shaders/asteroid.glsl");
 
-                if (!planetShader->IsValid() || !asteroidShader->IsValid()) {
-                    VERROR("Failed to compile shaders.")
-                }
+                assert(planetShader->IsValid());
+                assert(asteroidShader->IsValid());
 
-                camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
-
-                amount = 1000000;
                 modelMatrices.reserve(amount);
                 srand(glfwGetTime()); // initialize random seed
                 f32 radius = 500.0;
@@ -98,6 +98,7 @@ namespace Sandbox {
             void OnResumed() override {
                 glEnable(GL_CULL_FACE);
             }
+
             void OnSuspended() override {
                 glDisable(GL_CULL_FACE);
             }
@@ -154,21 +155,6 @@ namespace Sandbox {
                     glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(mesh->GetIndexCount()), GL_UNSIGNED_INT, 0, amount);
                     mesh->Unbind();
                 }
-
-// Check for OpenGL errors (optional, for debugging)
-#ifdef VULKYRIE_DEBUG
-                GLenum err;
-                while ((err = glGetError()) != GL_NO_ERROR) {
-                    VERROR("OpenGL error: {}", err);
-                }
-#endif
-            }
-
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Planet");
-            }
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Planet");
             }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
@@ -176,16 +162,22 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
                     return true;
                 });
 
                 dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
                     camera.ProcessMouseScroll(e.OffsetY);
-
                     return true;
                 });
             };
+
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Planet");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Planet");
+            }
 
         private:
             Ref<Model> planetModel;

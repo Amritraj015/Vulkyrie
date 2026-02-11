@@ -23,6 +23,12 @@ namespace Sandbox {
                 shadowShader = Shader::Create("assets/shaders/default_shadow_map.glsl");
                 woodTexture = Texture2D::Create("assets/textures/wood.png");
 
+                // Assert that shader and texture are loaded successfully.
+                assert(debugDepthBufferShader->IsValid());
+                assert(depthBufferShader->IsValid());
+                assert(shadowShader->IsValid());
+                assert(woodTexture->IsLoaded());
+
                 // Create framebuffer for shadow mapping.
                 frameBuffer = FrameBuffer::Create({
                     .Width = 1024,
@@ -39,12 +45,6 @@ namespace Sandbox {
                         },
                     .DebugName = "ShadowMapFrameBuffer",
                 });
-
-                // Assert that shader and texture are loaded successfully.
-                assert(debugDepthBufferShader->IsValid());
-                assert(depthBufferShader->IsValid());
-                assert(shadowShader->IsValid());
-                assert(woodTexture->IsLoaded());
 
                 // Create vertex array for the surface.
                 surfaceVertexArray = VertexArray::Create();

@@ -63,7 +63,9 @@ namespace Vulkyrie::Renderer {
              * @param textures The textures associated with the mesh.
              */
             Mesh(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures)
-                : _vertices(std::move(vertices)), _indices(std::move(indices)), _textures(std::move(textures)) {
+                : _vertices(std::move(vertices))
+                , _indices(std::move(indices))
+                , _textures(std::move(textures)) {
             }
 
             /** @brief The vertices that make up the mesh. */

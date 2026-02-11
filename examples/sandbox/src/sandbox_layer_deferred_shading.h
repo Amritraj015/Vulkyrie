@@ -175,7 +175,7 @@ namespace Sandbox {
                     shaderLightBox->Use();
                     shaderLightBox->SetMat4Uniform("projection", projection);
                     shaderLightBox->SetMat4Uniform("view", view);
-                    cubeVertexArray->Bind();
+
                     for (u32 i = 0; i < lightPositions.size(); i++) {
                         model = glm::mat4(1.0f);
                         model = glm::translate(model, lightPositions[i]);
@@ -183,9 +183,10 @@ namespace Sandbox {
                         shaderLightBox->SetMat4Uniform("model", model);
                         shaderLightBox->SetVec3Uniform("lightColor", lightColors[i]);
 
+                        cubeVertexArray->Bind();
                         glDrawArrays(GL_TRIANGLES, 0, 36);
+                        cubeVertexArray->Unbind();
                     }
-                    cubeVertexArray->Unbind();
                 }
             }
 
@@ -199,17 +200,16 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
                     return true;
                 });
             }
 
             void OnAttached() override {
-                VDEBUG("Layer Attached: DeferredShading");
+                VDEBUG("Layer Attached: Deferred Shading");
             }
 
             void OnDetached() override {
-                VDEBUG("Layer Detached: DeferredShading");
+                VDEBUG("Layer Detached: Deferred Shading");
             }
 
         private:
