@@ -20,11 +20,12 @@ namespace Sandbox {
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Core;
 
-    class SandboxVoidLayer final : public Vulkyrie::Core::Layer {
+    class SandboxVoidLayer final : public Layer {
         public:
             SandboxVoidLayer() {
                 InitializeLayerSwitcher();
             }
+
             ~SandboxVoidLayer() = default;
 
             void OnEvent(Event &event) override {
@@ -33,7 +34,6 @@ namespace Sandbox {
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::Escape) {
                         Application::GetSingleton().Stop();
-
                         return true;
                     }
 

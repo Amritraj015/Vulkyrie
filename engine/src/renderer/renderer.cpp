@@ -1,16 +1,10 @@
 #include "vlkypch.h"
 #include "renderer/renderer.h"
 #include "renderer/graphics_context.h"
-#include "renderer/open_gl/open_gl_renderer.h"
 
 namespace Vulkyrie::Renderer {
     static Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
     Scope<GraphicsContext> _graphicsContext = nullptr;
-    Scope<Renderer> _renderer = nullptr;
-
-    Scope<Renderer> &GetRenderer() {
-        return _renderer;
-    }
 
     Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {
         return RendererAPI;
@@ -34,7 +28,6 @@ namespace Vulkyrie::Renderer {
         // Create the renderer based on the specified graphics API.
         switch (RendererAPI) {
             case Vulkyrie::Core::GraphicsAPI::OpenGL:
-                _renderer = CreateScope<OpenGLRenderer>();
                 break;
             case Vulkyrie::Core::GraphicsAPI::Vulkan:
             default:

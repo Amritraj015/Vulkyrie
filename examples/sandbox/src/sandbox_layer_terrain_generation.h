@@ -8,13 +8,7 @@ namespace Sandbox {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    constexpr u16 WIDTH = 100;
-    constexpr u16 HEIGHT = 100;
-    constexpr f32 worldSizeX = 100.0f; // meters wide
-    constexpr f32 worldSizeZ = 100.0f; // meters deep
-    constexpr f32 heightScale = 15.0f; // max height in meters
-
-    class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
+    class SandboxLayerTerrainGeneration final : public Layer {
         public:
             SandboxLayerTerrainGeneration()
                 : app(Application::GetSingleton())
@@ -26,8 +20,7 @@ namespace Sandbox {
                 // Assert that shader is loaded successfully.
                 assert(terrainShader->IsValid());
 
-                vertices.reserve(WIDTH * HEIGHT * 3);
-
+                vertices.reserve(width * height * 3);
                 CreateVertexBufferElements();
 
                 // Enable depth testing.
@@ -132,6 +125,12 @@ namespace Sandbox {
             std::vector<f32> vertices;
             std::vector<u32> indices;
 
+            u16 width = 100;
+            u16 height = 100;
+            f32 worldSizeX = 100.0f; // meters wide
+            f32 worldSizeZ = 100.0f; // meters deep
+            f32 heightScale = 15.0f; // max height in meters
+
             f32 scale = 5.0f;
             i32 octaves = 4;
             f32 persistence = 0.5f;
@@ -141,8 +140,8 @@ namespace Sandbox {
 
             void CreateVertexBufferElements() {
                 noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                    .MapWidth = WIDTH,
-                    .MapHeight = HEIGHT,
+                    .MapWidth = width,
+                    .MapHeight = height,
                     .Scale = scale,
                     .Octaves = octaves,
                     .Persistence = persistence,
@@ -153,12 +152,12 @@ namespace Sandbox {
 
                 vertices.clear();
 
-                for (size_t z = 0; z < HEIGHT; ++z) {
-                    for (size_t x = 0; x < WIDTH; ++x) {
-                        f32 h = noiseMap[z * WIDTH + x];
+                for (size_t z = 0; z < height; ++z) {
+                    for (size_t x = 0; x < width; ++x) {
+                        f32 h = noiseMap[z * width + x];
 
-                        f32 worldX = (f32(x) / (WIDTH - 1)) * worldSizeX;
-                        f32 worldZ = (f32(z) / (HEIGHT - 1)) * worldSizeZ;
+                        f32 worldX = (f32(x) / (width - 1)) * worldSizeX;
+                        f32 worldZ = (f32(z) / (height - 1)) * worldSizeZ;
                         f32 worldY = h * heightScale;
 
                         vertices.emplace_back(worldX);
@@ -186,12 +185,12 @@ namespace Sandbox {
                 }
 
                 if (!vertexArray) {
-                    for (size_t z = 0; z < HEIGHT - 1; ++z) {
-                        for (size_t x = 0; x < WIDTH - 1; ++x) {
-                            u32 i0 = z * WIDTH + x;
-                            u32 i1 = z * WIDTH + x + 1;
-                            u32 i2 = (z + 1) * WIDTH + x;
-                            u32 i3 = (z + 1) * WIDTH + x + 1;
+                    for (size_t z = 0; z < height - 1; ++z) {
+                        for (size_t x = 0; x < width - 1; ++x) {
+                            u32 i0 = z * width + x;
+                            u32 i1 = z * width + x + 1;
+                            u32 i2 = (z + 1) * width + x;
+                            u32 i3 = (z + 1) * width + x + 1;
 
                             // Triangle 1
                             indices.push_back(i0);
