@@ -185,6 +185,13 @@ namespace Vulkyrie::Renderer {
              */
             [[nodiscard]] virtual inline u32 GetFrameBufferID() const = 0;
 
+            /** @brief Checks if the framebuffer is complete and ready for rendering.
+             * @return `true` if the framebuffer is complete; otherwise, `false`.
+             */
+            [[nodiscard]] virtual inline bool IsComplete() const {
+                return _isComplete;
+            }
+
             /** @brief Factory method to create a FrameBuffer instance based on the current graphics API.
              * @param specification The specification for the framebuffer to be created.
              * @return A reference-counted pointer to the created FrameBuffer instance.
@@ -196,10 +203,14 @@ namespace Vulkyrie::Renderer {
              * @param specification The specification for the framebuffer.
              */
             FrameBuffer(const FrameBufferSpecification &specification)
-                : _specification(specification) {};
+                : _specification(specification)
+                , _isComplete(false) {};
 
             /** @brief The specification of the framebuffer. */
             FrameBufferSpecification _specification;
+
+            /** @brief Indicates whether the framebuffer has been successfully created and is complete. */
+            bool _isComplete = false;
     };
 
 } // namespace Vulkyrie::Renderer

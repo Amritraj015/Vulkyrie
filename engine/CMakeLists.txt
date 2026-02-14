@@ -57,19 +57,7 @@ target_precompile_headers(engine
 # Warnings & Errors (Propagate)
 # ---------------------------
 if (MSVC)
-    target_compile_options(engine
-       PRIVATE 
-            /W4
-            /WX
-    )
-else()
-    target_compile_options(engine
-        PRIVATE
-            -Wall
-            -Wextra
-            -Wpedantic
-            -Werror
-            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility=hidden>
-            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility-inlines-hidden>
-    )
+    target_compile_options(engine PRIVATE /W4 /WX /Zc:preprocessor)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(engine PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()

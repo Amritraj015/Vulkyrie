@@ -50,6 +50,7 @@ namespace Sandbox {
                 quadShader = Shader::Create("assets/shaders/frame_buffer.glsl");
 
                 // Assert that textures, and shaders are loaded successfully.
+                assert(frameBuffer->IsComplete());
                 assert(cubeTexture->IsLoaded());
                 assert(planeTexture->IsLoaded());
                 assert(textureShader->IsValid());

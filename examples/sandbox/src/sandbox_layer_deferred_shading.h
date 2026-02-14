@@ -21,10 +21,28 @@ namespace Sandbox {
                 shaderLightBox = Shader::Create("assets/shaders/deferred_light_box.glsl");
                 backPackModel = Model::Create("assets/models/backpack/backpack.obj");
 
+                // Create G-Buffer.
+                gBuffer = FrameBuffer::Create({
+                    .Width = app.GetWindowWidth(),
+                    .Height = app.GetWindowHeight(),
+                    .ColorAttachments =
+                        std::vector<ColorAttachmentSpecification>{
+                            { .Format = ColorFormat::RGBA16F, .Type = AttachmentType::Texture }, // Position
+                            { .Format = ColorFormat::RGBA16F, .Type = AttachmentType::Texture }, // Normal
+                            { .Format = ColorFormat::RGBA8, .Type = AttachmentType::Texture },   // Albedo
+                        },
+                    .DepthStencilAttachment =
+                        DepthStencilAttachmentSpecification{
+                            .Format = DepthStencilFormat::Depth24Stencil8,
+                            .Type = AttachmentType::RenderBuffer,
+                        },
+                });
+
                 // Assert that shader and model are loaded successfully.
                 assert(deferredShader->IsValid());
                 assert(gBufferShader->IsValid());
                 assert(shaderLightBox->IsValid());
+                assert(gBuffer->IsComplete());
 
                 // Create cube vertex array.
                 cubeVertexArray = VertexArray::Create();
@@ -44,23 +62,6 @@ namespace Sandbox {
                     { ShaderDataType::Float2, "texture_coordinates" },
                 });
                 quadVertexArray->AddVertexBuffer(quadVertexBuffer);
-
-                // Create G-Buffer.
-                gBuffer = FrameBuffer::Create({
-                    .Width = app.GetWindowWidth(),
-                    .Height = app.GetWindowHeight(),
-                    .ColorAttachments =
-                        std::vector<ColorAttachmentSpecification>{
-                            { .Format = ColorFormat::RGBA16F, .Type = AttachmentType::Texture }, // Position
-                            { .Format = ColorFormat::RGBA16F, .Type = AttachmentType::Texture }, // Normal
-                            { .Format = ColorFormat::RGBA8, .Type = AttachmentType::Texture },   // Albedo
-                        },
-                    .DepthStencilAttachment =
-                        DepthStencilAttachmentSpecification{
-                            .Format = DepthStencilFormat::Depth24Stencil8,
-                            .Type = AttachmentType::RenderBuffer,
-                        },
-                });
 
                 // lighting info
                 // -------------
