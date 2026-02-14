@@ -13,22 +13,18 @@ namespace Sandbox {
             SandboxLayerBackPack()
                 : camera(Camera::Create()) {
 
+                // Load shader and model.
                 backPackModel = Model::Create("assets/models/backpack/backpack.obj");
                 graphicsShader = Shader::Create("assets/shaders/model.glsl");
 
-                if (!graphicsShader->IsValid()) {
-                    VERROR("Failed to compile shaders.")
-                }
+                // Assert that shader are loaded successfully.
+                assert(graphicsShader->IsValid());
 
                 // Enable depth testing for proper 3D rendering.
                 glEnable(GL_DEPTH_TEST);
-            };
+            }
 
             ~SandboxLayerBackPack() = default;
-
-            void OnAttached() override { VDEBUG("Layer Attached: Backpack") };
-
-            void OnDetached() override { VDEBUG("Layer Detached: Backpack") };
 
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
@@ -56,7 +52,7 @@ namespace Sandbox {
                 graphicsShader->SetMat4Uniform("model", model);
 
                 backPackModel->Draw(*graphicsShader);
-            };
+            }
 
             void OnEvent(Vulkyrie::Events::Event &event) override {
                 Vulkyrie::Events::EventDispatcher dispatcher(event);
@@ -72,11 +68,19 @@ namespace Sandbox {
 
                     return true;
                 });
-            };
+            }
+
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Backpack");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Backpack");
+            }
 
         private:
+            Camera camera;
             Ref<Model> backPackModel;
             Ref<Shader> graphicsShader;
-            Camera camera;
     };
 } // namespace Sandbox

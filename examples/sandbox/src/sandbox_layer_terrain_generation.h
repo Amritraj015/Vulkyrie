@@ -8,36 +8,23 @@ namespace Sandbox {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
 
-    constexpr u16 WIDTH = 100;
-    constexpr u16 HEIGHT = 100;
-    constexpr f32 worldSizeX = 100.0f; // meters wide
-    constexpr f32 worldSizeZ = 100.0f; // meters deep
-    constexpr f32 heightScale = 15.0f; // max height in meters
-
-    class SandboxLayerTerrainGeneration final : public Vulkyrie::Core::Layer {
+    class SandboxLayerTerrainGeneration final : public Layer {
         public:
             SandboxLayerTerrainGeneration()
-                : camera(Camera::Create())
-                , terrainShader(Shader::Create("assets/shaders/terrain.glsl")) {
+                : app(Application::GetSingleton())
+                , camera(Camera::Create()) {
 
-                if (!terrainShader->IsValid()) {
-                    VERROR("Failed to load terrain shaders.");
-                    return;
-                }
+                // Load and compile shader program.
+                terrainShader = Shader::Create("assets/shaders/terrain.glsl");
 
-                vertices.reserve(WIDTH * HEIGHT * 3);
+                // Assert that shader is loaded successfully.
+                assert(terrainShader->IsValid());
 
+                vertices.reserve(width * height * 3);
                 CreateVertexBufferElements();
 
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
-            }
-
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Terrain Generation");
-            }
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Terrain Generation");
             }
 
             void OnUpdate(Timestep deltaTime) override {
@@ -48,55 +35,11 @@ namespace Sandbox {
 
                 camera.OnUpdate(deltaTime);
 
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::M)) {
-                    if (scale < 100.0f) scale += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::N)) {
-                    if (scale > 2.0f) scale -= 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::Y)) {
-                    seed += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::U)) {
-                    persistence += 0.001f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::H)) {
-                    offset = glm::vec2(offset.x - 0.01f, offset.y);
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::L)) {
-                    offset = glm::vec2(offset.x, offset.y + 0.01f);
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::I)) {
-                    lacunarity += 0.1f;
-                    CreateVertexBufferElements();
-                }
-
-                if (Vulkyrie::Input::IsKeyPressed(KeyCode::O)) {
-                    octaves += 1.0f;
-                    CreateVertexBufferElements();
-                }
-
-                // --------------------------------------------------------------------
                 // Render terrain.
                 terrainShader->Use();
 
                 // Projection Matrix.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 terrainShader->SetMat4Uniform("projection", projection);
 
                 // View Matrix.
@@ -110,7 +53,6 @@ namespace Sandbox {
                 vertexArray->Bind();
                 glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                 vertexArray->Unbind();
-                // --------------------------------------------------------------------
             }
 
             void OnEvent(Event &event) override {
@@ -118,18 +60,76 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
                     return true;
+                });
+
+                dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
+                    if (e.KeyCode == KeyCode::M) {
+                        if (scale < 100.0f) scale += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::N) {
+                        if (scale > 2.0f) scale -= 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::Y) {
+                        seed += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::U) {
+                        persistence += 0.001f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::H) {
+                        offset = glm::vec2(offset.x - 0.01f, offset.y);
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::L) {
+                        offset = glm::vec2(offset.x, offset.y + 0.01f);
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::I) {
+                        lacunarity += 0.1f;
+                        CreateVertexBufferElements();
+                    }
+
+                    if (e.KeyCode == KeyCode::O) {
+                        octaves += 1.0f;
+                        CreateVertexBufferElements();
+                    }
+
+                    return false;
                 });
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Terrain Generation");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Terrain Generation");
+            }
+
         private:
+            Application &app;
             Camera camera;
             Ref<Shader> terrainShader;
             Ref<VertexArray> vertexArray;
             std::vector<f32> noiseMap;
             std::vector<f32> vertices;
             std::vector<u32> indices;
+
+            u16 width = 100;
+            u16 height = 100;
+            f32 worldSizeX = 100.0f; // meters wide
+            f32 worldSizeZ = 100.0f; // meters deep
+            f32 heightScale = 15.0f; // max height in meters
 
             f32 scale = 5.0f;
             i32 octaves = 4;
@@ -140,8 +140,8 @@ namespace Sandbox {
 
             void CreateVertexBufferElements() {
                 noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
-                    .MapWidth = WIDTH,
-                    .MapHeight = HEIGHT,
+                    .MapWidth = width,
+                    .MapHeight = height,
                     .Scale = scale,
                     .Octaves = octaves,
                     .Persistence = persistence,
@@ -152,12 +152,12 @@ namespace Sandbox {
 
                 vertices.clear();
 
-                for (size_t z = 0; z < HEIGHT; ++z) {
-                    for (size_t x = 0; x < WIDTH; ++x) {
-                        f32 h = noiseMap[z * WIDTH + x];
+                for (size_t z = 0; z < height; ++z) {
+                    for (size_t x = 0; x < width; ++x) {
+                        f32 h = noiseMap[z * width + x];
 
-                        f32 worldX = (f32(x) / (WIDTH - 1)) * worldSizeX;
-                        f32 worldZ = (f32(z) / (HEIGHT - 1)) * worldSizeZ;
+                        f32 worldX = (f32(x) / (width - 1)) * worldSizeX;
+                        f32 worldZ = (f32(z) / (height - 1)) * worldSizeZ;
                         f32 worldY = h * heightScale;
 
                         vertices.emplace_back(worldX);
@@ -185,12 +185,12 @@ namespace Sandbox {
                 }
 
                 if (!vertexArray) {
-                    for (size_t z = 0; z < HEIGHT - 1; ++z) {
-                        for (size_t x = 0; x < WIDTH - 1; ++x) {
-                            u32 i0 = z * WIDTH + x;
-                            u32 i1 = z * WIDTH + x + 1;
-                            u32 i2 = (z + 1) * WIDTH + x;
-                            u32 i3 = (z + 1) * WIDTH + x + 1;
+                    for (size_t z = 0; z < height - 1; ++z) {
+                        for (size_t x = 0; x < width - 1; ++x) {
+                            u32 i0 = z * width + x;
+                            u32 i1 = z * width + x + 1;
+                            u32 i2 = (z + 1) * width + x;
+                            u32 i3 = (z + 1) * width + x + 1;
 
                             // Triangle 1
                             indices.push_back(i0);

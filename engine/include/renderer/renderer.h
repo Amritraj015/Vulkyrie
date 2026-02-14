@@ -37,41 +37,4 @@ namespace Vulkyrie::Renderer {
 
     // void SetViewport(u32 x, u32 y, u32 width, u32 height);
 
-    class CommandBuffer {
-        public:
-            virtual ~CommandBuffer() = default;
-
-            virtual void Begin() = 0;
-            virtual void End() = 0;
-    };
-
-    class RenderPass {
-        public:
-            virtual ~RenderPass() = default;
-
-            virtual void Begin() = 0;
-            virtual void End() = 0;
-    };
-
-    class Renderer {
-        public:
-            virtual ~Renderer() = default;
-
-            virtual void BeginScene(const Camera &camera) = 0;
-            virtual void EndScene() = 0;
-            virtual Scope<CommandBuffer> CreateCommandBuffer() = 0;
-
-            /** @brief Handles window resize events.
-             * @param width The new width of the window.
-             * @param height The new height of the window.
-             */
-            void OnWindowResize(u32 width, u32 height);
-
-            /** @brief Sets the polygon fill mode for rendering.
-             * @param mode The polygon fill mode to set.
-             */
-            void SetPolygonFillMode(PolygonFillMode mode);
-
-            void Submit();
-    };
 } // namespace Vulkyrie::Renderer

@@ -63,14 +63,6 @@ namespace Sandbox {
 
             ~SandboxLayerNormalMapping() = default;
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Normal Mapping");
-            }
-
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Normal Mapping");
-            }
-
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
 
@@ -120,9 +112,16 @@ namespace Sandbox {
 
                 dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
-
                     return true;
                 });
+            }
+
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Normal Mapping");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Normal Mapping");
             }
 
         private:

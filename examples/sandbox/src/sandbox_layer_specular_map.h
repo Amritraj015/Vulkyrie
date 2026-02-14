@@ -12,36 +12,29 @@ namespace Sandbox {
     class SandboxLayerSpecularMap : public Layer {
         public:
             SandboxLayerSpecularMap()
-                : camera(Camera::Create()) {
-
-                // Initial light position.
-                lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+                : app(Application::GetSingleton())
+                , camera(Camera::Create())
+                , lightPos(1.2f, 1.0f, 2.0f) {
 
                 // load and compile the shader programs.
                 objectShader = Shader::Create("assets/shaders/specular-highlight.glsl");
                 lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
-                // Check if shaders are loaded successfully.
-                if (!objectShader->IsValid() || !lightShader->IsValid()) {
-                    VERROR("Failed to load shaders.");
-                    return;
-                }
-
                 // load the textures.
                 boxTexture = Texture2D::Create("assets/textures/container2.png");
                 specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
 
-                // Check if textures are loaded successfully.
-                if (!boxTexture->IsLoaded() || !specularMapTexture->IsLoaded()) {
-                    VERROR("Failed to load one or more textures!");
-                    return;
-                }
+                // Assert that shader and textures are loaded successfully.
+                assert(objectShader->IsValid());
+                assert(lightShader->IsValid());
+                assert(boxTexture->IsLoaded());
+                assert(specularMapTexture->IsLoaded());
 
                 // Create Vertex Array.
                 objectVertexArray = VertexArray::Create();
 
                 // Create Vertex Buffer.
-                objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                auto objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
@@ -65,13 +58,6 @@ namespace Sandbox {
 
             ~SandboxLayerSpecularMap() = default;
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Specular Map");
-            }
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Specular Map");
-            }
-
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
 
@@ -85,10 +71,7 @@ namespace Sandbox {
                 objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
                 // projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 objectShader->SetMat4Uniform("projection", projection);
 
                 // view matrix.
@@ -144,21 +127,27 @@ namespace Sandbox {
                 });
             }
 
+            void OnAttached() override {
+                VDEBUG("Layer Attached: Specular Map");
+            }
+
+            void OnDetached() override {
+                VDEBUG("Layer Detached: Specular Map");
+            }
+
         private:
+            Application &app;
+            Camera camera;
+            glm::vec3 lightPos;
+
             Ref<VertexArray> objectVertexArray;
-            Ref<VertexBuffer> objectVertexBuffer;
             Ref<Shader> objectShader;
 
             Ref<VertexArray> lightVertexArray;
-            Ref<VertexBuffer> lightVertexBuffer;
             Ref<Shader> lightShader;
-
-            glm::vec3 lightPos;
 
             Ref<Texture2D> boxTexture;
             Ref<Texture2D> specularMapTexture;
-
-            Camera camera;
 
             std::vector<f32> vertices = {
                 // positions         // normals          // texture coords

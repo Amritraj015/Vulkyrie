@@ -20,6 +20,7 @@ namespace Sandbox {
 
                 camera.SetMovementSpeed(1.0f, 5.0f, 20.0f);
 
+                // Create framebuffer.
                 frameBuffer = FrameBuffer::Create({
                     .Width = app.GetWindowWidth(),
                     .Height = app.GetWindowHeight(),
@@ -34,7 +35,6 @@ namespace Sandbox {
                         DepthStencilAttachmentSpecification{
                             .Format = DepthStencilFormat::Depth24Stencil8,
                             .Type = AttachmentType::RenderBuffer,
-                            .Samples = 1,
                         },
                     .SwapchainTarget = false,
                     .DebugName = "PostProcessingFrameBuffer",
@@ -44,18 +44,16 @@ namespace Sandbox {
                 cubeTexture = Texture2D::Create("assets/textures/container.jpg");
                 planeTexture = Texture2D::Create("assets/textures/metal.png");
 
-                if (!cubeTexture->IsLoaded() || !planeTexture->IsLoaded()) {
-                    VERROR("Failed to load one or more textures!");
-                }
-
                 // Load and compile shader program.
                 textureShader = Shader::Create("assets/shaders/texture_2D.glsl");
                 depthTestShader = Shader::Create("assets/shaders/depth_test.glsl");
                 quadShader = Shader::Create("assets/shaders/frame_buffer.glsl");
 
-                if (!textureShader->IsValid() || !depthTestShader->IsValid() || !quadShader->IsValid()) {
-                    VERROR("Failed to create shader program!");
-                }
+                // Assert that textures, and shaders are loaded successfully.
+                assert(cubeTexture->IsLoaded());
+                assert(planeTexture->IsLoaded());
+                assert(textureShader->IsValid());
+                assert(depthTestShader->IsValid());
 
                 // Create cube vertex array.
                 cubeVertexArray = VertexArray::Create();
