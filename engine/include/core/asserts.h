@@ -17,7 +17,7 @@
 #define VASSERT(condition, message, ...)                                                                                                                       \
     do {                                                                                                                                                       \
         if (!(condition)) {                                                                                                                                    \
-            VERROR("[ASSERT] " message __VA_OPT__(,) __VA_ARGS__)                                                                                                        \
+            VERROR("[ASSERT] " message, ##__VA_ARGS__)                                                                                                        \
             VERROR("  File: {}", __FILE__)                                                                                                                    \
             VERROR("  Line: {}", __LINE__)                                                                                                                    \
             VERROR("  Function: {}", __func__)                                                                                                                \
@@ -28,7 +28,7 @@
 #define VASSERT_EXPR(condition, message, ...)                                                                                                                  \
     do {                                                                                                                                                       \
         if (!(condition)) {                                                                                                                                    \
-            VERROR("[ASSERT] (" #condition ") " message __VA_OPT__(,) __VA_ARGS__)                                                                           \
+            VERROR("[ASSERT] (" #condition ") " message, ##__VA_ARGS__)                                                                           \
             VERROR("  File: {}", __FILE__)                                                                                                                    \
             VERROR("  Line: {}", __LINE__)                                                                                                                    \
             VERROR("  Function: {}", __func__)                                                                                                                \
