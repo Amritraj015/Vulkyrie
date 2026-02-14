@@ -63,40 +63,36 @@ namespace Vulkyrie::Core {
 
 // clang-format off
 
-// Helper macro for MSVC compatibility (__VA_OPT__ is not supported in MSVC without /Zc:preprocessor)
-// This macro ensures a comma is added only when there are variadic arguments
-#define VLOG_IMPL(level, fmt, ...) Vulkyrie::Core::Logger::Log(level, fmt, ##__VA_ARGS__);
-
 // Logs a fatal message.
-#define VFATAL(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Fatal, fmt, ##__VA_ARGS__)
+#define VFATAL(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Fatal, fmt __VA_OPT__(,) __VA_ARGS__);
 
 // Logs an error message.
-#define VERROR(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Error, fmt, ##__VA_ARGS__)
+#define VERROR(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Error, fmt __VA_OPT__(,) __VA_ARGS__);
 
 // Logs a warning message if warning level logs are enabled else noop.
 #if VULKYRIE_LOG_LEVEL >= VULKYRIE_WARN_LEVEL_LOG
-#define VWARN(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Warn, fmt, ##__VA_ARGS__)
+#define VWARN(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Warn, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VWARN(fmt, ...)
 #endif
 
 // Logs an info message if info level logs are enabled else noop.
 #if VULKYRIE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
-#define VINFO(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Info, fmt, ##__VA_ARGS__)
+#define VINFO(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Info, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VINFO(fmt, ...)
 #endif
 
 // Logs a debug message if debug level logs are enabled else noop.
 #if VULKYRIE_LOG_LEVEL >= VULKYRIE_DEBUG_LEVEL_LOG
-#define VDEBUG(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Debug, fmt, ##__VA_ARGS__)
+#define VDEBUG(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Debug, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VDEBUG(fmt, ...)
 #endif
 
 // Logs a trace message if trace level logs are enabled else noop.
 #if VULKYRIE_LOG_LEVEL >= VULKYRIE_TRACE_LEVEL_LOG
-#define VTRACE(fmt, ...) VLOG_IMPL(Vulkyrie::Core::LogLevel::Trace, fmt, ##__VA_ARGS__)
+#define VTRACE(fmt, ...) Vulkyrie::Core::Logger::Log(Vulkyrie::Core::LogLevel::Trace, fmt __VA_OPT__(,) __VA_ARGS__);
 #else
 #define VTRACE(fmt, ...)
 #endif
