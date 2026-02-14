@@ -36,6 +36,15 @@
         "CMAKE_CXX_COMPILER": "clang++"
       }
     },
+    {
+      "name": "msvc-base-release",
+      "hidden": true,
+      "inherits": "base-release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
 
     {
       "name": "all-release",
@@ -161,6 +170,47 @@
     },
 
     {
+      "name": "msvc-all-release",
+      "displayName": "(MSVC) - All Targets (Release)",
+      "inherits": "msvc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "msvc-examples-release",
+      "displayName": "(MSVC) - Examples (Release)",
+      "inherits": "msvc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "msvc-cli-release",
+      "displayName": "(MSVC) - CLI (Release)",
+      "inherits": "msvc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "msvc-tests-release",
+      "displayName": "(MSVC) - Tests (Release)",
+      "inherits": "msvc-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
       "name": "base-debug",
       "hidden": true,
       "generator": "Ninja",
@@ -187,6 +237,15 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "msvc-base-debug",
+      "hidden": true,
+      "inherits": "base-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
       }
     },
 
@@ -311,6 +370,47 @@
         "VULKYRIE_BUILD_CLI": "OFF",
         "VULKYRIE_BUILD_TESTS": "ON"
       }
+    },
+
+    {
+      "name": "msvc-all-debug",
+      "displayName": "(MSVC) - All Targets (Debug)",
+      "inherits": "msvc-base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "msvc-examples-debug",
+      "displayName": "(MSVC) - Examples (Debug)",
+      "inherits": "msvc-base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "msvc-cli-debug",
+      "displayName": "(MSVC) - CLI (Debug)",
+      "inherits": "msvc-base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "msvc-tests-debug",
+      "displayName": "(MSVC) - Tests (Debug)",
+      "inherits": "msvc-base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
     }
   ],
 
@@ -352,6 +452,22 @@
       "configurePreset": "clang-examples-release"
     },
     { "name": "clang-cli-release", "configurePreset": "clang-cli-release" },
-    { "name": "clang-tests-release", "configurePreset": "clang-tests-release" }
+    { "name": "clang-tests-release", "configurePreset": "clang-tests-release" },
+
+    { "name": "msvc-all-release", "configurePreset": "msvc-all-release" },
+    {
+      "name": "msvc-examples-release",
+      "configurePreset": "msvc-examples-release"
+    },
+    { "name": "msvc-cli-release", "configurePreset": "msvc-cli-release" },
+    { "name": "msvc-tests-release", "configurePreset": "msvc-tests-release" },
+
+    { "name": "msvc-all-debug", "configurePreset": "msvc-all-debug" },
+    {
+      "name": "msvc-examples-debug",
+      "configurePreset": "msvc-examples-debug"
+    },
+    { "name": "msvc-cli-debug", "configurePreset": "msvc-cli-debug" },
+    { "name": "msvc-tests-debug", "configurePreset": "msvc-tests-debug" }
   ]
 }

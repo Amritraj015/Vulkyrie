@@ -30,6 +30,29 @@
 		},
 		{
 			"type": "shell",
+			"label": "CMake: Configure (MSVC)",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"\"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 && cmake --preset msvc-all-debug"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "CMake: Build (MSVC)",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"\"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 && cmake --build --preset msvc-all-debug"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"dependsOn": ["CMake: Configure (MSVC)"]
+		},
+		{
+			"type": "shell",
 			"label": "CMake: Clean",
 			"command": "cmake",
 			"args": [
