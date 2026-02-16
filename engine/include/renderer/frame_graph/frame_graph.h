@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "renderer/frame_graph/type_traits.h"
 
 namespace Vulkyrie::Renderer {
 
@@ -9,9 +10,12 @@ namespace Vulkyrie::Renderer {
     class GraphNode {
         public:
             GraphNode() = delete;
+            virtual ~GraphNode() = default;
+
             GraphNode(const GraphNode &) = delete;
-            GraphNode(GraphNode &&) = delete;
             GraphNode &operator=(const GraphNode &) = delete;
+
+            GraphNode(GraphNode &&) = delete;
             GraphNode &operator=(GraphNode &&) = delete;
 
             virtual void Execute() = 0;
@@ -45,6 +49,11 @@ namespace Vulkyrie::Renderer {
         requires std::is_invocable_v<ExecuteFunc, const PassData &>
     class PassNode : public GraphNode {
         public:
+            /** @brief Constructs a PassNode with the given name, index, and execution function.
+             * @param name The name of the pass node.
+             * @param index The unique index of the pass node in the graph.
+             * @param executeFunc The function to execute when this pass is executed. It should be invocable with a const reference to PassData.
+             */
             PassNode(const std::string_view name, u32 index, ExecuteFunc &&executeFunc)
                 : GraphNode(name, index)
                 , _executeFunc(std::forward<ExecuteFunc>(executeFunc)) {
@@ -53,69 +62,91 @@ namespace Vulkyrie::Renderer {
                 _createdResources.reserve(20);
             }
 
+            /** @brief Executes the pass by invoking the stored execution function with the pass data. */
             void Execute() override {
                 _executeFunc(Data);
             }
 
             PassData Data;
 
+            /** @brief Checks if the pass creates the specified resource.
+             * @param resource The ID of the resource to check.
+             * @return `true` if the pass creates the resource; otherwise, `false`.
+             */
             [[nodiscard]] bool CreatesResource(ResourceID resource) const {
                 return std::ranges::find(_createdResources, resource) != _createdResources.cend();
             }
 
+            /** @brief Checks if the pass reads from the specified resource.
+             * @param resource The ID of the resource to check.
+             * @return `true` if the pass reads from the resource; otherwise, `false`.
+             */
             [[nodiscard]] bool ReadsResource(ResourceID resource) const {
                 return std::ranges::find(_readResources, resource) != _readResources.cend();
             }
 
+            /** @brief Checks if the pass writes to the specified resource.
+             * @param resource The ID of the resource to check.
+             * @return `true` if the pass writes to the resource; otherwise, `false`.
+             */
             [[nodiscard]] bool WritesToResource(ResourceID resource) const {
                 return std::ranges::find(_writeResources, resource) != _writeResources.cend();
             }
 
         private:
+            /** @brief The function to execute when this pass is executed. It should be invocable with a const reference to PassData. */
             ExecuteFunc _executeFunc;
+
+            /** @brief Lists of resource IDs that this pass reads from. These lists are used for dependency tracking and scheduling. */
             std::vector<ResourceID> _readResources;
+
+            /** @brief Lists of resource IDs that this pass writes to. These lists are used for dependency tracking and scheduling. */
             std::vector<ResourceID> _writeResources;
+
+            /** @brief Lists of resource IDs that this pass creates. These lists are used for dependency tracking and scheduling. */
             std::vector<ResourceID> _createdResources;
     };
 
     class ResourceNode : public GraphNode {
         public:
             ResourceNode(const ResourceNode &) = delete;
-            ResourceNode(ResourceNode &&) noexcept = delete;
             ResourceNode &operator=(const ResourceNode &) = delete;
+
+            ResourceNode(ResourceNode &&) noexcept = delete;
             ResourceNode &operator=(ResourceNode &&) noexcept = delete;
 
-            [[nodiscard]] auto GetResourceId() const {
+            [[nodiscard]] u32 GetResourceId() const {
                 return _resourceId;
             }
 
-            [[nodiscard]] auto GetVersion() const {
+            [[nodiscard]] u32 GetVersion() const {
                 return _version;
             }
 
         private:
-            ResourceNode(const std::string_view name, uint32_t nodeId, uint32_t resourceId, uint32_t version)
+            ResourceNode(const std::string_view name, u32 nodeId, u32 resourceId, u32 version)
                 : GraphNode{ name, nodeId }
                 , _resourceId{ resourceId }
                 , _version{ version } {
             }
 
             // Index to virtual resource (FrameGraph::m_resourceRegistry).
-            const uint32_t _resourceId;
-            const uint32_t _version;
+            const u32 _resourceId;
+            const u32 _version;
 
             // PassNode *m_producer{ nullptr };
             // PassNode *m_last{ nullptr };
     };
 
-    class RenderGraph {
+    class FrameGraph {
         public:
-            RenderGraph() = default;
-            RenderGraph(const RenderGraph &) = delete;
-            RenderGraph(RenderGraph &&) = delete;
+            FrameGraph() = default;
 
-            RenderGraph &operator=(const RenderGraph &) = delete;
-            RenderGraph &operator=(RenderGraph &&) = delete;
+            FrameGraph(const FrameGraph &) = delete;
+            FrameGraph(FrameGraph &&) = delete;
+
+            FrameGraph &operator=(const FrameGraph &) = delete;
+            FrameGraph &operator=(FrameGraph &&) = delete;
 
             void Compile();
 
@@ -126,6 +157,8 @@ namespace Vulkyrie::Renderer {
             }
 
             class Builder {
+                    friend class FrameGraph;
+
                 public:
                     Builder() = delete;
                     Builder(const Builder &) = delete;
@@ -134,16 +167,20 @@ namespace Vulkyrie::Renderer {
                     Builder &operator=(const Builder &) = delete;
                     Builder &operator=(Builder &&) = delete;
 
-                    ResourceID Read(const ResourceID resource);
-                    ResourceID Write(const ResourceID resource);
+                    template <FrameGraphResourceBackend T>
+                    [[nodiscard]] ResourceID CreateResource(const std::string_view name, const typename T::Descriptor &descriptor);
+
+                    [[nodiscard]] ResourceID Read(const ResourceID resource);
+
+                    [[nodiscard]] ResourceID Write(const ResourceID resource);
 
                 private:
-                    Builder(RenderGraph &fg, GraphNode &node)
-                        : _renderGraph{ fg }
+                    Builder(FrameGraph &fg, GraphNode &node)
+                        : _frameGraph{ fg }
                         , _passNode{ node } {
                     }
 
-                    RenderGraph &_renderGraph;
+                    FrameGraph &_frameGraph;
                     GraphNode &_passNode;
             };
 
@@ -152,7 +189,7 @@ namespace Vulkyrie::Renderer {
             const PassData AddPass(const std::string_view name, SetupFunc &&setupFunc, ExecuteFunc &&executeFunc) {
                 const u32 insertIndex = static_cast<u32>(_passNodes.size());
 
-                auto passNode = CreateScope<PassNode<PassData, ExecuteFunc>>(name, insertIndex, executeFunc);
+                auto passNode = CreateScope<PassNode<PassData, ExecuteFunc>>(name, insertIndex, std::forward<ExecuteFunc>(executeFunc));
 
                 Builder builder(*this, *passNode);
 

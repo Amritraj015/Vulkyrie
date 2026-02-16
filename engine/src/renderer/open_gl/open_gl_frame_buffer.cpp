@@ -177,7 +177,11 @@ namespace Vulkyrie::Renderer {
 
         // Validate framebuffer completeness.
         GLenum status = glCheckNamedFramebufferStatus(_fboId, GL_FRAMEBUFFER);
-        VASSERT_EXPR(GL_FRAMEBUFFER_COMPLETE == status, "Framebuffer is incomplete (status = {})", status);
+        _isComplete = (status == GL_FRAMEBUFFER_COMPLETE);
+
+        if (!_isComplete) {
+            VFATAL("Framebuffer is incomplete: {}", status);
+        }
     }
 
     void OpenGLFrameBuffer::Resize(u32 width, u32 height) {
@@ -256,6 +260,8 @@ namespace Vulkyrie::Renderer {
 
             _depthAttachment = {};
         }
+
+        _isComplete = false;
     }
 
 } // namespace Vulkyrie::Renderer

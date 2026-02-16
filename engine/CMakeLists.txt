@@ -61,6 +61,7 @@ if (MSVC)
        PRIVATE 
             /W4
             /WX
+            /Zc:preprocessor
     )
 else()
     target_compile_options(engine
@@ -69,7 +70,5 @@ else()
             -Wextra
             -Wpedantic
             -Werror
-            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility=hidden>
-            # $<$<CXX_COMPILER_ID:GNU,Clang>:-fvisibility-inlines-hidden>
     )
 endif()

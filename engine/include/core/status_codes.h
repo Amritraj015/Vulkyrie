@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #define RETURN_ON_FAILURE(expr)                                                                                                                                \
     do {                                                                                                                                                       \
         Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                \

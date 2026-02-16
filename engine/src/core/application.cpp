@@ -29,8 +29,6 @@ namespace Vulkyrie::Core {
         VINFO("Application name              | {}", _windowProps.Title)
         VINFO("Window Height requested       | {}", _windowProps.Height)
         VINFO("Window Width requested        | {}", _windowProps.Width)
-        VINFO("Window Starting X position    | {}", _windowProps.StartX)
-        VINFO("Window Starting Y position    | {}", _windowProps.StartY)
         VINFO("*****************************************************************************************")
         VINFO("Application configuration details")
         VINFO("*****************************************************************************************")

@@ -8,6 +8,9 @@
 #include "events/application/window_resized_event.h"
 
 namespace Vulkyrie::Core {
+
+    /** @brief The Application class represents the main application and manages the application lifecycle,
+     * including window creation, event handling, and layer management. */
     class Application {
         public:
             /** @brief Constructs a new Application with the given window properties and configuration.
@@ -132,6 +135,9 @@ namespace Vulkyrie::Core {
                 return _windowProps.Height;
             }
 
+            /** @brief Gets the current time in seconds since the application started.
+             * @returns The current time in seconds.
+             */
             [[nodiscard]] f32 GetTime() const {
                 return _platform->GetTime();
             }
@@ -176,4 +182,5 @@ namespace Vulkyrie::Core {
              */
             bool OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event);
     };
+
 } // namespace Vulkyrie::Core
