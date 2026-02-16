@@ -47,4 +47,4 @@
 // Material includes
 #include "materials/material_library.h"
 
-extern Vulkyrie::Core::Application *CreateApplication();
+extern std::unique_ptr<Vulkyrie::Core::Application> CreateApplication();

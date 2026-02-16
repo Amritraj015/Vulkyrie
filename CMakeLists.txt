@@ -18,10 +18,14 @@ option(VULKYRIE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json" ON)
 # -------------------------------------
 set(CMAKE_EXPORT_COMPILE_COMMANDS ${VULKYRIE_EXPORT_COMPILE_COMMANDS})
 
+message(STATUS "Export compile commands: ${VULKYRIE_EXPORT_COMPILE_COMMANDS}")
+
 # Create a symlink to the compile_commands.json in the source directory
 if(VULKYRIE_EXPORT_COMPILE_COMMANDS)
     set(CC_JSON "${CMAKE_BINARY_DIR}/compile_commands.json")
     set(CC_JSON_LINK "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
+    message(STATUS "Exporting compile_commands.json to ${CC_JSON_LINK} from ${CC_JSON}")
 
     if(EXISTS "${CC_JSON}")
         if(EXISTS "${CC_JSON_LINK}" OR IS_SYMLINK "${CC_JSON_LINK}")
