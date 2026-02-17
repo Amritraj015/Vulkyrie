@@ -3,6 +3,7 @@
 #include <concepts>
 
 namespace Vulkyrie::Renderer {
+    class FrameGraph;
 
     /** @brief Concept that defines the requirements for a frame graph resource backend. */
     template <typename T>
@@ -11,9 +12,6 @@ namespace Vulkyrie::Renderer {
         { a.Create(std::declval<const typename T::Descriptor &>(), nullptr) } -> std::same_as<void>;
         { a.Destroy(std::declval<const typename T::Descriptor &>(), nullptr) } -> std::same_as<void>;
     };
-
-    template <typename PassData, typename ExecuteFunc>
-    concept FrameGraphPassExecuteFunc = std::is_invocable_v<ExecuteFunc, const PassData &>;
 
     /** @brief Concept that checks if a type has a preRead method. */
     template <typename T>
