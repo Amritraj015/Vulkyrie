@@ -44,6 +44,7 @@ namespace Vulkyrie::Renderer {
     };
 
     class PassNode;
+    class FrameGraphPassResources;
 
     class FrameGraphResource final {
         public:
@@ -102,7 +103,7 @@ namespace Vulkyrie::Renderer {
             FrameGraphPassConcept(FrameGraphPassConcept &&) noexcept = delete;
             FrameGraphPassConcept &operator=(FrameGraphPassConcept &&) noexcept = delete;
 
-            virtual void operator()(FrameGraphResource &, void *) = 0;
+            virtual void operator()(FrameGraphPassResources &, void *) = 0;
     };
 
     template <typename Data, typename Execute> struct FrameGraphPass final : FrameGraphPassConcept {
@@ -111,7 +112,7 @@ namespace Vulkyrie::Renderer {
                 : execFunction{ std::forward<Execute>(exec) } {
             }
 
-            void operator()(FrameGraphResource &resources, void *context) override {
+            void operator()(FrameGraphPassResources &resources, void *context) override {
                 execFunction(data, resources, context);
             }
 
@@ -124,6 +125,8 @@ namespace Vulkyrie::Renderer {
      * along with its resource dependencies.
      */
     class PassNode : public GraphNode {
+            friend class FrameGraph;
+
         public:
             /** @brief Constructs a PassNode with the given name, index, and execution function.
              * @param name The name of the pass node.
@@ -209,6 +212,43 @@ namespace Vulkyrie::Renderer {
             PassNode *_last{ nullptr };
     };
 
+    class FrameGraphPassResources {
+            friend class FrameGraph;
+
+        public:
+            FrameGraphPassResources() = delete;
+            ~FrameGraphPassResources() = default;
+
+            FrameGraphPassResources(const FrameGraphPassResources &) = delete;
+            FrameGraphPassResources(FrameGraphPassResources &&) noexcept = delete;
+
+            FrameGraphPassResources &operator=(const FrameGraphPassResources &) = delete;
+            FrameGraphPassResources &operator=(FrameGraphPassResources &&) noexcept = delete;
+
+            /**
+             * @note Causes runtime-error with:
+             * - Attempt to use obsolete handle (the one that has been renamed before)
+             * - Incorrect resource type T
+             */
+            template <typename T>
+                requires FrameGraphResourceBackend<T>
+            [[nodiscard]] T &Get(FrameGraphResource id);
+
+            template <typename T>
+                requires FrameGraphResourceBackend<T>
+            [[nodiscard]] const typename T::Desc &GetDescriptor(FrameGraphResource id) const;
+
+        private:
+            FrameGraphPassResources(FrameGraph &fg, const PassNode &node)
+                : _frameGraph{ fg }
+                , _passNode{ node } {
+            }
+
+        private:
+            FrameGraph &_frameGraph;
+            const PassNode &_passNode;
+    };
+
     class FrameGraph {
         public:
             FrameGraph() = default;
@@ -219,12 +259,80 @@ namespace Vulkyrie::Renderer {
             FrameGraph &operator=(const FrameGraph &) = delete;
             FrameGraph &operator=(FrameGraph &&) = delete;
 
-            void Compile();
+            void Compile() {
+                for (auto &pass : _passNodes) {
+                    pass._refCount = static_cast<int32_t>(pass._writeResources.size());
+
+                    for (const auto [id, _] : pass._readResources) {
+                        auto &consumed = _resourceNodes[id];
+                        consumed.m_refCount++;
+                    }
+
+                    for (const auto [id, _] : pass._writeResources) {
+                        auto &written = _resourceNodes[id];
+                        written.m_producer = &pass;
+                    }
+                }
+
+                // -- Culling:
+
+                std::stack<ResourceNode *> unreferencedResources;
+
+                for (auto &node : _resourceNodes) {
+                    if (node._refCount == 0) unreferencedResources.push(&node);
+                }
+
+                while (!unreferencedResources.empty()) {
+                    auto *unreferencedResource = unreferencedResources.top();
+                    unreferencedResources.pop();
+                    PassNode *producer{ unreferencedResource->_producer };
+                    if (producer == nullptr || producer->hasSideEffect()) continue;
+
+                    assert(producer->_refCount >= 1);
+
+                    if (--producer->_refCount == 0) {
+                        for (const auto [id, _] : producer->_readResources) {
+                            auto &node = _resourceNodes[id];
+                            if (--node._refCount == 0) unreferencedResources.push(&node);
+                        }
+                    }
+                }
+
+                // -- Calculate resources lifetime:
+
+                for (auto &pass : _passNodes) {
+                    if (pass._refCount == 0) continue;
+
+                    for (const auto id : pass._createdResources) _getResourceEntry(id).m_producer = &pass;
+                    for (const auto [id, _] : pass._writeResources) _getResourceEntry(id).m_last = &pass;
+                    for (const auto [id, _] : pass._readResources) _getResourceEntry(id).m_last = &pass;
+                }
+            }
 
             void Execute(void *context) {
-                for (auto &passNode : _passNodes) {
-                    FrameGraphPassResources resources{ *this, passNode };
-                    std::invoke(*passNode._executeFunc, resources, context);
+                for (const auto &pass : _passNodes) {
+                    if (!pass.CanExecute()) continue;
+
+                    for (const auto id : pass._createdResources) _getResourceEntry(id).create(allocator);
+
+                    for (const auto [id, flags] : pass._readResources) {
+                        if (flags != kFlagsIgnored) {
+                            _getResourceEntry(id).preRead(flags, context);
+                        }
+                    }
+
+                    for (const auto [id, flags] : pass._writeResources) {
+                        if (flags != kFlagsIgnored) {
+                            _getResourceEntry(id).preWrite(flags, context);
+                        }
+                    }
+
+                    FrameGraphPassResources resources{ *this, pass };
+                    std::invoke(*pass._executeFunc, resources, context);
+
+                    for (auto &entry : _resourceRegistry) {
+                        if (entry._last == &pass && entry.IsTransient()) entry.Destroy(allocator);
+                    }
                 }
             }
 
@@ -284,42 +392,6 @@ namespace Vulkyrie::Renderer {
             }
 
             [[nodiscard]] ResourceID Clone(ResourceID resourse);
-
-            class FrameGraphPassResources {
-                    friend class FrameGraph;
-
-                public:
-                    FrameGraphPassResources() = delete;
-                    FrameGraphPassResources(const FrameGraphPassResources &) = delete;
-                    FrameGraphPassResources(FrameGraphPassResources &&) noexcept = delete;
-                    ~FrameGraphPassResources() = default;
-
-                    FrameGraphPassResources &operator=(const FrameGraphPassResources &) = delete;
-                    FrameGraphPassResources &operator=(FrameGraphPassResources &&) noexcept = delete;
-
-                    /**
-                     * @note Causes runtime-error with:
-                     * - Attempt to use obsolete handle (the one that has been renamed before)
-                     * - Incorrect resource type T
-                     */
-                    template <typename T>
-                        requires FrameGraphResourceBackend<T>
-                    [[nodiscard]] T &Get(FrameGraphResource id);
-
-                    template <typename T>
-                        requires FrameGraphResourceBackend<T>
-                    [[nodiscard]] const typename T::Desc &GetDescriptor(FrameGraphResource id) const;
-
-                private:
-                    FrameGraphPassResources(FrameGraph &fg, const PassNode &node)
-                        : _frameGraph{ fg }
-                        , _passNode{ node } {
-                    }
-
-                private:
-                    FrameGraph &_frameGraph;
-                    const PassNode &_passNode;
-            };
     };
 
 } // namespace Vulkyrie::Renderer
