@@ -4,6 +4,8 @@
 
 namespace Vulkyrie::Renderer {
 
+    using PassID = size_t;
+
     struct FrameGraphPassConcept {
         public:
             FrameGraphPassConcept() = default;
@@ -32,8 +34,6 @@ namespace Vulkyrie::Renderer {
             Data data{};
     };
 
-    using PassID = size_t;
-
     /** @brief Represents a pass node in the frame graph. Each pass
      * node encapsulates the execution logic of a rendering pass,
      * along with its resource dependencies.
@@ -42,31 +42,36 @@ namespace Vulkyrie::Renderer {
             friend class FrameGraph;
 
         public:
-            /** @brief Constructs a PassNode with the given name, index, and execution function.
-             * @param name The name of the pass node.
-             * @param passId The unique index of the pass node in the graph.
-             * @param executeFunc The function to execute when this pass is executed. It should be invocable with a const reference to PassData.
-             */
-            PassNode(const std::string_view name, PassID passId, std::unique_ptr<FrameGraphPassConcept> &&executeFunc)
-                : _name(name)
-                , _passID(passId)
-                , _refCount(0)
-                , _executeFunc(std::move(executeFunc)) {
-                _reads.reserve(20);
-                _writes.reserve(20);
-                _creates.reserve(20);
-            }
+            PassNode(const PassNode &) = delete;
+            PassNode &operator=(const PassNode &) = delete;
 
+            PassNode(PassNode &&) = delete;
+            PassNode &operator=(PassNode &&) = delete;
+
+            /** @brief Retrieves the name of the pass, which is a human-readable identifier for the pass. */
             [[nodiscard]] inline std::string_view GetName() const {
                 return _name;
             }
 
+            /** @brief Retrieves the current reference count of the pass, which indicates how many other passes or resources depend on this pass. */
             [[nodiscard]] inline size_t GetRefCount() const {
                 return _refCount;
             }
 
+            /** @brief Increments the reference count of the pass, indicating that it is being used by another pass or resource. */
             [[nodiscard]] inline PassID GetPassID() const {
                 return _passID;
+            }
+
+            /** @brief Checks if the pass has side effects, which means it performs operations that affect the state of the system or produce visible results.
+             */
+            [[nodiscard]] inline bool HasSideEffects() const {
+                return _hasSideEffects;
+            }
+
+            /** @brief Checks if the pass can be executed, which is true if it has a positive reference count or if it has side effects. */
+            [[nodiscard]] inline bool CanExecute() const {
+                return _refCount > 0 || HasSideEffects();
             }
 
             /** @brief Checks if the pass creates the specified resource.
@@ -94,9 +99,38 @@ namespace Vulkyrie::Renderer {
             }
 
         private:
+            /** @brief Constructs a PassNode with the specified name, pass ID, and execution function.
+             * @param name The human-readable identifier for the pass.
+             * @param passId The unique index of the pass node in the graph.
+             * @param executeFunc The function to execute when this pass is executed. It should be invocable with a const reference to PassData.
+             */
+            PassNode(const std::string_view name, PassID passId, std::unique_ptr<FrameGraphPassConcept> &&executeFunc)
+                : _name(name)
+                , _passID(passId)
+                , _refCount(0)
+                , _hasSideEffects(false)
+                , _executeFunc(std::move(executeFunc)) {
+                _reads.reserve(20);
+                _writes.reserve(20);
+                _creates.reserve(20);
+            }
+
+            /** @brief The name of the pass, which is a human-readable identifier for the pass. */
             const std::string_view _name;
+
+            /** @brief The unique index of the pass node in the graph. This ID is used for tracking dependencies and execution order. */
             const PassID _passID;
+
+            /** @brief The reference count of the pass, which indicates how many other passes or resources depend on this pass.
+             * A pass with a reference count of zero may be considered for culling if it has no side effects.
+             */
             size_t _refCount;
+
+            /** @brief Indicates whether the pass has side effects,
+             * which means it performs operations that affect the state of the system or produce visible results.
+             * Passes with side effects should not be culled even if they have a reference count of zero.
+             */
+            bool _hasSideEffects;
 
             /** @brief The function to execute when this pass is executed. It should be invocable with a const reference to PassData. */
             std::unique_ptr<FrameGraphPassConcept> _executeFunc;

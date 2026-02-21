@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderer/frame_graph/pass_node.h"
+
 namespace Vulkyrie::Renderer {
     class PassNode;
 
@@ -16,6 +18,12 @@ namespace Vulkyrie::Renderer {
                 , _version{ version } {
             }
 
+            ResourceNode(const ResourceNode &) = delete;
+            ResourceNode &operator=(const ResourceNode &) = delete;
+
+            ResourceNode(ResourceNode &&) = default;
+            ResourceNode &operator=(ResourceNode &&) = delete;
+
             [[nodiscard]] inline std::string_view GetName() const {
                 return _name;
             }
@@ -28,11 +36,10 @@ namespace Vulkyrie::Renderer {
                 return _resourceID;
             }
 
-            ResourceNode(const ResourceNode &) = delete;
-            ResourceNode &operator=(const ResourceNode &) = delete;
-
-            ResourceNode(ResourceNode &&) = default;
-            ResourceNode &operator=(ResourceNode &&) = delete;
+            [[nodiscard]] inline bool Transient() const {
+                // return _writtenBy.empty();
+                return false;
+            }
 
             [[nodiscard]] inline u32 GetVersion() const {
                 return _version;
@@ -42,16 +49,7 @@ namespace Vulkyrie::Renderer {
             const std::string_view _name;
             const ResourceID _resourceID;
             size_t _refCount;
-
             const u32 _version;
-
-            // TODO: Revisit this, maybe we dont need these vectors.
-            // TODO: Revisit this, maybe we dont need these vectors.
-            std::vector<ResourceID> _readBy;
-            std::vector<ResourceID> _writtenBy;
-            // TODO: Revisit this, maybe we dont need these vectors.
-            // TODO: Revisit this, maybe we dont need these vectors.
-
             PassNode *_creator{ nullptr };
             PassNode *_lastUsedBy{ nullptr };
     };

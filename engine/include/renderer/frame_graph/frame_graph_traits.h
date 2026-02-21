@@ -15,14 +15,14 @@ namespace Vulkyrie::Renderer {
 
     /** @brief Concept that checks if a type has a preRead method. */
     template <typename T>
-    concept has_preRead = requires(T a) {
-        { a.preRead() } -> std::same_as<void>;
+    concept HasPreRead = requires(T a) {
+        { a.PreRead() } -> std::same_as<void>;
     };
 
     /** @brief Concept that checks if a type has a preWrite method. */
     template <typename T>
-    concept has_preWrite = requires(T a) {
-        { a.preWrite() } -> std::same_as<void>;
+    concept HasPreWrite = requires(T a) {
+        { a.PreWrite() } -> std::same_as<void>;
     };
 
 } // namespace Vulkyrie::Renderer
