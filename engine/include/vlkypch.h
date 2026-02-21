@@ -23,6 +23,9 @@
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
+#include <stack>
+#include <typeindex>
+#include <any>
 
 // GLM - OpenGL Mathematics
 #include <glm/glm.hpp>

@@ -45,8 +45,21 @@ namespace Vulkyrie::Renderer {
             PassNode(const PassNode &) = delete;
             PassNode &operator=(const PassNode &) = delete;
 
-            PassNode(PassNode &&) = delete;
+            PassNode(PassNode &&) = default;
             PassNode &operator=(PassNode &&) = delete;
+
+            struct ResourceAccess {
+                public:
+                    Vulkyrie::Renderer::ResourceID ResourceID;
+                    i32 Flags;
+
+                    explicit ResourceAccess(Vulkyrie::Renderer::ResourceID resourceID, i32 flags)
+                        : ResourceID(resourceID)
+                        , Flags(flags) {
+                    }
+
+                    bool operator==(const ResourceAccess &) const = default;
+            };
 
             /** @brief Retrieves the name of the pass, which is a human-readable identifier for the pass. */
             [[nodiscard]] inline std::string_view GetName() const {
@@ -75,27 +88,27 @@ namespace Vulkyrie::Renderer {
             }
 
             /** @brief Checks if the pass creates the specified resource.
-             * @param resourceId The ID of the resource to check.
+             * @param resourceID The ID of the resource to check.
              * @return `true` if the pass creates the resource; otherwise, `false`.
              */
-            [[nodiscard]] bool CreatesResource(ResourceID resourceId) const {
-                return std::ranges::find(_creates, resourceId) != _creates.cend();
+            [[nodiscard]] bool CreatesResource(const ResourceID resourceID) const {
+                return std::ranges::find(_creates, resourceID) != _creates.cend();
             }
 
             /** @brief Checks if the pass reads from the specified resource.
-             * @param resourceId The ID of the resource to check.
+             * @param resourceID The ID of the resource to check.
              * @return `true` if the pass reads from the resource; otherwise, `false`.
              */
-            [[nodiscard]] bool ReadsResource(ResourceID resourceId) const {
-                return std::ranges::find(_reads, resourceId) != _reads.cend();
+            [[nodiscard]] bool ReadsResource(const ResourceID resourceID) const {
+                return std::ranges::find_if(_reads, [resourceID](const ResourceAccess &a) { return a.ResourceID == resourceID; }) != _reads.cend();
             }
 
             /** @brief Checks if the pass writes to the specified resource.
-             * @param resourceId The ID of the resource to check.
+             * @param resourceID The ID of the resource to check.
              * @return `true` if the pass writes to the resource; otherwise, `false`.
              */
-            [[nodiscard]] bool WritesToResource(ResourceID resourceId) const {
-                return std::ranges::find(_writes, resourceId) != _writes.cend();
+            [[nodiscard]] bool WritesToResource(const ResourceID resourceID) const {
+                return std::ranges::find_if(_writes, [resourceID](const ResourceAccess &a) { return a.ResourceID == resourceID; }) != _writes.cend();
             }
 
         private:
@@ -110,9 +123,9 @@ namespace Vulkyrie::Renderer {
                 , _refCount(0)
                 , _hasSideEffects(false)
                 , _executeFunc(std::move(executeFunc)) {
-                _reads.reserve(20);
-                _writes.reserve(20);
-                _creates.reserve(20);
+                _creates.reserve(10);
+                _reads.reserve(10);
+                _writes.reserve(10);
             }
 
             /** @brief The name of the pass, which is a human-readable identifier for the pass. */
@@ -135,14 +148,48 @@ namespace Vulkyrie::Renderer {
             /** @brief The function to execute when this pass is executed. It should be invocable with a const reference to PassData. */
             std::unique_ptr<FrameGraphPassConcept> _executeFunc;
 
-            /** @brief List of resource IDs that this pass reads from. These list are used for dependency tracking. */
-            std::vector<ResourceID> _reads;
-
-            /** @brief List of resource IDs that this pass writes to. These list are used for dependency tracking. */
-            std::vector<ResourceID> _writes;
-
             /** @brief List of resource IDs that this pass creates. These list are used for dependency tracking. */
             std::vector<ResourceID> _creates;
+
+            /** @brief List of resource IDs that this pass reads from. These list are used for dependency tracking. */
+            std::vector<ResourceAccess> _reads;
+
+            /** @brief List of resource IDs that this pass writes to. These list are used for dependency tracking. */
+            std::vector<ResourceAccess> _writes;
+
+            /** @brief Registers a read access to the specified resource with the given flags.
+             * If the resource is not already registered as a read access, it is added to the list of reads.
+             * @param resourceID The ID of the resource being read.
+             * @param flags Flags indicating the type of read operation. These flags can be used for optimization or to specify special handling for certain
+             * types of reads.
+             * @return The ID of the resource being read, which can be used for chaining calls or for further processing. */
+            [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags) {
+                assert(!CreatesResource(resourceID) && !WritesToResource(resourceID));
+
+                ResourceAccess access{ resourceID, flags };
+
+                if (std::ranges::find(_reads, access) == _reads.cend()) {
+                    _reads.push_back(access);
+                }
+
+                return resourceID;
+            }
+
+            /** @brief Registers a write access to the specified resource with the given flags.
+             * If the resource is not already registered as a write access, it is added to the list of writes.
+             * @param resourceID The ID of the resource being written to.
+             * @param flags Flags indicating the type of write operation. These flags can be used for optimization or to specify special handling for certain
+             * types of writes.
+             * @return The ID of the resource being written to, which can be used for chaining calls or for further processing. */
+            [[nodiscard]] ResourceID Write(const ResourceID resourceID, i32 flags) {
+                ResourceAccess access{ resourceID, flags };
+
+                if (std::ranges::find(_writes, access) == _writes.cend()) {
+                    _writes.push_back(access);
+                }
+
+                return resourceID;
+            }
     };
 
 } // namespace Vulkyrie::Renderer

@@ -20,6 +20,26 @@ namespace Vulkyrie::Renderer {
             ResourceEntry(ResourceEntry &&) = delete;
             ResourceEntry &operator=(ResourceEntry &&) = delete;
 
+            void Create(void *allocator) {
+                if (_type == Type::Transient) {
+                    _concept->Create(allocator);
+                }
+            }
+
+            void Destroy(void *allocator) {
+                if (_type == Type::Transient) {
+                    _concept->Destroy(allocator);
+                }
+            }
+
+            void PreRead(i32 flags, void *context) {
+                _concept->PreRead(flags, context);
+            }
+
+            void PreWrite(i32 flags, void *context) {
+                _concept->PreWrite(flags, context);
+            }
+
             /** @brief Gets the identifier of the resource. */
             [[nodiscard]] auto GetResourceID() {
                 return _resourceID;
@@ -66,12 +86,12 @@ namespace Vulkyrie::Renderer {
                     /** @brief Optional method to perform operations before a resource is read.
                      * @param flags Flags indicating the type of read operation.
                      * @param context A pointer to any additional context needed for the pre-read operation. */
-                    virtual void PreRead(u32 flags, void *context) = 0;
+                    virtual void PreRead(i32 flags, void *context) = 0;
 
                     /** @brief Optional method to perform operations before a resource is written to.
                      * @param flags Flags indicating the type of write operation.
                      * @param context A pointer to any additional context needed for the pre-write operation. */
-                    virtual void PreWrite(u32 flags, void *context) = 0;
+                    virtual void PreWrite(i32 flags, void *context) = 0;
             };
 
             template <FrameGraphResourceBackend T> struct ResourceModel : Concept {
@@ -87,13 +107,13 @@ namespace Vulkyrie::Renderer {
                         resource.Destroy(descriptor, allocator);
                     }
 
-                    void PreRead(u32 flags, void *context) override {
+                    void PreRead(i32 flags, void *context) override {
                         if constexpr (HasPreRead<T>) {
                             resource.PreRead(flags, context);
                         }
                     }
 
-                    void PreWrite(u32 flags, void *context) override {
+                    void PreWrite(i32 flags, void *context) override {
                         if constexpr (HasPreWrite<T>) {
                             resource.PreWrite(flags, context);
                         }
