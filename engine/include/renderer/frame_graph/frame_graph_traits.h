@@ -1,10 +1,9 @@
 #pragma once
 
+#include "vlkypch.h"
 #include <concepts>
 
 namespace Vulkyrie::Renderer {
-    class FrameGraph;
-
     /** @brief Concept that defines the requirements for a frame graph resource backend. */
     template <typename T>
     concept FrameGraphResourceBackend = std::is_default_constructible_v<T> && std::is_move_constructible_v<T> && requires(T a) {
@@ -15,14 +14,14 @@ namespace Vulkyrie::Renderer {
 
     /** @brief Concept that checks if a type has a preRead method. */
     template <typename T>
-    concept HasPreRead = requires(T a) {
-        { a.PreRead() } -> std::same_as<void>;
+    concept HasPreRead = requires(T a, i32 flags, void *context) {
+        { a.PreRead(flags, context) } -> std::same_as<void>;
     };
 
     /** @brief Concept that checks if a type has a preWrite method. */
     template <typename T>
-    concept HasPreWrite = requires(T a) {
-        { a.PreWrite() } -> std::same_as<void>;
+    concept HasPreWrite = requires(T a, i32 flags, void *context) {
+        { a.PreWrite(flags, context) } -> std::same_as<void>;
     };
 
 } // namespace Vulkyrie::Renderer

@@ -25,20 +25,20 @@ namespace Vulkyrie::Renderer {
             template <typename T, typename... Args> T &Set(Args &&...args) {
                 assert(!Contains<T>());
 
-                _cache[typeid(T)].emplace(std::forward<Args>(args)...);
+                return std::any_cast<T &>(_cache[typeid(T)] = T(std::forward<Args>(args)...));
             }
 
             /** @brief Retrieves a reference to the value of type T stored in the blackboard.
              * @tparam T The type of the value to retrieve. Must exist in the blackboard.
              * @return A reference to the stored value of type T. */
-            template <typename T> [[nodiscard]] T &Get() const {
+            template <typename T> [[nodiscard]] T &Get() {
                 return const_cast<T &>(const_cast<const FrameGraphBlackboard *>(this)->Get<T>());
             }
 
             /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if it does not exist.
              * @tparam T The type of the value to retrieve.
              * @return A pointer to the stored value of type T, or nullptr if it does not exist. */
-            template <typename T> [[nodiscard]] T *TryGet() const {
+            template <typename T> [[nodiscard]] T *TryGet() {
                 return const_cast<T *>(const_cast<const FrameGraphBlackboard *>(this)->TryGet<T>());
             }
 
@@ -46,7 +46,7 @@ namespace Vulkyrie::Renderer {
              * @tparam T The type of the value to retrieve. Must exist in the blackboard.
              * @return A reference to the stored value of type T. */
             template <typename T> [[nodiscard]] const T &Get() const {
-                assert(!Contains<T>());
+                assert(Contains<T>());
 
                 return std::any_cast<const T &>(_cache.at(typeid(T)));
             }

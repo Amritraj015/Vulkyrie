@@ -1,11 +1,13 @@
 #pragma once
 
 #include "renderer/frame_graph/resource_node.h"
+#include "renderer/frame_graph/frame_graph_types.h"
 
 namespace Vulkyrie::Renderer {
 
-    using PassID = size_t;
-
+    /** @brief An abstract base class that defines the interface for executing a frame graph pass.
+     * It serves as a type-erased wrapper for different pass implementations, allowing them to be stored and executed in a uniform manner.
+     */
     struct FrameGraphPassConcept {
         public:
             FrameGraphPassConcept() = default;
@@ -20,6 +22,9 @@ namespace Vulkyrie::Renderer {
             virtual void operator()(void *) = 0;
     };
 
+    /** @brief A template class that implements the FrameGraphPassConcept interface,
+     * allowing for type-erased execution of frame graph passes with associated data.
+     */
     template <typename Data, typename Execute> struct FrameGraphPass final : FrameGraphPassConcept {
         public:
             explicit FrameGraphPass(Execute &&exec)
@@ -30,7 +35,14 @@ namespace Vulkyrie::Renderer {
                 execFunction(data, context);
             }
 
+            /** @brief The function to execute when this pass is executed.
+             * It should be invocable with a reference to the pass data and a pointer to any additional context needed for execution.
+             */
             Execute execFunction;
+
+            /** @brief The data associated with the pass, which can be used to store any information needed for the execution of the pass.
+             * This data is passed to the execution function when the pass is executed.
+             */
             Data data{};
     };
 
@@ -48,11 +60,21 @@ namespace Vulkyrie::Renderer {
             PassNode(PassNode &&) = default;
             PassNode &operator=(PassNode &&) = delete;
 
+            /** @brief Represents an access to a resource by a pass, including the resource ID
+             * and any associated flags that indicate the type of access (e.g., read or write).
+             */
             struct ResourceAccess {
                 public:
+                    /** @brief The ID of the resource being accessed. */
                     Vulkyrie::Renderer::ResourceID ResourceID;
+
+                    /** @brief Flags indicating the type of access (e.g., read or write) and any additional information about the access. */
                     i32 Flags;
 
+                    /** @brief Constructs a ResourceAccess with the specified resource ID and flags.
+                     * @param resourceID The ID of the resource being accessed.
+                     * @param flags Flags indicating the type of access and any additional information about the access.
+                     */
                     explicit ResourceAccess(Vulkyrie::Renderer::ResourceID resourceID, i32 flags)
                         : ResourceID(resourceID)
                         , Flags(flags) {
