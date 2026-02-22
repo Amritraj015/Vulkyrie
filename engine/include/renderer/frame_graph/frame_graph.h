@@ -23,138 +23,9 @@ namespace Vulkyrie::Renderer {
             FrameGraph(FrameGraph &&) = delete;
             FrameGraph &operator=(FrameGraph &&) = delete;
 
-            /** @brief Compiles the frame graph by performing reference count calculation, resource culling, and execution order determination. */
-            void Compile() {
-                // REFERENCE COUNT CALCULATION
-                // First, we calculate the reference counts for each pass and resource node.
-                for (PassNode &passNode : _passNodes) {
-                    // The reference count of a pass is determined by the number of resources it writes to.
-                    passNode._refCount = passNode._writes.size();
-
-                    // The reference count of a resource is determined by the number of passes that read from it.
-                    for (const auto [resourceId, _] : passNode._reads) {
-                        auto &consumedResource = _resourceNodes[resourceId];
-                        consumedResource._refCount++;
-                    }
-
-                    // We also set the creator of each resource to the pass that writes
-                    for (const auto [resourceId, _] : passNode._writes) {
-                        auto &writtenToResource = _resourceNodes[resourceId];
-                        writtenToResource._creator = &passNode;
-                    }
-                }
-
-                // RESOURCE CULLING
-                // Next, we identify unreferenced resources and cull any passes that are only referenced by unreferenced resources.
-                std::stack<ResourceNode *> unreferencedResources;
-
-                // We start by pushing all resources with a reference count of zero onto the stack.
-                for (ResourceNode &resourceNode : _resourceNodes) {
-                    if (resourceNode._refCount == 0) {
-                        unreferencedResources.push(&resourceNode);
-                    }
-                }
-
-                // We then repeatedly pop unreferenced resources from the stack and check their creators.
-                // If a creator pass has no side effects and its reference count drops to zero,
-                // we also consider it unreferenced and push any resources it reads from onto the stack.
-                while (!unreferencedResources.empty()) {
-                    ResourceNode *unreferencedResource = unreferencedResources.top();
-                    unreferencedResources.pop();
-
-                    PassNode *creator = unreferencedResource->_creator;
-
-                    // If the creator is null or has side effects, we cannot cull it, so we skip to the next resource.
-                    if (creator == nullptr || creator->_hasSideEffects) {
-                        continue;
-                    }
-
-                    assert(creator->_refCount >= 1);
-
-                    // We decrement the reference count of the creator pass, and if it drops to zero, we consider it unreferenced.
-                    if (--creator->_refCount == 0) {
-                        for (const auto [resourceId, _] : creator->_reads) {
-                            ResourceNode &consumedResource = _resourceNodes[resourceId];
-
-                            if (--consumedResource._refCount == 0) {
-                                unreferencedResources.push(&consumedResource);
-                            }
-                        }
-                    }
-                }
-
-                // EXECUTION ORDER DETERMINATION
-                // Finally, we determine the execution order of the passes based on their dependencies.
-                for (PassNode &passNode : _passNodes) {
-                    // We only consider passes that have a positive reference count, as they are the ones that will be executed.
-                    if (passNode._refCount == 0) {
-                        continue;
-                    }
-
-                    // For resources that the pass creates, we set the creator pointer to the pass,
-                    for (const ResourceID resourceId : passNode._creates) {
-                        GetResourceEntry(resourceId)._creator = &passNode;
-                    }
-
-                    // For resources that the pass writes to, we set the last used by pointer to the pass,
-                    // as it is the last pass that modifies the resource.
-                    for (const auto [resourceId, _] : passNode._writes) {
-                        GetResourceEntry(resourceId)._lastUsedBy = &passNode;
-                    }
-
-                    // For resources that the pass reads from, we also set the last used by pointer to the pass,
-                    // as it is the last pass that consumes the resource before it is potentially destroyed.
-                    for (const auto [resourceId, _] : passNode._reads) {
-                        GetResourceEntry(resourceId)._lastUsedBy = &passNode;
-                    }
-                }
-            }
-
-            /** @brief Executes the frame graph by executing all passes in the determined execution order.
-             * @param context A pointer to any additional context needed for pass execution, such as a rendering context or command buffer.
-             * @param allocator A pointer to a memory allocator that can be used for resource creation and management during pass execution. */
-            void Execute(void *context, void *allocator) {
-                // We execute the passes in the order they were added to the graph,
-                // but we only execute those that have a positive reference count or have side effects.
-                for (const PassNode &passNode : _passNodes) {
-                    if (!passNode.CanExecute()) {
-                        continue;
-                    }
-
-                    // Before executing the pass, we need to ensure that all resources it creates are created.
-                    for (const ResourceID resourceId : passNode._creates) {
-                        GetResourceEntry(resourceId).Create(allocator);
-                    }
-
-                    // Perform pre-read operations for resources that the pass reads from.
-                    for (const auto [resourceId, flags] : passNode._reads) {
-                        if (flags != IGNORED_FLAGS) {
-                            GetResourceEntry(resourceId).PreRead(flags, allocator);
-                        }
-                    }
-
-                    // Perform pre-write operations for resources that the pass writes to.
-                    for (const auto [resourceId, flags] : passNode._writes) {
-                        if (flags != IGNORED_FLAGS) {
-                            GetResourceEntry(resourceId).PreWrite(flags, allocator);
-                        }
-                    }
-
-                    // Now we can execute the pass itself.
-                    auto &executeFunc = passNode._executeFunc;
-                    (*executeFunc)(context);
-
-                    // After executing the pass, we can destroy any resources that are last used by this pass.
-                    // The "Destroy" method will only be executed for Transient resources,
-                    // as Persistent resources are expected to be managed externally and should not be automatically destroyed by the frame graph.
-                    for (auto &resource : _resourceRegistry) {
-                        if (resource._lastUsedBy == &passNode) {
-                            resource.Destroy(allocator);
-                        }
-                    }
-                }
-            }
-
+            /** @brief Builder class provides an interface for defining the operations of a rendering pass within the frame graph. It allows users to create
+             * resources, register read and write accesses to resources, and specify side effects for the pass. The Builder is used within the context of
+             * defining a pass, and it interacts with the PassNode to track resource dependencies and manage the execution logic of the pass. */
             class Builder final {
                     friend class FrameGraph;
 
@@ -242,6 +113,141 @@ namespace Vulkyrie::Renderer {
                     PassNode &_passNode;
             };
 
+            /** @brief Compiles the frame graph by performing reference count calculation, resource culling, and execution order determination. */
+            void Compile() {
+                // REFERENCE COUNT CALCULATION
+                // First, we calculate the reference counts for each pass and resource node.
+                for (PassNode &passNode : _passNodes) {
+                    // The reference count of a pass is determined by the number of resources it writes to.
+                    passNode._liveOutputCount = passNode._writes.size();
+
+                    // The reference count of a resource is determined by the number of passes that read from it.
+                    for (const auto [resourceId, _] : passNode._reads) {
+                        auto &consumedResource = _resourceNodes[resourceId];
+                        consumedResource._totalConsumers++;
+                    }
+
+                    // We also set the creator of each resource to the pass that writes
+                    for (const auto [resourceId, _] : passNode._writes) {
+                        auto &writtenToResource = _resourceNodes[resourceId];
+                        writtenToResource._creator = &passNode;
+                    }
+                }
+
+                // RESOURCE CULLING
+                // Next, we identify unreferenced resources and cull any passes that are only referenced by unreferenced resources.
+                std::stack<ResourceNode *> unreferencedResources;
+
+                // We start by pushing all resources with a reference count of zero onto the stack.
+                for (ResourceNode &resourceNode : _resourceNodes) {
+                    if (resourceNode._totalConsumers == 0) {
+                        unreferencedResources.push(&resourceNode);
+                    }
+                }
+
+                // We then repeatedly pop unreferenced resources from the stack and check their creators.
+                // If a creator pass has no side effects and its reference count drops to zero,
+                // we also consider it unreferenced and push any resources it reads from onto the stack.
+                while (!unreferencedResources.empty()) {
+                    ResourceNode *unreferencedResource = unreferencedResources.top();
+                    unreferencedResources.pop();
+
+                    PassNode *creator = unreferencedResource->_creator;
+
+                    // If the creator is null or has side effects, we cannot cull it, so we skip to the next resource.
+                    if (creator == nullptr || creator->_hasSideEffects) {
+                        continue;
+                    }
+
+                    assert(creator->_liveOutputCount >= 1);
+
+                    // We decrement the reference count of the creator pass, and if it drops to zero, we consider it unreferenced.
+                    if (--creator->_liveOutputCount == 0) {
+                        for (const auto [resourceId, _] : creator->_reads) {
+                            ResourceNode &consumedResource = _resourceNodes[resourceId];
+
+                            if (--consumedResource._totalConsumers == 0) {
+                                unreferencedResources.push(&consumedResource);
+                            }
+                        }
+                    }
+                }
+
+                // EXECUTION ORDER DETERMINATION
+                // Finally, we determine the execution order of the passes based on their dependencies.
+                for (PassNode &passNode : _passNodes) {
+                    // We only consider passes that have a positive reference count, as they are the ones that will be executed.
+                    if (passNode._liveOutputCount == 0) {
+                        continue;
+                    }
+
+                    // For resources that the pass creates, we set the creator pointer to the pass,
+                    for (const ResourceID resourceId : passNode._creates) {
+                        GetResourceEntry(resourceId)._creator = &passNode;
+                    }
+
+                    // For resources that the pass writes to, we set the last used by pointer to the pass,
+                    // as it is the last pass that modifies the resource.
+                    for (const auto [resourceId, _] : passNode._writes) {
+                        GetResourceEntry(resourceId)._lastUsedBy = &passNode;
+                    }
+
+                    // For resources that the pass reads from, we also set the last used by pointer to the pass,
+                    // as it is the last pass that consumes the resource before it is potentially destroyed.
+                    for (const auto [resourceId, _] : passNode._reads) {
+                        GetResourceEntry(resourceId)._lastUsedBy = &passNode;
+                    }
+                }
+            }
+
+            /** @brief Executes the frame graph by executing all passes in the determined execution order.
+             * @param context A pointer to any additional context needed for pass execution, such as a rendering context or command buffer.
+             * @param allocator A pointer to a memory allocator that can be used for resource creation and management during pass execution. */
+            void Execute(void *context, void *allocator) {
+                // We execute the passes in the order they were added to the graph,
+                // but we only execute those that have a positive reference count or have side effects.
+                for (const PassNode &passNode : _passNodes) {
+                    if (!passNode.CanExecute()) {
+                        continue;
+                    }
+
+                    // Before executing the pass, we need to ensure that all resources it creates are created.
+                    for (const ResourceID resourceId : passNode._creates) {
+                        GetResourceEntry(resourceId).Create(allocator);
+                    }
+
+                    // Perform pre-read operations for resources that the pass reads from.
+                    for (const auto [resourceId, flags] : passNode._reads) {
+                        if (flags != IGNORED_FLAGS) {
+                            GetResourceEntry(resourceId).PreRead(flags, allocator);
+                        }
+                    }
+
+                    // Perform pre-write operations for resources that the pass writes to.
+                    for (const auto [resourceId, flags] : passNode._writes) {
+                        if (flags != IGNORED_FLAGS) {
+                            GetResourceEntry(resourceId).PreWrite(flags, allocator);
+                        }
+                    }
+
+                    // Now we can execute the pass itself.
+                    (*passNode._executeFunc)(context);
+
+                    // After executing the pass, we can destroy any resources that are last used by this pass.
+                    // The "Destroy" method will only be executed for Transient resources,
+                    // as Persistent resources are expected to be managed externally and should not be automatically destroyed by the frame graph.
+                    //
+                    // TODO: This can be improved, as we are currently iterating over all resources for each pass, which can be inefficient. We can optimize
+                    // this by keeping track of which resources are last used by each pass during the compilation phase, so we can directly access and
+                    // destroy only those resources without having to iterate through the entire resource registry.
+                    for (auto &resource : _resourceRegistry) {
+                        if (resource._lastUsedBy == &passNode) {
+                            resource.Destroy(allocator);
+                        }
+                    }
+                }
+            }
+
             /** @brief Adds a new pass to the frame graph with the specified name, setup function, and execution function, and returns a reference to the pass
              * data associated with the newly added pass.
              *
@@ -278,6 +284,19 @@ namespace Vulkyrie::Renderer {
                 setupFunc(builder, passDataRef);
 
                 return passDataRef;
+            }
+
+            /** @brief Imports an externally managed resource into the frame graph with the specified name, descriptor, and resource instance, and returns its
+             * ResourceID.
+             * @tparam T The type of the resource backend, which must satisfy the FrameGraphResourceBackend concept.
+             * @param name A human-readable identifier for the resource, which can be used for debugging and profiling purposes.
+             * @param desc The descriptor containing the necessary information for creating and managing the resource. The specific fields and requirements of
+             * the descriptor will depend on the implementation of the resource backend and the requirements of the resource being imported.
+             * @param resource The actual resource instance that is being imported into the frame graph. This should be an instance of the type that satisfies
+             * the FrameGraphResourceBackend concept, and it should be initialized with any necessary information for managing the resource. Imported resources
+             * are expected to be managed externally and will not be automatically destroyed by the frame graph. */
+            template <FrameGraphResourceBackend T> ResourceID Import(const std::string_view name, const typename T::Descriptor &descriptor, T &&resource) {
+                return Create<T>(ResourceEntry::Type::Imported, name, descriptor, std::forward<T>(resource));
             }
 
         private:

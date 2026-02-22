@@ -11,8 +11,8 @@ using namespace Vulkyrie::Renderer;
 // ===========================================================================================
 
 struct MockTextureDescriptor {
-        uint32_t width = 0;
-        uint32_t height = 0;
+        u32 width = 0;
+        u32 height = 0;
         std::string format;
 };
 
@@ -21,8 +21,8 @@ struct MockTexture {
 
         bool created = false;
         bool destroyed = false;
-        int preReadCount = 0;
-        int preWriteCount = 0;
+        i32 preReadCount = 0;
+        i32 preWriteCount = 0;
 
         void Create(const Descriptor &desc, void *allocator) {
             created = true;

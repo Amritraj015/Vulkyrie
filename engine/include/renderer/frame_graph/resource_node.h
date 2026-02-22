@@ -24,12 +24,6 @@ namespace Vulkyrie::Renderer {
                 return _name;
             }
 
-            /** @brief Retrieves the reference count of the resource, which indicates how many passes depend on this resource.
-             * A resource with a reference count of zero may be considered for culling if it is not used by any pass. */
-            [[nodiscard]] inline size_t GetRefCount() const {
-                return _refCount;
-            }
-
             /** @brief Retrieves the identifier associated with this resource node. */
             [[nodiscard]] inline ResourceID GetResourceID() const {
                 return _resourceID;
@@ -53,7 +47,7 @@ namespace Vulkyrie::Renderer {
                 : _name(name)
                 , _resourceID(resourceID)
                 , _resourceEntryID(resourceEntryID)
-                , _refCount(0)
+                , _totalConsumers(0)
                 , _version{ version } {
             }
 
@@ -66,9 +60,9 @@ namespace Vulkyrie::Renderer {
             /** @brief The identifier of the resource entry associated with this resource node. */
             const ResourceEntryID _resourceEntryID;
 
-            /** @brief The reference count of the resource, which indicates how many passes depend on this resource.
-             * A resource with a reference count of zero may be considered for culling if it is not used by any pass. */
-            size_t _refCount;
+            /** @brief The total number of passes that consume this resource.
+             * This is used for reference counting and determining when a resource can be culled. */
+            size_t _totalConsumers;
 
             /** @brief The version number of the resource. */
             u32 _version;

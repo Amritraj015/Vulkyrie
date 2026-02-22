@@ -88,25 +88,14 @@ namespace Vulkyrie::Renderer {
                 return _name;
             }
 
-            /** @brief Retrieves the current reference count of the pass, which indicates how many other passes or resources depend on this pass. */
-            [[nodiscard]] inline size_t GetRefCount() const {
-                return _refCount;
-            }
-
             /** @brief Increments the reference count of the pass, indicating that it is being used by another pass or resource. */
             [[nodiscard]] inline PassID GetPassID() const {
                 return _passID;
             }
 
-            /** @brief Checks if the pass has side effects, which means it performs operations that affect the state of the system or produce visible results.
-             */
-            [[nodiscard]] inline bool HasSideEffects() const {
-                return _hasSideEffects;
-            }
-
             /** @brief Checks if the pass can be executed, which is true if it has a positive reference count or if it has side effects. */
             [[nodiscard]] inline bool CanExecute() const {
-                return _refCount > 0 || HasSideEffects();
+                return _liveOutputCount > 0 || _hasSideEffects;
             }
 
             /** @brief Checks if the pass creates the specified resource.
@@ -142,7 +131,7 @@ namespace Vulkyrie::Renderer {
             PassNode(const std::string_view name, PassID passId, std::unique_ptr<FrameGraphPassConcept> &&executeFunc)
                 : _name(name)
                 , _passID(passId)
-                , _refCount(0)
+                , _liveOutputCount(0)
                 , _hasSideEffects(false)
                 , _executeFunc(std::move(executeFunc)) {
                 _creates.reserve(10);
@@ -156,10 +145,9 @@ namespace Vulkyrie::Renderer {
             /** @brief The unique index of the pass node in the graph. This ID is used for tracking dependencies and execution order. */
             const PassID _passID;
 
-            /** @brief The reference count of the pass, which indicates how many other passes or resources depend on this pass.
-             * A pass with a reference count of zero may be considered for culling if it has no side effects.
-             */
-            size_t _refCount;
+            /** @brief Total number of live outputs produced by this pass.
+             * This is used for reference counting and determining when a pass can be culled. */
+            size_t _liveOutputCount;
 
             /** @brief Indicates whether the pass has side effects,
              * which means it performs operations that affect the state of the system or produce visible results.
