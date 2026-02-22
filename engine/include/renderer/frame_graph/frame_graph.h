@@ -48,7 +48,7 @@ namespace Vulkyrie::Renderer {
                      * @return The ResourceID of the newly created resource, which can be used for referencing this resource in subsequent pass definitions. */
                     template <FrameGraphResourceBackend T>
                     [[nodiscard]] ResourceID Create(const std::string_view name, const typename T::Descriptor &descriptor) {
-                        const auto id = _frameGraph.Create<T>(ResourceEntry::Type::Transient, name, descriptor, T{});
+                        const auto id = _frameGraph.Create<T>(ResourceEntry::Type::Transient, name, descriptor, T{}, _passNode.GetPassID());
                         return _passNode._creates.emplace_back(id);
                     }
 
@@ -89,7 +89,7 @@ namespace Vulkyrie::Renderer {
                             // Renaming resources enforces a specific execution order of the render
                             // passes.
                             ResourceID rID = _passNode.Read(resourceID, IGNORED_FLAGS);
-                            return _passNode.Write(_frameGraph.Clone(rID), flags);
+                            return _passNode.Write(_frameGraph.Clone(rID, _passNode.GetPassID()), flags);
                         }
                     }
 
@@ -123,20 +123,7 @@ namespace Vulkyrie::Renderer {
 
                     // The reference count of a resource is determined by the number of passes that read from it.
                     for (const auto [resourceId, _] : passNode._reads) {
-                        auto &consumedResource = _resourceNodes[resourceId];
-                        consumedResource._totalConsumers++;
-                    }
-
-                    // We also set the creator of each resource to the pass that creates it
-                    for (const ResourceID resourceId : passNode._creates) {
-                        auto &createdResource = _resourceNodes[resourceId];
-                        createdResource._creator = &passNode;
-                    }
-
-                    // We also set the creator of each resource to the pass that writes
-                    for (const auto [resourceId, _] : passNode._writes) {
-                        auto &writtenToResource = _resourceNodes[resourceId];
-                        writtenToResource._creator = &passNode;
+                        _resourceNodes[resourceId]._totalConsumers++;
                     }
                 }
 
@@ -158,18 +145,23 @@ namespace Vulkyrie::Renderer {
                     ResourceNode *unreferencedResource = unreferencedResources.top();
                     unreferencedResources.pop();
 
-                    PassNode *creator = unreferencedResource->_creator;
-
-                    // If the creator is null or has side effects, we cannot cull it, so we skip to the next resource.
-                    if (creator == nullptr || creator->_hasSideEffects) {
+                    // If the resource has no creator (imported resource), skip it.
+                    if (!unreferencedResource->_createdBy.has_value()) {
                         continue;
                     }
 
-                    assert(creator->_liveOutputCount >= 1);
+                    PassNode &creator = _passNodes[unreferencedResource->_createdBy.value()];
+
+                    // If the creator has side effects, we cannot cull it, so we skip to the next resource.
+                    if (creator._hasSideEffects) {
+                        continue;
+                    }
+
+                    assert(creator._liveOutputCount >= 1);
 
                     // We decrement the reference count of the creator pass, and if it drops to zero, we consider it unreferenced.
-                    if (--creator->_liveOutputCount == 0) {
-                        for (const auto [resourceId, _] : creator->_reads) {
+                    if (--creator._liveOutputCount == 0) {
+                        for (const auto [resourceId, _] : creator._reads) {
                             ResourceNode &consumedResource = _resourceNodes[resourceId];
 
                             if (--consumedResource._totalConsumers == 0) {
@@ -179,7 +171,7 @@ namespace Vulkyrie::Renderer {
                     }
                 }
 
-                // EXECUTION ORDER DETERMINATION
+                // RESOURCE LIFETIME ANALYSIS
                 // Finally, we determine the execution order of the passes based on their dependencies.
                 for (PassNode &passNode : _passNodes) {
                     // We only consider passes that will be executed (either have outputs or have side effects).
@@ -302,7 +294,7 @@ namespace Vulkyrie::Renderer {
              * the FrameGraphResourceBackend concept, and it should be initialized with any necessary information for managing the resource. Imported resources
              * are expected to be managed externally and will not be automatically destroyed by the frame graph. */
             template <FrameGraphResourceBackend T> ResourceID Import(const std::string_view name, const typename T::Descriptor &descriptor, T &&resource) {
-                return Create<T>(ResourceEntry::Type::Imported, name, descriptor, std::forward<T>(resource));
+                return Create<T>(ResourceEntry::Type::Imported, name, descriptor, std::forward<T>(resource), std::nullopt);
             }
 
         private:
@@ -342,13 +334,14 @@ namespace Vulkyrie::Renderer {
              * @param desc The descriptor containing the necessary information for creating and managing the resource. The specific fields and requirements of
              * the descriptor will depend on the implementation of the resource backend and the requirements of the resource being created.
              * @param resource The actual resource associated with the backend. This should be an instance of the type that satisfies the
-             * FrameGraphResourceBackend concept, and it should be initialized with any necessary information for creating and managing the resource. */
+             * FrameGraphResourceBackend concept, and it should be initialized with any necessary information for creating and managing the resource.
+             * @param creatorID Optional PassID of the pass that creates this resource. This is set at creation time for proper dependency tracking. */
             template <FrameGraphResourceBackend T>
-            [[nodiscard]] ResourceID Create(const ResourceEntry::Type type, const std::string_view name, const typename T::Descriptor &desc, T &&resource) {
+            [[nodiscard]] ResourceID Create(const ResourceEntry::Type type, const std::string_view name, const typename T::Descriptor &desc, T &&resource, std::optional<PassID> creatorID = std::nullopt) {
                 const ResourceEntryID resourceEntryID = _resourceRegistry.size();
                 _resourceRegistry.push_back(ResourceEntry{ type, resourceEntryID, desc, std::forward<T>(resource) });
 
-                return CreateResourceNode(name, resourceEntryID).GetResourceID();
+                return CreateResourceNode(name, resourceEntryID, ResourceEntry::INITIAL_RESOURCE_VERSION, creatorID).GetResourceID();
             }
 
             /** @brief Creates a new pass node in the frame graph with the specified name and execution function,
@@ -365,11 +358,12 @@ namespace Vulkyrie::Renderer {
              * created resource node. The resource node is associated with the given resource entry ID, which is used for tracking and management within the
              * frame graph. The version number of the resource node is initialized to the provided version parameter, which can be used for tracking changes and
              * ensuring that resources are correctly updated and managed within the frame graph. By default, the version number is set to
-             * ResourceEntry::INITIAL_RESOURCE_VERSION, which indicates that this is the initial version of the resource. */
+             * ResourceEntry::INITIAL_RESOURCE_VERSION, which indicates that this is the initial version of the resource.
+             * @param creatorID Optional PassID of the pass that creates this resource. This is set at creation time rather than during compilation. */
             [[nodiscard]] ResourceNode &
-            CreateResourceNode(const std::string_view name, ResourceEntryID resourceEntryId, u32 version = ResourceEntry::INITIAL_RESOURCE_VERSION) {
+            CreateResourceNode(const std::string_view name, ResourceEntryID resourceEntryId, u32 version = ResourceEntry::INITIAL_RESOURCE_VERSION, std::optional<PassID> creatorID = std::nullopt) {
                 const ResourceID resourceID = _resourceNodes.size();
-                return _resourceNodes.emplace_back(ResourceNode{ name, resourceID, resourceEntryId, version });
+                return _resourceNodes.emplace_back(ResourceNode{ name, resourceID, resourceEntryId, version, creatorID });
             }
 
             /** @brief Retrieves a non-const reference to the ResourceEntry associated with the specified ResourceID.
@@ -443,16 +437,17 @@ namespace Vulkyrie::Renderer {
              * ID as the original, but its version number will be incremented to indicate that it is a new version of the resource.
              *
              * @param resourceID The ResourceID of the resource to clone, which must be a valid ResourceID that has been created in the frame graph.
+             * @param creatorID Optional PassID of the pass that creates this cloned resource. This is set at creation time for proper dependency tracking.
              * @returns The ResourceID of the newly cloned resource, which can be used for referencing the new version of the resource in subsequent pass
              * definitions. The cloned resource will have the same name and resource entry ID as the original, but with an incremented version number to
              * indicate that it is a new version of the resource.
              * */
-            [[nodiscard]] ResourceID Clone(ResourceID resourceID) {
+            [[nodiscard]] ResourceID Clone(ResourceID resourceID, std::optional<PassID> creatorID) {
                 const ResourceNode &node = GetResourceNode(resourceID);
                 ResourceEntry &entry = GetResourceEntry(node);
                 entry._version++;
 
-                const ResourceNode &clone = CreateResourceNode(node._name, node._resourceEntryID, entry._version);
+                const ResourceNode &clone = CreateResourceNode(node._name, node._resourceEntryID, entry._version, creatorID);
 
                 return clone.GetResourceID();
             }

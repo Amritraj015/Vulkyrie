@@ -43,12 +43,13 @@ namespace Vulkyrie::Renderer {
              * the frame graph.
              * @param version The version number of the resource, which is used for tracking changes and ensuring that resources are correctly updated and
              * managed within the frame graph. */
-            explicit ResourceNode(const std::string_view name, ResourceID resourceID, ResourceEntryID resourceEntryID, u32 version)
+            explicit ResourceNode(const std::string_view name, ResourceID resourceID, ResourceEntryID resourceEntryID, u32 version, std::optional<PassID> createdBy)
                 : _name(name)
                 , _resourceID(resourceID)
                 , _resourceEntryID(resourceEntryID)
                 , _totalConsumers(0)
-                , _version{ version } {
+                , _version{ version }
+                , _createdBy{ createdBy } {
             }
 
             /** @brief The name of the resource, which is a human-readable identifier for the resource. */
@@ -67,8 +68,8 @@ namespace Vulkyrie::Renderer {
             /** @brief The version number of the resource. */
             u32 _version;
 
-            /** @brief A pointer to the pass node that creates this resource.
+            /** @brief The ID of the pass node that creates this resource, or std::nullopt if imported.
              * This is used for tracking dependencies and determining execution order in the frame graph. */
-            PassNode *_creator{ nullptr };
+            std::optional<PassID> _createdBy;
     };
 } // namespace Vulkyrie::Renderer
