@@ -118,13 +118,19 @@ namespace Vulkyrie::Renderer {
                 // REFERENCE COUNT CALCULATION
                 // First, we calculate the reference counts for each pass and resource node.
                 for (PassNode &passNode : _passNodes) {
-                    // The reference count of a pass is determined by the number of resources it writes to.
-                    passNode._liveOutputCount = passNode._writes.size();
+                    // The reference count of a pass is determined by the number of resources it writes to and creates.
+                    passNode._liveOutputCount = passNode._writes.size() + passNode._creates.size();
 
                     // The reference count of a resource is determined by the number of passes that read from it.
                     for (const auto [resourceId, _] : passNode._reads) {
                         auto &consumedResource = _resourceNodes[resourceId];
                         consumedResource._totalConsumers++;
+                    }
+
+                    // We also set the creator of each resource to the pass that creates it
+                    for (const ResourceID resourceId : passNode._creates) {
+                        auto &createdResource = _resourceNodes[resourceId];
+                        createdResource._creator = &passNode;
                     }
 
                     // We also set the creator of each resource to the pass that writes
@@ -176,8 +182,8 @@ namespace Vulkyrie::Renderer {
                 // EXECUTION ORDER DETERMINATION
                 // Finally, we determine the execution order of the passes based on their dependencies.
                 for (PassNode &passNode : _passNodes) {
-                    // We only consider passes that have a positive reference count, as they are the ones that will be executed.
-                    if (passNode._liveOutputCount == 0) {
+                    // We only consider passes that will be executed (either have outputs or have side effects).
+                    if (!passNode.CanExecute()) {
                         continue;
                     }
 
