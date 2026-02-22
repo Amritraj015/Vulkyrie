@@ -1,5 +1,5 @@
 - [x] Implement Framebuffer abstraction
-- [ ] Implement Frame Graph
+- [x] Implement Frame Graph
 - [ ] Look into work graphs. What are they? How do they work? Can we use them?
 - [ ] Optimize Rendering Performance
 - [ ] Start work on the Physics Engine
