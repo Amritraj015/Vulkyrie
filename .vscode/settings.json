@@ -2,6 +2,31 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "C_Cpp.autocomplete": "disabled",
     "C_Cpp.errorSquiggles": "disabled",
+    "testMate.cpp.test.executables": "{build,Build,BUILD,out,Out,OUT}/**/**/*{tests,Test,TEST}*",
+    "testMate.cpp.debug.configTemplate": {
+        "type": "cppdbg",
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "program": "${exec}",
+        "args": "${argsArray}",
+        "cwd": "${cwd}",
+        "env": "${envObj}",
+        "environment": [],
+        "externalConsole": false,
+        "stopAtEntry": false,
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set Disassembly Flavor to Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ]
+    },
     "editor.tabSize": 4,
     "prettier.printWidth": 160,
     "files.associations": {

@@ -5,6 +5,7 @@
         "slevesque.shader",
         "cschlosser.doxdocgen",
         "streetsidesoftware.code-spell-checker",
+        "matepek.vscode-catch2-test-adapter"
         // "llvm-vs-code-extensions.vscode-clangd"
     ]
 }
