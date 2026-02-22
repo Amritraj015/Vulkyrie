@@ -67,6 +67,38 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "Debug Tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests",
+            "cwd": "${workspaceFolder}/build/gcc-all-debug/tests",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "linux": {
+                "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests",
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests.exe",
+                "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

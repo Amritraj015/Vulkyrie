@@ -43,6 +43,15 @@
 #include "renderer/texture.h"
 #include "renderer/texture_2D.h"
 #include "renderer/texture_cube_map.h"
+// -----------------------------------------------------------
+#include "renderer/frame_graph/frame_graph.h"
+#include "renderer/frame_graph/frame_graph_blackboard.h"
+#include "renderer/frame_graph/frame_graph_traits.h"
+#include "renderer/frame_graph/frame_graph_types.h"
+#include "renderer/frame_graph/resource_node.h"
+#include "renderer/frame_graph/resource_entry.h"
+#include "renderer/frame_graph/pass_node.h"
+// -----------------------------------------------------------
 
 // Material includes
 #include "materials/material_library.h"
