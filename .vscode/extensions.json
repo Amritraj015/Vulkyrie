@@ -1,11 +1,11 @@
 {
     "recommendations": [
-        "ms-vscode.cpptools",
-        "Gruntfuggly.todo-tree",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cmake-tools",
         "slevesque.shader",
         "cschlosser.doxdocgen",
         "streetsidesoftware.code-spell-checker",
+        "Gruntfuggly.todo-tree",
         "matepek.vscode-catch2-test-adapter"
-        // "llvm-vs-code-extensions.vscode-clangd"
     ]
 }
