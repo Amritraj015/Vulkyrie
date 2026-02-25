@@ -10,7 +10,9 @@ namespace Sandbox {
                 : Vulkyrie::Core::Application(windowProps) {
             }
 
-            ~SandboxApplication() override { VINFO("Destroying application sandbox") };
+            ~SandboxApplication() override {
+                VINFO("Destroying application sandbox");
+            }
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
                 // PushLayer<SandboxLayerShadowMapping>();

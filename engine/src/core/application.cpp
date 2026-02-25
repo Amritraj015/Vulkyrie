@@ -23,17 +23,17 @@ namespace Vulkyrie::Core {
         // If window creation failed, return the status code.
         RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
 
-        VINFO("*****************************************************************************************")
-        VINFO("Application details")
-        VINFO("*****************************************************************************************")
-        VINFO("Application name              | {}", _windowProps.Title)
-        VINFO("Window Height requested       | {}", _windowProps.Height)
-        VINFO("Window Width requested        | {}", _windowProps.Width)
-        VINFO("*****************************************************************************************")
-        VINFO("Application configuration details")
-        VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName())
-        VINFO("*****************************************************************************************")
+        VINFO("*****************************************************************************************");
+        VINFO("Application details");
+        VINFO("*****************************************************************************************");
+        VINFO("Application name              | {}", _windowProps.Title);
+        VINFO("Window Height requested       | {}", _windowProps.Height);
+        VINFO("Window Width requested        | {}", _windowProps.Width);
+        VINFO("*****************************************************************************************");
+        VINFO("Application configuration details");
+        VINFO("*****************************************************************************************");
+        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName());
+        VINFO("*****************************************************************************************");
 
         // Mark the application as running.
         // This is placed here to prevent the user from altering the layer stack before the application starts.

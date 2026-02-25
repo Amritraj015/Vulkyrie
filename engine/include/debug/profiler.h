@@ -32,7 +32,7 @@ namespace Vulkyrie::Debug {
                     // Subsequent profiling output meant for the original session will end up in the
                     // newly opened session instead.  That's better than having badly formatted
                     // profiling output.
-                    VERROR("Profiler::BeginSession('{}') when session '{}' already open.", name, _sessionName)
+                    VERROR("Profiler::BeginSession('{}') when session '{}' already open.", name, _sessionName);
 
                     InternalEndSession();
                 }
@@ -43,7 +43,7 @@ namespace Vulkyrie::Debug {
                     _sessionName = name;
                     WriteHeader();
                 } else {
-                    VERROR("Profiler could not open results file '{}'.", filepath)
+                    VERROR("Profiler could not open results file '{}'.", filepath);
                 }
             }
 
