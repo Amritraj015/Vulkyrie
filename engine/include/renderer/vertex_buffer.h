@@ -1,7 +1,6 @@
 #pragma once
 
 #include "buffer_layout.h"
-#include "core/graphics_api.h"
 #include "renderer/vertex.h"
 
 namespace Vulkyrie::Renderer {

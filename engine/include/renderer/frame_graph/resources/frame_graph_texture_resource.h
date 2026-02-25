@@ -1,10 +1,16 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Renderer {
 
     class FrameGraphTextureResource {
         public:
-            struct Descriptor {};
+            struct Descriptor {
+                public:
+                    u32 Height;
+                    u32 Width;
+            };
 
             void Create(const Descriptor &descriptor, void *context) {
             }
