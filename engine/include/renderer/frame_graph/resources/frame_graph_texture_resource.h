@@ -12,11 +12,8 @@ namespace Vulkyrie::Renderer {
                     u32 Width;
             };
 
-            void Create(const Descriptor &descriptor, void *context) {
-            }
-
-            void Destroy(const Descriptor &descriptor, void *context) {
-            }
+            void Create(const Descriptor &descriptor, void *context);
+            void Destroy(const Descriptor &descriptor, void *context);
     };
 
 } // namespace Vulkyrie::Renderer
