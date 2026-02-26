@@ -29,10 +29,10 @@ target_include_directories(engine
 # ---------------------------
 target_link_libraries(engine
     PUBLIC
-        glm
         glfw
         glad
-        assimp
+        glm::glm
+        assimp::assimp
 )
 
 # ---------------------------

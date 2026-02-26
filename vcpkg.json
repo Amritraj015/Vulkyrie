@@ -1,0 +1,5 @@
+{
+  "name": "vulkyrie",
+  "version": "0.1.0",
+  "dependencies": ["assimp", "imgui", "glfw3", "glm", "stb"]
+}

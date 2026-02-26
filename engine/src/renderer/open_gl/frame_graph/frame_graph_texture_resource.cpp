@@ -2,10 +2,10 @@
 
 namespace Vulkyrie::Renderer {
 
-    void FrameGraphTextureResource::Create(const Descriptor &descriptor, void *context) {
-    }
-
-    void FrameGraphTextureResource::Destroy(const Descriptor &descriptor, void *context) {
-    }
+    // void FrameGraphTextureResource::Create(const Descriptor &descriptor, void *context) {
+    // }
+    //
+    // void FrameGraphTextureResource::Destroy(const Descriptor &descriptor, void *context) {
+    // }
 
 } // namespace Vulkyrie::Renderer
