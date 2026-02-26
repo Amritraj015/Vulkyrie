@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Renderer {
     /** @brief Abstract base class for a cube map texture. */
     class TextureCubeMap {

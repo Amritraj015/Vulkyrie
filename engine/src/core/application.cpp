@@ -1,5 +1,5 @@
-#include "core/status_codes.h"
 #include "vlkypch.h"
+#include "core/status_codes.h"
 #include "core/application.h"
 #include "core/vulkyrie_glfw_platform.h"
 #include "events/event_dispatcher.h"
@@ -9,9 +9,9 @@ namespace Vulkyrie::Core {
 
     Application *Application::_instance = nullptr;
 
-    Application::Application(const WindowProps &windowProps)
+    Application::Application(WindowProps windowProps)
         : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
-        , _windowProps(windowProps)
+        , _windowProps(std::move(windowProps))
         , _running(false) {
         _instance = this;
     }
@@ -23,22 +23,22 @@ namespace Vulkyrie::Core {
         // If window creation failed, return the status code.
         RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
 
-        VINFO("*****************************************************************************************")
-        VINFO("Application details")
-        VINFO("*****************************************************************************************")
-        VINFO("Application name              | {}", _windowProps.Title)
-        VINFO("Window Height requested       | {}", _windowProps.Height)
-        VINFO("Window Width requested        | {}", _windowProps.Width)
-        VINFO("*****************************************************************************************")
-        VINFO("Application configuration details")
-        VINFO("*****************************************************************************************")
-        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName())
-        VINFO("*****************************************************************************************")
+        VINFO("*****************************************************************************************");
+        VINFO("Application details");
+        VINFO("*****************************************************************************************");
+        VINFO("Application name              | {}", _windowProps.Title);
+        VINFO("Window Height requested       | {}", _windowProps.Height);
+        VINFO("Window Width requested        | {}", _windowProps.Width);
+        VINFO("*****************************************************************************************");
+        VINFO("Application configuration details");
+        VINFO("*****************************************************************************************");
+        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName());
+        VINFO("*****************************************************************************************");
 
         // Mark the application as running.
         // This is placed here to prevent the user from altering the layer stack before the application starts.
         _running = true;
-        f32 lastFrameTime = 0.0f;
+        f32 lastFrameTime = 0.0F;
 
         // Raise the window created event.
         Vulkyrie::Events::WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
@@ -60,7 +60,7 @@ namespace Vulkyrie::Core {
 
                 // Calculate the time since the last frame.
                 const f32 time = _platform->GetTime();
-                Timestep deltaTime(std::min(time - lastFrameTime, 0.1f)); // clamp MAX delta (100 ms)
+                Timestep deltaTime(std::min(time - lastFrameTime, 0.1F)); // clamp MAX delta (100 ms)
                 lastFrameTime = time;
 
                 // Update each layer.
@@ -92,14 +92,14 @@ namespace Vulkyrie::Core {
         dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
 
-        for (const auto &_layer : std::ranges::reverse_view(_layers)) {
+        for (const auto &layer : std::ranges::reverse_view(_layers)) {
             // If the event has been handled, stop propagating.
             if (event.handled) {
                 break;
             }
 
             // Else, pass the event to the layer.
-            _layer->OnEvent(event);
+            layer->OnEvent(event);
         }
     }
 

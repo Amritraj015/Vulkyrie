@@ -16,7 +16,7 @@ namespace Vulkyrie::Core {
             /** @brief Constructs a new Application with the given window properties and configuration.
              * @param windowProps The properties for the application window.
              */
-            Application(const WindowProps &windowProps);
+            Application(WindowProps windowProps);
 
             /** @brief Destructor to clean up the application and its resources. */
             virtual ~Application() = default;

@@ -11,7 +11,7 @@ namespace Vulkyrie::Renderer {
                 return CreateRef<OpenGLFrameBuffer>(specification);
             case Vulkyrie::Core::GraphicsAPI::Vulkan:
             default:
-                VFATAL("Unsupported Graphics API specified for FrameBuffer creation!")
+                VFATAL("Unsupported Graphics API specified for FrameBuffer creation!");
                 break;
         }
 
