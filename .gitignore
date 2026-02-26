@@ -51,3 +51,6 @@ compile_commands.json
 
 # Ignore local notes.
 NOTES.md
+
+# vcpkg
+vcpkg_installed/
