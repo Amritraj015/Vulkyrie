@@ -2,7 +2,7 @@
 #include "vlkypch.h"
 #include "core/asserts.h"
 #include "glad/glad.h"
-#include "vendor/stb_image.h"
+#include <stb_image.h>
 
 namespace Vulkyrie::Renderer {
     OpenGLTextureCubeMap::OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces)

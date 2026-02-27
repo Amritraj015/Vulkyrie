@@ -1,6 +1,6 @@
 #include "vlkypch.h"
 #include "renderer/open_gl/open_gl_model.h"
-#include "vendor/stb_image.h"
+#include <stb_image.h>
 
 namespace Vulkyrie::Renderer {
     /**
