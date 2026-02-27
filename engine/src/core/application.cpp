@@ -88,10 +88,7 @@ namespace Vulkyrie::Core {
     void Application::OnEvent(Vulkyrie::Events::Event &event) {
         Vulkyrie::Events::EventDispatcher dispatcher(event);
 
-        // If the event is a window close or resize event, handle it first.
-        dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
-        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
-
+        // Propagate the event through the layers in reverse order (from top to bottom).
         for (const auto &layer : std::ranges::reverse_view(_layers)) {
             // If the event has been handled, stop propagating.
             if (event.handled) {
@@ -101,6 +98,9 @@ namespace Vulkyrie::Core {
             // Else, pass the event to the layer.
             layer->OnEvent(event);
         }
+
+        dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
+        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
     }
 
     bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {

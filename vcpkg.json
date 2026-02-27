@@ -1,5 +1,15 @@
 {
   "name": "vulkyrie",
   "version": "0.1.0",
-  "dependencies": ["assimp", "imgui", "glfw3", "glm", "stb"]
+  "builtin-baseline": "b2f068faf45a3f04145bec0f52a66526ad590227",
+  "dependencies": [
+    "assimp",
+    {
+      "name": "imgui",
+      "features": ["docking-experimental", "glfw-binding", "opengl3-binding"]
+    },
+    "glfw3",
+    "glm",
+    "stb"
+  ]
 }

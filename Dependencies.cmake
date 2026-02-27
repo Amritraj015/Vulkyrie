@@ -36,7 +36,12 @@ find_package(imgui CONFIG REQUIRED)
 # # No need to build zlib if we're using the system one
 # Set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
 find_package(assimp CONFIG REQUIRED)
+# -------------------------------------------------
+
+# -------------------------------------------------
+# STB
 # find_package(stb CONFIG REQUIRED)
+# -------------------------------------------------
 
 # -------------------------------------------------
 # GLAD

@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 23)
 # -------------------------------------
 option(VULKYRIE_BUILD_EXAMPLES "Build Vulkyrie examples" ON)
 option(VULKYRIE_BUILD_CLI "Build vulky-cli" ON)
+option(VULKYRIE_BUILD_EDITOR "Build Vulkyrie Editor" ON)
 option(VULKYRIE_BUILD_TESTS "Build Vulkyrie tests" ON)
 option(VULKYRIE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json" ON)
 
@@ -66,8 +67,16 @@ if(VULKYRIE_BUILD_EXAMPLES)
 endif()
 
 # -------------------------------------
+# Build Editor 
+# -------------------------------------
+if(VULKYRIE_BUILD_EDITOR)
+    add_subdirectory(editor)
+endif()
+
+# -------------------------------------
 # Build tests
 # -------------------------------------
 if(VULKYRIE_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
+

@@ -1,7 +1,7 @@
 #include "vlkypch.h"
 #include "open_gl_texture_2D.h"
 #include "renderer/open_gl/open_gl_utilities.h"
-#include "vendor/stb_image.h"
+#include <stb_image.h>
 
 namespace Vulkyrie::Renderer {
     static constexpr GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {

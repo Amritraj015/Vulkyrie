@@ -6,6 +6,8 @@ file(GLOB_RECURSE ENGINE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
+find_path(STB_INCLUDE_DIRS "stb.h")
+
 add_library(engine STATIC ${ENGINE_SOURCES})
 
 # ---------------------------
