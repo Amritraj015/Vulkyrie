@@ -15,6 +15,7 @@ namespace Sandbox {
             }
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
+                Application::GetSingleton().CaptureMouseOnFocus(true);
                 // PushLayer<SandboxLayerShadowMapping>();
                 // PushLayer<SandboxLayerFrameBuffer>();
                 // PushLayer<SandboxLayerCubes>();

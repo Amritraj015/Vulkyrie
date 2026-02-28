@@ -502,9 +502,6 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
-        // TODO: remove this.
-        // glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
         // Return success.
         return StatusCode::Successful;
     }
