@@ -67,7 +67,7 @@ namespace Sandbox {
                 // -------------
                 const u32 NR_LIGHTS = 32;
                 srand(13);
-                for (unsigned int i = 0; i < NR_LIGHTS; i++) {
+                for (u32 i = 0; i < NR_LIGHTS; i++) {
                     // calculate slightly random offsets
                     f32 xPos = static_cast<f32>(((rand() % 100) / 100.0) * 6.0 - 3.0);
                     f32 yPos = static_cast<f32>(((rand() % 100) / 100.0) * 6.0 - 4.0);
@@ -134,12 +134,9 @@ namespace Sandbox {
                 {
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     deferredShader->Use();
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, gBuffer->GetColorAttachmentResourceID(0)); // position
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, gBuffer->GetColorAttachmentResourceID(1)); // normal
-                    glActiveTexture(GL_TEXTURE2);
-                    glBindTexture(GL_TEXTURE_2D, gBuffer->GetColorAttachmentResourceID(2)); // albedo + specular
+                    glBindTextureUnit(0, gBuffer->GetColorAttachmentResourceID(0)); // position
+                    glBindTextureUnit(1, gBuffer->GetColorAttachmentResourceID(1)); // normal
+                    glBindTextureUnit(2, gBuffer->GetColorAttachmentResourceID(2)); // albedo + specular
 
                     // send light relevant uniforms
                     for (u32 i = 0; i < lightPositions.size(); i++) {
@@ -177,6 +174,7 @@ namespace Sandbox {
                     shaderLightBox->SetMat4Uniform("projection", projection);
                     shaderLightBox->SetMat4Uniform("view", view);
 
+                    cubeVertexArray->Bind();
                     for (u32 i = 0; i < lightPositions.size(); i++) {
                         model = glm::mat4(1.0f);
                         model = glm::translate(model, lightPositions[i]);
@@ -184,10 +182,9 @@ namespace Sandbox {
                         shaderLightBox->SetMat4Uniform("model", model);
                         shaderLightBox->SetVec3Uniform("lightColor", lightColors[i]);
 
-                        cubeVertexArray->Bind();
                         glDrawArrays(GL_TRIANGLES, 0, 36);
-                        cubeVertexArray->Unbind();
                     }
+                    cubeVertexArray->Unbind();
                 }
             }
 

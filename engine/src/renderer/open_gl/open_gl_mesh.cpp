@@ -46,7 +46,7 @@ namespace Vulkyrie::Renderer {
         for (auto typeVec : availableTextures) {
             for (const auto &texture : *typeVec) {
                 // Set the sampler uniform to the texture unit index
-                shader.SetIntUniform(_textureUniformNames[unit].c_str(), static_cast<int>(unit));
+                shader.SetIntUniform(_textureUniformNames[unit].c_str(), static_cast<i32>(unit));
 
                 // Bind texture to the current unit and increment
                 texture->Bind(unit++);

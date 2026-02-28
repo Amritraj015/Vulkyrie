@@ -11,12 +11,13 @@ namespace Sandbox {
             }
 
             ~SandboxApplication() override {
-                VINFO("Destroying application sandbox");
+                VTRACE("Destroying application sandbox");
             }
 
             bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
                 // PushLayer<SandboxLayerShadowMapping>();
-                // PushLayer<SandboxLayerNormalMapping>();
+                // PushLayer<SandboxLayerFrameBuffer>();
+                // PushLayer<SandboxLayerCubes>();
                 PushLayer<SandboxLayerDeferredShading>();
                 PushOverlay<SandboxVoidLayer>();
 

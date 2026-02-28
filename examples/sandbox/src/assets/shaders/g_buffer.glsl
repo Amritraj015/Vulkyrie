@@ -34,8 +34,8 @@ in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+layout(binding = 0) uniform sampler2D texture_diffuse1;
+layout(binding = 1) uniform sampler2D texture_specular1;
 
 void main()
 {

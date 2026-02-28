@@ -25,8 +25,8 @@ namespace Sandbox {
 
                 // Create framebuffer for shadow mapping.
                 frameBuffer = FrameBuffer::Create({
-                    .Width = 1024,
-                    .Height = 1024,
+                    .Width = app.GetWindowWidth(),
+                    .Height = app.GetWindowHeight(),
                     .DepthStencilAttachment =
                         DepthStencilAttachmentSpecification{
                             .Format = DepthStencilFormat::Depth24Stencil8,
@@ -98,8 +98,8 @@ namespace Sandbox {
                 glm::vec3 lightPos = glm::vec3(lightPosition.x * sin(app.GetTime()), lightPosition.y, lightPosition.z * cos(app.GetTime()));
                 glm::mat4 lightProjection, lightView;
                 glm::mat4 lightSpaceMatrix;
-                f32 near_plane = 1.0f, far_plane = 7.5f;
-                lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+                f32 nearPlane = 1.0f, farPlane = 7.5f;
+                lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
                 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
                 lightSpaceMatrix = lightProjection * lightView;
 

@@ -95,8 +95,8 @@ namespace Sandbox {
                 frameBuffer->Bind();
                 glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-                // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-                // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Update Camera position based on input.
                 camera.OnUpdate(deltaTime);
@@ -150,7 +150,7 @@ namespace Sandbox {
                 quadShader->Use();
                 quadShader->SetIntUniform("screenTexture", 0);
                 quadVertexArray->Bind();
-                glBindTexture(GL_TEXTURE_2D, frameBuffer->GetColorAttachmentResourceID(0)); // use the color attachment texture as the texture of the quad plane
+                glBindTextureUnit(0, frameBuffer->GetColorAttachmentResourceID(0)); // use the color attachment texture as the texture of the quad plane
                 glDrawArrays(GL_TRIANGLES, 0, 6);
                 quadVertexArray->Unbind();
 
@@ -161,6 +161,7 @@ namespace Sandbox {
             void OnAttached() override {
                 VDEBUG("Layer Attached: Frame buffer");
             }
+
             void OnDetached() override {
                 VDEBUG("Layer Detached: Frame buffer");
             }

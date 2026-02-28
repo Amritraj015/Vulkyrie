@@ -47,10 +47,6 @@ namespace Sandbox {
 
                 brickWallShader->Use();
 
-                // Bind Texture and normal map.
-                brickWallTexture->Bind(0);
-                brickWallNormalMap->Bind(1);
-
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
                 brickWallShader->SetMat4Uniform("projection", projection);
 
@@ -75,6 +71,10 @@ namespace Sandbox {
 
                 // Use the graphics shader program.
                 brickWallShader->Use();
+
+                // Bind Texture and normal map.
+                brickWallTexture->Bind(0);
+                brickWallNormalMap->Bind(1);
 
                 // Build transformation matrices and set uniforms.
                 brickWallShader->SetVec3Uniform("viewPos", camera.GetPosition());

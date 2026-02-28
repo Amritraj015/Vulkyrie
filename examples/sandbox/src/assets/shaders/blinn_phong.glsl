@@ -33,7 +33,7 @@ in SurfaceData {
     vec2 TexCoords;
 } surface;
 
-uniform sampler2D surfaceTexture;
+layout(binding = 0) uniform sampler2D surfaceTexture;
 uniform vec3 viewPos;
 uniform vec3 lightPos;
 uniform bool useBlinnPhong;
