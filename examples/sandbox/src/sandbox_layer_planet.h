@@ -16,6 +16,7 @@ namespace Sandbox {
                 , amount(100000) {
 
                 camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
+                camera.SetPosition(glm::vec3(0.0f, 0.0f, 550.0f));
 
                 planetModel = Model::Create("assets/models/planet/planet.obj");
                 asteroidModel = Model::Create("assets/models/asteroid/rock.obj");

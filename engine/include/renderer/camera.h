@@ -85,6 +85,15 @@ namespace Vulkyrie::Renderer {
                 return Camera(std::move(settings));
             }
 
+            /** @brief Sets the position of the camera in world space.
+             * @param position The new position of the camera as a glm::vec3.
+             */
+            void SetPosition(const glm::vec3 &position) {
+                _settings.Position = position;
+
+                UpdateCameraVectors();
+            }
+
             /** @brief Sets the movement speeds for the camera.
              * @param slowMovementSpeed The speed for slow movement.
              * @param regularMovementSpeed The speed for regular movement.
