@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Renderer {
     /** @brief Texture filtering modes for framebuffer attachments. */
     enum TextureFilterMode : u32 {

@@ -26,9 +26,19 @@ namespace Vulkyrie::Renderer {
 
             // TODO: Needs to be removed.
             inline void BindTextures() const {
-                // for (const auto &texture : _textures) {
-                //     texture->Bind();
-                // }
+                std::array<const std::vector<Ref<Texture2D>> *, 5> availableTextures = {
+                    &_textures.Ambient, &_textures.Diffuse, &_textures.Specular, &_textures.Normal, &_textures.Height
+                };
+
+                i32 unit = 0; // Texture unit counter - increments as we bind each texture
+
+                // Bind all textures in order and set their corresponding shader uniforms
+                for (auto typeVec : availableTextures) {
+                    for (const auto &texture : *typeVec) {
+                        // Bind texture to the current unit and increment
+                        texture->Bind(unit++);
+                    }
+                }
             }
 
             /** @brief Gets the number of indices in the mesh.

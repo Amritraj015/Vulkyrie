@@ -139,7 +139,7 @@ namespace Sandbox {
                 asteroidShader->SetMat4Uniform("view", view);
 
                 // Apply orbital rotation to all asteroids
-                glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
                 asteroidShader->SetMat4Uniform("orbitRotation", orbitRotation);
 
                 asteroidShader->SetIntUniform("texture_diffuse1", 0);
@@ -149,8 +149,7 @@ namespace Sandbox {
                 // TODO: Remove the following line maybe.
                 // glBindTexture(GL_TEXTURE_2D, asteroidModel->_loadedTextures[0].Id);
                 asteroidModel->BindTextures();
-                for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
-                    const auto &mesh = asteroidModel->GetMeshes()[i];
+                for (const auto &mesh : asteroidModel->GetMeshes()) {
                     mesh->Bind();
                     glDrawElementsInstanced(GL_TRIANGLES, static_cast<u32>(mesh->GetIndexCount()), GL_UNSIGNED_INT, 0, amount);
                     mesh->Unbind();

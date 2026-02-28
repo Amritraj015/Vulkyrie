@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Renderer {
     /** @brief Texture wrapping modes for framebuffer attachments. */
     enum TextureSamplerWrapMode : u32 {

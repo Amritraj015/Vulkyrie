@@ -142,6 +142,13 @@ namespace Vulkyrie::Core {
                 return _platform->GetTime();
             }
 
+            /** @brief Sets whether the application should capture the mouse when the window is focused.
+             * @param capture True to capture the mouse on focus, false to not capture.
+             */
+            void CaptureMouseOnFocus(bool capture) const {
+                _platform->CaptureMouseOnFocus(capture);
+            }
+
         protected:
             /** @brief Called when the application window is created.
              * @param event The window created event.
