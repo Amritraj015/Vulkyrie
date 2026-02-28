@@ -142,13 +142,10 @@ namespace Sandbox {
                 // Apply orbital rotation to all asteroids
                 glm::mat4 orbitRotation = glm::rotate(glm::mat4(1.0f), glm::radians((f32)glfwGetTime() * 0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
                 asteroidShader->SetMat4Uniform("orbitRotation", orbitRotation);
-
                 asteroidShader->SetIntUniform("texture_diffuse1", 0);
-                // glActiveTexture(GL_TEXTURE0);
 
                 // note: we also made the textures_loaded vector public (instead of private) from the model class.
                 // TODO: Remove the following line maybe.
-                // glBindTexture(GL_TEXTURE_2D, asteroidModel->_loadedTextures[0].Id);
                 asteroidModel->BindTextures();
                 for (const auto &mesh : asteroidModel->GetMeshes()) {
                     mesh->Bind();

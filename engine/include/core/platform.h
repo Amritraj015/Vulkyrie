@@ -11,14 +11,18 @@ namespace Vulkyrie::Core {
         public:
             // Deleted copy constructor and assignment operator to prevent copies.
             Platform(const Platform &) = delete;
-            void operator=(Platform const &) = delete;
+            Platform &operator=(const Platform &) = delete;
+
+            Platform(Platform &&) = delete;
+            Platform &operator=(Platform &&) = delete;
 
             /** @brief Constructs a new Window with the given properties.
              * @param windowProps The properties for the window.
              * @param eventCallbackFn The callback function for handling events.
              */
             Platform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
-                : _windowProps(windowProps), _eventCallbackFn(eventCallbackFn) {
+                : _windowProps(windowProps)
+                , _eventCallbackFn(eventCallbackFn) {
             }
 
             /** @brief Default constructor for the Window class. */
