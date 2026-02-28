@@ -79,6 +79,14 @@ namespace Sandbox {
                 }
             }
 
+            void OnSuspended() override {
+                glDisable(GL_BLEND);
+            }
+
+            void OnResumed() override {
+                glEnable(GL_BLEND);
+            }
+
             ~SandboxLayerDepthAndStencilTesting() override = default;
 
             void OnUpdate(Timestep deltaTime) override {
