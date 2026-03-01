@@ -12,7 +12,8 @@ namespace Sandbox {
     class SandboxLayerPlanet final : public Layer {
         public:
             SandboxLayerPlanet()
-                : camera(Camera::Create())
+                : app(Application::GetSingleton())
+                , camera(Camera::Create())
                 , amount(100000) {
 
                 camera.SetMovementSpeed(50.0f, 100.0f, 500.0f);
@@ -67,8 +68,7 @@ namespace Sandbox {
                 // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
                 // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
                 // -----------------------------------------------------------------------------------------------------------------------------------
-                for (u32 i = 0; i < asteroidModel->GetMeshCount(); i++) {
-                    const auto &mesh = asteroidModel->GetMeshes()[i];
+                for (const auto &mesh : asteroidModel->GetMeshes()) {
                     mesh->Bind();
 
                     // set attribute pointers for matrix (4 times vec4)
@@ -115,10 +115,7 @@ namespace Sandbox {
                 planetShader->Use();
 
                 // view/projection transformations
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        5000.0f);
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 5000.0f);
                 glm::mat4 view = camera.GetViewMatrix();
                 planetShader->SetMat4Uniform("projection", projection);
                 planetShader->SetMat4Uniform("view", view);
@@ -177,6 +174,7 @@ namespace Sandbox {
             }
 
         private:
+            Application &app;
             Ref<Model> planetModel;
             Ref<Model> asteroidModel;
             Ref<Shader> planetShader;

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "vlkypch.h"
 #include "renderer/mesh.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie::Renderer {
     /** @brief Represents a 3D model composed of multiple meshes. */
@@ -31,6 +32,15 @@ namespace Vulkyrie::Renderer {
              */
             [[nodiscard]] inline const std::vector<Ref<Vulkyrie::Renderer::Mesh>> &GetMeshes() const {
                 return _meshes;
+            }
+
+            /** @brief Gets a reference to the mesh at the specified index.
+             * @param index The index of the mesh to retrieve.
+             * @return A reference to the mesh at the specified index.
+             */
+            [[nodiscard]] Mesh &GetMesh(size_t index) const {
+                VASSERT_EXPR(index < _meshes.size(), "Mesh index out of bounds!");
+                return *_meshes[index];
             }
 
             // TODO: Needs to be removed.
