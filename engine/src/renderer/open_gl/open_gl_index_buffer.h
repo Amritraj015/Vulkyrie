@@ -9,14 +9,19 @@ namespace Vulkyrie::Renderer {
             OpenGLIndexBuffer(u16 *indices, u32 count);
             OpenGLIndexBuffer(u8 *indices, u32 count);
 
-            virtual ~OpenGLIndexBuffer();
+            ~OpenGLIndexBuffer() override;
 
-            void Bind() const override;
-            void Unbind() const override;
             u32 GetCount() const override;
 
+            /** @brief Gets the OpenGL index buffer ID.
+             * @returns The index buffer ID.
+             */
+            u32 GetIndexBufferID() const {
+                return _eboID;
+            }
+
         private:
-            u32 _eboId;
+            u32 _eboID;
             u32 _count;
     };
 } // namespace Vulkyrie::Renderer

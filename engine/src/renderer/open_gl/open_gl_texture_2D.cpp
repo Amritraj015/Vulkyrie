@@ -1,5 +1,5 @@
 #include "vlkypch.h"
-#include "open_gl_texture_2D.h"
+#include "renderer/open_gl/open_gl_texture_2D.h"
 #include "renderer/open_gl/open_gl_utilities.h"
 #include <stb_image.h>
 

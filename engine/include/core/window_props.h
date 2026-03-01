@@ -4,7 +4,7 @@
 #include "core/graphics_api.h"
 
 namespace Vulkyrie::Core {
-    struct WindowProps {
+    struct WindowProps final {
         public:
             /** @brief Starting height of the window. */
             u32 Height = 0;
@@ -16,6 +16,6 @@ namespace Vulkyrie::Core {
             std::string Title;
 
             /** @brief The graphics API to use for rendering. */
-            Vulkyrie::Core::GraphicsAPI GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL;
+            GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
     };
 } // namespace Vulkyrie::Core

@@ -49,6 +49,9 @@ namespace Vulkyrie::Core {
             Logger(const Logger &) = delete;
             Logger &operator=(const Logger &) = delete;
 
+            Logger(Logger &&) = delete;
+            Logger &operator=(Logger &&) = delete;
+
             static StatusCode InitializeLogger(LoggerType loggerType);
 
             template <typename... Args> static void Log(LogLevel logLevel, std::string_view fmt, Args &&...args) {

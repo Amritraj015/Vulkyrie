@@ -24,11 +24,12 @@ namespace Vulkyrie::Renderer {
             /** @brief Destructor to clean up the OpenGL vertex buffer. */
             ~OpenGLVertexBuffer();
 
-            /** @brief Binds the vertex buffer. */
-            void Bind() const override;
-
-            /** @brief Unbinds the vertex buffer. */
-            void Unbind() const override;
+            /** @brief Gets the OpenGL vertex buffer ID.
+             * @returns The vertex buffer ID.
+             */
+            u32 GetVertexBufferID() const {
+                return _vboID;
+            }
 
             /** @brief Sets the data of the vertex buffer.
              * @param data Pointer to the data to set.
@@ -37,6 +38,6 @@ namespace Vulkyrie::Renderer {
             void SetData(const void *data, size_t size) override;
 
         private:
-            u32 _vboId;
+            u32 _vboID;
     };
 } // namespace Vulkyrie::Renderer

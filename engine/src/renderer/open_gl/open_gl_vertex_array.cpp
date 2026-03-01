@@ -1,6 +1,9 @@
 #include <glad/glad.h>
 #include "vlkypch.h"
-#include "open_gl_vertex_array.h"
+#include "core/asserts.h"
+#include "renderer/open_gl/open_gl_vertex_array.h"
+#include "renderer/open_gl/open_gl_vertex_buffer.h"
+#include "renderer/open_gl/open_gl_index_buffer.h"
 
 namespace Vulkyrie::Renderer {
     static constexpr GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
@@ -27,15 +30,15 @@ namespace Vulkyrie::Renderer {
     }
 
     OpenGLVertexArray::OpenGLVertexArray() {
-        glCreateVertexArrays(1, &_vaoId);
+        glCreateVertexArrays(1, &_vaoID);
     }
 
     OpenGLVertexArray::~OpenGLVertexArray() {
-        glDeleteVertexArrays(1, &_vaoId);
+        glDeleteVertexArrays(1, &_vaoID);
     }
 
     void OpenGLVertexArray::Bind() const {
-        glBindVertexArray(_vaoId);
+        glBindVertexArray(_vaoID);
     }
 
     void OpenGLVertexArray::Unbind() const {
@@ -43,59 +46,72 @@ namespace Vulkyrie::Renderer {
     }
 
     void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer> &vertexBuffer) {
-        glBindVertexArray(_vaoId);
-        vertexBuffer->Bind();
+        // Cast to OpenGL-specific buffer
+        const OpenGLVertexBuffer &openGLVertexBuffer = static_cast<const OpenGLVertexBuffer &>(*vertexBuffer);
+        const u32 vboID = openGLVertexBuffer.GetVertexBufferID();
 
-        const auto &layout = vertexBuffer->GetLayout();
+        const BufferLayout &layout = vertexBuffer->GetLayout();
+        const u32 stride = layout.GetStride();
 
+        // Use a separate binding index per vertex buffer
+        const u32 bindingIndex = static_cast<u32>(_vertexBuffers.size());
+
+        // Attach the VBO to the VAO at the binding index
+        // TODO: make sure this is correct.
+        // 0 is the offset within the vertex buffer, and stride is the distance between consecutive vertex attributes.
+        glVertexArrayVertexBuffer(_vaoID, bindingIndex, vboID, 0, stride);
+
+        // Setup each attribute
         for (const auto &element : layout) {
+            const GLenum dataType = ShaderDataTypeToOpenGLBaseType(element.Type);
+            const u32 componentCount = element.GetComponentCount();
+
             switch (element.Type) {
                 case ShaderDataType::Float:
                 case ShaderDataType::Float2:
                 case ShaderDataType::Float3:
                 case ShaderDataType::Float4: {
-                    glEnableVertexAttribArray(_vertexBufferIndex);
-                    glVertexAttribPointer(_vertexBufferIndex,
-                                          element.GetComponentCount(),
-                                          ShaderDataTypeToOpenGLBaseType(element.Type),
-                                          element.Normalized ? GL_TRUE : GL_FALSE,
-                                          layout.GetStride(),
-                                          (const void *)element.Offset);
+                    glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
+                    glVertexArrayAttribFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Normalized ? GL_TRUE : GL_FALSE, element.Offset);
+                    glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                     _vertexBufferIndex++;
                     break;
                 }
+
                 case ShaderDataType::Int:
                 case ShaderDataType::Int2:
                 case ShaderDataType::Int3:
                 case ShaderDataType::Int4:
                 case ShaderDataType::Bool: {
-                    glEnableVertexAttribArray(_vertexBufferIndex);
-                    glVertexAttribIPointer(_vertexBufferIndex,
-                                           element.GetComponentCount(),
-                                           ShaderDataTypeToOpenGLBaseType(element.Type),
-                                           layout.GetStride(),
-                                           (const void *)element.Offset);
+                    glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
+                    glVertexArrayAttribIFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Offset);
+                    glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                     _vertexBufferIndex++;
                     break;
                 }
+
                 case ShaderDataType::Mat3:
                 case ShaderDataType::Mat4: {
-                    u8 count = element.GetComponentCount();
-                    for (u8 i = 0; i < count; i++) {
-                        glEnableVertexAttribArray(_vertexBufferIndex);
-                        glVertexAttribPointer(_vertexBufferIndex,
-                                              count,
-                                              ShaderDataTypeToOpenGLBaseType(element.Type),
-                                              element.Normalized ? GL_TRUE : GL_FALSE,
-                                              layout.GetStride(),
-                                              (const void *)(element.Offset + sizeof(float) * count * i));
-                        glVertexAttribDivisor(_vertexBufferIndex, 1);
+                    // Matrices are treated as multiple vec4 attributes
+                    for (u8 i = 0; i < componentCount; i++) {
+                        glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
+                        glVertexArrayAttribFormat(_vaoID,
+                                                  _vertexBufferIndex,
+                                                  componentCount,
+                                                  dataType,
+                                                  element.Normalized ? GL_TRUE : GL_FALSE,
+                                                  element.Offset + sizeof(f32) * componentCount * i);
+                        glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
+                        glVertexArrayBindingDivisor(_vaoID, _vertexBufferIndex, 1);
+
                         _vertexBufferIndex++;
                     }
                     break;
                 }
+
                 default:
                     VERROR("Unknown ShaderDataType!");
+                    break;
             }
         }
 
@@ -103,8 +119,10 @@ namespace Vulkyrie::Renderer {
     }
 
     void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer> &indexBuffer) {
-        glBindVertexArray(_vaoId);
-        indexBuffer->Bind();
+        const OpenGLIndexBuffer &openGLIndexBuffer = static_cast<const OpenGLIndexBuffer &>(*indexBuffer);
+
+        // Attach index buffer directly to VAO
+        glVertexArrayElementBuffer(_vaoID, openGLIndexBuffer.GetIndexBufferID());
 
         _indexBuffer = indexBuffer;
     }
@@ -113,7 +131,14 @@ namespace Vulkyrie::Renderer {
         return _vertexBuffers;
     }
 
+    VertexBuffer &OpenGLVertexArray::GetVertexBuffer(size_t index) const {
+        VASSERT_EXPR(index < _vertexBuffers.size(), "Vertex buffer index out of bounds!");
+
+        return *_vertexBuffers[index];
+    }
+
     const Ref<IndexBuffer> &OpenGLVertexArray::GetIndexBuffer() const {
         return _indexBuffer;
     }
+
 } // namespace Vulkyrie::Renderer

@@ -22,12 +22,6 @@ namespace Vulkyrie::Renderer {
                 _layout = layout;
             }
 
-            /** @brief Binds the vertex buffer. */
-            virtual void Bind() const = 0;
-
-            /** @brief Unbinds the vertex buffer. */
-            virtual void Unbind() const = 0;
-
             /** @brief Sets the data of the vertex buffer.
              * @param data Pointer to the data to set.
              * @param size Size of the data in bytes.
@@ -45,7 +39,7 @@ namespace Vulkyrie::Renderer {
              * @param size Size of the vertex data in bytes.
              * @returns A reference to the created VertexBuffer.
              */
-            static Ref<VertexBuffer> Create(float *vertices, size_t size);
+            static Ref<VertexBuffer> Create(f32 *vertices, size_t size);
 
             /** @brief Creates a vertex buffer based on a vector of vertices.
              * @param vertices The vector of vertices.

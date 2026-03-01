@@ -1,18 +1,11 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/graphics_api.h"
 
 namespace Vulkyrie::Renderer {
     class IndexBuffer {
         public:
             virtual ~IndexBuffer() = default;
-
-            /** @brief Binds the index buffer. */
-            virtual void Bind() const = 0;
-
-            /** @brief Unbinds the index buffer. */
-            virtual void Unbind() const = 0;
 
             /** @brief Gets the count of indices in the index buffer.
              * @returns The count of indices.

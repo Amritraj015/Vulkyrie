@@ -1,7 +1,7 @@
 #include "renderer/open_gl/open_gl_frame_buffer.h"
-#include <glad/glad.h>
-#include "core/asserts.h"
 #include "renderer/open_gl/open_gl_utilities.h"
+#include "core/asserts.h"
+#include <glad/glad.h>
 
 namespace Vulkyrie::Renderer {
 

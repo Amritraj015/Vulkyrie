@@ -212,12 +212,12 @@ namespace Sandbox {
                         { ShaderDataType::Float3, "color" },
                     });
                     vertexArray->AddVertexBuffer(vertexBuffer);
-                    vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));
+                    vertexArray->GetVertexBuffer(0).SetData(vertices.data(), vertices.size() * sizeof(f32));
 
                     Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
                     vertexArray->SetIndexBuffer(indexBuffer);
                 } else {
-                    vertexArray->GetVertexBuffers()[0]->SetData(vertices.data(), vertices.size() * sizeof(f32));
+                    vertexArray->GetVertexBuffer(0).SetData(vertices.data(), vertices.size() * sizeof(f32));
                 }
             }
     };

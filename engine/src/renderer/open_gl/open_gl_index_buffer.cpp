@@ -1,47 +1,39 @@
 #include <glad/glad.h>
-#include "open_gl_index_buffer.h"
+#include "renderer/open_gl/open_gl_index_buffer.h"
 
 namespace Vulkyrie::Renderer {
     OpenGLIndexBuffer::OpenGLIndexBuffer(u32 *indices, u32 count) {
-        glCreateBuffers(1, &_eboId);
+        glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
-        glBindBuffer(GL_ARRAY_BUFFER, _eboId);
+        glBindBuffer(GL_ARRAY_BUFFER, _eboID);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u32), indices, GL_STATIC_DRAW);
         _count = count;
     }
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(u16 *indices, u32 count) {
-        glCreateBuffers(1, &_eboId);
+        glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
-        glBindBuffer(GL_ARRAY_BUFFER, _eboId);
+        glBindBuffer(GL_ARRAY_BUFFER, _eboID);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u16), indices, GL_STATIC_DRAW);
         _count = count;
     }
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(u8 *indices, u32 count) {
-        glCreateBuffers(1, &_eboId);
+        glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
         // Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
-        glBindBuffer(GL_ARRAY_BUFFER, _eboId);
+        glBindBuffer(GL_ARRAY_BUFFER, _eboID);
         glBufferData(GL_ARRAY_BUFFER, count * sizeof(u8), indices, GL_STATIC_DRAW);
         _count = count;
     }
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer() {
-        glDeleteBuffers(1, &_eboId);
-    }
-
-    void OpenGLIndexBuffer::Bind() const {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _eboId);
-    }
-
-    void OpenGLIndexBuffer::Unbind() const {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glDeleteBuffers(1, &_eboID);
     }
 
     u32 OpenGLIndexBuffer::GetCount() const {

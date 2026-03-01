@@ -31,6 +31,12 @@ namespace Vulkyrie::Renderer {
              */
             virtual const std::vector<Ref<VertexBuffer>> &GetVertexBuffers() const = 0;
 
+            /** @brief Gets a reference to the vertex buffer at the specified index.
+             * @param index The index of the vertex buffer to retrieve.
+             * @returns A reference to the vertex buffer at the specified index.
+             */
+            virtual VertexBuffer &GetVertexBuffer(size_t index) const = 0;
+
             /** @brief Gets the index buffer associated with the vertex array.
              * @returns A constant reference to the index buffer.
              */

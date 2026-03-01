@@ -16,9 +16,10 @@ namespace Vulkyrie::Renderer {
 
             const std::vector<Ref<VertexBuffer>> &GetVertexBuffers() const override;
             const Ref<IndexBuffer> &GetIndexBuffer() const override;
+            VertexBuffer &GetVertexBuffer(size_t index) const override;
 
         private:
-            u32 _vaoId;
+            u32 _vaoID;
             u32 _vertexBufferIndex = 0;
             std::vector<Ref<VertexBuffer>> _vertexBuffers;
             Ref<IndexBuffer> _indexBuffer;

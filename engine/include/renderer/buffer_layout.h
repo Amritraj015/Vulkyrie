@@ -9,7 +9,8 @@ namespace Vulkyrie::Renderer {
             BufferLayout() {
             }
 
-            BufferLayout(std::initializer_list<BufferElement> elements) : _elements(elements) {
+            BufferLayout(std::initializer_list<BufferElement> elements)
+                : _elements(elements) {
                 CalculateOffsetsAndStride();
             }
 
@@ -17,7 +18,7 @@ namespace Vulkyrie::Renderer {
                 return _elements;
             }
 
-            [[nodiscard]] constexpr i32 GetStride() const {
+            [[nodiscard]] constexpr u32 GetStride() const {
                 return _stride;
             }
 
@@ -36,7 +37,7 @@ namespace Vulkyrie::Renderer {
 
         private:
             std::vector<BufferElement> _elements;
-            i32 _stride = 0;
+            u32 _stride = 0;
 
             void CalculateOffsetsAndStride() {
                 size_t offset = 0;
