@@ -15,6 +15,9 @@ namespace Vulkyrie::Core {
             /** @brief Title of the window. */
             std::string Title;
 
+            /** @brief Whether to enable vertical synchronization (VSync) for the window. */
+            bool EnableVSync = true;
+
             /** @brief The graphics API to use for rendering. */
             GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
     };

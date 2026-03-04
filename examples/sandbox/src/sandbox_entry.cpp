@@ -5,6 +5,7 @@ std::unique_ptr<Vulkyrie::Core::Application> CreateApplication() {
         .Height = 800,
         .Width = 1500,
         .Title = "Sandbox (Powered by The Vulkyrie Game Engine)",
+        .EnableVSync = false,
         .GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL,
     };
 

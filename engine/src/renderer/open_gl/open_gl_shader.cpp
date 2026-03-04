@@ -1,7 +1,7 @@
 #include "renderer/open_gl/open_gl_shader.h"
 #include "core/utilities.h"
 #include "core/asserts.h"
-#include "glad/glad.h"
+#include <glad/glad.h>
 
 namespace Vulkyrie::Renderer {
     static constexpr auto INVALID_SHADER_TYPE = 0;
@@ -30,7 +30,6 @@ namespace Vulkyrie::Renderer {
             size_t lineEnd = source.find_first_of("\r\n", tagPos);
 
             VASSERT_EXPR(lineEnd != std::string_view::npos, "Malformed #type line in shader source.");
-            // if (lineEnd == std::string_view::npos) throw std::runtime_error("Malformed #type line");
 
             // Parse shader type
             size_t typeStart = tagPos + tag.size();

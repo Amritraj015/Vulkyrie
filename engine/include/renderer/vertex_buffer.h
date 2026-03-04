@@ -11,14 +11,14 @@ namespace Vulkyrie::Renderer {
             /** @brief Gets the layout of the vertex buffer.
              * @returns The buffer layout.
              */
-            [[nodiscard]] inline const BufferLayout &GetLayout() const {
+            [[nodiscard]] const BufferLayout &GetLayout() const {
                 return _layout;
             }
 
             /** @brief Sets the layout of the vertex buffer.
              * @param layout The buffer layout to set.
              */
-            inline void SetLayout(const BufferLayout &layout) {
+            void SetLayout(const BufferLayout &layout) {
                 _layout = layout;
             }
 

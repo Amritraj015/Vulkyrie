@@ -1,5 +1,6 @@
 #include "vlkypch.h"
 #include "core/application.h"
+#include "renderer/renderer.h"
 #include "renderer/open_gl/open_gl_graphics_context.h"
 
 namespace Vulkyrie::Renderer {
@@ -110,6 +111,14 @@ namespace Vulkyrie::Renderer {
 
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
+
+        VINFO("Renderer Info");
+        VINFO("*****************************************************************************************");
+        VINFO("API              | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName());
+        VINFO("Version          | {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+        VINFO("Vendor           | {}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+        VINFO("Renderer         | {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+        VINFO("*****************************************************************************************");
 #endif
 
         // TODO: This does not belong here. Move it to the renderer initialization.

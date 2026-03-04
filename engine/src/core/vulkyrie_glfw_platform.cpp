@@ -502,12 +502,15 @@ namespace Vulkyrie::Core {
             callbackFn(event);
         });
 
+        // Enable/Disable VSync based on the window settigns.
+        SetVSync(_windowProps.EnableVSync);
+
         // Return success.
         return StatusCode::Successful;
     }
 
-    void VulkyrieGLFWPlatform::SetVSync(bool enabled) {
-        glfwSwapInterval(static_cast<i32>(enabled));
+    void VulkyrieGLFWPlatform::SetVSync(bool enable) {
+        glfwSwapInterval(static_cast<i32>(enable));
     }
 
     void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {

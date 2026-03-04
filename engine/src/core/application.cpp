@@ -17,26 +17,22 @@ namespace Vulkyrie::Core {
     }
 
     StatusCode Application::Run() {
-        // Create the application window.
+        // Try to create the application window, if it fails, return the status code.
         RETURN_ON_FAILURE(_platform->CreateWindow());
-
-        // If window creation failed, return the status code.
-        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
 
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
-        VINFO("Application name              | {}", _windowProps.Title);
+        VINFO("Name                          | {}", _windowProps.Title);
         VINFO("Window Height requested       | {}", _windowProps.Height);
         VINFO("Window Width requested        | {}", _windowProps.Width);
-        VINFO("*****************************************************************************************");
-        VINFO("Application configuration details");
-        VINFO("*****************************************************************************************");
-        VINFO("Graphics API                  | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName());
+        VINFO("Enable V-Sync                 | {}", _windowProps.EnableVSync);
         VINFO("*****************************************************************************************");
 
+        // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
+        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
+
         // Mark the application as running.
-        // This is placed here to prevent the user from altering the layer stack before the application starts.
         _running = true;
         f32 lastFrameTime = 0.0F;
 
@@ -99,19 +95,18 @@ namespace Vulkyrie::Core {
             layer->OnEvent(event);
         }
 
-        dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this](auto &e) -> bool { return this->OnWindowClosed(e); });
         dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
+
+        // If the window closed event is dispatched, stop the application.
+        dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this]([[maybe_unused]] auto &e) -> bool {
+            Stop();
+            return false;
+        });
     }
 
     bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {
         _windowProps.Height = event.Height;
         _windowProps.Width = event.Width;
-
-        return false;
-    }
-
-    bool Application::OnWindowClosed([[maybe_unused]] Vulkyrie::Events::WindowClosedEvent &event) {
-        Stop();
 
         return false;
     }

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vulkyrie.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include "sandbox_layer_back_pack.h"
 #include "sandbox_layer_cubes.h"
 #include "sandbox_layer_blinn_phong_lighting.h"
@@ -22,29 +25,74 @@ namespace Sandbox {
 
     class SandboxVoidLayer final : public Layer {
         public:
-            SandboxVoidLayer() {
+            SandboxVoidLayer()
+                : app(Application::GetSingleton()) {
                 InitializeLayerSwitcher();
             }
 
             ~SandboxVoidLayer() = default;
 
+            void OnAttached() override {
+                // Setup Dear ImGui context
+                IMGUI_CHECKVERSION();
+                ImGui::CreateContext();
+                ImGuiIO &io = ImGui::GetIO();
+                io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+                io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+                io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // IF using Docking Branch
+
+                // Setup Platform/Renderer backends
+                // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+                ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow *>(app.GetWindowHandle()), true);
+                ImGui_ImplOpenGL3_Init("#version 460");
+            }
+
+            void OnDetached() override {
+                ImGui_ImplOpenGL3_Shutdown();
+                ImGui_ImplGlfw_Shutdown();
+                ImGui::DestroyContext();
+            }
+
+            void OnUpdate(Timestep deltaTime) override {
+                // Start the Dear ImGui frame
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+
+                {
+                    ImGui::ShowDemoWindow(); // Show demo window! :)
+                }
+
+                // Rendering
+                // (Your code clears your framebuffer, renders your other stuff etc.)
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
 
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) { return !captureMouseOnFocus; });
+
                 dispatcher.Dispatch<KeyPressedEvent>([this](const KeyPressedEvent &e) {
                     if (e.KeyCode == KeyCode::Escape) {
-                        Application::GetSingleton().Stop();
+                        app.Stop();
                         return true;
+                    }
+
+                    if (e.KeyCode == KeyCode::E) {
+                        enableVSync = !enableVSync;
+                        glfwSwapInterval(static_cast<i32>(enableVSync));
+                    }
+
+                    if (e.KeyCode == KeyCode::Q) {
+                        captureMouseOnFocus = !captureMouseOnFocus;
+                        app.CaptureMouseOnFocus(captureMouseOnFocus);
                     }
 
                     if (e.KeyCode == KeyCode::K) {
                         showWireFrame = !showWireFrame;
-
-                        if (showWireFrame) {
-                            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                        } else {
-                            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                        }
+                        glPolygonMode(GL_FRONT_AND_BACK, showWireFrame ? GL_LINE : GL_FILL);
                     }
 
                     if (e.KeyCode == KeyCode::J) {
@@ -62,6 +110,9 @@ namespace Sandbox {
             };
 
         private:
+            Application &app;
+            bool captureMouseOnFocus = true;
+            bool enableVSync = false;
             bool showWireFrame = false;
             u8 currentLayer = 1;
 
@@ -89,8 +140,6 @@ namespace Sandbox {
             }
 
             template <typename T> void SwitchLayer() {
-                auto &app = Application::GetSingleton();
-
                 if (app.HasLayer<T>()) {
                     app.ResumeLayer<T>();
                 } else {
@@ -99,8 +148,6 @@ namespace Sandbox {
             }
 
             void SwitchToNextLayer(bool add) {
-                auto &app = Application::GetSingleton();
-
                 // Suspend all known layers
                 app.SuspendLayer<SandboxLayerSkybox>();
                 app.SuspendLayer<SandboxLayerDeferredShading>();

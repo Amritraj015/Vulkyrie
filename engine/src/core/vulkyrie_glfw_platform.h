@@ -14,7 +14,7 @@ namespace Vulkyrie::Core {
             [[nodiscard]] StatusCode CreateWindow() override;
             StatusCode CloseWindow() override;
 
-            void SetVSync(bool enabled) override;
+            void SetVSync(bool enable) override;
 
             inline void OnUpdate() const override {
                 glfwSwapBuffers(_window);

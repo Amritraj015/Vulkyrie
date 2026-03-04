@@ -39,9 +39,9 @@ namespace Vulkyrie::Core {
             [[nodiscard]] virtual Vulkyrie::Core::StatusCode CreateWindow() = 0;
 
             /** @brief Enables or disables vertical synchronization (VSync) for the window.
-             * @param enabled True to enable VSync, false to disable.
+             * @param enable True to enable VSync, false to disable.
              */
-            virtual inline void SetVSync(bool enabled) = 0;
+            virtual inline void SetVSync(bool enable) = 0;
 
             /** @brief A callback that is called on each frame update cycle. */
             virtual inline void OnUpdate() const = 0;

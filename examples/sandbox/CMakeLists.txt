@@ -9,7 +9,7 @@ add_executable(sandbox ${SANDBOX_SOURCES})
 target_compile_features(sandbox PRIVATE cxx_std_23)
 
 # Link engine
-target_link_libraries(sandbox PRIVATE engine)
+target_link_libraries(sandbox PRIVATE engine imgui::imgui)
 
 # Copy assets after build
 add_custom_command(

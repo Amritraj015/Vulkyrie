@@ -177,12 +177,6 @@ namespace Vulkyrie::Core {
              */
             void OnEvent(Vulkyrie::Events::Event &event);
 
-            /** @brief Stops the application and cleans up resources.
-             * @param event The window closed event.
-             * @returns a `false` value to allow the window close event to propagate further.
-             */
-            bool OnWindowClosed(Vulkyrie::Events::WindowClosedEvent &event);
-
             /** @brief Handles window resize events.
              * @param event The window resized event.
              * @returns True if the event was handled successfully, false otherwise.
