@@ -3,14 +3,14 @@
 
 namespace Vulkyrie::Renderer {
 
-    void FrameGraphBuffer::Create(const FrameGraphBuffer::Descriptor &descriptor, void *context) {
-        const auto transientResources = static_cast<RenderGraphTransientResources *>(context);
-        transientResources->CreateBuffer(descriptor);
-    }
-
-    void FrameGraphBuffer::Destroy(const FrameGraphBuffer::Descriptor &descriptor, void *context) {
-        const auto transientResources = static_cast<RenderGraphTransientResources *>(context);
-        transientResources->CreateBuffer(descriptor);
-    }
+    // void FrameGraphBuffer::Create(const FrameGraphBuffer::Descriptor &descriptor, void *context) {
+    //     const auto transientResources = static_cast<RenderGraphTransientResources *>(context);
+    //     transientResources->CreateBuffer(descriptor);
+    // }
+    //
+    // void FrameGraphBuffer::Destroy(const FrameGraphBuffer::Descriptor &descriptor, void *context) {
+    //     const auto transientResources = static_cast<RenderGraphTransientResources *>(context);
+    //     transientResources->CreateBuffer(descriptor);
+    // }
 
 } // namespace Vulkyrie::Renderer

@@ -4,17 +4,17 @@
 namespace Vulkyrie::Renderer {
 
     void RenderGraphTransientResources::CreateTexture(const TextureSpecification &specification) {
-        const auto textureHash = std::hash<TextureSpecification>{}(specification);
+        // const auto textureHash = std::hash<TextureSpecification>{}(specification);
         auto texture = Texture2D::Create(specification);
     }
 
-    void RenderGraphTransientResources::DestroyTexture(const TextureSpecification &specification) {
+    void RenderGraphTransientResources::DestroyTexture([[maybe_unused]] const TextureSpecification &specification) {
     }
 
-    void RenderGraphTransientResources::CreateBuffer() {
-    }
-
-    void RenderGraphTransientResources::DestroyBuffer() {
-    }
+    // void RenderGraphTransientResources::CreateBuffer([[maybe_unused]] size_t size) {
+    // }
+    //
+    // void RenderGraphTransientResources::DestroyBuffer() {
+    // }
 
 } // namespace Vulkyrie::Renderer

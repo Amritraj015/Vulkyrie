@@ -9,8 +9,8 @@ namespace Vulkyrie::Renderer {
                     size_t Size;
             };
 
-            void Create(const FrameGraphBuffer::Descriptor &descriptor, void *context);
-            void Destroy(const FrameGraphBuffer::Descriptor &descriptor, void *context);
+            // void Create(const FrameGraphBuffer::Descriptor &descriptor, void *context);
+            // void Destroy(const FrameGraphBuffer::Descriptor &descriptor, void *context);
     };
 
 } // namespace Vulkyrie::Renderer

@@ -9,8 +9,8 @@ namespace Vulkyrie::Renderer {
             void CreateTexture(const TextureSpecification &specification);
             void DestroyTexture(const TextureSpecification &specification);
 
-            void CreateBuffer();
-            void DestroyBuffer();
+            // void CreateBuffer(size_t size);
+            // void DestroyBuffer();
 
         private:
             std::unordered_map<std::string, Scope<Texture2D>> _textureMap;
