@@ -26,6 +26,7 @@
 #include <stack>
 #include <typeindex>
 #include <any>
+#include <span>
 
 // GLM - OpenGL Mathematics
 #include <glm/glm.hpp>

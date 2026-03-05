@@ -1,0 +1,18 @@
+#pragma once
+
+#include "vlkypch.h"
+#include "renderer/texture_2D.h"
+
+namespace Vulkyrie::Renderer {
+    class RenderGraphTransientResources {
+        public:
+            void CreateTexture(const TextureSpecification &specification);
+            void DestroyTexture(const TextureSpecification &specification);
+
+            void CreateBuffer();
+            void DestroyBuffer();
+
+        private:
+            std::unordered_map<std::string, Scope<Texture2D>> _textureMap;
+    };
+} // namespace Vulkyrie::Renderer

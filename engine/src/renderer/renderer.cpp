@@ -1,10 +1,10 @@
 #include "vlkypch.h"
 #include "renderer/renderer.h"
-#include "renderer/graphics_context.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie::Renderer {
     static Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
-    Scope<GraphicsContext> _graphicsContext = nullptr;
+    Scope<RendererContext> _graphicsContext = nullptr;
 
     Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {
         return RendererAPI;
@@ -14,7 +14,7 @@ namespace Vulkyrie::Renderer {
         RendererAPI = api;
 
         // Create the graphics context.
-        _graphicsContext = GraphicsContext::Create();
+        _graphicsContext = RendererContext::Create();
 
         // Check if graphics context creation failed.
         if (nullptr == _graphicsContext) {

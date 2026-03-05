@@ -1,14 +1,13 @@
-#include "vlkypch.h"
 #include "core/application.h"
 #include "renderer/renderer.h"
-#include "renderer/open_gl/open_gl_graphics_context.h"
+#include "renderer/open_gl/open_gl_renderer_context.h"
 
 namespace Vulkyrie::Renderer {
-    OpenGLGraphicsContext::OpenGLGraphicsContext(void *windowHandle)
+    OpenGLRendererContext::OpenGLRendererContext(void *windowHandle)
         : _windowHandle(static_cast<GLFWwindow *>(windowHandle)) {
     }
 
-    Vulkyrie::Core::StatusCode OpenGLGraphicsContext::Initialize() {
+    Vulkyrie::Core::StatusCode OpenGLRendererContext::Initialize() {
         using Vulkyrie::Core::Application;
 
         // Make the OpenGL context current.
@@ -127,7 +126,47 @@ namespace Vulkyrie::Renderer {
         return Vulkyrie::Core::StatusCode::Successful;
     }
 
-    void OpenGLGraphicsContext::SwapBuffers() {
+    void OpenGLRendererContext::SwapBuffers() {
         glfwSwapBuffers(_windowHandle);
     }
+
+    BufferHandle OpenGLRendererContext::CreateBuffer(std::span<f32> data) {
+        return CreateBuffer(data.size() * sizeof(f32), data);
+    }
+
+    BufferHandle OpenGLRendererContext::CreateBuffer(size_t size, std::span<f32> data) {
+        size_t index;
+
+        if (!_freeIndices.empty()) {
+            index = _freeIndices.back();
+            _freeIndices.pop_back();
+        } else {
+            index = _bufferResources.size();
+            _bufferResources.emplace_back();
+        }
+
+        OpenGLBufferResource &resource = _bufferResources[index];
+        resource.Generation++;
+
+        // If size is greater than 0, we can use the provided data. Otherwise, we need to create a dynamic storage buffer that can be mapped for writing.
+        glCreateBuffers(1, &resource.BufferID);
+        glNamedBufferStorage(resource.BufferID, size, data.data(), size > 0 ? GL_NONE : GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+
+        return BufferHandle{ index, resource.Generation };
+    }
+
+    void OpenGLRendererContext::SetBufferData(const BufferHandle &handle, size_t startIndex, std::span<f32> data) {
+        glNamedBufferSubData(_bufferResources[handle.Index].BufferID, startIndex * sizeof(f32), data.size() * sizeof(f32), data.data());
+    }
+
+    void OpenGLRendererContext::DestroyBuffer(const BufferHandle &handle) {
+        glDeleteBuffers(1, &_bufferResources[handle.Index].BufferID);
+    }
+
+    OpenGLRendererContext::~OpenGLRendererContext() {
+        for (const auto &resource : _bufferResources) {
+            glDeleteBuffers(1, &resource.BufferID);
+        }
+    }
+
 } // namespace Vulkyrie::Renderer

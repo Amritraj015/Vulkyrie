@@ -116,12 +116,12 @@ namespace Vulkyrie::Renderer {
                     /** @brief Optional method to perform operations before a resource is read.
                      * @param flags Flags indicating the type of read operation.
                      * @param context A pointer to any additional context needed for the pre-read operation. */
-                    virtual void PreRead(i32 flags, void *context) = 0;
+                    constexpr virtual void PreRead(i32 flags, void *context) = 0;
 
                     /** @brief Optional method to perform operations before a resource is written to.
                      * @param flags Flags indicating the type of write operation.
                      * @param context A pointer to any additional context needed for the pre-write operation. */
-                    virtual void PreWrite(i32 flags, void *context) = 0;
+                    constexpr virtual void PreWrite(i32 flags, void *context) = 0;
             };
 
             template <FrameGraphResourceBackend T> struct ResourceModel : Concept {
@@ -132,7 +132,7 @@ namespace Vulkyrie::Renderer {
                      * created.
                      * @param resource The actual resource associated with the backend. This should be an instance of the type that satisfies the
                      * FrameGraphResourceBackend concept, and it should be initialized with any necessary information for creating and managing the resource. */
-                    ResourceModel(const typename T::Descriptor& descriptor, T &&resource)
+                    ResourceModel(const typename T::Descriptor &descriptor, T &&resource)
                         : descriptor(descriptor)
                         , resource(std::move(resource)) {
                     }
@@ -151,13 +151,13 @@ namespace Vulkyrie::Renderer {
                         resource.Destroy(descriptor, allocator);
                     }
 
-                    void PreRead(i32 flags, void *context) override {
+                    constexpr void PreRead(i32 flags, void *context) override {
                         if constexpr (HasPreRead<T>) {
                             resource.PreRead(flags, context);
                         }
                     }
 
-                    void PreWrite(i32 flags, void *context) override {
+                    constexpr void PreWrite(i32 flags, void *context) override {
                         if constexpr (HasPreWrite<T>) {
                             resource.PreWrite(flags, context);
                         }
@@ -171,7 +171,7 @@ namespace Vulkyrie::Renderer {
              * @param descriptor The descriptor containing the necessary information for creating and managing the resource.
              * @param resource The actual resource associated with the backend. */
             template <FrameGraphResourceBackend T>
-            explicit ResourceEntry(Type type, ResourceEntryID resourceEntryID, const typename T::Descriptor& descriptor, T &&resource)
+            explicit ResourceEntry(Type type, ResourceEntryID resourceEntryID, const typename T::Descriptor &descriptor, T &&resource)
                 : _type{ type }
                 , _version{ INITIAL_RESOURCE_VERSION }
                 , _resourceEntryID{ resourceEntryID }
