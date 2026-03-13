@@ -19,6 +19,6 @@ namespace Vulkyrie::Core {
             bool EnableVSync = true;
 
             /** @brief The graphics API to use for rendering. */
-            GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
+            Vulkyrie::Core::GraphicsAPI GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL;
     };
 } // namespace Vulkyrie::Core

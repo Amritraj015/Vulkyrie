@@ -18,7 +18,7 @@ namespace Sandbox {
                 // PushLayer<SandboxLayerShadowMapping>();
                 // PushLayer<SandboxLayerFrameBuffer>();
                 // PushLayer<SandboxLayerCubes>();
-                PushLayer<SandboxLayerDeferredShading>();
+                PushLayer<SandboxLayerSphere>();
                 PushOverlay<SandboxVoidLayer>();
 
                 return true;

@@ -18,6 +18,7 @@
 #include "sandbox_layer_shadow_mapping.h"
 #include "sandbox_layer_skybox.h"
 #include "sandbox_layer_depth_and_stencil_testing.h"
+#include "sandbox_layer_sphere.h"
 
 namespace Sandbox {
     using namespace Vulkyrie::Events;
@@ -123,6 +124,7 @@ namespace Sandbox {
             void InitializeLayerSwitcher() {
                 layerSwitchers = {
                     [this]() { SwitchLayer<SandboxLayerFrameBuffer>(); },            // Frame buffer example.
+                    [this]() { SwitchLayer<SandboxLayerSphere>(); },                 // Sphere example.
                     [this]() { SwitchLayer<SandboxLayerDeferredShading>(); },        // Deferred shading example.
                     [this]() { SwitchLayer<SandboxLayerNormalMapping>(); },          // Normal mapping example.
                     [this]() { SwitchLayer<SandboxLayerShadowMapping>(); },          // Shadow mapping example.

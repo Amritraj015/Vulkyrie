@@ -503,7 +503,7 @@ namespace Vulkyrie::Core {
         });
 
         // Enable/Disable VSync based on the window settigns.
-        SetVSync(_windowProps.EnableVSync);
+        // SetVSync(_windowProps.EnableVSync);
 
         // Return success.
         return StatusCode::Successful;
