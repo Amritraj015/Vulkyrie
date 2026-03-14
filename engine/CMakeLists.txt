@@ -35,6 +35,7 @@ target_link_libraries(engine
         glad
         glm::glm
         assimp::assimp
+        OpenAL::OpenAL
 )
 
 # ---------------------------

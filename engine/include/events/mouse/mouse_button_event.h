@@ -7,7 +7,9 @@
 namespace Vulkyrie::Events {
     class MouseButtonEvent : public Event {
         public:
-            explicit MouseButtonEvent(const Vulkyrie::Events::MouseButton mouseButton) : MouseButton(mouseButton) { }
+            explicit MouseButtonEvent(const Vulkyrie::Events::MouseButton mouseButton)
+                : MouseButton(mouseButton) {
+            }
 
             /** @brief The mouse button associated with the event. */
             const Vulkyrie::Events::MouseButton MouseButton;
@@ -24,4 +26,4 @@ namespace Vulkyrie::Events {
             const static i32 _categoryFlags =
                 std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input) | std::to_underlying(EventCategory::MouseButton);
     };
-} // namespace Vulkyrie::Events 
+} // namespace Vulkyrie::Events

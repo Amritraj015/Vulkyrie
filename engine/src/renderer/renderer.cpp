@@ -3,7 +3,7 @@
 #include "renderer/renderer_context.h"
 
 namespace Vulkyrie::Renderer {
-    static Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
+    Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
     Scope<RendererContext> _graphicsContext = nullptr;
 
     Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {

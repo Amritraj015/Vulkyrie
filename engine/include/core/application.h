@@ -3,7 +3,6 @@
 #include "core/platform.h"
 #include "core/window_props.h"
 #include "core/layer_stack.h"
-#include "events/application/window_closed_event.h"
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
 

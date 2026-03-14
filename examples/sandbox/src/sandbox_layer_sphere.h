@@ -12,38 +12,50 @@ namespace Sandbox {
         public:
             SandboxLayerSphere()
                 : app(Vulkyrie::Core::Application::GetSingleton())
+                , audioSystem(CreateRef<Vulkyrie::Audio::AudioSystem>())
                 , camera(Camera::Create()) {
 
+                fahAudioClip = audioSystem->LoadClip("assets/sounds/fahhh.wav");
+                akAudioClip = audioSystem->LoadClip("assets/sounds/csgo-ak.wav");
+
                 // Load shader and texture.
-                shader = Shader::Create("assets/shaders/model.glsl");
-                texture = Texture2D::Create("assets/textures/container.jpg");
+                sphereShader = Shader::Create("assets/shaders/color.glsl");
 
                 // Assert that shader and texture are loaded successfully.
-                assert(shader->IsValid());
-                assert(texture->IsLoaded());
+                assert(sphereShader->IsValid());
 
                 // Generate sphere vertices and indices.
                 CreateSphere(1.0f, 100, 100);
 
                 // Create the vertex array for the sphere.
                 sphereVAO = VertexArray::Create();
-
-                // Create vertex buffer and set layout.
-                auto vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+                auto vertexBuffer = VertexBuffer::Create(sphereVertices.data(), sphereVertices.size() * sizeof(f32));
                 vertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "position" },
-                    { ShaderDataType::Float3, "normal" },
-                    { ShaderDataType::Float2, "texCoords" },
+                    { ShaderDataType::Float3, "aPosition" },
+                    { ShaderDataType::Float3, "aNormal" },
+                    { ShaderDataType::Float2, "aTextureCoords" },
                 });
                 sphereVAO->AddVertexBuffer(vertexBuffer);
-
-                // Create index buffer.
-                auto indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+                auto indexBuffer = IndexBuffer::Create(sphereIndices.data(), sphereIndices.size());
                 sphereVAO->SetIndexBuffer(indexBuffer);
+
+                // Create the vertex array for the floor.
+                floorVAO = VertexArray::Create();
+                auto floorVertexBuffer = VertexBuffer::Create(floorVertices.data(), floorVertices.size() * sizeof(f32));
+                floorVertexBuffer->SetLayout({
+                    { ShaderDataType::Float3, "aPosition" },
+                    { ShaderDataType::Float3, "aNormal" },
+                    { ShaderDataType::Float2, "aTextureCoords" },
+                });
+                floorVAO->AddVertexBuffer(floorVertexBuffer);
+                auto floorIndexBuffer = IndexBuffer::Create(floorIndices.data(), floorIndices.size());
+                floorVAO->SetIndexBuffer(floorIndexBuffer);
 
                 // This is required to make sure 3D rendering works properly.
                 glEnable(GL_DEPTH_TEST);
             }
+
+            ~SandboxLayerSphere() = default;
 
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
@@ -54,29 +66,47 @@ namespace Sandbox {
                 // Update Camera position based on input.
                 camera.OnUpdate(deltaTime);
 
-                // Use the shader program.
-                shader->Use();
+                // Update audio system (frees finished sources).
+                audioSystem->Update();
 
-                // Bind texture.
-                texture->Bind(0);
+                // ------------------------------------------------------------------------------------
+                // Render the rotating sphere.
+                // Use the shader program.
+                sphereShader->Use();
 
                 // Set the projection matrix.
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
-                shader->SetMat4Uniform("projection", projection);
+                sphereShader->SetMat4Uniform("projection", projection);
 
                 // Set the view matrix.
                 glm::mat4 view = camera.GetViewMatrix();
-                shader->SetMat4Uniform("view", view);
+                sphereShader->SetMat4Uniform("view", view);
 
                 // Set the model matrix (rotate over time).
                 glm::mat4 model = glm::mat4(1.0f);
-                model = glm::rotate(model, (f32)app.GetTime() * glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                shader->SetMat4Uniform("model", model);
+                sphereShader->SetMat4Uniform("model", model);
+
+                // Set the color uniform.
+                sphereShader->SetVec3Uniform("color", 1.0f, 0.3f, 0.31f);
 
                 // Draw the sphere.
                 sphereVAO->Bind();
-                glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
                 sphereVAO->Unbind();
+
+                // ------------------------------------------------------------------------------------
+                // Render the floor.
+                // Set the model matrix for the floor.
+                model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f));
+                sphereShader->SetMat4Uniform("model", model);
+
+                // Set the color uniform for the floor.
+                sphereShader->SetVec3Uniform("color", 1.0f, 1.0f, 0.31f);
+
+                // Draw the sphere.
+                floorVAO->Bind();
+                glDrawElements(GL_TRIANGLES, floorIndices.size(), GL_UNSIGNED_INT, 0);
+                floorVAO->Unbind();
             }
 
             void OnEvent(Event &event) override {
@@ -86,6 +116,18 @@ namespace Sandbox {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
 
                     return true;
+                });
+
+                dispatcher.Dispatch<MouseButtonPressedEvent>([this](const MouseButtonPressedEvent &e) {
+                    if (e.MouseButton == MouseButton::MouseButton1) {
+                        audioSystem->PlaySound(fahAudioClip);
+                        return true;
+                    } else if (e.MouseButton == MouseButton::MouseButton2) {
+                        audioSystem->PlaySound(akAudioClip);
+                        return true;
+                    }
+
+                    return false;
                 });
             }
 
@@ -112,14 +154,14 @@ namespace Sandbox {
                         f32 y = radius * cos(phi);
                         f32 z = radius * sin(phi) * sin(theta);
 
-                        vertices.push_back(x);          // x
-                        vertices.push_back(y);          // y
-                        vertices.push_back(z);          // z
-                        vertices.push_back(x / radius); // nx
-                        vertices.push_back(y / radius); // ny
-                        vertices.push_back(z / radius); // nz
-                        vertices.push_back(u);          // u
-                        vertices.push_back(v);          // v
+                        sphereVertices.push_back(x);          // x
+                        sphereVertices.push_back(y);          // y
+                        sphereVertices.push_back(z);          // z
+                        sphereVertices.push_back(x / radius); // nx
+                        sphereVertices.push_back(y / radius); // ny
+                        sphereVertices.push_back(z / radius); // nz
+                        sphereVertices.push_back(u);          // u
+                        sphereVertices.push_back(v);          // v
                     }
                 }
 
@@ -128,13 +170,13 @@ namespace Sandbox {
                         u32 first = i * (sectors + 1) + j;
                         u32 second = first + sectors + 1;
 
-                        indices.push_back(first);
-                        indices.push_back(second);
-                        indices.push_back(first + 1);
+                        sphereIndices.push_back(first);
+                        sphereIndices.push_back(second);
+                        sphereIndices.push_back(first + 1);
 
-                        indices.push_back(second);
-                        indices.push_back(second + 1);
-                        indices.push_back(first + 1);
+                        sphereIndices.push_back(second);
+                        sphereIndices.push_back(second + 1);
+                        sphereIndices.push_back(first + 1);
                     }
                 }
             }
@@ -142,11 +184,27 @@ namespace Sandbox {
         private:
             Vulkyrie::Core::Application &app;
             Camera camera;
+            Ref<Vulkyrie::Audio::AudioSystem> audioSystem;
+            Vulkyrie::Audio::AudioClip *fahAudioClip;
+            Vulkyrie::Audio::AudioClip *akAudioClip;
+
             Ref<VertexArray> sphereVAO;
-            Ref<Shader> shader;
-            Ref<Texture2D> texture;
-            std::vector<f32> vertices;
-            std::vector<u32> indices;
+            Ref<Shader> sphereShader;
+            std::vector<f32> sphereVertices;
+            std::vector<u32> sphereIndices;
+
+            Ref<VertexArray> floorVAO;
+            std::vector<f32> floorVertices = {
+                // positions         // normals        // texture coords
+                5.0f,  -0.5f, 5.0f,  0.0f, 1.0f, 0.0f, 2.0f, 0.0f, //
+                -5.0f, -0.5f, 5.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, //
+                -5.0f, -0.5f, -5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, //
+                5.0f,  -0.5f, -5.0f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f  //
+            };
+            std::vector<u32> floorIndices = {
+                0, 1, 2, //
+                0, 2, 3, //
+            };
     };
 
 } // namespace Sandbox

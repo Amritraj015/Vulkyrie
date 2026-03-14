@@ -2,6 +2,7 @@
 #include "core/status_codes.h"
 #include "core/application.h"
 #include "core/vulkyrie_glfw_platform.h"
+#include "events/application/window_closed_event.h"
 #include "events/event_dispatcher.h"
 #include "renderer/renderer.h"
 

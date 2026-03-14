@@ -1,5 +1,9 @@
 #pragma once
 
+// TODO: Remove this.
+#include "audio/audio_system.h"
+// TODO: Remove this.
+
 // Core includes
 #include "core/application.h"
 #include "core/status_codes.h"
