@@ -8,19 +8,19 @@
             "name": "Launch Sandbox",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox",
-            "cwd": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox",
+            "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox",
+            "cwd": "${workspaceFolder}/build/clang-all-debug/examples/sandbox",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox",
+                "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox.exe",
+                "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
@@ -40,19 +40,19 @@
             "name": "Launch Asteroids",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids",
-            "cwd": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids",
+            "program": "${workspaceFolder}/build/clang-all-debug/examples/asteroids/asteroids",
+            "cwd": "${workspaceFolder}/build/clang-all-debug/examples/asteroids",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids",
+                "program": "${workspaceFolder}/build/clang-all-debug/examples/asteroids/asteroids",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/examples/asteroids/asteroids.exe",
+                "program": "${workspaceFolder}/build/clang-all-debug/examples/asteroids/asteroids.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [
@@ -72,19 +72,19 @@
             "name": "Debug Tests",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests",
-            "cwd": "${workspaceFolder}/build/gcc-all-debug/tests",
+            "program": "${workspaceFolder}/build/clang-all-debug/tests/tests",
+            "cwd": "${workspaceFolder}/build/clang-all-debug/tests",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests",
+                "program": "${workspaceFolder}/build/clang-all-debug/tests/tests",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/gcc-all-debug/tests/tests.exe",
+                "program": "${workspaceFolder}/build/clang-all-debug/tests/tests.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [

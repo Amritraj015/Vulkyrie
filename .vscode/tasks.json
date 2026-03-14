@@ -7,7 +7,7 @@
 			"command": "cmake",
 			"args": [
 				"--preset",
-				"gcc-all-debug"
+				"clang-all-debug"
 			],
 			"group": "build",
 			"problemMatcher": []
@@ -19,7 +19,7 @@
 			"args": [
 				"--build",
 				"--preset",
-				"gcc-all-debug"
+				"clang-all-debug"
 			],
 			"group": {
 				"kind": "build",
@@ -34,7 +34,7 @@
 			"command": "cmake",
 			"args": [
 				"--build",
-				"build/gcc-all-debug",
+				"build/clang-all-debug",
 				"--target",
 				"clean"
 			],
@@ -46,10 +46,10 @@
 			"label": "Run Sandbox",
 			"command": "sandbox",
 			"options": {
-				"cwd": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox"
+				"cwd": "${workspaceFolder}/build/clang-all-debug/examples/sandbox"
 			},
 			"windows": {
-				"command": "${workspaceFolder}/build/gcc-all-debug/examples/sandbox/sandbox.exe"
+				"command": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox.exe"
 			},
 			"group": "test",
 			"problemMatcher": [],
