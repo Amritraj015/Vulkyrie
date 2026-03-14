@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 
 namespace Sandbox {
+    using namespace Vulkyrie::Audio;
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
@@ -11,18 +12,18 @@ namespace Sandbox {
     class SandboxLayerSphere final : public Layer {
         public:
             SandboxLayerSphere()
-                : app(Vulkyrie::Core::Application::GetSingleton())
-                , audioSystem(CreateRef<Vulkyrie::Audio::AudioSystem>())
+                : app(Application::GetSingleton())
+                , audioSystem(CreateRef<AudioSystem>())
                 , camera(Camera::Create()) {
 
                 fahAudioClip = audioSystem->LoadClip("assets/sounds/fahhh.wav");
                 akAudioClip = audioSystem->LoadClip("assets/sounds/csgo-ak.wav");
 
                 // Load shader and texture.
-                sphereShader = Shader::Create("assets/shaders/color.glsl");
+                shader = Shader::Create("assets/shaders/color.glsl");
 
                 // Assert that shader and texture are loaded successfully.
-                assert(sphereShader->IsValid());
+                assert(shader->IsValid());
 
                 // Generate sphere vertices and indices.
                 CreateSphere(1.0f, 100, 100);
@@ -72,22 +73,22 @@ namespace Sandbox {
                 // ------------------------------------------------------------------------------------
                 // Render the rotating sphere.
                 // Use the shader program.
-                sphereShader->Use();
+                shader->Use();
 
                 // Set the projection matrix.
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
-                sphereShader->SetMat4Uniform("projection", projection);
+                shader->SetMat4Uniform("projection", projection);
 
                 // Set the view matrix.
                 glm::mat4 view = camera.GetViewMatrix();
-                sphereShader->SetMat4Uniform("view", view);
+                shader->SetMat4Uniform("view", view);
 
                 // Set the model matrix (rotate over time).
                 glm::mat4 model = glm::mat4(1.0f);
-                sphereShader->SetMat4Uniform("model", model);
+                shader->SetMat4Uniform("model", model);
 
                 // Set the color uniform.
-                sphereShader->SetVec3Uniform("color", 1.0f, 0.3f, 0.31f);
+                shader->SetVec3Uniform("color", 1.0f, 0.3f, 0.31f);
 
                 // Draw the sphere.
                 sphereVAO->Bind();
@@ -98,10 +99,10 @@ namespace Sandbox {
                 // Render the floor.
                 // Set the model matrix for the floor.
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f));
-                sphereShader->SetMat4Uniform("model", model);
+                shader->SetMat4Uniform("model", model);
 
                 // Set the color uniform for the floor.
-                sphereShader->SetVec3Uniform("color", 1.0f, 1.0f, 0.31f);
+                shader->SetVec3Uniform("color", 1.0f, 1.0f, 0.31f);
 
                 // Draw the sphere.
                 floorVAO->Bind();
@@ -182,14 +183,16 @@ namespace Sandbox {
             }
 
         private:
-            Vulkyrie::Core::Application &app;
+            Application &app;
             Camera camera;
-            Ref<Vulkyrie::Audio::AudioSystem> audioSystem;
-            Vulkyrie::Audio::AudioClip *fahAudioClip;
-            Vulkyrie::Audio::AudioClip *akAudioClip;
+
+            Ref<AudioSystem> audioSystem;
+            AudioClip *fahAudioClip;
+            AudioClip *akAudioClip;
+
+            Ref<Shader> shader;
 
             Ref<VertexArray> sphereVAO;
-            Ref<Shader> sphereShader;
             std::vector<f32> sphereVertices;
             std::vector<u32> sphereIndices;
 

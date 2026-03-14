@@ -4,25 +4,22 @@
 
 namespace Vulkyrie::Audio {
 
-    ALCdevice *device = nullptr;
-    ALCcontext *context = nullptr;
-
     AudioSystem::AudioSystem() {
         // Initialize OpenAL
-        device = alcOpenDevice(nullptr);
-        assert(device && "Failed to open OpenAL device");
+        _device = alcOpenDevice(nullptr);
+        assert(_device && "Failed to open OpenAL device");
 
-        context = alcCreateContext(device, nullptr);
-        alcMakeContextCurrent(context);
+        _context = alcCreateContext(static_cast<ALCdevice *>(_device), nullptr);
+        alcMakeContextCurrent(static_cast<ALCcontext *>(_context));
 
         // Pre-create sources
-        sources.resize(MAX_SOURCES);
+        _sources.resize(MAX_SOURCES);
         for (size_t i = 0; i < MAX_SOURCES; ++i) {
-            alGenSources(1, &sources[i].Source);
-            sources[i].Active = false;
-            sources[i].Handle.ID = static_cast<u32>(i);
-            sources[i].Handle.Valid = false;
-            sources[i].Looping = false;
+            alGenSources(1, &_sources[i].Source);
+            _sources[i].Active = false;
+            _sources[i].Handle.ID = static_cast<u32>(i);
+            _sources[i].Handle.Valid = false;
+            _sources[i].Looping = false;
         }
 
         // Listener defaults
@@ -33,35 +30,43 @@ namespace Vulkyrie::Audio {
     }
 
     AudioSystem::~AudioSystem() {
-        for (auto &src : sources) {
+        // Clean up sources
+        for (auto &src : _sources) {
             if (src.Source != 0) {
                 alDeleteSources(1, &src.Source);
             }
         }
 
+        // Clean up OpenAL
         alcMakeContextCurrent(nullptr);
-        alcDestroyContext(context);
-        alcCloseDevice(device);
+        alcDestroyContext(static_cast<ALCcontext *>(_context));
+        alcCloseDevice(static_cast<ALCdevice *>(_device));
     }
 
-    AudioClip *AudioSystem::LoadClip(const std::filesystem::path &filename) {
-        if (clipCache.find(filename) != clipCache.end()) {
-            return &clipCache[filename];
+    AudioClip *AudioSystem::LoadClip(const std::filesystem::path &filepath) {
+        if (auto it = _clipCache.find(filepath); it != _clipCache.end()) {
+            return &it->second;
         }
 
         AudioClip clip;
-        if (!LoadWAV(filename.c_str(), clip)) {
-            VERROR("Failed to load WAV file: {}", filename.c_str());
+
+        if (!LoadWAV(filepath, clip)) {
+            VERROR("Failed to load WAV file: {}", filepath.c_str());
             return nullptr;
         }
 
-        clipCache[filename] = std::move(clip);
-        return &clipCache[filename];
+        _clipCache[filepath] = std::move(clip);
+
+        return &_clipCache[filepath];
     }
 
     AudioHandle AudioSystem::PlaySound(AudioClip *clip, const glm::vec3 &position, bool loop) {
+        if (!clip || clip->Buffer == 0) {
+            return AudioHandle{ 0, false };
+        }
+
         // Find a free source
-        for (auto &src : sources) {
+        for (auto &src : _sources) {
             if (!src.Active) {
                 src.Active = true;
                 src.Looping = loop;
@@ -82,12 +87,12 @@ namespace Vulkyrie::Audio {
     }
 
     void AudioSystem::Stop(AudioHandle handle) {
-        if (!handle.Valid || handle.ID >= sources.size()) return;
-        sources[handle.ID].Stop();
+        if (!handle.Valid || handle.ID >= _sources.size()) return;
+        _sources[handle.ID].Stop();
     }
 
-    void AudioSystem::SetListenerPosition(const glm::vec3 &pos) {
-        alListener3f(AL_POSITION, pos.x, pos.y, pos.z);
+    void AudioSystem::SetListenerPosition(const glm::vec3 &position) {
+        alListener3f(AL_POSITION, position.x, position.y, position.z);
     }
 
     void AudioSystem::SetListenerOrientation(const glm::vec3 &forward, const glm::vec3 &up) {
@@ -97,7 +102,7 @@ namespace Vulkyrie::Audio {
 
     void AudioSystem::Update() {
         // Check which sources finished playing and mark them free
-        for (auto &src : sources) {
+        for (auto &src : _sources) {
             if (src.Active && !src.IsPlaying()) {
                 src.Active = false;
                 src.Handle.Valid = false;
@@ -105,18 +110,27 @@ namespace Vulkyrie::Audio {
         }
     }
 
-    bool AudioSystem::LoadWAV(std::filesystem::path filePath, AudioClip &clip) {
+    bool AudioSystem::LoadWAV(const std::filesystem::path &filePath, AudioClip &clip) {
         std::ifstream file(filePath, std::ios::binary);
-        if (!file) return false;
+
+        if (!file) {
+            return false;
+        }
 
         char riff[4];
         file.read(riff, 4);
-        if (std::strncmp(riff, "RIFF", 4) != 0) return false;
+
+        if (std::strncmp(riff, "RIFF", 4) != 0) {
+            return false;
+        }
 
         file.ignore(4);
         char wave[4];
         file.read(wave, 4);
-        if (std::strncmp(wave, "WAVE", 4) != 0) return false;
+
+        if (std::strncmp(wave, "WAVE", 4) != 0) {
+            return false;
+        }
 
         char chunkId[4];
         i32 chunkSize;
@@ -124,15 +138,18 @@ namespace Vulkyrie::Audio {
         // find fmt
         file.read(chunkId, 4);
         file.read(reinterpret_cast<char *>(&chunkSize), 4);
-        if (std::strncmp(chunkId, "fmt ", 4) != 0) return false;
 
-        short audioFormat, numChannels;
+        if (std::strncmp(chunkId, "fmt ", 4) != 0) {
+            return false;
+        }
+
+        i16 audioFormat, numChannels;
         i32 sampleRate;
         file.read(reinterpret_cast<char *>(&audioFormat), 2);
         file.read(reinterpret_cast<char *>(&numChannels), 2);
         file.read(reinterpret_cast<char *>(&sampleRate), 4);
         file.ignore(6); // byteRate+blockAlign
-        short bitsPerSample;
+        i16 bitsPerSample;
         file.read(reinterpret_cast<char *>(&bitsPerSample), 2);
 
         // skip to data

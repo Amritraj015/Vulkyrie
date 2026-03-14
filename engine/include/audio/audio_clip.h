@@ -4,29 +4,26 @@
 
 namespace Vulkyrie::Audio {
 
+    /** @brief The AudioClip class represents a loaded audio clip, containing the necessary information and resources to play the audio. */
     class AudioClip final {
         public:
+            /** @brief The buffer handle for the audio clip. */
             u32 Buffer = 0;
+
+            /** @brief The format of the audio source. */
             i32 Format = 0;
+
+            /** @brief The frequency (sample rate) of the audio source. */
             i32 Frequency = 0;
 
+            /** @brief Default constructor for AudioClip. Initializes an empty audio clip. */
             AudioClip() = default;
+
+            /** @brief Cleans up the audio clip by deleting the underlying resources associated with this clip. */
             ~AudioClip();
 
-            AudioClip(AudioClip &&other) noexcept
-                : Buffer(other.Buffer), Format(other.Format), Frequency(other.Frequency) {
-                other.Buffer = 0;
-            }
-
-            AudioClip &operator=(AudioClip &&other) noexcept {
-                if (this != &other) {
-                    Buffer = other.Buffer;
-                    Format = other.Format;
-                    Frequency = other.Frequency;
-                    other.Buffer = 0;
-                }
-                return *this;
-            }
+            AudioClip(AudioClip &&other) noexcept;
+            AudioClip &operator=(AudioClip &&other) noexcept;
 
             AudioClip(const AudioClip &) = delete;
             AudioClip &operator=(const AudioClip &) = delete;
