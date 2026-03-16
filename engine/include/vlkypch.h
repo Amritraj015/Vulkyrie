@@ -79,11 +79,11 @@ typedef double f64;
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-#define FORCE_INLINE __attribute__((always_inline)) inline
+#define VE_FORCE_INLINE __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
-#define FORCE_INLINE __forceinline
+#define VE_FORCE_INLINE __forceinline
 #else
-#define FORCE_INLINE inline
+#define VE_FORCE_INLINE inline
 #endif
 
 /** @brief A scoped pointer type alias using std::unique_ptr.
