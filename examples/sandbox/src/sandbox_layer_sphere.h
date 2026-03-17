@@ -8,13 +8,17 @@ namespace Sandbox {
     using namespace Vulkyrie::Core;
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
+    using namespace Vulkyrie::Physics;
 
     class SandboxLayerSphere final : public Layer {
         public:
             SandboxLayerSphere()
                 : app(Application::GetSingleton())
                 , audioSystem(CreateRef<AudioSystem>())
-                , camera(Camera::Create()) {
+                , camera(Camera::Create())
+                , sphere(1.0f, 100, 100) {
+
+                camera.SetPosition(glm::vec3(0.0f, 0.0f, 20.0f));
 
                 fahAudioClip = audioSystem->LoadClip("assets/sounds/fahhh.wav");
                 akAudioClip = audioSystem->LoadClip("assets/sounds/csgo-ak.wav");
@@ -26,7 +30,8 @@ namespace Sandbox {
                 assert(shader->IsValid());
 
                 // Generate sphere vertices and indices.
-                CreateSphere(1.0f, 100, 100);
+                auto sphereVertices = sphere.GetVertices();
+                auto sphereIndices = sphere.GetIndices();
 
                 // Create the vertex array for the sphere.
                 sphereVAO = VertexArray::Create();
@@ -54,6 +59,9 @@ namespace Sandbox {
 
                 // This is required to make sure 3D rendering works properly.
                 glEnable(GL_DEPTH_TEST);
+
+                // Capture Mouse on focus.
+                app.CaptureMouseOnFocus(true);
             }
 
             ~SandboxLayerSphere() = default;
@@ -61,6 +69,7 @@ namespace Sandbox {
             void OnUpdate(Timestep deltaTime) override {
                 VLKY_PROFILE_FUNCTION();
 
+                // Clear color and depth buffers.
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -84,7 +93,12 @@ namespace Sandbox {
                 shader->SetMat4Uniform("view", view);
 
                 // Set the model matrix (rotate over time).
-                glm::mat4 model = glm::mat4(1.0f);
+                const f32 time = deltaTime.GetSeconds();
+                spherePosition += sphereSpeed * time;
+
+                DetectCollisions();
+
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), spherePosition);
                 shader->SetMat4Uniform("model", model);
 
                 // Set the color uniform.
@@ -92,22 +106,53 @@ namespace Sandbox {
 
                 // Draw the sphere.
                 sphereVAO->Bind();
+                auto &sphereIndices = sphere.GetIndices();
                 glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
                 sphereVAO->Unbind();
 
                 // ------------------------------------------------------------------------------------
                 // Render the floor.
-                // Set the model matrix for the floor.
-                model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f));
-                shader->SetMat4Uniform("model", model);
+                for (i32 i = 0; i < 4; ++i) {
+                    // Set the model matrix for the floor.
+                    switch (i) {
+                        case 0:
+                            model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.5f, 0.0f));
+                            break;
+                        case 1:
+                            model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.5f, 0.0f));
+                            break;
+                        case 2:
+                            model = glm::translate(glm::mat4(1.0f), glm::vec3(4.5f, 0.0f, 0.0f));
+                            model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+                            break;
+                        case 3:
+                            model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.0f, 0.0f));
+                            model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+                            break;
+                    }
 
-                // Set the color uniform for the floor.
-                shader->SetVec3Uniform("color", 1.0f, 1.0f, 0.31f);
+                    shader->SetMat4Uniform("model", model);
 
-                // Draw the sphere.
-                floorVAO->Bind();
-                glDrawElements(GL_TRIANGLES, floorIndices.size(), GL_UNSIGNED_INT, 0);
-                floorVAO->Unbind();
+                    // Set the color uniform for the floor.
+                    shader->SetVec3Uniform("color", 0.2f, 0.3f, 0.31f);
+
+                    // Draw the sphere.
+                    floorVAO->Bind();
+                    glDrawElements(GL_TRIANGLES, floorIndices.size(), GL_UNSIGNED_INT, 0);
+                    floorVAO->Unbind();
+                }
+            }
+
+            void DetectCollisions() {
+                glm::vec3 floorNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 floorPosition = glm::vec3(0.0f, -4.5f, 0.0f);
+
+                f32 distance = glm::dot(spherePosition - floorPosition, floorNormal);
+                if (distance < 1.0f) {
+                    // Collision detected, reflect the sphere's velocity.
+                    sphereSpeed = glm::reflect(sphereSpeed, floorNormal);
+                    spherePosition += floorNormal * (1.0f - distance); // Move the sphere out of the floor.
+                }
             }
 
             void OnEvent(Event &event) override {
@@ -140,48 +185,6 @@ namespace Sandbox {
                 VDEBUG("Layer Detached: Sphere");
             }
 
-            void CreateSphere(f32 radius, u32 stacks, u32 sectors) {
-                f32 pi = std::numbers::pi;
-
-                for (u32 i = 0; i <= stacks; ++i) {
-                    f32 v = (f32)i / stacks;
-                    f32 phi = v * pi;
-
-                    for (u32 j = 0; j <= sectors; ++j) {
-                        f32 u = (f32)j / sectors;
-                        f32 theta = u * 2 * pi;
-
-                        f32 x = radius * sin(phi) * cos(theta);
-                        f32 y = radius * cos(phi);
-                        f32 z = radius * sin(phi) * sin(theta);
-
-                        sphereVertices.push_back(x);          // x
-                        sphereVertices.push_back(y);          // y
-                        sphereVertices.push_back(z);          // z
-                        sphereVertices.push_back(x / radius); // nx
-                        sphereVertices.push_back(y / radius); // ny
-                        sphereVertices.push_back(z / radius); // nz
-                        sphereVertices.push_back(u);          // u
-                        sphereVertices.push_back(v);          // v
-                    }
-                }
-
-                for (u32 i = 0; i < stacks; ++i) {
-                    for (u32 j = 0; j < sectors; ++j) {
-                        u32 first = i * (sectors + 1) + j;
-                        u32 second = first + sectors + 1;
-
-                        sphereIndices.push_back(first);
-                        sphereIndices.push_back(second);
-                        sphereIndices.push_back(first + 1);
-
-                        sphereIndices.push_back(second);
-                        sphereIndices.push_back(second + 1);
-                        sphereIndices.push_back(first + 1);
-                    }
-                }
-            }
-
         private:
             Application &app;
             Camera camera;
@@ -190,11 +193,13 @@ namespace Sandbox {
             AudioClip *fahAudioClip;
             AudioClip *akAudioClip;
 
+            glm::vec3 sphereSpeed = glm::vec3(0.0f, -5.0f, 0.0f);
+            glm::vec3 spherePosition = glm::vec3(0.0f, 0.0f, 0.0f);
+
             Ref<Shader> shader;
 
+            Sphere sphere;
             Ref<VertexArray> sphereVAO;
-            std::vector<f32> sphereVertices;
-            std::vector<u32> sphereIndices;
 
             Ref<VertexArray> floorVAO;
             std::vector<f32> floorVertices = {

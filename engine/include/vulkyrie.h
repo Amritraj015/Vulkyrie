@@ -60,4 +60,7 @@
 // Material includes
 #include "materials/material_library.h"
 
+// Physics includes
+#include "physics/shapes/sphere.h"
+
 extern std::unique_ptr<Vulkyrie::Core::Application> CreateApplication();
