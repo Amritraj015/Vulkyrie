@@ -10,6 +10,18 @@ namespace Sandbox {
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Physics;
 
+    class TransformComponentManager final {};
+
+    class World final {
+        public:
+            World(std::array<glm::vec3, 8> walls)
+                : walls(walls) {
+            }
+
+        private:
+            std::array<glm::vec3, 8> walls;
+    };
+
     class SandboxLayerSphere final : public Layer {
         public:
             SandboxLayerSphere()
