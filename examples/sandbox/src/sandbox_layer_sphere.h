@@ -10,16 +10,35 @@ namespace Sandbox {
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Physics;
 
-    class TransformComponentManager final {};
-
     class World final {
         public:
-            World(std::array<glm::vec3, 8> walls)
-                : walls(walls) {
+            World(std::array<glm::vec3, 8> walls, f32 sphereRadius, std::array<glm::vec3, 2> spherePositionAndSpeed)
+                : walls(walls)
+                , sphereRadius(sphereRadius)
+                , spherePositionAndSpeed(spherePositionAndSpeed) {
+            }
+
+            void Update(Timestep dt) {
+                const auto distanceRight = glm::dot((spherePositionAndSpeed[0] - walls[0]), walls[1]);
+                const auto distanceLeft = glm::dot((spherePositionAndSpeed[0] - walls[2]), walls[3]);
+
+                if (distanceRight <= sphereRadius) {
+                    spherePositionAndSpeed[1] *= -1;
+                } else if (distanceLeft <= sphereRadius) {
+                    spherePositionAndSpeed[1] *= -1;
+                }
+
+                spherePositionAndSpeed[0] += spherePositionAndSpeed[1] * dt.GetSeconds();
+            }
+
+            const glm::vec3 GetSpherePosition() const {
+                return spherePositionAndSpeed[0];
             }
 
         private:
             std::array<glm::vec3, 8> walls;
+            f32 sphereRadius;
+            std::array<glm::vec3, 2> spherePositionAndSpeed;
     };
 
     class SandboxLayerSphere final : public Layer {
@@ -28,7 +47,23 @@ namespace Sandbox {
                 : app(Application::GetSingleton())
                 , audioSystem(CreateRef<AudioSystem>())
                 , camera(Camera::Create())
-                , sphere(1.0f, 100, 100) {
+                , sphere(1.0f, 100, 100)
+                , world(
+                      {
+                          glm::vec3(5, 0, 0),  // Left Wall.
+                          glm::vec3(-1, 0, 0), // Left Wall Normal.
+                          glm::vec3(-5, 0, 0), // Right Wall.
+                          glm::vec3(1, 0, 0),  // Right Wall Normal.
+                          glm::vec3(0, 5, 0),  // Top Wall.
+                          glm::vec3(0, -1, 0), // Top Wall Normal.
+                          glm::vec3(0, -5, 0), // Bottom Wall.
+                          glm::vec3(0, 1, 0),  // Bottom Wall Normal.
+                      },
+                      1.0f,
+                      {
+                          glm::vec3(0.0f, 0.0f, 0.0f), // Sphere Position.
+                          glm::vec3(5.0f, 0.0f, 0.0f), // Sphere Speed.
+                      }) {
 
                 camera.SetPosition(glm::vec3(0.0f, 0.0f, 20.0f));
 
@@ -104,13 +139,10 @@ namespace Sandbox {
                 glm::mat4 view = camera.GetViewMatrix();
                 shader->SetMat4Uniform("view", view);
 
-                // Set the model matrix (rotate over time).
-                const f32 time = deltaTime.GetSeconds();
-                spherePosition += sphereSpeed * time;
+                // Update the physics world.
+                world.Update(deltaTime);
 
-                DetectCollisions();
-
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), spherePosition);
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), world.GetSpherePosition());
                 shader->SetMat4Uniform("model", model);
 
                 // Set the color uniform.
@@ -155,18 +187,6 @@ namespace Sandbox {
                 }
             }
 
-            void DetectCollisions() {
-                glm::vec3 floorNormal = glm::vec3(0.0f, 1.0f, 0.0f);
-                glm::vec3 floorPosition = glm::vec3(0.0f, -4.5f, 0.0f);
-
-                f32 distance = glm::dot(spherePosition - floorPosition, floorNormal);
-                if (distance < 1.0f) {
-                    // Collision detected, reflect the sphere's velocity.
-                    sphereSpeed = glm::reflect(sphereSpeed, floorNormal);
-                    spherePosition += floorNormal * (1.0f - distance); // Move the sphere out of the floor.
-                }
-            }
-
             void OnEvent(Event &event) override {
                 EventDispatcher dispatcher(event);
 
@@ -205,12 +225,10 @@ namespace Sandbox {
             AudioClip *fahAudioClip;
             AudioClip *akAudioClip;
 
-            glm::vec3 sphereSpeed = glm::vec3(0.0f, -5.0f, 0.0f);
-            glm::vec3 spherePosition = glm::vec3(0.0f, 0.0f, 0.0f);
-
             Ref<Shader> shader;
 
             Sphere sphere;
+            World world;
             Ref<VertexArray> sphereVAO;
 
             Ref<VertexArray> floorVAO;
