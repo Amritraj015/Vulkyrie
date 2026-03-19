@@ -24,10 +24,22 @@ namespace Sandbox {
                 const auto distanceTop = glm::dot((spherePositionAndSpeed[0] - walls[4]), walls[5]);
                 const auto distanceBottom = glm::dot((spherePositionAndSpeed[0] - walls[6]), walls[7]);
 
-                if (distanceRight <= sphereRadius || distanceLeft <= sphereRadius) {
-                    spherePositionAndSpeed[1] *= glm::vec3(-1.0f, 1.0f, 1.0f);
-                } else if (distanceTop <= sphereRadius || distanceBottom <= sphereRadius) {
-                    spherePositionAndSpeed[1] *= glm::vec3(1.0f, -1.0f, 1.0f);
+                if (distanceRight <= sphereRadius) {
+                    if (spherePositionAndSpeed[1].x > 0.0f) {
+                        spherePositionAndSpeed[1] *= glm::vec3(-1.0f, 1.0f, 1.0f);
+                    }
+                } else if (distanceTop <= sphereRadius) {
+                    if (spherePositionAndSpeed[1].y > 0.0f) {
+                        spherePositionAndSpeed[1] *= glm::vec3(1.0f, -1.0f, 1.0f);
+                    }
+                } else if (distanceLeft <= sphereRadius) {
+                    if (spherePositionAndSpeed[1].x < 0.0f) {
+                        spherePositionAndSpeed[1] *= glm::vec3(-1.0f, 1.0f, 1.0f);
+                    }
+                } else if (distanceBottom <= sphereRadius) {
+                    if (spherePositionAndSpeed[1].y < 0.0f) {
+                        spherePositionAndSpeed[1] *= glm::vec3(1.0f, -1.0f, 1.0f);
+                    }
                 }
 
                 spherePositionAndSpeed[0] += spherePositionAndSpeed[1] * dt.GetSeconds();
