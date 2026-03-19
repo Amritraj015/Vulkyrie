@@ -21,11 +21,13 @@ namespace Sandbox {
             void Update(Timestep dt) {
                 const auto distanceRight = glm::dot((spherePositionAndSpeed[0] - walls[0]), walls[1]);
                 const auto distanceLeft = glm::dot((spherePositionAndSpeed[0] - walls[2]), walls[3]);
+                const auto distanceTop = glm::dot((spherePositionAndSpeed[0] - walls[4]), walls[5]);
+                const auto distanceBottom = glm::dot((spherePositionAndSpeed[0] - walls[6]), walls[7]);
 
-                if (distanceRight <= sphereRadius) {
-                    spherePositionAndSpeed[1] *= -1;
-                } else if (distanceLeft <= sphereRadius) {
-                    spherePositionAndSpeed[1] *= -1;
+                if (distanceRight <= sphereRadius || distanceLeft <= sphereRadius) {
+                    spherePositionAndSpeed[1] *= glm::vec3(-1.0f, 1.0f, 1.0f);
+                } else if (distanceTop <= sphereRadius || distanceBottom <= sphereRadius) {
+                    spherePositionAndSpeed[1] *= glm::vec3(1.0f, -1.0f, 1.0f);
                 }
 
                 spherePositionAndSpeed[0] += spherePositionAndSpeed[1] * dt.GetSeconds();
@@ -61,8 +63,8 @@ namespace Sandbox {
                       },
                       1.0f,
                       {
-                          glm::vec3(0.0f, 0.0f, 0.0f), // Sphere Position.
-                          glm::vec3(5.0f, 0.0f, 0.0f), // Sphere Speed.
+                          glm::vec3(0.0f, 0.0f, 0.0f),   // Sphere Position.
+                          glm::vec3(10.0f, 15.0f, 0.0f), // Sphere Speed.
                       }) {
 
                 camera.SetPosition(glm::vec3(0.0f, 0.0f, 20.0f));
