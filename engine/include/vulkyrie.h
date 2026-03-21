@@ -13,6 +13,12 @@
 // Debug includes
 #include "debug/profiler.h"
 
+// ECS includes
+#include "ecs/entity.h"
+#include "ecs/entity_manager.h"
+#include "ecs/components/transform_component.h"
+#include "ecs/components/transform_component_manager.h"
+
 // Events includes
 #include "events/event_dispatcher.h"
 #include "events/application/window_closed_event.h"
@@ -62,5 +68,6 @@
 
 // Physics includes
 #include "physics/shapes/sphere.h"
+#include "physics/shapes/plane.h"
 
 extern std::unique_ptr<Vulkyrie::Core::Application> CreateApplication();

@@ -9,51 +9,42 @@ namespace Sandbox {
     using namespace Vulkyrie::Renderer;
     using namespace Vulkyrie::Events;
     using namespace Vulkyrie::Physics;
+    using namespace Vulkyrie::ECS;
 
     class World final {
         public:
             World() = default;
 
-            World(std::array<std::pair<glm::vec3, f32>, 4> planes, std::array<std::tuple<glm::vec3, glm::vec3, f32>, 1> spheres)
-                : spheres(spheres) {
+            World(const std::vector<Plane> &planes, std::array<std::tuple<glm::vec3, glm::vec3, f32>, 1> spheres)
+                : walls(planes)
+                , spheres(spheres) {
+            }
 
-                const auto &[rightWallNormal, rightWallDistance] = planes[0];
-                const glm::vec3 rightWallPoint = glm::vec3(rightWallNormal * rightWallDistance * -1.0f);
-
-                const auto &[leftWallNormal, leftWallDistance] = planes[1];
-                const glm::vec3 leftWallPoint = glm::vec3(leftWallNormal * leftWallDistance * -1.0f);
-
-                const auto &[topWallNormal, topWallDistance] = planes[2];
-                const glm::vec3 topWallPoint = glm::vec3(topWallNormal * topWallDistance * -1.0f);
-
-                const auto &[bottomWallNormal, bottomWallDistance] = planes[3];
-                const glm::vec3 bottomWallPoint = glm::vec3(bottomWallNormal * bottomWallDistance * -1.0f);
-
-                walls = {
-                    std::make_pair(rightWallNormal, rightWallPoint),
-                    std::make_pair(leftWallNormal, leftWallPoint),
-                    std::make_pair(topWallNormal, topWallPoint),
-                    std::make_pair(bottomWallNormal, bottomWallPoint),
-                };
+            void RotateWalls(const glm::mat3 &rotationMatrix) {
+                for (auto &wall : walls) {
+                    wall.Rotate(rotationMatrix);
+                }
             }
 
             void Update(Timestep dt) {
                 for (auto &[spherePosition, sphereSpeed, sphereRadius] : spheres) {
-                    const f32 distanceRight = glm::dot((spherePosition - walls[0].second), walls[0].first);
-                    const f32 distanceLeft = glm::dot((spherePosition - walls[1].second), walls[1].first);
-                    const f32 distanceTop = glm::dot((spherePosition - walls[2].second), walls[2].first);
-                    const f32 distanceBottom = glm::dot((spherePosition - walls[3].second), walls[3].first);
+                    for (const auto &wall : walls) {
+                        // Calculate the signed distance from the sphere's center to the wall.
+                        f32 distance = wall.GetSignedDistance(spherePosition);
 
-                    if (distanceRight <= sphereRadius && sphereSpeed.x > 0.0f) {
-                        sphereSpeed *= glm::vec3(-1.0f, 1.0f, 1.0f);
-                    } else if (distanceLeft <= sphereRadius && sphereSpeed.x < 0.0f) {
-                        sphereSpeed *= glm::vec3(-1.0f, 1.0f, 1.0f);
-                    } else if (distanceTop <= sphereRadius && sphereSpeed.y > 0.0f) {
-                        sphereSpeed *= glm::vec3(1.0f, -1.0f, 1.0f);
-                    } else if (distanceBottom <= sphereRadius && sphereSpeed.y < 0.0f) {
-                        sphereSpeed *= glm::vec3(1.0f, -1.0f, 1.0f);
+                        // If the distance is less than the sphere's radius, it means the sphere is colliding with the wall.
+                        if (distance < sphereRadius) {
+                            const glm::vec3 &wallNormal = wall.GetNormal();
+
+                            // Reflect the sphere's speed vector across the wall's normal to simulate a bounce.
+                            sphereSpeed = glm::reflect(sphereSpeed, wallNormal);
+
+                            // Move the sphere out of the wall to prevent it from getting stuck.
+                            spherePosition += wallNormal * (sphereRadius - distance);
+                        }
                     }
 
+                    // Update the sphere's position based on its speed and the time step.
                     spherePosition += sphereSpeed * dt.GetSeconds();
                 }
             }
@@ -61,24 +52,10 @@ namespace Sandbox {
             const glm::vec3 GetSpherePosition() const {
                 return std::get<0>(spheres[0]);
             }
-            //
-            // enum Wall { Left, Right, Top, Bottom };
-            //
-            // const std::tuple<glm::mat4, glm::vec3, glm::vec2> GetRightWall() const {
-            // }
-            //
-            // const std::tuple<glm::mat4, glm::vec3, glm::vec2> GetLeftWall() const {
-            // }
-            //
-            // const std::tuple<glm::mat4, glm::vec3, glm::vec2> GetTopWall() const {
-            // }
-            //
-            // const std::tuple<glm::mat4, glm::vec3, glm::vec2> GetBottomWall() const {
-            // }
 
         private:
-            /** @brief 4 walls of a room represented by their normal and distance from the origin. */
-            std::array<std::pair<glm::vec3, glm::vec3>, 4> walls;
+            /** @brief A vector of walls. */
+            std::vector<Plane> walls;
 
             /** @brief Spheres represented by its speed, position and radius. */
             std::array<std::tuple<glm::vec3, glm::vec3, f32>, 1> spheres;
@@ -88,21 +65,23 @@ namespace Sandbox {
         public:
             SandboxLayerSphere()
                 : app(Application::GetSingleton())
+                , entityManager()
+                , transformComponentManager(entityManager)
                 , audioSystem(CreateRef<AudioSystem>())
                 , camera(Camera::Create())
                 , sphere(1.0f, 100, 100) {
 
-                // Define the walls of the room as planes with their normal and distance from the origin.
-                const std::array<std::pair<glm::vec3, f32>, 4> walls = {
-                    std::make_pair<glm::vec3, f32>(glm::vec3(-1, 0, 0), 5.0f), // Left Wall.
-                    std::make_pair<glm::vec3, f32>(glm::vec3(1, 0, 0), 5.0f),  // Right Wall.
-                    std::make_pair<glm::vec3, f32>(glm::vec3(0, -1, 0), 5.0f), // Top Wall.
-                    std::make_pair<glm::vec3, f32>(glm::vec3(0, 1, 0), 5.0f),  // Bottom Wall.
+                // Define the walls of the room as planes with their normal and distance from the origin along the normal vector.
+                const std::vector<Plane> walls = {
+                    Plane(glm::vec3(-1, 0, 0), -5.0f), // Left Wall.
+                    Plane(glm::vec3(1, 0, 0), -5.0f),  // Right Wall.
+                    Plane(glm::vec3(0, -1, 0), -5.0f), // Top Wall.
+                    Plane(glm::vec3(0, 1, 0), -5.0f),  // Bottom Wall.
                 };
 
                 // Define a single sphere with its initial position, speed and radius.
                 const std::array<std::tuple<glm::vec3, glm::vec3, f32>, 1> spheres = {
-                    std::make_tuple<glm::vec3, glm::vec3, f32>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10.0f, 15.0f, 0.0f), 1.0f), // Sphere.
+                    std::make_tuple<glm::vec3, glm::vec3, f32>(glm::vec3(0.0f), glm::vec3(10.0f, 15.0f, 0.0f), 1.0f), // Sphere.
                 };
 
                 // Create the physics world with the defined walls and spheres.
@@ -143,7 +122,6 @@ namespace Sandbox {
                 floorVertexBuffer->SetLayout({
                     { ShaderDataType::Float3, "aPosition" },
                     { ShaderDataType::Float3, "aNormal" },
-                    { ShaderDataType::Float2, "aTextureCoords" },
                 });
                 floorVAO->AddVertexBuffer(floorVertexBuffer);
                 auto floorIndexBuffer = IndexBuffer::Create(floorIndices.data(), floorIndices.size());
@@ -258,6 +236,17 @@ namespace Sandbox {
                 });
             }
 
+            // TODO: Make use of this.
+            // TODO: Make use of this.
+            // TODO: Make use of this.
+            void CreateEntities() {
+                const Entity ball = entityManager.CreateEntity();
+                TransformComponent ballTransform = { .Position = glm::vec3(0.0f), .Rotation = glm::quat(), .Scale = glm::vec3(1.0f) };
+                transformComponentManager.AddComponent(ball, ballTransform);
+
+                const Entity wall = entityManager.CreateEntity();
+            }
+
             void OnAttached() override {
                 VDEBUG("Layer Attached: Sphere");
             }
@@ -269,6 +258,9 @@ namespace Sandbox {
         private:
             Application &app;
             Camera camera;
+
+            EntityManager entityManager;
+            TransformComponentManager transformComponentManager;
 
             Ref<AudioSystem> audioSystem;
             AudioClip *fahAudioClip;
@@ -282,15 +274,15 @@ namespace Sandbox {
 
             Ref<VertexArray> floorVAO;
             std::vector<f32> floorVertices = {
-                // positions         // normals        // texture coords
-                1.0f,  0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, //
-                -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, //
-                -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //
-                1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f  //
+                // positions        // normals
+                1.0f,  0.0f, 1.0f,  0.0f, 1.0f, 0.0f, // Top right
+                -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, // Top left
+                -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Bottom left
+                1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Bottom right
             };
             std::vector<u32> floorIndices = {
-                0, 1, 2, //
-                0, 2, 3, //
+                0, 1, 2, // First triangle
+                0, 2, 3, // Second triangle
             };
     };
 
