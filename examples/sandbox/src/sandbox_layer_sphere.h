@@ -237,8 +237,6 @@ namespace Sandbox {
             }
 
             // TODO: Make use of this.
-            // TODO: Make use of this.
-            // TODO: Make use of this.
             void CreateEntities() {
                 const Entity ball = entityManager.CreateEntity();
                 TransformComponent ballTransform = { .Position = glm::vec3(0.0f), .Rotation = glm::quat(), .Scale = glm::vec3(1.0f) };
