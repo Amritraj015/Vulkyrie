@@ -66,7 +66,7 @@ namespace Sandbox {
             SandboxLayerSphere()
                 : app(Application::GetSingleton())
                 , entityManager()
-                , transformComponentManager(entityManager)
+                , transformComponentManager()
                 , audioSystem(CreateRef<AudioSystem>())
                 , camera(Camera::Create())
                 , sphere(1.0f, 100, 100) {
@@ -240,7 +240,7 @@ namespace Sandbox {
             void CreateEntities() {
                 const Entity ball = entityManager.CreateEntity();
                 TransformComponent ballTransform = { .Position = glm::vec3(0.0f), .Rotation = glm::quat(), .Scale = glm::vec3(1.0f) };
-                transformComponentManager.AddComponent(ball, ballTransform);
+                transformComponentManager.AddComponent(ball, ballTransform, true);
 
                 const Entity wall = entityManager.CreateEntity();
             }

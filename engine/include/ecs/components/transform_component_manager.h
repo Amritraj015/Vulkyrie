@@ -153,6 +153,27 @@ namespace Vulkyrie::ECS {
                 return _activeCount;
             }
 
+            /** @brief Gets the total number of transform components (active + inactive) currently managed.
+             * @return The total number of entities that have a TransformComponent associated with them.
+             */
+            VE_FORCE_INLINE size_t GetTotalComponentCount() const {
+                return _components.size();
+            }
+
+            /** @brief Returns a contiguous view of the active TransformComponents.
+             * @return A span over the densely packed active TransformComponents at the front of the storage.
+             */
+            std::span<const TransformComponent> GetActiveTransforms() const {
+                return {_components.data(), _activeCount};
+            }
+
+            /** @brief Returns a contiguous view of the entities that have active TransformComponents.
+             * @return A span over the entities corresponding to the densely packed active TransformComponents.
+             */
+            std::span<const Entity> GetActiveEntities() const {
+                return {_entities.data(), _activeCount};
+            }
+
         private:
             /** @brief A vector that stores the TransformComponents for all entities. The components are densely packed in memory, with active components stored
              * at the beginning of the vector and inactive components stored at the end. This allows for efficient iteration over active components while still

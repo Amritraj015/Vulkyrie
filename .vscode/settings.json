@@ -1,5 +1,19 @@
 {
-    "testMate.cpp.test.executables": "{build,Build,BUILD,out,Out,OUT}/**/**/*{tests,Test,TEST}*",
+    "testMate.cpp.test.advancedExecutables": [
+        {
+            "pattern": "{build,Build,BUILD,out,Out,OUT}/**/**/*{tests,Test,TEST}*",
+            "catch2": {
+                "testGrouping": {
+                    "groupByExecutable": {
+                        "label": "${filename}",
+                        "groupBySource": {
+                            "label": "${sourceRelPath[-2:]}"
+                        }
+                    }
+                }
+            }
+        }
+    ],
     "testMate.cpp.debug.configTemplate": {
         "type": "cppdbg",
         "MIMode": "gdb",
