@@ -6,7 +6,7 @@ namespace Vulkyrie::ECS {
 
     class EntityManager;
 
-    class Entity {
+    struct Entity {
         public:
             /** @brief Gets the unique identifier of the entity.
              * @return The unique identifier of the entity.
@@ -47,7 +47,7 @@ namespace Vulkyrie::ECS {
 
         private:
             /** @brief Unique identifier for the entity. */
-            u64 _id = 0;
+            u64 _id;
 
             static constexpr u64 ENTITY_INDEX_BITS = 48;
             static constexpr u64 ENTITY_INDEX_MASK = (1ULL << ENTITY_INDEX_BITS) - 1;
@@ -61,9 +61,21 @@ namespace Vulkyrie::ECS {
              */
             Entity(u64 index, u64 generation)
                 : _id((index & ENTITY_INDEX_MASK) | ((generation & ENTITY_GENERATION_MASK) << ENTITY_INDEX_BITS)) {
+                assert(index < (1ULL << ENTITY_INDEX_BITS));
+                assert(generation < (1ULL << ENTITY_GENERATION_BITS));
             }
 
             friend class EntityManager;
     };
 
 } // namespace Vulkyrie::ECS
+
+namespace std {
+    // Hash function for an Entity
+    template <> struct hash<Vulkyrie::ECS::Entity> {
+        public:
+            size_t operator()(const Vulkyrie::ECS::Entity &entity) const noexcept {
+                return static_cast<size_t>(entity.GetID());
+            }
+    };
+} // namespace std

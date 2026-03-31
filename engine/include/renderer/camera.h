@@ -81,7 +81,7 @@ namespace Vulkyrie::Renderer {
     class Camera {
         public:
             // Factory method to handle defaults and move-only semantics
-            static Camera Create(CameraSettings settings = MakeDefaultCameraSettings()) {
+            static Camera Create(CameraSettings settings = makeDefaultCameraSettings()) {
                 return Camera(std::move(settings));
             }
 
@@ -91,7 +91,7 @@ namespace Vulkyrie::Renderer {
             void SetPosition(const glm::vec3 &position) {
                 _settings.Position = position;
 
-                UpdateCameraVectors();
+                updateCameraVectors();
             }
 
             /** @brief Sets the movement speeds for the camera.
@@ -212,7 +212,7 @@ namespace Vulkyrie::Renderer {
                 }
 
                 // update Front, Right and Up Vectors using the updated Euler angles
-                UpdateCameraVectors();
+                updateCameraVectors();
 
                 // update the last mouse positions.
                 _lastMouseX = xOffset;
@@ -226,7 +226,7 @@ namespace Vulkyrie::Renderer {
             Camera(CameraSettings &&settings)
                 : _settings(std::move(settings))
                 , _firstMouseMove(true) {
-                UpdateCameraVectors();
+                updateCameraVectors();
             }
 
             /** @brief The settings for the camera. */
@@ -248,7 +248,7 @@ namespace Vulkyrie::Renderer {
             f64 _lastMouseY;
 
             /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
-            inline void UpdateCameraVectors() {
+            inline void updateCameraVectors() {
                 // calculate the new Front vector
                 glm::vec3 front;
                 front.x = cos(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch));
@@ -265,7 +265,7 @@ namespace Vulkyrie::Renderer {
             /** @brief Creates a CameraSettings object with default values.
              * @return A CameraSettings object initialized with default values.
              */
-            static CameraSettings MakeDefaultCameraSettings() {
+            static CameraSettings makeDefaultCameraSettings() {
                 return CameraSettings{}; // uses member defaults
             }
     };
