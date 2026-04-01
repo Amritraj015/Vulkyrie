@@ -4,45 +4,76 @@
 
 namespace Vulkyrie::Physics {
 
+    /** @brief Represents an Axis-Aligned Bounding Box (AABB) defined by its minimum and maximum coordinates in 3D "world" space. The edges of the box are
+     * aligned with the world axes, meaning that the box is not rotated and its faces are parallel to the coordinate planes. The AABB is used in collision
+     * detection and spatial partitioning algorithms due to its simplicity and efficiency. */
     class AABB {
         public:
+            /** @brief Constructs an AABB from the given minimum and maximum corner coordinates.
+             * @param minCoordinates The minimum corner of the box (smallest x, y, z values).
+             * @param maxCoordinates The maximum corner of the box (largest x, y, z values). */
             AABB(const glm::vec3 &minCoordinates, const glm::vec3 &maxCoordinates)
                 : _minCoordinates(minCoordinates)
                 , _maxCoordinates(maxCoordinates) {
             }
 
+            /** @brief Returns the center point of the AABB. */
             [[nodiscard]] glm::vec3 GetCenter() const {
                 return (_minCoordinates + _maxCoordinates) * 0.5f;
             }
 
+            /** @brief Expands the AABB if necessary so that it contains the given point.
+             * @param point The world-space point to include within the AABB. */
             void Encapsulate(const glm::vec3 &point) {
                 _minCoordinates = glm::min(_minCoordinates, point);
                 _maxCoordinates = glm::max(_maxCoordinates, point);
             }
 
+            /** @brief Grows the AABB uniformly by subtracting the inflation from the min corner and adding it to the max corner.
+             * @param inflation The amount to expand along each axis. */
             void Inflate(const glm::vec3 &inflation) {
                 _minCoordinates -= inflation;
                 _maxCoordinates += inflation;
             }
 
+            /** @brief Scales the AABB relative to the world origin by multiplying both corners by the given scale factors.
+             * @param scale The scale factors for each axis. Must be positive. */
+            void Scale(const glm::vec3 &scale) {
+                assert(scale.x > 0 && scale.y > 0 && scale.z > 0 && "Scale factors must be positive.");
+
+                _minCoordinates = _minCoordinates * scale;
+                _maxCoordinates = _maxCoordinates * scale;
+            }
+
+            /** @brief Returns the minimum corner of the AABB. */
             [[nodiscard]] const glm::vec3 &GetMin() const {
                 return _minCoordinates;
             }
 
+            /** @brief Sets the minimum corner of the AABB.
+             * @param min The new minimum corner coordinates. */
             void SetMin(const glm::vec3 &min) {
                 _minCoordinates = min;
             }
 
+            /** @brief Returns the maximum corner of the AABB. */
             [[nodiscard]] const glm::vec3 &GetMax() const {
                 return _maxCoordinates;
             }
 
+            /** @brief Sets the maximum corner of the AABB.
+             * @param max The new maximum corner coordinates. */
             void SetMax(const glm::vec3 &max) {
                 _maxCoordinates = max;
             }
 
         private:
+            /** @brief The world-space coordinates of the minimum corner of the AABB, representing the smallest x, y, and z values of the box.
+             * This point is diagonally opposite to the maximum corner and defines the extent of the box along each axis. */
             glm::vec3 _minCoordinates;
+
+            /** @brief The world-space coordinates of the maximum corner of the AABB, representing the largest x, y, and z values of the box.
+             * This point is diagonally opposite to the minimum corner and defines the extent of the box along each axis. */
             glm::vec3 _maxCoordinates;
     };
 
