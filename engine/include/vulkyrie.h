@@ -67,8 +67,8 @@
 #include "materials/material_library.h"
 
 // Physics includes
-#include "physics/shapes/sphere.h"
-#include "physics/shapes/plane.h"
-#include "physics/shapes/AABB.h"
+#include "physics/collision/shapes/sphere.h"
+#include "physics/collision/shapes/plane.h"
+#include "physics/collision/shapes/AABB.h"
 
 extern std::unique_ptr<Vulkyrie::Core::Application> CreateApplication();

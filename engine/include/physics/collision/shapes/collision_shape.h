@@ -2,22 +2,10 @@
 
 namespace Vulkyrie::Physics {
 
-    enum class CollisionShapeType : u32 {
-        Sphere,
-        Capsule,
-        ConvexPolyhedron,
-        Concave,
-    };
+    enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
+    static constexpr u8 CollisionShapeTypeCount = 4;
 
-    enum class CollisionShapeName : u32 {
-        Triangle,
-        Sphere,
-        Capsule,
-        Box,
-        ConvexMesh,
-        TriangleMesh,
-        Heightfield,
-    };
+    enum class CollisionShapeName : u32 { Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield };
 
     class CollisionShape {
         public:
