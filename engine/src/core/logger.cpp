@@ -2,7 +2,7 @@
 #include "core/console_log_sink.h"
 #include "core/file_log_sink.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     // Define the static member variable
     Scope<LogSink> Logger::_logSink = nullptr;
 
@@ -21,4 +21,4 @@ namespace Vulkyrie::Core {
         return _logSink->Initialize();
     }
 
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

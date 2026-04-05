@@ -1,6 +1,6 @@
 #include "core/uuid.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     static std::random_device RANDOM_DEVICE;
     static std::mt19937_64 RANDOM_ENGINE(RANDOM_DEVICE());
     static std::uniform_int_distribution<u64> UNIFORM_DISTRIBUTION;
@@ -10,4 +10,4 @@ namespace Vulkyrie::Core {
 
     UUID::UUID(u64 uuid) : _uuid(uuid) {
     }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

@@ -1,13 +1,13 @@
 #include "core/engine.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
 
     Engine::Engine(EngineConfig &config)
         : _config(config)
-        , _audioSystem(CreateRef<Vulkyrie::Audio::AudioSystem>()) {
+        , _audioSystem(CreateRef<AudioSystem>()) {
     }
 
-    void Engine::RunApplication(Vulkyrie::Core::Application &application) {
+    void Engine::RunApplication(Application &application) {
         _running = true;
 
         while (_running) {
@@ -15,4 +15,4 @@ namespace Vulkyrie::Core {
         }
     }
 
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

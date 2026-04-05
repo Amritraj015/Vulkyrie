@@ -2,10 +2,12 @@
 
 #include "events/mouse/mouse_button_event.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class MouseButtonReleasedEvent : public MouseButtonEvent {
         public:
-            explicit MouseButtonReleasedEvent(const Vulkyrie::Events::MouseButton mouseButton) : MouseButtonEvent(mouseButton) { }
+            explicit MouseButtonReleasedEvent(const enum MouseButton mouseButton)
+                : MouseButtonEvent(mouseButton) {
+            }
 
             [[nodiscard]] inline EventType GetEventType() const override {
                 return GetStaticEventType();
@@ -22,4 +24,4 @@ namespace Vulkyrie::Events {
                 return EventType::MouseButtonReleased;
             }
     };
-}
+} // namespace Vulkyrie

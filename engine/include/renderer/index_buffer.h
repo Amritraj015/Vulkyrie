@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class IndexBuffer {
         public:
             virtual ~IndexBuffer() = default;
@@ -20,4 +20,4 @@ namespace Vulkyrie::Renderer {
             static Ref<IndexBuffer> Create(u32 *indices, u32 count);
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

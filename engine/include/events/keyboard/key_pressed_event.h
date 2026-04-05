@@ -3,11 +3,13 @@
 #include "events/keyboard/key_event.h"
 #include "events/enums/key_modifier.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class KeyPressedEvent : public KeyEvent {
         public:
-            KeyPressedEvent(const Vulkyrie::Events::KeyCode keycode, const KeyModifier modifiers, const bool isRepeat = false)
-                : KeyEvent(keycode), IsRepeat(isRepeat), Modifiers(modifiers) {
+            KeyPressedEvent(const enum KeyCode keycode, const KeyModifier modifiers, const bool isRepeat = false)
+                : KeyEvent(keycode)
+                , IsRepeat(isRepeat)
+                , Modifiers(modifiers) {
             }
 
             /** @brief Indicates whether the key press is a repeat. */
@@ -34,4 +36,4 @@ namespace Vulkyrie::Events {
                 return EventType::KeyPressed;
             }
     };
-}
+} // namespace Vulkyrie

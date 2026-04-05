@@ -5,10 +5,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     class VulkyrieGLFWPlatform final : public Platform {
         public:
-            VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
+            VulkyrieGLFWPlatform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
             ~VulkyrieGLFWPlatform() override;
 
             [[nodiscard]] StatusCode CreateWindow() override;
@@ -34,4 +34,4 @@ namespace Vulkyrie::Core {
         private:
             GLFWwindow *_window;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

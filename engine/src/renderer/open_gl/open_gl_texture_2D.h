@@ -3,7 +3,7 @@
 #include "glad/glad.h"
 #include "renderer/texture_2D.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLTexture2D final : public Texture2D {
         public:
             OpenGLTexture2D(const TextureSpecification &specification);
@@ -56,4 +56,4 @@ namespace Vulkyrie::Renderer {
             GLenum _imageFormat, _dataFormat;
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

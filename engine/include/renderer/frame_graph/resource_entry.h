@@ -4,7 +4,7 @@
 #include "renderer/frame_graph/frame_graph_types.h"
 #include "renderer/frame_graph/resource_node.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     /** @brief Represents a resource entry in the frame graph. Each resource entry encapsulates information about a resource, such as its type (transient or
      * imported), its version for tracking changes, and the actual resource data. Resource entries are used for managing resource lifetimes and ensuring that
@@ -204,4 +204,4 @@ namespace Vulkyrie::Renderer {
              * This is used for tracking dependencies and managing resource lifetimes within the frame graph. */
             [[maybe_unused]] PassNode *_lastUsedBy{ nullptr };
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

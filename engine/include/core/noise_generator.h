@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
 
     /** @brief Specification for generating a Perlin noise map. */
     struct NoiseMapSpecification {
@@ -37,4 +37,4 @@ namespace Vulkyrie::Core {
      * @return A vector containing the generated Perlin noise values.
      */
     std::vector<f32> GeneratePerlinNoiseMap(const NoiseMapSpecification &specification);
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

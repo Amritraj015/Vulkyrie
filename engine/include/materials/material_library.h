@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Materials {
+namespace Vulkyrie {
 
     /** @brief Represents a material with ambient, diffuse, specular properties and shininess factor. */
     struct Material {
@@ -222,4 +222,4 @@ namespace Vulkyrie::Materials {
         .Shininess = 0.078125f,
     };
 
-} // namespace Vulkyrie::Materials
+} // namespace Vulkyrie

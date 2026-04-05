@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-using namespace Vulkyrie::Renderer;
+using namespace Vulkyrie;
 
 // ===========================================================================================
 // Mock Resource Backend for Testing

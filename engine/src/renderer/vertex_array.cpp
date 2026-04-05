@@ -3,12 +3,12 @@
 #include "renderer/open_gl/open_gl_vertex_array.h"
 #include "renderer/renderer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     Ref<VertexArray> VertexArray::Create() {
-        switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
-            case Vulkyrie::Core::GraphicsAPI::OpenGL:
+        switch (GetCurrentGraphicsAPI()) {
+            case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLVertexArray>();
-            case Vulkyrie::Core::GraphicsAPI::Vulkan:
+            case GraphicsAPI::Vulkan:
             default:
                 VFATAL("Unsupported Graphics API specified for VertexArray creation!");
                 break;
@@ -16,4 +16,4 @@ namespace Vulkyrie::Renderer {
 
         return nullptr;
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

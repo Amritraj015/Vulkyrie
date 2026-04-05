@@ -2,7 +2,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     AudioSystem::AudioSystem() {
         // Initialize OpenAL
@@ -206,4 +206,4 @@ namespace Vulkyrie::Audio {
         return true;
     }
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

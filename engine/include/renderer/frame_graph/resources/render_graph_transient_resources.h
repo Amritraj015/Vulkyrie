@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "renderer/texture_2D.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class RenderGraphTransientResources {
         public:
             void CreateTexture(const TextureSpecification &specification);
@@ -15,4 +15,4 @@ namespace Vulkyrie::Renderer {
         private:
             std::unordered_map<std::string, Scope<Texture2D>> _textureMap;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

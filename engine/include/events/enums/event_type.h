@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     enum class EventType : u32 {
         Unknown = 0,         // Unknown event.
         WindowCreated,       // Window created event.

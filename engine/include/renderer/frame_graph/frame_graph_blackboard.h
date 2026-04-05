@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief The FrameGraphBlackboard class provides a type-safe storage mechanism for arbitrary data associated with a frame graph.
      * It allows passes to store and retrieve data of any type without needing to define a specific structure for the blackboard.
      */
@@ -71,4 +71,4 @@ namespace Vulkyrie::Renderer {
             /** @brief The underlying storage for the blackboard, mapping type indices to any values. */
             std::unordered_map<std::type_index, std::any> _cache;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

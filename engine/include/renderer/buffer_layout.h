@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "buffer_element.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class BufferLayout {
         public:
             BufferLayout() {
@@ -50,4 +50,4 @@ namespace Vulkyrie::Renderer {
                 }
             }
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

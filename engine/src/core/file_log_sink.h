@@ -3,7 +3,7 @@
 #include "core/logger.h"
 #include <cstdio>
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     class FileLogSink final : public LogSink {
         public:
             StatusCode Initialize() override;
@@ -13,4 +13,4 @@ namespace Vulkyrie::Core {
         private:
             FILE *_logFile;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

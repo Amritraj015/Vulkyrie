@@ -2,7 +2,7 @@
 
 #include "events/event.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class EventDispatcher {
         public:
             explicit EventDispatcher(Event &event) : _event(event) {
@@ -29,4 +29,4 @@ namespace Vulkyrie::Events {
         private:
             Event &_event;
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

@@ -3,7 +3,7 @@
 #include "buffer_layout.h"
 #include "renderer/vertex.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class VertexBuffer {
         public:
             virtual ~VertexBuffer() = default;
@@ -50,4 +50,4 @@ namespace Vulkyrie::Renderer {
         private:
             BufferLayout _layout;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

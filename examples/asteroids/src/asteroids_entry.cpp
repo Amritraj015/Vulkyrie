@@ -1,11 +1,13 @@
 #include "asteroids_application.h"
 
-std::unique_ptr<Vulkyrie::Core::Application> CreateApplication() {
-    Vulkyrie::Core::WindowProps windowProps = {
+using namespace Vulkyrie;
+
+std::unique_ptr<Application> CreateApplication() {
+    WindowProps windowProps = {
         .Height = 600,
         .Width = 800,
         .Title = "Asteroids (Powered by The Vulkyrie Game Engine)",
-        .GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL,
+        .GraphicsAPI = GraphicsAPI::OpenGL,
     };
 
     return std::make_unique<Asteroids::AsteroidsApplication>(windowProps);

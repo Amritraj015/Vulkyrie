@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     /** @brief Represents a duration of time in seconds and provides utility methods for time conversion. */
     struct Timestep {
         public:
@@ -38,4 +38,4 @@ namespace Vulkyrie::Core {
             /** @brief The time duration in seconds. */
             f32 _seconds;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Supported image formats for textures. */
     enum class TextureImageFormat : u32 {
         None = 0,
@@ -11,4 +11,4 @@ namespace Vulkyrie::Renderer {
         RGBA8,
         RGBA32F,
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

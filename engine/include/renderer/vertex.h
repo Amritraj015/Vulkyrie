@@ -2,7 +2,7 @@
 
 #include "renderer/buffer_layout.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     static const BufferLayout VERTEX_LAYOUT({
         { ShaderDataType::Float3, "aPos" },
@@ -64,4 +64,4 @@ namespace Vulkyrie::Renderer {
                 return WEIGHTED_VERTEX_LAYOUT;
             }
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

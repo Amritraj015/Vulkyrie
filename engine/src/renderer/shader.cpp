@@ -3,11 +3,10 @@
 #include "renderer/open_gl/open_gl_shader.h"
 #include "renderer/renderer.h"
 
-namespace Vulkyrie::Renderer {
-    Ref<Shader> Shader::Create(const std::filesystem::path &shaderSourcePath) {
-        using Vulkyrie::Core::GraphicsAPI;
+namespace Vulkyrie {
 
-        switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
+    Ref<Shader> Shader::Create(const std::filesystem::path &shaderSourcePath) {
+        switch (GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLShader>(shaderSourcePath);
             case GraphicsAPI::Vulkan:
@@ -18,4 +17,5 @@ namespace Vulkyrie::Renderer {
 
         return nullptr;
     }
-} // namespace Vulkyrie::Renderer
+
+} // namespace Vulkyrie

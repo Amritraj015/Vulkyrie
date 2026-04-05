@@ -5,7 +5,7 @@
 #include "events/enums/event_category.h"
 #include "events/enums/event_type.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class WindowResizedEvent : public Event {
         public:
             WindowResizedEvent(const u32 width, const u32 height) : Width(width), Height(height) {
@@ -39,4 +39,4 @@ namespace Vulkyrie::Events {
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

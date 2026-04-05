@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Base structure for different types of lights. */
     struct Light {
         public:
@@ -112,4 +112,4 @@ namespace Vulkyrie::Renderer {
             }
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

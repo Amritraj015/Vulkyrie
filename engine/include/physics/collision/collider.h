@@ -1,9 +1,9 @@
 #pragma once
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class Collider {
         public:
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

@@ -6,7 +6,7 @@
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/resource_entry.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class ResourceEntry;
 
     /** @brief The FrameGraph class represents a directed acyclic graph of rendering passes and their resource dependencies.
@@ -453,4 +453,4 @@ namespace Vulkyrie::Renderer {
             }
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

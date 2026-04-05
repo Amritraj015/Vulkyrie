@@ -2,7 +2,7 @@
 #include "core/logger.h"
 #include <fstream>
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     /** Reads the contents of a file at the given path and returns it as a string.
      * @param path The path to the file to read.
      * @returns The contents of the file as a string.
@@ -32,4 +32,4 @@ namespace Vulkyrie::Core {
         // Return the file contents.
         return contents;
     }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

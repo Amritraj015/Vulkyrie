@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     enum class EventCategory : u32 {
         ApplicationEvent = 1 << 0, // Application Event.
         Input = 1 << 1,            // Input event.

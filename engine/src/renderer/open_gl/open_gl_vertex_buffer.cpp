@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include "renderer/open_gl/open_gl_vertex_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     OpenGLVertexBuffer::OpenGLVertexBuffer(size_t size) {
         glCreateBuffers(1, &_vboID);
@@ -27,4 +27,4 @@ namespace Vulkyrie::Renderer {
         glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

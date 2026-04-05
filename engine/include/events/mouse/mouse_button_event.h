@@ -4,15 +4,15 @@
 #include "events/enums/mouse_button.h"
 #include "events/enums/event_category.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class MouseButtonEvent : public Event {
         public:
-            explicit MouseButtonEvent(const Vulkyrie::Events::MouseButton mouseButton)
+            explicit MouseButtonEvent(const MouseButton mouseButton)
                 : MouseButton(mouseButton) {
             }
 
             /** @brief The mouse button associated with the event. */
-            const Vulkyrie::Events::MouseButton MouseButton;
+            const MouseButton MouseButton;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
@@ -26,4 +26,4 @@ namespace Vulkyrie::Events {
             const static i32 _categoryFlags =
                 std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input) | std::to_underlying(EventCategory::MouseButton);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

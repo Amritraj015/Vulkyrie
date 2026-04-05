@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
     static constexpr u8 CollisionShapeTypeCount = 4;
@@ -31,4 +31,4 @@ namespace Vulkyrie::Physics {
             CollisionShapeName _name;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

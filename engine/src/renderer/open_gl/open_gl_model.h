@@ -6,8 +6,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-namespace Vulkyrie::Renderer {
-    class OpenGLModel : public Vulkyrie::Renderer::Model {
+namespace Vulkyrie {
+    class OpenGLModel : public Model {
         public:
             /** @brief Constructs an OpenGLModel by loading a 3D model from the specified file path.
              * @param path The file path to the 3D model.
@@ -41,4 +41,4 @@ namespace Vulkyrie::Renderer {
              */
             void LoadMaterialTextures(std::vector<Ref<Texture2D>> &out, aiMaterial *mat, aiTextureType type);
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

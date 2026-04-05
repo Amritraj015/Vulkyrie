@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     enum class GraphicsAPI {
         None = 0,
         OpenGL = 1,

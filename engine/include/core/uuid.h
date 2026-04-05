@@ -1,7 +1,7 @@
 #pragma once
 #include "vlkypch.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     class UUID final {
         public:
             UUID();
@@ -20,4 +20,4 @@ namespace Vulkyrie::Core {
             u64 _uuid = 0;
     };
 
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

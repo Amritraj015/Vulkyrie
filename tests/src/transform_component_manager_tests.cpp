@@ -3,7 +3,7 @@
 
 #include <unordered_set>
 
-using namespace Vulkyrie::ECS;
+using namespace Vulkyrie;
 
 // Helper to create a TransformComponent with a distinct position for easy identification.
 static TransformComponent makeTransform(float x, float y = 0.0f, float z = 0.0f) {

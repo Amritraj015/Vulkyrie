@@ -3,7 +3,7 @@
 #include "events/event.h"
 #include "events/enums/event_category.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     /** @brief Event triggered during application bootstrap. */
     class WindowCreatedEvent final : public Event {
         public:
@@ -37,4 +37,4 @@ namespace Vulkyrie::Events {
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

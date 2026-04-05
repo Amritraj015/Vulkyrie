@@ -1,9 +1,9 @@
 #pragma once
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class DynamicAABBTree {
         public:
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

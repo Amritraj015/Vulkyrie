@@ -4,8 +4,8 @@
 #include "core/status_codes.h"
 #include "events/event.h"
 
-namespace Vulkyrie::Core {
-    using EventCallbackFn = std::function<void(Vulkyrie::Events::Event &)>;
+namespace Vulkyrie {
+    using EventCallbackFn = std::function<void(Event &)>;
 
     class Platform {
         public:
@@ -20,7 +20,7 @@ namespace Vulkyrie::Core {
              * @param windowProps The properties for the window.
              * @param eventCallbackFn The callback function for handling events.
              */
-            Platform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
+            Platform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
                 : _windowProps(windowProps)
                 , _eventCallbackFn(eventCallbackFn) {
             }
@@ -34,9 +34,9 @@ namespace Vulkyrie::Core {
             [[nodiscard]] inline virtual void *GetWindowHandle() const = 0;
 
             /** @brief Creates a new window for the application.
-             * @returns Vulkyrie::Core::StatusCode indicating success or failure.
+             * @returns StatusCode indicating success or failure.
              * */
-            [[nodiscard]] virtual Vulkyrie::Core::StatusCode CreateWindow() = 0;
+            [[nodiscard]] virtual StatusCode CreateWindow() = 0;
 
             /** @brief Enables or disables vertical synchronization (VSync) for the window.
              * @param enable True to enable VSync, false to disable.
@@ -47,9 +47,9 @@ namespace Vulkyrie::Core {
             virtual inline void OnUpdate() const = 0;
 
             /** @brief Closes the application window.
-             * @returns Vulkyrie::Core::StatusCode indicating success or failure.
+             * @returns StatusCode indicating success or failure.
              * */
-            virtual Vulkyrie::Core::StatusCode CloseWindow() = 0;
+            virtual StatusCode CloseWindow() = 0;
 
             /** @brief Gets the current time in seconds since the window was created.
              * @returns The current time in seconds.
@@ -68,4 +68,4 @@ namespace Vulkyrie::Core {
             /** @brief The event callback function for handling events. */
             EventCallbackFn _eventCallbackFn;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

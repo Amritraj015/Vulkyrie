@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     struct PhysicsWorldSettings {
         public:
@@ -11,4 +11,4 @@ namespace Vulkyrie::Physics {
             f64 FrictionCoefficient;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

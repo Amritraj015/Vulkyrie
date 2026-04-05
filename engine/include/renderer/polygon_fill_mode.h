@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     enum class PolygonFillMode : u32 {
         Fill,
         Line,

@@ -6,7 +6,7 @@
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
 
     /** @brief The Application class represents the main application and manages the application lifecycle,
      * including window creation, event handling, and layer management. */
@@ -28,7 +28,7 @@ namespace Vulkyrie::Core {
             }
 
             /** @brief Starts the application's main loop.
-             * @returns Vulkyrie::Core::StatusCode indicating success or failure.
+             * @returns StatusCode indicating success or failure.
              */
             StatusCode Run();
 
@@ -153,7 +153,7 @@ namespace Vulkyrie::Core {
              * @param event The window created event.
              * @returns True if the event was handled successfully, false otherwise.
              */
-            virtual bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event);
+            virtual bool OnInit(WindowCreatedEvent &event);
 
         private:
             /** @brief The singleton instance of the application. */
@@ -174,13 +174,13 @@ namespace Vulkyrie::Core {
             /** @brief Raises an event to be handled by the application or other systems.
              * @param event The event to raise.
              */
-            void OnEvent(Vulkyrie::Events::Event &event);
+            void OnEvent(Event &event);
 
             /** @brief Handles window resize events.
              * @param event The window resized event.
              * @returns True if the event was handled successfully, false otherwise.
              */
-            bool OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event);
+            bool OnWindowResized(const WindowResizedEvent &event);
     };
 
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

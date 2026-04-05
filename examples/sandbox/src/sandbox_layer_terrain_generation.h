@@ -4,9 +4,7 @@
 #include "glad/glad.h"
 
 namespace Sandbox {
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
     class SandboxLayerTerrainGeneration final : public Layer {
         public:
@@ -139,7 +137,7 @@ namespace Sandbox {
             glm::vec2 offset = glm::vec2(10.0f, 10.0f);
 
             void CreateVertexBufferElements() {
-                noiseMap = Vulkyrie::Core::GeneratePerlinNoiseMap({
+                noiseMap = GeneratePerlinNoiseMap({
                     .MapWidth = width,
                     .MapHeight = height,
                     .Scale = scale,

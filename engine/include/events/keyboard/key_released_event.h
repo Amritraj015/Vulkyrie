@@ -2,10 +2,11 @@
 
 #include "events/keyboard/key_event.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class KeyReleasedEvent : public KeyEvent {
         public:
-            KeyReleasedEvent(const Vulkyrie::Events::KeyCode keycode) : KeyEvent(keycode) {
+            KeyReleasedEvent(const enum KeyCode keycode)
+                : KeyEvent(keycode) {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
@@ -23,4 +24,4 @@ namespace Vulkyrie::Events {
                 return EventType::KeyReleased;
             }
     };
-}
+} // namespace Vulkyrie

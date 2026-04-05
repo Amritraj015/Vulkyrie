@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     /** @brief The AudioClip class represents a loaded audio clip, containing the necessary information and resources to play the audio. */
     class AudioClip final {
@@ -29,4 +29,4 @@ namespace Vulkyrie::Audio {
             AudioClip &operator=(const AudioClip &) = delete;
     };
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

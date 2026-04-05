@@ -3,7 +3,7 @@
 #include "audio/audio_clip.h"
 #include "audio/audio_source.h"
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     /** @brief The AudioSystem class manages audio playback, including loading audio clips, playing sounds, and managing audio sources.
      * It serves as the central interface for all audio-related functionality in the engine. */
@@ -79,4 +79,4 @@ namespace Vulkyrie::Audio {
             bool LoadWAV(const std::filesystem::path &filePath, AudioClip &clip);
     };
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

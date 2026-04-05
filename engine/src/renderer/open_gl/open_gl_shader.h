@@ -2,7 +2,7 @@
 
 #include "renderer/shader.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLShader final : public Shader {
         public:
             /** @brief Constructs an OpenGL shader program by compiling the provided shader source file.
@@ -87,4 +87,4 @@ namespace Vulkyrie::Renderer {
              */
             i32 GetUniformLocation(const std::string &name) const;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

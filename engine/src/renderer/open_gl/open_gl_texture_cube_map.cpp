@@ -4,7 +4,7 @@
 #include "glad/glad.h"
 #include <stb_image.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     OpenGLTextureCubeMap::OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces)
         : TextureCubeMap(std::move(faces)) {
         // Create texture object
@@ -102,4 +102,4 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

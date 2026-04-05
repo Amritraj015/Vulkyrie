@@ -2,7 +2,7 @@
 
 #include "renderer/frame_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     /** @brief Structure representing an OpenGL attachment (color or depth). */
     struct OpenGLFrameBufferAttachment {
@@ -75,4 +75,4 @@ namespace Vulkyrie::Renderer {
             void Destroy();
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::ECS {
+namespace Vulkyrie {
 
     class EntityManager;
 
@@ -68,13 +68,13 @@ namespace Vulkyrie::ECS {
             friend class EntityManager;
     };
 
-} // namespace Vulkyrie::ECS
+} // namespace Vulkyrie
 
 namespace std {
     // Hash function for an Entity
-    template <> struct hash<Vulkyrie::ECS::Entity> {
+    template <> struct hash<Vulkyrie::Entity> {
         public:
-            size_t operator()(const Vulkyrie::ECS::Entity &entity) const noexcept {
+            size_t operator()(const Vulkyrie::Entity &entity) const noexcept {
                 return static_cast<size_t>(entity.GetID());
             }
     };

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "events/keyboard/key_event.h"
+#include "events/enums/key_code.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class KeyCharEvent : public KeyEvent {
         public:
-            KeyCharEvent(const Vulkyrie::Events::KeyCode keycode) : KeyEvent(keycode) {
+            KeyCharEvent(const enum KeyCode keycode)
+                : KeyEvent(keycode) {
             }
 
             [[nodiscard]] inline EventType GetEventType() const override {
@@ -23,4 +25,4 @@ namespace Vulkyrie::Events {
                 return EventType::KeyChar;
             }
     };
-}
+} // namespace Vulkyrie

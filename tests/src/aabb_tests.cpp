@@ -2,7 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include <vulkyrie.h>
 
-using namespace Vulkyrie::Physics;
+using namespace Vulkyrie;
 
 // ===========================================================================================
 // Constructor

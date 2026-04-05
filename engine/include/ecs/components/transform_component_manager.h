@@ -3,7 +3,7 @@
 #include "ecs/entity.h"
 #include "ecs/components/transform_component.h"
 
-namespace Vulkyrie::ECS {
+namespace Vulkyrie {
 
     /** @brief The TransformComponentManager is responsible for managing TransformComponents associated with entities. It maintains a dense packing of active
      * components at the front of the storage vector for efficient iteration, while allowing for dynamic addition, removal, activation, and deactivation of
@@ -211,4 +211,4 @@ namespace Vulkyrie::ECS {
             }
     };
 
-} // namespace Vulkyrie::ECS
+} // namespace Vulkyrie

@@ -3,7 +3,7 @@
 #include "physics/physics_world_settings.h"
 #include "ecs/components/transform_component_manager.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class PhysicsWorld {
         public:
@@ -16,4 +16,4 @@ namespace Vulkyrie::Physics {
             TransformComponentManager _transformComponentManager;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

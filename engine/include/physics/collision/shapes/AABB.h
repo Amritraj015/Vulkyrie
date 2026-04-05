@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     /** @brief Represents an Axis-Aligned Bounding Box (AABB) defined by its minimum and maximum coordinates in 3D "world" space. The edges of the box are
      * aligned with the world axes, meaning that the box is not rotated and its faces are parallel to the coordinate planes. The AABB is used in collision
@@ -112,4 +112,4 @@ namespace Vulkyrie::Physics {
             glm::vec3 _maxCoordinates;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

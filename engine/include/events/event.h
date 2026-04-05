@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "enums/event_type.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     /** @brief Base event class that needs to be inherited by every event in the engine. */
     class Event {
         public:
@@ -40,4 +40,4 @@ namespace Vulkyrie::Events {
                 return EventType::Unknown;
             }
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

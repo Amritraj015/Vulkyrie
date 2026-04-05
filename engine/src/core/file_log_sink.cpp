@@ -1,6 +1,6 @@
 #include "core/file_log_sink.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     FileLogSink::~FileLogSink() {
         if (nullptr != _logFile) {
             std::fflush(_logFile);
@@ -33,4 +33,4 @@ namespace Vulkyrie::Core {
         std::fwrite(buffer, 1, result - buffer, _logFile);
         std::fputc('\n', _logFile);
     }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

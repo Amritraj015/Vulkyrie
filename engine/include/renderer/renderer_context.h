@@ -4,7 +4,7 @@
 #include "core/status_codes.h"
 #include "core/graphics_api.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     template <typename T> struct Handle {
         public:
@@ -16,7 +16,7 @@ namespace Vulkyrie::Renderer {
 
     class RendererContext {
         public:
-            RendererContext(Vulkyrie::Core::GraphicsAPI api);
+            RendererContext(GraphicsAPI api);
 
             RendererContext(const RendererContext &) = delete;
             RendererContext &operator=(const RendererContext &) = delete;
@@ -28,7 +28,7 @@ namespace Vulkyrie::Renderer {
 
             /** @brief Initializes the graphics context.
              * @returns StatusCode indicating success or failure. */
-            virtual Vulkyrie::Core::StatusCode Initialize() = 0;
+            virtual StatusCode Initialize() = 0;
 
             /** @brief Swaps the front and back buffers, presenting the rendered image to the screen. */
             inline virtual void SwapBuffers() {
@@ -47,4 +47,4 @@ namespace Vulkyrie::Renderer {
         protected:
             RendererContext() = default;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

@@ -3,7 +3,7 @@
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/frame_graph_types.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     /** @brief An abstract base class that defines the interface for executing a frame graph pass.
      * It serves as a type-erased wrapper for different pass implementations, allowing them to be stored and executed in a uniform manner.
@@ -66,7 +66,7 @@ namespace Vulkyrie::Renderer {
             struct ResourceAccess {
                 public:
                     /** @brief The ID of the resource being accessed. */
-                    Vulkyrie::Renderer::ResourceID ResourceID;
+                    ResourceID ResourceID;
 
                     /** @brief Flags indicating the type of access (e.g., read or write) and any additional information about the access. */
                     i32 Flags;
@@ -75,7 +75,7 @@ namespace Vulkyrie::Renderer {
                      * @param resourceID The ID of the resource being accessed.
                      * @param flags Flags indicating the type of access and any additional information about the access.
                      */
-                    explicit ResourceAccess(Vulkyrie::Renderer::ResourceID resourceID, i32 flags)
+                    explicit ResourceAccess(::Vulkyrie::ResourceID resourceID, i32 flags)
                         : ResourceID(resourceID)
                         , Flags(flags) {
                     }
@@ -202,4 +202,4 @@ namespace Vulkyrie::Renderer {
             }
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

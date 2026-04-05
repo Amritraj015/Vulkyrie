@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     enum class KeyModifier : u32 {
         None = 0,
         Shift = 1 << 0,
@@ -12,4 +12,4 @@ namespace Vulkyrie::Events {
         CapsLock = 1 << 4,
         NumLock = 1 << 5,
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

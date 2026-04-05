@@ -2,15 +2,15 @@
 #include "renderer/renderer.h"
 #include "renderer/renderer_context.h"
 
-namespace Vulkyrie::Renderer {
-    Vulkyrie::Core::GraphicsAPI RendererAPI = Vulkyrie::Core::GraphicsAPI::None;
+namespace Vulkyrie {
+    GraphicsAPI RendererAPI = GraphicsAPI::None;
     Scope<RendererContext> _graphicsContext = nullptr;
 
-    Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI() {
+    GraphicsAPI GetCurrentGraphicsAPI() {
         return RendererAPI;
     }
 
-    Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api) {
+    StatusCode Initialize(GraphicsAPI api) {
         RendererAPI = api;
 
         // Create the graphics context.
@@ -19,7 +19,7 @@ namespace Vulkyrie::Renderer {
         // Check if graphics context creation failed.
         if (nullptr == _graphicsContext) {
             VFATAL("Failed to create graphics context for the specified graphics API: {}.", GetCurrentGraphicsAPIName());
-            return Vulkyrie::Core::StatusCode::UnsupportedGraphicsAPI;
+            return StatusCode::UnsupportedGraphicsAPI;
         }
 
         // Try to initialize the graphics context.
@@ -27,27 +27,27 @@ namespace Vulkyrie::Renderer {
 
         // Create the renderer based on the specified graphics API.
         switch (RendererAPI) {
-            case Vulkyrie::Core::GraphicsAPI::OpenGL:
+            case GraphicsAPI::OpenGL:
                 break;
-            case Vulkyrie::Core::GraphicsAPI::Vulkan:
+            case GraphicsAPI::Vulkan:
             default:
                 VFATAL("Unsupported graphics API specified for renderer initialization.");
-                return Vulkyrie::Core::StatusCode::UnsupportedGraphicsAPI;
+                return StatusCode::UnsupportedGraphicsAPI;
         }
 
         // Return success.
-        return Vulkyrie::Core::StatusCode::Successful;
+        return StatusCode::Successful;
     }
 
     std::string_view GetCurrentGraphicsAPIName() {
         switch (GetCurrentGraphicsAPI()) {
-            case Vulkyrie::Core::GraphicsAPI::OpenGL:
+            case GraphicsAPI::OpenGL:
                 return "OpenGL";
-            case Vulkyrie::Core::GraphicsAPI::Vulkan:
+            case GraphicsAPI::Vulkan:
                 return "Vulkan";
             default:
                 return "Unknown";
         }
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

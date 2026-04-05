@@ -2,7 +2,7 @@
 
 #include "renderer/texture_specification.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Abstract base class for textures. */
     class Texture {
         public:
@@ -60,4 +60,4 @@ namespace Vulkyrie::Renderer {
              */
             virtual bool operator==(const Texture &other) const = 0;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

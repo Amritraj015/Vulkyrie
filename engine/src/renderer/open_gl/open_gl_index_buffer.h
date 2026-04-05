@@ -2,7 +2,7 @@
 
 #include "renderer/index_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLIndexBuffer final : public IndexBuffer {
         public:
             OpenGLIndexBuffer(u32 *indices, u32 count);
@@ -24,4 +24,4 @@ namespace Vulkyrie::Renderer {
             u32 _eboID;
             u32 _count;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

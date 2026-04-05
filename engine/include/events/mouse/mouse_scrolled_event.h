@@ -3,11 +3,12 @@
 #include "events/event.h"
 #include "events/enums/event_category.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class MouseScrolledEvent : public Event {
         public:
             MouseScrolledEvent(const f32 offsetX, const f32 offsetY)
-                : OffsetX(offsetX), OffsetY(offsetY) {
+                : OffsetX(offsetX)
+                , OffsetY(offsetY) {
             }
 
             /** The horizontal scroll offset of the mouse wheel. */
@@ -38,4 +39,4 @@ namespace Vulkyrie::Events {
         private:
             static constexpr i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

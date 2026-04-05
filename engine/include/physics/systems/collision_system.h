@@ -1,10 +1,10 @@
 #pragma once
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class CollisionSystem {
         public:
             ~CollisionSystem() = default;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

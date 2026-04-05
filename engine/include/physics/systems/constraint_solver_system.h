@@ -1,10 +1,10 @@
 #pragma once
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class ConstraintSolverSystem {
         public:
             ~ConstraintSolverSystem() = default;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

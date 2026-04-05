@@ -5,7 +5,7 @@
 #include "renderer/vertex_array.h"
 #include "renderer/vertex.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class Mesh {
         public:
             /** @brief Virtual destructor for the Mesh class. */
@@ -90,4 +90,4 @@ namespace Vulkyrie::Renderer {
             /** @brief The vertex array representing the mesh geometry. */
             Ref<VertexArray> _vertexArray;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

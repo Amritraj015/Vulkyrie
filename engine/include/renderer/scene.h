@@ -1,9 +1,9 @@
 #pragma once
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class Scene {
         public:
             Scene() = default;
             ~Scene() = default;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

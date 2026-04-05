@@ -5,7 +5,7 @@
 #include "core/time_step.h"
 #include "input/inputs.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     /** @brief Enumeration for camera movement directions. */
     enum CameraMovement {
@@ -37,22 +37,22 @@ namespace Vulkyrie::Renderer {
             f32 Pitch = 0.0f;
 
             /** @brief Key binding for moving the camera forward. */
-            Vulkyrie::Events::KeyCode MoveForwardKey = Vulkyrie::Events::KeyCode::W;
+            KeyCode MoveForwardKey = KeyCode::W;
 
             /** @brief Key binding for moving the camera backward. */
-            Vulkyrie::Events::KeyCode MoveBackwardKey = Vulkyrie::Events::KeyCode::S;
+            KeyCode MoveBackwardKey = KeyCode::S;
 
             /** @brief Key binding for moving the camera to the left. */
-            Vulkyrie::Events::KeyCode MoveLeftKey = Vulkyrie::Events::KeyCode::A;
+            KeyCode MoveLeftKey = KeyCode::A;
 
             /** @brief Key binding for moving the camera to the right. */
-            Vulkyrie::Events::KeyCode MoveRightKey = Vulkyrie::Events::KeyCode::D;
+            KeyCode MoveRightKey = KeyCode::D;
 
             /** @brief Key binding for increasing the camera movement speed. */
-            Vulkyrie::Events::KeyCode FastSpeedModifierKey = Vulkyrie::Events::KeyCode::LeftShift;
+            KeyCode FastSpeedModifierKey = KeyCode::LeftShift;
 
             /** @brief Key binding for decreasing the camera movement speed. */
-            Vulkyrie::Events::KeyCode SlowSpeedModifierKey = Vulkyrie::Events::KeyCode::LeftControl;
+            KeyCode SlowSpeedModifierKey = KeyCode::LeftControl;
 
             /** @brief Look around sensitivity for camera rotation. */
             f32 Sensitivity = 0.1f;
@@ -139,20 +139,20 @@ namespace Vulkyrie::Renderer {
             /** @brief Updates the camera's position and orientation based on input. Should be called every frame.
              * @param deltaTime The time elapsed since the last frame.
              */
-            inline void OnUpdate(Vulkyrie::Core::Timestep deltaTime) {
+            inline void OnUpdate(Timestep deltaTime) {
                 f32 dt = static_cast<f32>(deltaTime);
                 f32 cameraSpeed = _settings.RegularMovementSpeed;
 
-                if (Vulkyrie::Input::IsKeyPressed(_settings.FastSpeedModifierKey)) {
+                if (IsKeyPressed(_settings.FastSpeedModifierKey)) {
                     cameraSpeed = _settings.FastMovementSpeed;
-                } else if (Vulkyrie::Input::IsKeyPressed(_settings.SlowSpeedModifierKey)) {
+                } else if (IsKeyPressed(_settings.SlowSpeedModifierKey)) {
                     cameraSpeed = _settings.SlowMovementSpeed;
                 }
 
-                if (Vulkyrie::Input::IsKeyPressed(_settings.MoveForwardKey)) ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
-                if (Vulkyrie::Input::IsKeyPressed(_settings.MoveBackwardKey)) ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
-                if (Vulkyrie::Input::IsKeyPressed(_settings.MoveLeftKey)) ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
-                if (Vulkyrie::Input::IsKeyPressed(_settings.MoveRightKey)) ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
+                if (IsKeyPressed(_settings.MoveForwardKey)) ProcessKeyboardMovement(FORWARD, dt, cameraSpeed);
+                if (IsKeyPressed(_settings.MoveBackwardKey)) ProcessKeyboardMovement(BACKWARD, dt, cameraSpeed);
+                if (IsKeyPressed(_settings.MoveLeftKey)) ProcessKeyboardMovement(LEFT, dt, cameraSpeed);
+                if (IsKeyPressed(_settings.MoveRightKey)) ProcessKeyboardMovement(RIGHT, dt, cameraSpeed);
             }
 
             /** @brief Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis.
@@ -269,4 +269,4 @@ namespace Vulkyrie::Renderer {
                 return CameraSettings{}; // uses member defaults
             }
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

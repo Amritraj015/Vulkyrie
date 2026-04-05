@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Texture filtering modes for framebuffer attachments. */
     enum TextureFilterMode : u32 {
         /** @brief Nearest neighbor filtering. */
@@ -11,4 +11,4 @@ namespace Vulkyrie::Renderer {
         /** @brief Linear filtering. */
         Linear,
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

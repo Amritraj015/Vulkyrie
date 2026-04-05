@@ -4,12 +4,7 @@
 #include "glad/glad.h"
 
 namespace Sandbox {
-    using namespace Vulkyrie::Audio;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Physics;
-    using namespace Vulkyrie::ECS;
+    using namespace Vulkyrie;
 
     class World final {
         public:

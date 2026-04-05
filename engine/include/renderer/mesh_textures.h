@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "renderer/texture_2D.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Structure to hold different types of textures associated with a mesh. */
     struct MeshTextures {
         public:
@@ -38,4 +38,4 @@ namespace Vulkyrie::Renderer {
                 Height.clear();
             }
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

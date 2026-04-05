@@ -2,11 +2,11 @@
 
 #include "core/time_step.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class PhysicsObject {
         public:
-            void update(Vulkyrie::Core::Timestep deltaTime);
+            void update(Timestep deltaTime);
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

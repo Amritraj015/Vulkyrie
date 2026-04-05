@@ -4,7 +4,7 @@
 #include "core/uuid.h"
 #include "events/event.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     class Application;
 
     /** @brief Base class representing a layer in the application. */
@@ -38,7 +38,7 @@ namespace Vulkyrie::Core {
             /** @brief Called when an event is dispatched to the layer.
              * @param event The event to handle.
              */
-            virtual void OnEvent([[maybe_unused]] Vulkyrie::Events::Event &event) {
+            virtual void OnEvent([[maybe_unused]] Event &event) {
             }
 
             /** @brief Gets the unique identifier of the layer.
@@ -52,4 +52,4 @@ namespace Vulkyrie::Core {
             /** @brief Unique identifier for the layer. */
             UUID _id{};
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

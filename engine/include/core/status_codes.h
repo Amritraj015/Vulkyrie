@@ -4,11 +4,11 @@
 
 #define RETURN_ON_FAILURE(expr)                                                                                                                                \
     do {                                                                                                                                                       \
-        Vulkyrie::Core::StatusCode _s = (expr);                                                                                                                \
-        if (_s != Vulkyrie::Core::StatusCode::Successful) return _s;                                                                                           \
+        StatusCode _s = (expr);                                                                                                                \
+        if (_s != StatusCode::Successful) return _s;                                                                                           \
     } while (false)
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     /** @brief This `enum` defines status codes to represent various operation results. */
     enum class StatusCode : int32_t {
         Successful = 0,               // Operation Successful.
@@ -20,4 +20,4 @@ namespace Vulkyrie::Core {
         FailedToInitializeGLAD,       // Failed to initialize GLAD error.
         FailedToCompileShaderProgram, // Failed to create shader program error.
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

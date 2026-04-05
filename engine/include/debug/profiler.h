@@ -9,7 +9,7 @@
 #include <mutex>
 #include <sstream>
 
-namespace Vulkyrie::Debug {
+namespace Vulkyrie {
 
     struct ProfileResult {
         public:
@@ -165,7 +165,7 @@ namespace Vulkyrie::Debug {
             std::chrono::time_point<std::chrono::steady_clock> _startTime;
     };
 
-} // namespace Vulkyrie::Debug
+} // namespace Vulkyrie
 
 #define VLKY_PROFILE 0
 #if VLKY_PROFILE
@@ -190,9 +190,9 @@ namespace Vulkyrie::Debug {
 #define VLKY_FUNC_SIG "VLKY_FUNC_SIG unknown!"
 #endif
 
-#define VLKY_PROFILE_BEGIN_SESSION(name, filepath) ::Vulkyrie::Debug::Profiler::GetSingleton().BeginSession(name, filepath)
-#define VLKY_PROFILE_END_SESSION() ::Vulkyrie::Debug::Profiler::GetSingleton().EndSession()
-#define VLKY_PROFILE_SCOPE_LINE(name, line) ::Vulkyrie::Debug::Timer timer##line(name)
+#define VLKY_PROFILE_BEGIN_SESSION(name, filepath) ::Vulkyrie::Profiler::GetSingleton().BeginSession(name, filepath)
+#define VLKY_PROFILE_END_SESSION() ::Vulkyrie::Profiler::GetSingleton().EndSession()
+#define VLKY_PROFILE_SCOPE_LINE(name, line) ::Vulkyrie::Timer timer##line(name)
 #define VLKY_PROFILE_SCOPE(name) VLKY_PROFILE_SCOPE_LINE(name, __LINE__)
 #define VLKY_PROFILE_FUNCTION() VLKY_PROFILE_SCOPE(VLKY_FUNC_SIG)
 #else

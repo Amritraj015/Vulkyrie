@@ -3,11 +3,12 @@
 #include "events/mouse/mouse_button_event.h"
 #include "events/enums/key_modifier.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class MouseButtonPressedEvent : public MouseButtonEvent {
         public:
-            MouseButtonPressedEvent(const Vulkyrie::Events::MouseButton mouseButton, const KeyModifier modifiers)
-                : MouseButtonEvent(mouseButton), Modifiers(modifiers) {
+            MouseButtonPressedEvent(const enum MouseButton mouseButton, const KeyModifier modifiers)
+                : MouseButtonEvent(mouseButton)
+                , Modifiers(modifiers) {
             }
 
             const KeyModifier Modifiers;
@@ -17,9 +18,7 @@ namespace Vulkyrie::Events {
             }
 
             [[nodiscard]] inline std::string ToString() const override {
-                return std::format("MouseButtonPressedEvent: {} (modifiers: {})",
-                                   std::to_underlying(MouseButton),
-                                   std::to_underlying(Modifiers));
+                return std::format("MouseButtonPressedEvent: {} (modifiers: {})", std::to_underlying(MouseButton), std::to_underlying(Modifiers));
             }
 
             /** @brief Gets the static event type for this event class.
@@ -29,4 +28,4 @@ namespace Vulkyrie::Events {
                 return EventType::MouseButtonPressed;
             }
     };
-}
+} // namespace Vulkyrie

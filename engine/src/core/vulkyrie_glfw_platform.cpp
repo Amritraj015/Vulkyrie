@@ -9,253 +9,253 @@
 #include "events/keyboard/key_pressed_event.h"
 #include "events/keyboard/key_released_event.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
      * @param glfwKeyCode The GLFW key code to convert.
      * @returns The corresponding Vulkyrie key code.
      */
-    static constexpr Vulkyrie::Events::KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode) {
+    static constexpr KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode) {
         switch (glfwKeyCode) {
             case GLFW_KEY_SPACE:
-                return Vulkyrie::Events::KeyCode::Space;
+                return KeyCode::Space;
             case GLFW_KEY_APOSTROPHE:
-                return Vulkyrie::Events::KeyCode::Apostrophe;
+                return KeyCode::Apostrophe;
             case GLFW_KEY_COMMA:
-                return Vulkyrie::Events::KeyCode::Comma;
+                return KeyCode::Comma;
             case GLFW_KEY_MINUS:
-                return Vulkyrie::Events::KeyCode::Minus;
+                return KeyCode::Minus;
             case GLFW_KEY_PERIOD:
-                return Vulkyrie::Events::KeyCode::Period;
+                return KeyCode::Period;
             case GLFW_KEY_SLASH:
-                return Vulkyrie::Events::KeyCode::Slash;
+                return KeyCode::Slash;
             case GLFW_KEY_0:
-                return Vulkyrie::Events::KeyCode::D0;
+                return KeyCode::D0;
             case GLFW_KEY_1:
-                return Vulkyrie::Events::KeyCode::D1;
+                return KeyCode::D1;
             case GLFW_KEY_2:
-                return Vulkyrie::Events::KeyCode::D2;
+                return KeyCode::D2;
             case GLFW_KEY_3:
-                return Vulkyrie::Events::KeyCode::D3;
+                return KeyCode::D3;
             case GLFW_KEY_4:
-                return Vulkyrie::Events::KeyCode::D4;
+                return KeyCode::D4;
             case GLFW_KEY_5:
-                return Vulkyrie::Events::KeyCode::D5;
+                return KeyCode::D5;
             case GLFW_KEY_6:
-                return Vulkyrie::Events::KeyCode::D6;
+                return KeyCode::D6;
             case GLFW_KEY_7:
-                return Vulkyrie::Events::KeyCode::D7;
+                return KeyCode::D7;
             case GLFW_KEY_8:
-                return Vulkyrie::Events::KeyCode::D8;
+                return KeyCode::D8;
             case GLFW_KEY_9:
-                return Vulkyrie::Events::KeyCode::D9;
+                return KeyCode::D9;
             case GLFW_KEY_SEMICOLON:
-                return Vulkyrie::Events::KeyCode::Semicolon;
+                return KeyCode::Semicolon;
             case GLFW_KEY_EQUAL:
-                return Vulkyrie::Events::KeyCode::Equal;
+                return KeyCode::Equal;
             case GLFW_KEY_A:
-                return Vulkyrie::Events::KeyCode::A;
+                return KeyCode::A;
             case GLFW_KEY_B:
-                return Vulkyrie::Events::KeyCode::B;
+                return KeyCode::B;
             case GLFW_KEY_C:
-                return Vulkyrie::Events::KeyCode::C;
+                return KeyCode::C;
             case GLFW_KEY_D:
-                return Vulkyrie::Events::KeyCode::D;
+                return KeyCode::D;
             case GLFW_KEY_E:
-                return Vulkyrie::Events::KeyCode::E;
+                return KeyCode::E;
             case GLFW_KEY_F:
-                return Vulkyrie::Events::KeyCode::F;
+                return KeyCode::F;
             case GLFW_KEY_G:
-                return Vulkyrie::Events::KeyCode::G;
+                return KeyCode::G;
             case GLFW_KEY_H:
-                return Vulkyrie::Events::KeyCode::H;
+                return KeyCode::H;
             case GLFW_KEY_I:
-                return Vulkyrie::Events::KeyCode::I;
+                return KeyCode::I;
             case GLFW_KEY_J:
-                return Vulkyrie::Events::KeyCode::J;
+                return KeyCode::J;
             case GLFW_KEY_K:
-                return Vulkyrie::Events::KeyCode::K;
+                return KeyCode::K;
             case GLFW_KEY_L:
-                return Vulkyrie::Events::KeyCode::L;
+                return KeyCode::L;
             case GLFW_KEY_M:
-                return Vulkyrie::Events::KeyCode::M;
+                return KeyCode::M;
             case GLFW_KEY_N:
-                return Vulkyrie::Events::KeyCode::N;
+                return KeyCode::N;
             case GLFW_KEY_O:
-                return Vulkyrie::Events::KeyCode::O;
+                return KeyCode::O;
             case GLFW_KEY_P:
-                return Vulkyrie::Events::KeyCode::P;
+                return KeyCode::P;
             case GLFW_KEY_Q:
-                return Vulkyrie::Events::KeyCode::Q;
+                return KeyCode::Q;
             case GLFW_KEY_R:
-                return Vulkyrie::Events::KeyCode::R;
+                return KeyCode::R;
             case GLFW_KEY_S:
-                return Vulkyrie::Events::KeyCode::S;
+                return KeyCode::S;
             case GLFW_KEY_T:
-                return Vulkyrie::Events::KeyCode::T;
+                return KeyCode::T;
             case GLFW_KEY_U:
-                return Vulkyrie::Events::KeyCode::U;
+                return KeyCode::U;
             case GLFW_KEY_V:
-                return Vulkyrie::Events::KeyCode::V;
+                return KeyCode::V;
             case GLFW_KEY_W:
-                return Vulkyrie::Events::KeyCode::W;
+                return KeyCode::W;
             case GLFW_KEY_X:
-                return Vulkyrie::Events::KeyCode::X;
+                return KeyCode::X;
             case GLFW_KEY_Y:
-                return Vulkyrie::Events::KeyCode::Y;
+                return KeyCode::Y;
             case GLFW_KEY_Z:
-                return Vulkyrie::Events::KeyCode::Z;
+                return KeyCode::Z;
             case GLFW_KEY_LEFT_BRACKET:
-                return Vulkyrie::Events::KeyCode::LeftBracket;
+                return KeyCode::LeftBracket;
             case GLFW_KEY_BACKSLASH:
-                return Vulkyrie::Events::KeyCode::Backslash;
+                return KeyCode::Backslash;
             case GLFW_KEY_RIGHT_BRACKET:
-                return Vulkyrie::Events::KeyCode::RightBracket;
+                return KeyCode::RightBracket;
             case GLFW_KEY_GRAVE_ACCENT:
-                return Vulkyrie::Events::KeyCode::GraveAccent;
+                return KeyCode::GraveAccent;
             case GLFW_KEY_WORLD_1:
-                return Vulkyrie::Events::KeyCode::World1;
+                return KeyCode::World1;
             case GLFW_KEY_WORLD_2:
-                return Vulkyrie::Events::KeyCode::World2;
+                return KeyCode::World2;
             case GLFW_KEY_ESCAPE:
-                return Vulkyrie::Events::KeyCode::Escape;
+                return KeyCode::Escape;
             case GLFW_KEY_ENTER:
-                return Vulkyrie::Events::KeyCode::Enter;
+                return KeyCode::Enter;
             case GLFW_KEY_TAB:
-                return Vulkyrie::Events::KeyCode::Tab;
+                return KeyCode::Tab;
             case GLFW_KEY_BACKSPACE:
-                return Vulkyrie::Events::KeyCode::Backspace;
+                return KeyCode::Backspace;
             case GLFW_KEY_INSERT:
-                return Vulkyrie::Events::KeyCode::Insert;
+                return KeyCode::Insert;
             case GLFW_KEY_DELETE:
-                return Vulkyrie::Events::KeyCode::Delete;
+                return KeyCode::Delete;
             case GLFW_KEY_RIGHT:
-                return Vulkyrie::Events::KeyCode::Right;
+                return KeyCode::Right;
             case GLFW_KEY_LEFT:
-                return Vulkyrie::Events::KeyCode::Left;
+                return KeyCode::Left;
             case GLFW_KEY_DOWN:
-                return Vulkyrie::Events::KeyCode::Down;
+                return KeyCode::Down;
             case GLFW_KEY_UP:
-                return Vulkyrie::Events::KeyCode::Up;
+                return KeyCode::Up;
             case GLFW_KEY_PAGE_UP:
-                return Vulkyrie::Events::KeyCode::PageUp;
+                return KeyCode::PageUp;
             case GLFW_KEY_PAGE_DOWN:
-                return Vulkyrie::Events::KeyCode::PageDown;
+                return KeyCode::PageDown;
             case GLFW_KEY_HOME:
-                return Vulkyrie::Events::KeyCode::Home;
+                return KeyCode::Home;
             case GLFW_KEY_END:
-                return Vulkyrie::Events::KeyCode::End;
+                return KeyCode::End;
             case GLFW_KEY_CAPS_LOCK:
-                return Vulkyrie::Events::KeyCode::CapsLock;
+                return KeyCode::CapsLock;
             case GLFW_KEY_NUM_LOCK:
-                return Vulkyrie::Events::KeyCode::NumLock;
+                return KeyCode::NumLock;
             case GLFW_KEY_PRINT_SCREEN:
-                return Vulkyrie::Events::KeyCode::PrintScreen;
+                return KeyCode::PrintScreen;
             case GLFW_KEY_PAUSE:
-                return Vulkyrie::Events::KeyCode::Pause;
+                return KeyCode::Pause;
             case GLFW_KEY_F1:
-                return Vulkyrie::Events::KeyCode::F1;
+                return KeyCode::F1;
             case GLFW_KEY_F2:
-                return Vulkyrie::Events::KeyCode::F2;
+                return KeyCode::F2;
             case GLFW_KEY_F3:
-                return Vulkyrie::Events::KeyCode::F3;
+                return KeyCode::F3;
             case GLFW_KEY_F4:
-                return Vulkyrie::Events::KeyCode::F4;
+                return KeyCode::F4;
             case GLFW_KEY_F5:
-                return Vulkyrie::Events::KeyCode::F5;
+                return KeyCode::F5;
             case GLFW_KEY_F6:
-                return Vulkyrie::Events::KeyCode::F6;
+                return KeyCode::F6;
             case GLFW_KEY_F7:
-                return Vulkyrie::Events::KeyCode::F7;
+                return KeyCode::F7;
             case GLFW_KEY_F8:
-                return Vulkyrie::Events::KeyCode::F8;
+                return KeyCode::F8;
             case GLFW_KEY_F9:
-                return Vulkyrie::Events::KeyCode::F9;
+                return KeyCode::F9;
             case GLFW_KEY_F10:
-                return Vulkyrie::Events::KeyCode::F10;
+                return KeyCode::F10;
             case GLFW_KEY_F11:
-                return Vulkyrie::Events::KeyCode::F11;
+                return KeyCode::F11;
             case GLFW_KEY_F12:
-                return Vulkyrie::Events::KeyCode::F12;
+                return KeyCode::F12;
             case GLFW_KEY_F13:
-                return Vulkyrie::Events::KeyCode::F13;
+                return KeyCode::F13;
             case GLFW_KEY_F14:
-                return Vulkyrie::Events::KeyCode::F14;
+                return KeyCode::F14;
             case GLFW_KEY_F15:
-                return Vulkyrie::Events::KeyCode::F15;
+                return KeyCode::F15;
             case GLFW_KEY_F16:
-                return Vulkyrie::Events::KeyCode::F16;
+                return KeyCode::F16;
             case GLFW_KEY_F17:
-                return Vulkyrie::Events::KeyCode::F17;
+                return KeyCode::F17;
             case GLFW_KEY_F18:
-                return Vulkyrie::Events::KeyCode::F18;
+                return KeyCode::F18;
             case GLFW_KEY_F19:
-                return Vulkyrie::Events::KeyCode::F19;
+                return KeyCode::F19;
             case GLFW_KEY_F20:
-                return Vulkyrie::Events::KeyCode::F20;
+                return KeyCode::F20;
             case GLFW_KEY_F21:
-                return Vulkyrie::Events::KeyCode::F21;
+                return KeyCode::F21;
             case GLFW_KEY_F22:
-                return Vulkyrie::Events::KeyCode::F22;
+                return KeyCode::F22;
             case GLFW_KEY_F23:
-                return Vulkyrie::Events::KeyCode::F23;
+                return KeyCode::F23;
             case GLFW_KEY_F24:
-                return Vulkyrie::Events::KeyCode::F24;
+                return KeyCode::F24;
             case GLFW_KEY_F25:
-                return Vulkyrie::Events::KeyCode::F25;
+                return KeyCode::F25;
             case GLFW_KEY_KP_0:
-                return Vulkyrie::Events::KeyCode::KP0;
+                return KeyCode::KP0;
             case GLFW_KEY_KP_1:
-                return Vulkyrie::Events::KeyCode::KP1;
+                return KeyCode::KP1;
             case GLFW_KEY_KP_2:
-                return Vulkyrie::Events::KeyCode::KP2;
+                return KeyCode::KP2;
             case GLFW_KEY_KP_3:
-                return Vulkyrie::Events::KeyCode::KP3;
+                return KeyCode::KP3;
             case GLFW_KEY_KP_4:
-                return Vulkyrie::Events::KeyCode::KP4;
+                return KeyCode::KP4;
             case GLFW_KEY_KP_5:
-                return Vulkyrie::Events::KeyCode::KP5;
+                return KeyCode::KP5;
             case GLFW_KEY_KP_6:
-                return Vulkyrie::Events::KeyCode::KP6;
+                return KeyCode::KP6;
             case GLFW_KEY_KP_7:
-                return Vulkyrie::Events::KeyCode::KP7;
+                return KeyCode::KP7;
             case GLFW_KEY_KP_8:
-                return Vulkyrie::Events::KeyCode::KP8;
+                return KeyCode::KP8;
             case GLFW_KEY_KP_9:
-                return Vulkyrie::Events::KeyCode::KP9;
+                return KeyCode::KP9;
             case GLFW_KEY_KP_DECIMAL:
-                return Vulkyrie::Events::KeyCode::KPDecimal;
+                return KeyCode::KPDecimal;
             case GLFW_KEY_KP_DIVIDE:
-                return Vulkyrie::Events::KeyCode::KPDivide;
+                return KeyCode::KPDivide;
             case GLFW_KEY_KP_MULTIPLY:
-                return Vulkyrie::Events::KeyCode::KPMultiply;
+                return KeyCode::KPMultiply;
             case GLFW_KEY_KP_SUBTRACT:
-                return Vulkyrie::Events::KeyCode::KPSubtract;
+                return KeyCode::KPSubtract;
             case GLFW_KEY_KP_ADD:
-                return Vulkyrie::Events::KeyCode::KPAdd;
+                return KeyCode::KPAdd;
             case GLFW_KEY_KP_ENTER:
-                return Vulkyrie::Events::KeyCode::KPEnter;
+                return KeyCode::KPEnter;
             case GLFW_KEY_KP_EQUAL:
-                return Vulkyrie::Events::KeyCode::KPEqual;
+                return KeyCode::KPEqual;
             case GLFW_KEY_LEFT_SHIFT:
-                return Vulkyrie::Events::KeyCode::LeftShift;
+                return KeyCode::LeftShift;
             case GLFW_KEY_LEFT_CONTROL:
-                return Vulkyrie::Events::KeyCode::LeftControl;
+                return KeyCode::LeftControl;
             case GLFW_KEY_LEFT_ALT:
-                return Vulkyrie::Events::KeyCode::LeftAlt;
+                return KeyCode::LeftAlt;
             case GLFW_KEY_LEFT_SUPER:
-                return Vulkyrie::Events::KeyCode::LeftSuper;
+                return KeyCode::LeftSuper;
             case GLFW_KEY_RIGHT_SHIFT:
-                return Vulkyrie::Events::KeyCode::RightShift;
+                return KeyCode::RightShift;
             case GLFW_KEY_RIGHT_CONTROL:
-                return Vulkyrie::Events::KeyCode::RightControl;
+                return KeyCode::RightControl;
             case GLFW_KEY_RIGHT_ALT:
-                return Vulkyrie::Events::KeyCode::RightAlt;
+                return KeyCode::RightAlt;
             case GLFW_KEY_RIGHT_SUPER:
-                return Vulkyrie::Events::KeyCode::RightSuper;
+                return KeyCode::RightSuper;
             case GLFW_KEY_MENU:
-                return Vulkyrie::Events::KeyCode::Menu;
+                return KeyCode::Menu;
             default:
-                return Vulkyrie::Events::KeyCode::Unknown;
+                return KeyCode::Unknown;
         }
     }
 
@@ -263,41 +263,41 @@ namespace Vulkyrie::Core {
      * @param glfwMouseButton The GLFW mouse button to convert.
      * @returns The corresponding Vulkyrie mouse button.
      */
-    static constexpr Vulkyrie::Events::MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton) {
+    static constexpr MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton) {
         switch (glfwMouseButton) {
             case GLFW_MOUSE_BUTTON_1:
-                return Vulkyrie::Events::MouseButton::MouseButton1;
+                return MouseButton::MouseButton1;
             case GLFW_MOUSE_BUTTON_2:
-                return Vulkyrie::Events::MouseButton::MouseButton2;
+                return MouseButton::MouseButton2;
             case GLFW_MOUSE_BUTTON_3:
-                return Vulkyrie::Events::MouseButton::MouseButton3;
+                return MouseButton::MouseButton3;
             case GLFW_MOUSE_BUTTON_4:
-                return Vulkyrie::Events::MouseButton::MouseButton4;
+                return MouseButton::MouseButton4;
             case GLFW_MOUSE_BUTTON_5:
-                return Vulkyrie::Events::MouseButton::MouseButton5;
+                return MouseButton::MouseButton5;
             case GLFW_MOUSE_BUTTON_6:
-                return Vulkyrie::Events::MouseButton::MouseButton6;
+                return MouseButton::MouseButton6;
             case GLFW_MOUSE_BUTTON_7:
-                return Vulkyrie::Events::MouseButton::MouseButton7;
+                return MouseButton::MouseButton7;
             case GLFW_MOUSE_BUTTON_8:
-                return Vulkyrie::Events::MouseButton::MouseButton8;
+                return MouseButton::MouseButton8;
             default:
-                return Vulkyrie::Events::MouseButton::Unknown;
+                return MouseButton::Unknown;
         }
     }
 
-    static constexpr u8 shiftKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Shift);
-    static constexpr u8 controlKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Control);
-    static constexpr u8 altKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Alt);
-    static constexpr u8 superKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::Super);
-    static constexpr u8 capsLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::CapsLock);
-    static constexpr u8 numLockKeyModifier = std::to_underlying(Vulkyrie::Events::KeyModifier::NumLock);
+    static constexpr u8 shiftKeyModifier = std::to_underlying(KeyModifier::Shift);
+    static constexpr u8 controlKeyModifier = std::to_underlying(KeyModifier::Control);
+    static constexpr u8 altKeyModifier = std::to_underlying(KeyModifier::Alt);
+    static constexpr u8 superKeyModifier = std::to_underlying(KeyModifier::Super);
+    static constexpr u8 capsLockKeyModifier = std::to_underlying(KeyModifier::CapsLock);
+    static constexpr u8 numLockKeyModifier = std::to_underlying(KeyModifier::NumLock);
 
     /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
      * @param glfwMods The GLFW modifier flags.
      * @returns The corresponding Vulkyrie key modifiers.
      */
-    static constexpr Vulkyrie::Events::KeyModifier GetModifiersFromGLFW(int glfwMods) {
+    static constexpr KeyModifier GetModifiersFromGLFW(int glfwMods) {
         u8 modifiers = 0U;
 
         if (glfwMods & GLFW_MOD_SHIFT) {
@@ -324,10 +324,10 @@ namespace Vulkyrie::Core {
             modifiers |= numLockKeyModifier;
         }
 
-        return static_cast<Vulkyrie::Events::KeyModifier>(modifiers);
+        return static_cast<KeyModifier>(modifiers);
     }
 
-    VulkyrieGLFWPlatform::VulkyrieGLFWPlatform(const Vulkyrie::Core::WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
+    VulkyrieGLFWPlatform::VulkyrieGLFWPlatform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
         : Platform(windowProps, eventCallbackFn)
         , _window(nullptr) {};
 
@@ -346,7 +346,7 @@ namespace Vulkyrie::Core {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-        if (_windowProps.GraphicsAPI == Vulkyrie::Core::GraphicsAPI::OpenGL) {
+        if (_windowProps.GraphicsAPI == GraphicsAPI::OpenGL) {
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #if defined(VULKYRIE_DEBUG)
@@ -377,7 +377,7 @@ namespace Vulkyrie::Core {
             glViewport(0, 0, width, height);
 
             // Create the window resize event.
-            Vulkyrie::Events::WindowResizedEvent event(width, height);
+            WindowResizedEvent event(width, height);
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -387,7 +387,7 @@ namespace Vulkyrie::Core {
         });
 
         glfwSetWindowCloseCallback(_window, [](GLFWwindow *window) {
-            Vulkyrie::Events::WindowClosedEvent event;
+            WindowClosedEvent event;
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -397,12 +397,12 @@ namespace Vulkyrie::Core {
         });
 
         glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, int mods) {
-            const Vulkyrie::Events::KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
+            const KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
 
             switch (action) {
                 case GLFW_PRESS: {
-                    const Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
-                    Vulkyrie::Events::KeyPressedEvent event(code, modifiers);
+                    const KeyModifier modifiers = GetModifiersFromGLFW(mods);
+                    KeyPressedEvent event(code, modifiers);
 
                     // Get the window user pointer.
                     const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -413,7 +413,7 @@ namespace Vulkyrie::Core {
                     break;
                 }
                 case GLFW_RELEASE: {
-                    Vulkyrie::Events::KeyReleasedEvent event(code);
+                    KeyReleasedEvent event(code);
 
                     // Get the window user pointer.
                     const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -424,8 +424,8 @@ namespace Vulkyrie::Core {
                     break;
                 }
                 case GLFW_REPEAT: {
-                    const Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
-                    Vulkyrie::Events::KeyPressedEvent event(code, modifiers, true);
+                    const KeyModifier modifiers = GetModifiersFromGLFW(mods);
+                    KeyPressedEvent event(code, modifiers, true);
 
                     // Get the window user pointer.
                     const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -441,23 +441,23 @@ namespace Vulkyrie::Core {
         });
 
         // glfwSetCharCallback(_window, [](GLFWwindow *window, unsigned int codepoint) {
-        //     Vulkyrie::Events::KeyCode keycode = ConvertGLFWKeyCodeToVulkyrieKeyCode(codepoint);
-        //     Vulkyrie::Events::KeyCharEvent event(keycode);
+        //     KeyCode keycode = ConvertGLFWKeyCodeToVulkyrieKeyCode(codepoint);
+        //     KeyCharEvent event(keycode);
 
         //     // Get the window user pointer.
-        //     Vulkyrie::Core::Application& app = *(Vulkyrie::Core::Application *)glfwGetWindowUserPointer(window);
+        //     Application& app = *(Application *)glfwGetWindowUserPointer(window);
 
         //     // Dispatch the event.
         //     app.RaiseEvent(event);
         // });
 
         glfwSetMouseButtonCallback(_window, [](GLFWwindow *window, int button, int action, int mods) {
-            const Vulkyrie::Events::MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
+            const MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
 
             switch (action) {
                 case GLFW_PRESS: {
-                    Vulkyrie::Events::KeyModifier modifiers = GetModifiersFromGLFW(mods);
-                    Vulkyrie::Events::MouseButtonPressedEvent event(mouseButton, modifiers);
+                    KeyModifier modifiers = GetModifiersFromGLFW(mods);
+                    MouseButtonPressedEvent event(mouseButton, modifiers);
 
                     // Get the window user pointer.
                     const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -468,7 +468,7 @@ namespace Vulkyrie::Core {
                     break;
                 }
                 case GLFW_RELEASE: {
-                    Vulkyrie::Events::MouseButtonReleasedEvent event(mouseButton);
+                    MouseButtonReleasedEvent event(mouseButton);
 
                     // Get the window user pointer.
                     const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -483,7 +483,7 @@ namespace Vulkyrie::Core {
         });
 
         glfwSetScrollCallback(_window, [](GLFWwindow *window, f64 offsetX, f64 offsetY) {
-            Vulkyrie::Events::MouseScrolledEvent event(offsetX, offsetY);
+            MouseScrolledEvent event(offsetX, offsetY);
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -493,7 +493,7 @@ namespace Vulkyrie::Core {
         });
 
         glfwSetCursorPosCallback(_window, [](GLFWwindow *window, const f64 positionX, const f64 positionY) {
-            Vulkyrie::Events::MouseMovedEvent event(positionX, positionY);
+            MouseMovedEvent event(positionX, positionY);
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -529,24 +529,24 @@ namespace Vulkyrie::Core {
         return StatusCode::Successful;
     }
 
-    // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(Vulkyrie::Renderer::ShaderDataType type) noexcept {
+    // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(ShaderDataType type) noexcept {
     //     switch (type) {
-    //         case Vulkyrie::Renderer::ShaderDataType::Float:
-    //         case Vulkyrie::Renderer::ShaderDataType::Float2:
-    //         case Vulkyrie::Renderer::ShaderDataType::Float3:
-    //         case Vulkyrie::Renderer::ShaderDataType::Float4:
-    //         case Vulkyrie::Renderer::ShaderDataType::Mat3:
-    //         case Vulkyrie::Renderer::ShaderDataType::Mat4:
+    //         case ShaderDataType::Float:
+    //         case ShaderDataType::Float2:
+    //         case ShaderDataType::Float3:
+    //         case ShaderDataType::Float4:
+    //         case ShaderDataType::Mat3:
+    //         case ShaderDataType::Mat4:
     //             return GL_FLOAT;
-    //         case Vulkyrie::Renderer::ShaderDataType::Int:
-    //         case Vulkyrie::Renderer::ShaderDataType::Int2:
-    //         case Vulkyrie::Renderer::ShaderDataType::Int3:
-    //         case Vulkyrie::Renderer::ShaderDataType::Int4:
+    //         case ShaderDataType::Int:
+    //         case ShaderDataType::Int2:
+    //         case ShaderDataType::Int3:
+    //         case ShaderDataType::Int4:
     //             return GL_INT;
-    //         case Vulkyrie::Renderer::ShaderDataType::Bool:
+    //         case ShaderDataType::Bool:
     //             return GL_BOOL;
     //         default:
     //             return GL_INVALID_ENUM;
     //     }
     // }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

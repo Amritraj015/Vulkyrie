@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "glad/glad.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /**
      * @brief Constructs an OpenGL mesh from vertex, index, and texture data.
      *
@@ -154,4 +154,4 @@ namespace Vulkyrie::Renderer {
                 _textures.TotalCount());
 #endif
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

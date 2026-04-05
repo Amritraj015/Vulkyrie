@@ -2,7 +2,7 @@
 
 #include "layer.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
 
     constexpr static u8 MAX_LAYER_OPERATIONS = 20;
     constexpr static u8 MAX_LAYERS = 20;
@@ -381,4 +381,4 @@ namespace Vulkyrie::Core {
             /** @brief The index at which to insert new layers. Overlays are added after this index. */
             u8 _layerInsertIndex = 0;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

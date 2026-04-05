@@ -7,9 +7,7 @@
 #include <glm/gtx/norm.hpp>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie;
 
     class SandboxLayerFrameBuffer final : public Layer {
         public:

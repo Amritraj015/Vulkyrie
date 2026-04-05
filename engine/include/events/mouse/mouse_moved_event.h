@@ -3,10 +3,12 @@
 #include "events/event.h"
 #include "events/enums/event_category.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class MouseMovedEvent : public Event {
         public:
-            MouseMovedEvent(const f32 x, const f32 y) : MouseX(x), MouseY(y) {
+            MouseMovedEvent(const f32 x, const f32 y)
+                : MouseX(x)
+                , MouseY(y) {
             }
 
             /** The X coordinate of the mouse cursor. */
@@ -37,4 +39,4 @@ namespace Vulkyrie::Events {
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

@@ -2,15 +2,15 @@
 #include "renderer/open_gl/open_gl_model.h"
 #include "renderer/renderer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     Ref<Model> Model::Create(const std::filesystem::path &path, bool gamma) {
-        switch (Vulkyrie::Renderer::GetCurrentGraphicsAPI()) {
-            case Vulkyrie::Core::GraphicsAPI::OpenGL:
+        switch (GetCurrentGraphicsAPI()) {
+            case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLModel>(path, gamma);
-            case Vulkyrie::Core::GraphicsAPI::Vulkan:
+            case GraphicsAPI::Vulkan:
             default:
                 VFATAL("Unsupported Graphics API for Model creation!");
                 return nullptr;
         }
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

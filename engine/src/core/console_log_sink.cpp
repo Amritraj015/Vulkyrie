@@ -1,6 +1,6 @@
 #include "core/console_log_sink.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     static constexpr std::string_view consoleLogPrefixes[] = {
         "\033[41m[FATAL]: ", "\033[31m[ERROR]: ", "\033[33m[WARN]: ", "\033[32m[INFO]: ", "\033[34m[DEBUG]: ", "\033[90m[TRACE]: ",
     };
@@ -19,4 +19,4 @@ namespace Vulkyrie::Core {
         std::fputs("\033[0m\n", out);
         std::fflush(out);
     }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

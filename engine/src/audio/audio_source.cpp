@@ -2,7 +2,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     void AudioSource::SetPosition(const glm::vec3 &position) {
         Position = position;
@@ -25,4 +25,4 @@ namespace Vulkyrie::Audio {
         return state == AL_PLAYING;
     }
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

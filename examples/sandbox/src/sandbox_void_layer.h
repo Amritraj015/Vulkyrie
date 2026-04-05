@@ -21,8 +21,7 @@
 #include "sandbox_layer_sphere.h"
 
 namespace Sandbox {
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Core;
+    using namespace Vulkyrie;
 
     class SandboxVoidLayer final : public Layer {
         public:

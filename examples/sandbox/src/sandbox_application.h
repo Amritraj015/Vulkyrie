@@ -4,17 +4,18 @@
 #include "sandbox_void_layer.h"
 
 namespace Sandbox {
-    class SandboxApplication : public Vulkyrie::Core::Application {
+
+    class SandboxApplication : public Application {
         public:
-            SandboxApplication(const Vulkyrie::Core::WindowProps &windowProps)
-                : Vulkyrie::Core::Application(windowProps) {
+            SandboxApplication(const WindowProps &windowProps)
+                : Application(windowProps) {
             }
 
             ~SandboxApplication() override {
                 VTRACE("Destroying application sandbox");
             }
 
-            bool OnInit(Vulkyrie::Events::WindowCreatedEvent &event) override {
+            bool OnInit(WindowCreatedEvent &event) override {
                 // PushLayer<SandboxLayerShadowMapping>();
                 // PushLayer<SandboxLayerFrameBuffer>();
                 // PushLayer<SandboxLayerCubes>();
@@ -24,4 +25,5 @@ namespace Sandbox {
                 return true;
             }
     };
+
 } // namespace Sandbox

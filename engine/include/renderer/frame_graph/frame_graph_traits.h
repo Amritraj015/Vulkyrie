@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include <concepts>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Concept that defines the requirements for a frame graph resource backend. */
     template <typename T>
     concept FrameGraphResourceBackend = std::is_default_constructible_v<T> && std::is_move_constructible_v<T> && requires(T a) {
@@ -24,4 +24,4 @@ namespace Vulkyrie::Renderer {
         { a.PreWrite(flags, context) } -> std::same_as<void>;
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

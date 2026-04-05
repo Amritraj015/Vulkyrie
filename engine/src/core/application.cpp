@@ -6,12 +6,12 @@
 #include "events/event_dispatcher.h"
 #include "renderer/renderer.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
 
     Application *Application::_instance = nullptr;
 
     Application::Application(WindowProps windowProps)
-        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Vulkyrie::Events::Event &event) { this->OnEvent(event); }))
+        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Event &event) { this->OnEvent(event); }))
         , _windowProps(std::move(windowProps))
         , _running(false) {
         _instance = this;
@@ -31,14 +31,14 @@ namespace Vulkyrie::Core {
         VINFO("*****************************************************************************************");
 
         // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
-        RETURN_ON_FAILURE(Vulkyrie::Renderer::Initialize(_windowProps.GraphicsAPI));
+        RETURN_ON_FAILURE(Initialize(_windowProps.GraphicsAPI));
 
         // Mark the application as running.
         _running = true;
         f32 lastFrameTime = 0.0F;
 
         // Raise the window created event.
-        Vulkyrie::Events::WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
+        WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
         OnInit(event);
 
         // Main application loop.
@@ -82,8 +82,8 @@ namespace Vulkyrie::Core {
         _running = false;
     }
 
-    void Application::OnEvent(Vulkyrie::Events::Event &event) {
-        Vulkyrie::Events::EventDispatcher dispatcher(event);
+    void Application::OnEvent(Event &event) {
+        EventDispatcher dispatcher(event);
 
         // Propagate the event through the layers in reverse order (from top to bottom).
         for (const auto &layer : std::ranges::reverse_view(_layers)) {
@@ -96,23 +96,23 @@ namespace Vulkyrie::Core {
             layer->OnEvent(event);
         }
 
-        dispatcher.Dispatch<Vulkyrie::Events::WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
+        dispatcher.Dispatch<WindowResizedEvent>([this](auto &e) -> bool { return this->OnWindowResized(e); });
 
         // If the window closed event is dispatched, stop the application.
-        dispatcher.Dispatch<Vulkyrie::Events::WindowClosedEvent>([this]([[maybe_unused]] auto &e) -> bool {
+        dispatcher.Dispatch<WindowClosedEvent>([this]([[maybe_unused]] auto &e) -> bool {
             Stop();
             return false;
         });
     }
 
-    bool Application::OnWindowResized(const Vulkyrie::Events::WindowResizedEvent &event) {
+    bool Application::OnWindowResized(const WindowResizedEvent &event) {
         _windowProps.Height = event.Height;
         _windowProps.Width = event.Width;
 
         return false;
     }
 
-    bool Application::OnInit([[maybe_unused]] Vulkyrie::Events::WindowCreatedEvent &event) {
+    bool Application::OnInit([[maybe_unused]] WindowCreatedEvent &event) {
         return false;
     }
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

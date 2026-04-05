@@ -4,7 +4,7 @@
 
 #include "renderer/mesh.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLMesh : public Mesh {
         public:
             /** @brief Constructs an OpenGL mesh with the specified vertices, indices, and textures.
@@ -25,4 +25,4 @@ namespace Vulkyrie::Renderer {
             /** @brief Stores the uniform names for the textures used in the mesh. */
             std::vector<std::string> _textureUniformNames;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

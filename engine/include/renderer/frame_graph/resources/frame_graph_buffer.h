@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     class FrameGraphBuffer {
         public:
@@ -13,4 +13,4 @@ namespace Vulkyrie::Renderer {
             // void Destroy(const FrameGraphBuffer::Descriptor &descriptor, void *context);
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

@@ -2,7 +2,7 @@
 
 #include "renderer/texture_specification.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     class FrameGraphTexture {
         public:
@@ -12,4 +12,4 @@ namespace Vulkyrie::Renderer {
             void Destroy(const FrameGraphTexture::Descriptor &descriptor, void *context);
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

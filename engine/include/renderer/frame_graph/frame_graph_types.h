@@ -1,6 +1,8 @@
 #pragma once
 
-namespace Vulkyrie::Renderer {
+#include "vlkypch.h"
+
+namespace Vulkyrie {
 
     /** @brief Represents a unique identifier for a pass in the frame graph. */
     using PassID = size_t;
@@ -11,4 +13,4 @@ namespace Vulkyrie::Renderer {
     /** @brief Represents a unique identifier for a resource entry in the frame graph. */
     using ResourceEntryID = size_t;
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

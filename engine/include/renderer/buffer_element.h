@@ -2,7 +2,7 @@
 
 #include "shader_data_type.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Represents an element in a buffer layout, defining its type, name, size, offset, and normalization. */
     class BufferElement {
         public:
@@ -100,4 +100,4 @@ namespace Vulkyrie::Renderer {
                 }
             }
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

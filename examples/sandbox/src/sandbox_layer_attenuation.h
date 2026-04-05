@@ -3,11 +3,9 @@
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie;
 
-    class SandboxLayerAttenuation : public Vulkyrie::Core::Layer {
+    class SandboxLayerAttenuation : public Layer {
         public:
             SandboxLayerAttenuation()
                 : app(Application::GetSingleton())
@@ -33,9 +31,9 @@ namespace Sandbox {
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
-                    { Vulkyrie::Renderer::ShaderDataType::Float3, "aPos" },
-                    { Vulkyrie::Renderer::ShaderDataType::Float3, "aNormal" },
-                    { Vulkyrie::Renderer::ShaderDataType::Float2, "aTexture" },
+                    { ShaderDataType::Float3, "aPos" },
+                    { ShaderDataType::Float3, "aNormal" },
+                    { ShaderDataType::Float2, "aTexture" },
                 });
 
                 // Add Vertex Buffer to the vertex array.

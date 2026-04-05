@@ -1,7 +1,7 @@
 #include "renderer/frame_graph/resources/render_graph_transient_resources.h"
 #include <functional>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     void RenderGraphTransientResources::CreateTexture(const TextureSpecification &specification) {
         // const auto textureHash = std::hash<TextureSpecification>{}(specification);
@@ -17,4 +17,4 @@ namespace Vulkyrie::Renderer {
     // void RenderGraphTransientResources::DestroyBuffer() {
     // }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

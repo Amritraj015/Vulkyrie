@@ -1,7 +1,7 @@
 #include "core/noise_generator.h"
 #include "glm/gtc/noise.hpp"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     std::vector<f32> GeneratePerlinNoiseMap(const NoiseMapSpecification &specification) {
         // Extract and validate specification parameters.
         const size_t width = specification.MapWidth;
@@ -79,4 +79,4 @@ namespace Vulkyrie::Core {
         return noiseMap;
     }
 
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

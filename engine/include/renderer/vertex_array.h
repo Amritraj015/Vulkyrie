@@ -4,7 +4,7 @@
 #include "renderer/index_buffer.h"
 #include "renderer/vertex_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class VertexArray {
         public:
             /** @brief Virtual destructor for the VertexArray class. */
@@ -47,4 +47,4 @@ namespace Vulkyrie::Renderer {
              */
             static Ref<VertexArray> Create();
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

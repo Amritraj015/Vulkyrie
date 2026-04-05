@@ -2,7 +2,7 @@
 
 #include "renderer/texture_cube_map.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief OpenGL implementation of a cube map texture. */
     class OpenGLTextureCubeMap final : public TextureCubeMap {
         public:
@@ -19,4 +19,4 @@ namespace Vulkyrie::Renderer {
              */
             void Bind(u32 slot = 0) const override;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

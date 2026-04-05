@@ -3,7 +3,7 @@
 #include "core/asserts.h"
 #include <glad/glad.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     static constexpr auto INVALID_SHADER_TYPE = 0;
 
     GLenum ShaderTypeFromString(const std::string_view type) {
@@ -152,7 +152,7 @@ namespace Vulkyrie::Renderer {
 
     u32 OpenGLShader::LoadAndCompile() {
         // Fetch the shader source code.
-        const std::string shaderSources = Vulkyrie::Core::ReadTextFromFile(_shaderSourcePath);
+        const std::string shaderSources = ReadTextFromFile(_shaderSourcePath);
 
         // Split the shader source into its respective stages.
         const auto shaderStages = ExtractShaderStages(shaderSources);
@@ -309,4 +309,4 @@ namespace Vulkyrie::Renderer {
         // Return the shader program handle.
         return program;
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include "renderer/open_gl/open_gl_index_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     OpenGLIndexBuffer::OpenGLIndexBuffer(u32 *indices, u32 count) {
         glCreateBuffers(1, &_eboID);
 
@@ -39,4 +39,4 @@ namespace Vulkyrie::Renderer {
     u32 OpenGLIndexBuffer::GetCount() const {
         return _count;
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

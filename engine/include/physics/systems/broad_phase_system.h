@@ -1,10 +1,10 @@
 #pragma once
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class BroadPhaseSystem {
         public:
             ~BroadPhaseSystem() = default;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

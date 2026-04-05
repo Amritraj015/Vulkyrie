@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     /** @brief Represents an infinite plane in 3D space defined by a normal vector and a distance from the origin along the normal vector. */
     class Plane final {
@@ -50,4 +50,4 @@ namespace Vulkyrie::Physics {
             f32 _planeOffset;
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

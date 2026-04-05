@@ -4,7 +4,7 @@
 #include "renderer/frame_graph/pass_node.h"
 #include "renderer/frame_graph/frame_graph_types.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class PassNode;
 
     /** @brief Represents a resource node in the frame graph. Each resource node encapsulates information about a resource, such as its name, reference count,
@@ -72,4 +72,4 @@ namespace Vulkyrie::Renderer {
              * This is used for tracking dependencies and determining execution order in the frame graph. */
             std::optional<PassID> _createdBy;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

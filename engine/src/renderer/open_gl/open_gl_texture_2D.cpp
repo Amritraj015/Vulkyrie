@@ -3,7 +3,7 @@
 #include "renderer/open_gl/open_gl_utilities.h"
 #include <stb_image.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     static constexpr GLenum VulkyrieImageFormatToOpenGLDataFormat(TextureImageFormat format) {
         switch (format) {
             case TextureImageFormat::RGB8:
@@ -128,4 +128,4 @@ namespace Vulkyrie::Renderer {
     void OpenGLTexture2D::Bind(u32 slot) const {
         glBindTextureUnit(slot, _textureId);
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

@@ -4,7 +4,7 @@
 #include "renderer/texture_sampler_wrap_mode.h"
 #include "renderer/texture_filter_mode.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     constexpr GLenum ToOpenGLSamplerWrapMode(TextureSamplerWrapMode mode) {
         switch (mode) {
             case TextureSamplerWrapMode::Repeat:
@@ -30,4 +30,4 @@ namespace Vulkyrie::Renderer {
 
         return GL_LINEAR;
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

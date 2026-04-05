@@ -3,7 +3,7 @@
 #include "events/event.h"
 #include "events/enums/event_category.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     class WindowClosedEvent : public Event {
         public:
             [[nodiscard]] inline EventType GetEventType() const override {
@@ -28,4 +28,4 @@ namespace Vulkyrie::Events {
         private:
             const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
-} // namespace Vulkyrie::Events
+} // namespace Vulkyrie

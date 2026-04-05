@@ -1,5 +1,5 @@
 #pragma once
 
-namespace Vulkyrie::Networking {
+namespace Vulkyrie {
     class Client {};
-} // namespace Vulkyrie::Networking
+} // namespace Vulkyrie

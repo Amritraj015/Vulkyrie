@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Physics {
+namespace Vulkyrie {
 
     class Sphere {
         public:
@@ -90,4 +90,4 @@ namespace Vulkyrie::Physics {
             }
     };
 
-} // namespace Vulkyrie::Physics
+} // namespace Vulkyrie

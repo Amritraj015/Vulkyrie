@@ -4,7 +4,7 @@
 #include "renderer/texture_sampler_wrap_mode.h"
 #include "renderer/texture_filter_mode.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Specification for creating a texture. */
     struct TextureSpecification {
         public:
@@ -35,4 +35,4 @@ namespace Vulkyrie::Renderer {
             /** @brief Whether to generate mipmaps for the texture. Default is true. */
             bool GenerateMips = true;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

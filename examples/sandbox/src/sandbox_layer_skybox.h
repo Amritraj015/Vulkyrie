@@ -4,11 +4,9 @@
 #include "glad/glad.h"
 
 namespace Sandbox {
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
-    class SandboxLayerSkybox final : public Vulkyrie::Core::Layer {
+    class SandboxLayerSkybox final : public Layer {
         public:
             SandboxLayerSkybox()
                 : camera(Camera::Create()) {

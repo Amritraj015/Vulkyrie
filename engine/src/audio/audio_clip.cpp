@@ -2,7 +2,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     AudioClip::AudioClip(AudioClip &&other) noexcept
         : Buffer(other.Buffer)
@@ -32,4 +32,4 @@ namespace Vulkyrie::Audio {
         }
     }
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

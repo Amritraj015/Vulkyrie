@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     enum class KeyCode : u16 {
         Space = 32,
         Apostrophe = 39, /* ' */

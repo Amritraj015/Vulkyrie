@@ -2,21 +2,19 @@
 #include "renderer/renderer.h"
 #include "renderer/open_gl/open_gl_renderer_context.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     OpenGLRendererContext::OpenGLRendererContext(void *windowHandle)
         : _windowHandle(static_cast<GLFWwindow *>(windowHandle)) {
     }
 
-    Vulkyrie::Core::StatusCode OpenGLRendererContext::Initialize() {
-        using Vulkyrie::Core::Application;
-
+    StatusCode OpenGLRendererContext::Initialize() {
         // Make the OpenGL context current.
         glfwMakeContextCurrent(_windowHandle);
 
         // GLAD: load all OpenGL function pointers
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
             VFATAL("Failed to initialize GLAD");
-            return Vulkyrie::Core::StatusCode::FailedToInitializeGLAD;
+            return StatusCode::FailedToInitializeGLAD;
         }
 
 #if defined(VULKYRIE_DEBUG)
@@ -113,7 +111,7 @@ namespace Vulkyrie::Renderer {
 
         VINFO("Renderer Info");
         VINFO("*****************************************************************************************");
-        VINFO("API              | {}", Vulkyrie::Renderer::GetCurrentGraphicsAPIName());
+        VINFO("API              | {}", GetCurrentGraphicsAPIName());
         VINFO("Version          | {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
         VINFO("Vendor           | {}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
         VINFO("Renderer         | {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
@@ -123,7 +121,7 @@ namespace Vulkyrie::Renderer {
         // TODO: This does not belong here. Move it to the renderer initialization.
         glViewport(0, 0, Application::GetSingleton().GetWindowWidth(), Application::GetSingleton().GetWindowHeight());
 
-        return Vulkyrie::Core::StatusCode::Successful;
+        return StatusCode::Successful;
     }
 
     void OpenGLRendererContext::SwapBuffers() {
@@ -169,4 +167,4 @@ namespace Vulkyrie::Renderer {
         }
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

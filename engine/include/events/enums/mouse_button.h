@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Events {
+namespace Vulkyrie {
     enum class MouseButton : u32 {
         MouseButton1 = 0, // Mouse button 1 (usually left button)
         MouseButton2,     // Mouse button 2 (usually right button)

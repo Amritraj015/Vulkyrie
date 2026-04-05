@@ -2,7 +2,7 @@
 
 #include "renderer/vertex_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLVertexBuffer final : public VertexBuffer {
         public:
             /** @brief Constructs an OpenGL vertex buffer with the given size.
@@ -40,4 +40,4 @@ namespace Vulkyrie::Renderer {
         private:
             u32 _vboID;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

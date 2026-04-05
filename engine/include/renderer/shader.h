@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class Shader {
         public:
             /** @brief Virtual destructor for the Shader class. */
@@ -87,4 +87,4 @@ namespace Vulkyrie::Renderer {
             /** @brief Indicates whether the shader is valid (compiled and linked successfully). */
             bool _isValid;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

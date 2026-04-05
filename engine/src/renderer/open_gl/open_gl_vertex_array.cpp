@@ -5,7 +5,7 @@
 #include "renderer/open_gl/open_gl_vertex_buffer.h"
 #include "renderer/open_gl/open_gl_index_buffer.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     static constexpr GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
         switch (type) {
             case ShaderDataType::Float:
@@ -141,4 +141,4 @@ namespace Vulkyrie::Renderer {
         return _indexBuffer;
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

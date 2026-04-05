@@ -5,11 +5,9 @@
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
-    class SandboxLayerPhongLighting final : public Vulkyrie::Core::Layer {
+    class SandboxLayerPhongLighting final : public Layer {
         public:
             SandboxLayerPhongLighting()
                 : camera(Camera::Create()) {
@@ -29,8 +27,8 @@ namespace Sandbox {
 
                 // Set layout for the vertex buffer.
                 objectVertexBuffer->SetLayout({
-                    { Vulkyrie::Renderer::ShaderDataType::Float3, "aPos" },
-                    { Vulkyrie::Renderer::ShaderDataType::Float3, "aNormal" },
+                    { ShaderDataType::Float3, "aPos" },
+                    { ShaderDataType::Float3, "aNormal" },
                 });
 
                 // Add Vertex Buffer to the vertex array.

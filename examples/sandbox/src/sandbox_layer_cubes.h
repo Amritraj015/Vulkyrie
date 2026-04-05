@@ -5,11 +5,9 @@
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
-    class SandboxLayerCubes final : public Vulkyrie::Core::Layer {
+    class SandboxLayerCubes final : public Layer {
         public:
             SandboxLayerCubes()
                 : app(Application::GetSingleton())

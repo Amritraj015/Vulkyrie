@@ -5,9 +5,7 @@
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie;
 
     class SandboxLayerPlanet final : public Layer {
         public:
@@ -151,15 +149,15 @@ namespace Sandbox {
                 }
             }
 
-            void OnEvent(Vulkyrie::Events::Event &event) override {
-                Vulkyrie::Events::EventDispatcher dispatcher(event);
+            void OnEvent(Event &event) override {
+                EventDispatcher dispatcher(event);
 
-                dispatcher.Dispatch<Vulkyrie::Events::MouseMovedEvent>([this](const Vulkyrie::Events::MouseMovedEvent &e) {
+                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
                     camera.ProcessMouseMovement(e.MouseX, e.MouseY);
                     return true;
                 });
 
-                dispatcher.Dispatch<Vulkyrie::Events::MouseScrolledEvent>([this](const Vulkyrie::Events::MouseScrolledEvent &e) {
+                dispatcher.Dispatch<MouseScrolledEvent>([this](const MouseScrolledEvent &e) {
                     camera.ProcessMouseScroll(e.OffsetY);
                     return true;
                 });

@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     struct OpenGLBufferResource {
         public:
@@ -27,7 +27,7 @@ namespace Vulkyrie::Renderer {
 
             ~OpenGLRendererContext() override;
 
-            Vulkyrie::Core::StatusCode Initialize() override;
+            StatusCode Initialize() override;
             void SwapBuffers() override;
 
             BufferHandle CreateBuffer(std::span<f32> data) override;
@@ -43,4 +43,4 @@ namespace Vulkyrie::Renderer {
             std::vector<size_t> _freeIndices;
             // TODO: Need to remove this from hre.
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

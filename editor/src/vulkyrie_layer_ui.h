@@ -3,8 +3,7 @@
 #include <vulkyrie.h>
 
 namespace Vulkyrie::Editor {
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
     class VulkyrieLayerUI final : public Layer {
         public:

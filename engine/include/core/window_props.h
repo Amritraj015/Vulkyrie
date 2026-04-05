@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "core/graphics_api.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     struct WindowProps final {
         public:
             /** @brief Starting height of the window. */
@@ -19,6 +19,6 @@ namespace Vulkyrie::Core {
             bool EnableVSync = true;
 
             /** @brief The graphics API to use for rendering. */
-            Vulkyrie::Core::GraphicsAPI GraphicsAPI = Vulkyrie::Core::GraphicsAPI::OpenGL;
+            GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

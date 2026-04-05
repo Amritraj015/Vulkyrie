@@ -3,7 +3,7 @@
 #include "core/asserts.h"
 #include <glad/glad.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     static constexpr GLenum ToGLInternalFormat(ColorFormat format) {
         switch (format) {
@@ -264,4 +264,4 @@ namespace Vulkyrie::Renderer {
         _isComplete = false;
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

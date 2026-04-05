@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Abstract base class for a cube map texture. */
     class TextureCubeMap {
         public:
@@ -59,4 +59,4 @@ namespace Vulkyrie::Renderer {
             /** @brief The file paths for the cube map faces. */
             std::array<std::filesystem::path, 6> _faces;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

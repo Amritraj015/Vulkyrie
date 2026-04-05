@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 
-namespace Vulkyrie::Audio {
+namespace Vulkyrie {
 
     struct AudioHandle {
         public:
@@ -46,4 +46,4 @@ namespace Vulkyrie::Audio {
             bool IsPlaying();
     };
 
-} // namespace Vulkyrie::Audio
+} // namespace Vulkyrie

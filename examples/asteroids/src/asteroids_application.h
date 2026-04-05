@@ -3,9 +3,12 @@
 #include <vulkyrie.h>
 
 namespace Asteroids {
-    class AsteroidsApplication : public Vulkyrie::Core::Application {
+    using namespace Vulkyrie;
+
+    class AsteroidsApplication : public Application {
         public:
-            AsteroidsApplication(const Vulkyrie::Core::WindowProps &windowProps) : Vulkyrie::Core::Application(windowProps) {
+            AsteroidsApplication(const WindowProps &windowProps)
+                : Application(windowProps) {
             }
 
             ~AsteroidsApplication() override = default;

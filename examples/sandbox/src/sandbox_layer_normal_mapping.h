@@ -5,9 +5,7 @@
 #include <GLFW/glfw3.h>
 
 namespace Sandbox {
-    using namespace Vulkyrie::Renderer;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Events;
+    using namespace Vulkyrie;
 
     class SandboxLayerNormalMapping final : public Layer {
         public:

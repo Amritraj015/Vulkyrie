@@ -1,7 +1,7 @@
 #include "renderer/frame_graph/resources/frame_graph_texture.h"
 #include "renderer/frame_graph/resources/render_graph_transient_resources.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
 
     void FrameGraphTexture::Create(const FrameGraphTexture::Descriptor &descriptor, void *context) {
         const auto transientResources = static_cast<RenderGraphTransientResources *>(context);
@@ -13,4 +13,4 @@ namespace Vulkyrie::Renderer {
         transientResources->DestroyTexture(descriptor);
     }
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

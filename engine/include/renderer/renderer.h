@@ -5,7 +5,7 @@
 #include "renderer/camera.h"
 #include "renderer/polygon_fill_mode.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Renderer statistics structure to hold performance metrics. */
     struct RendererStatistics {
         public:
@@ -23,12 +23,12 @@ namespace Vulkyrie::Renderer {
      * @param api The graphics API to initialize the renderer with.
      * @returns StatusCode indicating success or failure.
      */
-    [[nodiscard]] Vulkyrie::Core::StatusCode Initialize(Vulkyrie::Core::GraphicsAPI api);
+    [[nodiscard]] StatusCode Initialize(GraphicsAPI api);
 
     /** @brief Gets the current graphics API being used by the renderer.
      * @returns The current graphics API.
      */
-    [[nodiscard]] Vulkyrie::Core::GraphicsAPI GetCurrentGraphicsAPI();
+    [[nodiscard]] GraphicsAPI GetCurrentGraphicsAPI();
 
     /** @brief Gets the name of the current graphics API as a string view.
      * @returns A string view representing the name of the current graphics API.
@@ -42,4 +42,4 @@ namespace Vulkyrie::Renderer {
 
     // void SetViewport(u32 x, u32 y, u32 width, u32 height);
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

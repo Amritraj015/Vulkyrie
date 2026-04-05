@@ -6,7 +6,7 @@
 #include "renderer/mesh.h"
 #include "core/asserts.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Represents a 3D model composed of multiple meshes. */
     class Model {
         public:
@@ -30,7 +30,7 @@ namespace Vulkyrie::Renderer {
             /** @brief Gets the meshes that make up the model.
              * @return A constant reference to the vector of meshes.
              */
-            [[nodiscard]] inline const std::vector<Ref<Vulkyrie::Renderer::Mesh>> &GetMeshes() const {
+            [[nodiscard]] inline const std::vector<Ref<Mesh>> &GetMeshes() const {
                 return _meshes;
             }
 
@@ -54,7 +54,7 @@ namespace Vulkyrie::Renderer {
              * @param shader The shader to use for rendering.
              */
             // TODO: Needs to be removed.
-            inline void Draw(Vulkyrie::Renderer::Shader &shader) const {
+            inline void Draw(Shader &shader) const {
                 for (auto &mesh : _meshes) {
                     mesh->Draw(shader);
                 }
@@ -83,6 +83,6 @@ namespace Vulkyrie::Renderer {
             std::unordered_map<std::string, Ref<Texture2D>> _loadedTextures;
 
             /** @brief The meshes that make up the model. */
-            std::vector<Ref<Vulkyrie::Renderer::Mesh>> _meshes;
+            std::vector<Ref<Mesh>> _meshes;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

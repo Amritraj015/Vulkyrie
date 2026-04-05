@@ -2,7 +2,7 @@
 
 #include "renderer/vertex_array.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     class OpenGLVertexArray final : public VertexArray {
         public:
             OpenGLVertexArray();
@@ -24,4 +24,4 @@ namespace Vulkyrie::Renderer {
             std::vector<Ref<VertexBuffer>> _vertexBuffers;
             Ref<IndexBuffer> _indexBuffer;
     };
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

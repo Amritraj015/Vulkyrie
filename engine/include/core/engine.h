@@ -4,7 +4,7 @@
 #include "core/application.h"
 #include "renderer/renderer.h"
 
-namespace Vulkyrie::Core {
+namespace Vulkyrie {
     struct EngineConfig {
         public:
             std::filesystem::path WorkingDirectory;
@@ -22,7 +22,7 @@ namespace Vulkyrie::Core {
             Engine(Engine &&) = delete;
             Engine &operator=(Engine &&) = delete;
 
-            void RunApplication(Vulkyrie::Core::Application &application);
+            void RunApplication(Application &application);
 
             // /** @brief Gets the native window handle.
             //  * @returns A pointer to the native window.
@@ -56,8 +56,8 @@ namespace Vulkyrie::Core {
             bool _running;
             EngineConfig _config;
 
-            Ref<Vulkyrie::Core::Platform> _platform;
-            Ref<Vulkyrie::Audio::AudioSystem> _audioSystem;
-            Ref<Vulkyrie::Renderer::Renderer> _renderer;
+            Ref<Platform> _platform;
+            Ref<AudioSystem> _audioSystem;
+            Ref<Renderer> _renderer;
     };
-} // namespace Vulkyrie::Core
+} // namespace Vulkyrie

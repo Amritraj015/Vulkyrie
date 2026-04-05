@@ -71,4 +71,4 @@
 #include "physics/collision/shapes/plane.h"
 #include "physics/collision/shapes/AABB.h"
 
-extern std::unique_ptr<Vulkyrie::Core::Application> CreateApplication();
+extern std::unique_ptr<Vulkyrie::Application> CreateApplication();

@@ -9,10 +9,10 @@
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     // Initialize the logger sub-system.
-    auto statusCode = Vulkyrie::Core::Logger::InitializeLogger(Vulkyrie::Core::LoggerType::Console);
+    auto statusCode = Vulkyrie::Logger::InitializeLogger(Vulkyrie::LoggerType::Console);
 
     // If logger initialization failed, return the error code.
-    if (statusCode != Vulkyrie::Core::StatusCode::Successful) {
+    if (statusCode != Vulkyrie::StatusCode::Successful) {
         return std::to_underlying(statusCode);
     }
 
@@ -21,7 +21,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
 
     // If the application is invalid, return an invalid application error.
     if (nullptr == application) {
-        return std::to_underlying(Vulkyrie::Core::StatusCode::InvalidApplication);
+        return std::to_underlying(Vulkyrie::StatusCode::InvalidApplication);
     }
 
     VLKY_PROFILE_BEGIN_SESSION("Game Loop", "profile_results.json");

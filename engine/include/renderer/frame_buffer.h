@@ -3,7 +3,7 @@
 #include "renderer/texture_sampler_wrap_mode.h"
 #include "renderer/texture_filter_mode.h"
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /** @brief Types of attachments for framebuffers. */
     enum class AttachmentType : u32 {
         /** @brief Attachment is a texture. */
@@ -213,4 +213,4 @@ namespace Vulkyrie::Renderer {
             bool _isComplete = false;
     };
 
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

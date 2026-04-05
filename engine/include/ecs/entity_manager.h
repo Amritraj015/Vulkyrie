@@ -3,7 +3,7 @@
 #include "vlkypch.h"
 #include "ecs/entity.h"
 
-namespace Vulkyrie::ECS {
+namespace Vulkyrie {
 
     /** @brief The EntityManager is responsible for generating unique entity identifiers, recycling destroyed entities, and keeping track of active entities. It
      * uses a combination of an index and generation system to ensure that entity identifiers are unique and can be safely reused after destruction. */
@@ -73,4 +73,4 @@ namespace Vulkyrie::ECS {
             std::deque<u64> _freeIndices;
     };
 
-} // namespace Vulkyrie::ECS
+} // namespace Vulkyrie

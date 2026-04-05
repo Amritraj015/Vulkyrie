@@ -4,9 +4,7 @@
 #include "glad/glad.h"
 
 namespace Sandbox {
-    using namespace Vulkyrie::Events;
-    using namespace Vulkyrie::Core;
-    using namespace Vulkyrie::Renderer;
+    using namespace Vulkyrie;
 
     class SandboxLayerShadowMapping final : public Layer {
         public:

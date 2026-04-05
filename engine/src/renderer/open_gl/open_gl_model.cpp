@@ -2,7 +2,7 @@
 #include "renderer/open_gl/open_gl_model.h"
 #include <stb_image.h>
 
-namespace Vulkyrie::Renderer {
+namespace Vulkyrie {
     /**
      * @brief Constructs an OpenGL model by loading it from a file.
      *
@@ -196,4 +196,4 @@ namespace Vulkyrie::Renderer {
             _loadedTextures.emplace(std::move(key), texture);
         }
     }
-} // namespace Vulkyrie::Renderer
+} // namespace Vulkyrie

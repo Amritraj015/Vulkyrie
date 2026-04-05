@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Vulkyrie::ECS {
+namespace Vulkyrie {
 
     /** @brief Component that represents the position, rotation, and scale of an entity in 3D space. */
     struct TransformComponent final {
@@ -15,4 +15,4 @@ namespace Vulkyrie::ECS {
             glm::vec3 Scale;
     };
 
-} // namespace Vulkyrie::ECS
+} // namespace Vulkyrie
