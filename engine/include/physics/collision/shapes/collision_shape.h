@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie::Physics {
 
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
@@ -14,15 +16,17 @@ namespace Vulkyrie::Physics {
                 , _name(name) {
             }
 
-            [[nodiscard]] inline CollisionShapeType GetType() const {
+            ~CollisionShape() = default;
+
+            [[nodiscard]] VE_FORCE_INLINE CollisionShapeType GetType() const {
                 return _type;
             }
 
-            [[nodiscard]] inline CollisionShapeName GetName() const {
+            [[nodiscard]] VE_FORCE_INLINE CollisionShapeName GetName() const {
                 return _name;
             }
 
-        private:
+        protected:
             CollisionShapeType _type;
             CollisionShapeName _name;
     };

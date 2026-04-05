@@ -236,15 +236,6 @@ namespace Sandbox {
                 });
             }
 
-            // TODO: Make use of this.
-            void CreateEntities() {
-                const Entity ball = entityManager.CreateEntity();
-                TransformComponent ballTransform = { .Position = glm::vec3(0.0f), .Rotation = glm::quat(), .Scale = glm::vec3(1.0f) };
-                transformComponentManager.AddComponent(ball, ballTransform, true);
-
-                const Entity wall = entityManager.CreateEntity();
-            }
-
             void OnAttached() override {
                 VDEBUG("Layer Attached: Sphere");
             }

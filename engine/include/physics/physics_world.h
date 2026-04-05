@@ -1,7 +1,7 @@
 #pragma once
 
 #include "physics/physics_world_settings.h"
-// #include "ecs/entity_manager.h"
+#include "ecs/components/transform_component_manager.h"
 
 namespace Vulkyrie::Physics {
 
@@ -13,6 +13,7 @@ namespace Vulkyrie::Physics {
 
         private:
             PhysicsWorldSettings _settings;
+            TransformComponentManager _transformComponentManager;
     };
 
 } // namespace Vulkyrie::Physics
