@@ -60,8 +60,8 @@ namespace Sandbox {
         public:
             SandboxLayerSphere()
                 : app(Application::GetSingleton())
-                , entityManager()
-                , transformComponentManager()
+                , physicsWorld(PhysicsWorldSettings("Sphere Physics World"))
+                , transformComponentStore()
                 , audioSystem(CreateRef<AudioSystem>())
                 , camera(Camera::Create())
                 , sphere(1.0f, 100, 100) {
@@ -88,6 +88,7 @@ namespace Sandbox {
                 // Load audio clips.
                 fahAudioClip = audioSystem->LoadClip("assets/sounds/fahhh.wav");
                 akAudioClip = audioSystem->LoadClip("assets/sounds/csgo-ak.wav");
+                deniedClip = audioSystem->LoadClip("assets/sounds/denied.wav");
 
                 // Load shader and texture.
                 shader = Shader::Create("assets/shaders/color.glsl");
@@ -225,6 +226,9 @@ namespace Sandbox {
                     } else if (e.MouseButton == MouseButton::MouseButton2) {
                         audioSystem->PlaySound(akAudioClip);
                         return true;
+                    } else if (e.MouseButton == MouseButton::MouseButton3) {
+                        audioSystem->PlaySound(deniedClip);
+                        return true;
                     }
 
                     return false;
@@ -243,12 +247,13 @@ namespace Sandbox {
             Application &app;
             Camera camera;
 
-            EntityManager entityManager;
-            TransformComponentManager transformComponentManager;
+            PhysicsWorld physicsWorld;
+            TransformComponentStore transformComponentStore;
 
             Ref<AudioSystem> audioSystem;
             AudioClip *fahAudioClip;
             AudioClip *akAudioClip;
+            AudioClip *deniedClip;
 
             Ref<Shader> shader;
 

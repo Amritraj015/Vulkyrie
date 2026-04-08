@@ -1,19 +1,24 @@
 #pragma once
 
 #include "physics/physics_world_settings.h"
-#include "ecs/components/transform_component_manager.h"
+#include "ecs/entity_manager.h"
+#include "ecs/components/transform_component_store.h"
 
 namespace Vulkyrie {
 
     class PhysicsWorld {
         public:
-            PhysicsWorld(const PhysicsWorldSettings &settings)
+            explicit PhysicsWorld(const PhysicsWorldSettings &settings)
                 : _settings(settings) {
+            }
+
+            void Update() {
             }
 
         private:
             PhysicsWorldSettings _settings;
-            TransformComponentManager _transformComponentManager;
+            EntityManager _entityManager;
+            TransformComponentStore _transformComponentStore;
     };
 
 } // namespace Vulkyrie

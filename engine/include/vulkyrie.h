@@ -17,7 +17,7 @@
 #include "ecs/entity.h"
 #include "ecs/entity_manager.h"
 #include "ecs/components/transform_component.h"
-#include "ecs/components/transform_component_manager.h"
+#include "ecs/components/transform_component_store.h"
 
 // Events includes
 #include "events/event_dispatcher.h"
@@ -67,6 +67,8 @@
 #include "materials/material_library.h"
 
 // Physics includes
+#include "physics/physics_world_settings.h"
+#include "physics/physics_world.h"
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/plane.h"
 #include "physics/collision/shapes/AABB.h"

@@ -5,13 +5,13 @@
 
 namespace Vulkyrie {
 
-    /** @brief The TransformComponentManager is responsible for managing TransformComponents associated with entities. It maintains a dense packing of active
+    /** @brief The TransformComponentStore is responsible for managing TransformComponents associated with entities. It maintains a dense packing of active
      * components at the front of the storage vector for efficient iteration, while allowing for dynamic addition, removal, activation, and deactivation of
      * components without fragmentation. The manager uses a mapping from entities to component indices to enable fast lookups and updates. */
-    class TransformComponentManager final {
+    class TransformComponentStore final {
         public:
-            /** @brief Constructs an instance of TransformComponentManager. */
-            TransformComponentManager()
+            /** @brief Constructs an instance of TransformComponentStore. */
+            TransformComponentStore()
                 : _activeCount(0) {
             }
 
@@ -146,7 +146,7 @@ namespace Vulkyrie {
                 return _components[_entityToComponentIndex[entity]];
             }
 
-            /** @brief Gets the total number of active transform components currently managed by this TransformComponentManager.
+            /** @brief Gets the total number of active transform components currently managed by this TransformComponentStore.
              * @return The total number of entities that currently have an active TransformComponent associated with them.
              */
             VE_FORCE_INLINE size_t GetActiveComponentCount() const {
@@ -164,14 +164,14 @@ namespace Vulkyrie {
              * @return A span over the densely packed active TransformComponents at the front of the storage.
              */
             std::span<const TransformComponent> GetActiveTransforms() const {
-                return {_components.data(), _activeCount};
+                return { _components.data(), _activeCount };
             }
 
             /** @brief Returns a contiguous view of the entities that have active TransformComponents.
              * @return A span over the entities corresponding to the densely packed active TransformComponents.
              */
             std::span<const Entity> GetActiveEntities() const {
-                return {_entities.data(), _activeCount};
+                return { _entities.data(), _activeCount };
             }
 
         private:

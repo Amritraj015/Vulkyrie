@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vlkypch.h"
+
 namespace Vulkyrie {
 
     /** @brief Component that represents the position, rotation, and scale of an entity in 3D space. */
