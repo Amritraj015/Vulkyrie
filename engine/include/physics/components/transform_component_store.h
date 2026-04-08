@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/entity.h"
+#include "core/entity.h"
 
 namespace Vulkyrie {
 
@@ -175,14 +175,14 @@ namespace Vulkyrie {
             /** @brief Returns a contiguous view of the active TransformComponents.
              * @return A span over the densely packed active TransformComponents at the front of the storage.
              */
-            std::span<const TransformComponent> GetActiveTransforms() const {
+            VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
                 return { _components.data(), _activeCount };
             }
 
             /** @brief Returns a contiguous view of the entities that have active TransformComponents.
              * @return A span over the entities corresponding to the densely packed active TransformComponents.
              */
-            std::span<const Entity> GetActiveEntities() const {
+            VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
                 return { _entities.data(), _activeCount };
             }
 

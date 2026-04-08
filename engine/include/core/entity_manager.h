@@ -1,7 +1,6 @@
 #pragma once
 
-#include "vlkypch.h"
-#include "ecs/entity.h"
+#include "core/entity.h"
 
 namespace Vulkyrie {
 

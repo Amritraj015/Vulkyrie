@@ -9,14 +9,11 @@
 #include "core/status_codes.h"
 #include "core/logger.h"
 #include "core/noise_generator.h"
+#include "core/entity.h"
+#include "core/entity_manager.h"
 
 // Debug includes
 #include "debug/profiler.h"
-
-// ECS includes
-#include "ecs/entity.h"
-#include "ecs/entity_manager.h"
-#include "ecs/components/transform_component_store.h"
 
 // Events includes
 #include "events/event_dispatcher.h"
@@ -71,5 +68,6 @@
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/plane.h"
 #include "physics/collision/shapes/AABB.h"
+#include "physics/components/transform_component_store.h"
 
 extern std::unique_ptr<Vulkyrie::Application> CreateApplication();
