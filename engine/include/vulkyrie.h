@@ -16,7 +16,6 @@
 // ECS includes
 #include "ecs/entity.h"
 #include "ecs/entity_manager.h"
-#include "ecs/components/transform_component.h"
 #include "ecs/components/transform_component_store.h"
 
 // Events includes

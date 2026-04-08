@@ -1,9 +1,21 @@
 #pragma once
 
 #include "ecs/entity.h"
-#include "ecs/components/transform_component.h"
 
 namespace Vulkyrie {
+
+    /** @brief Component that represents the position, rotation, and scale of an entity in 3D space. */
+    struct TransformComponent final {
+        public:
+            /** Position of the entity in 3D space. */
+            glm::vec3 Position;
+
+            /** Rotation of the entity represented as a quaternion. */
+            glm::quat Rotation;
+
+            /** Scale factor for the entity in 3D space. */
+            glm::vec3 Scale;
+    };
 
     /** @brief The TransformComponentStore is responsible for managing TransformComponents associated with entities. It maintains a dense packing of active
      * components at the front of the storage vector for efficient iteration, while allowing for dynamic addition, removal, activation, and deactivation of
