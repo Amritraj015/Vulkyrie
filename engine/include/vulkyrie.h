@@ -67,7 +67,7 @@
 #include "physics/physics_world.h"
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/plane.h"
-#include "physics/collision/shapes/AABB.h"
+#include "physics/collision/shapes/aabb.h"
 #include "physics/components/transform_component_store.h"
 
 extern std::unique_ptr<Vulkyrie::Application> CreateApplication();

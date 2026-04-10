@@ -148,7 +148,7 @@ TEST_CASE("TransformComponentStore - SetComponent updates values", "[ecs][transf
     Entity e = em.CreateEntity();
     mgr.AddComponent(e, makeTransform(1.0f), true);
 
-    mgr.SetComponent(e, makeTransform(99.0f, 88.0f, 77.0f));
+    mgr.SetTransform(e, makeTransform(99.0f, 88.0f, 77.0f));
     auto &t = mgr.GetTransform(e);
 
     REQUIRE(t.Position.x == 99.0f);
@@ -164,7 +164,7 @@ TEST_CASE("TransformComponentStore - SetComponent on inactive entity", "[ecs][tr
     Entity e = em.CreateEntity();
     mgr.AddComponent(e, makeTransform(1.0f), false);
 
-    mgr.SetComponent(e, makeTransform(42.0f));
+    mgr.SetTransform(e, makeTransform(42.0f));
     REQUIRE(mgr.GetTransform(e).Position.x == 42.0f);
     requireDensePacking(mgr, {}, { e });
 }
@@ -568,7 +568,7 @@ TEST_CASE("TransformComponentStore - Add inactive, activate, set, deactivate", "
     mgr.Activate(e);
     requireDensePacking(mgr, { e }, {});
 
-    mgr.SetComponent(e, makeTransform(50.0f));
+    mgr.SetTransform(e, makeTransform(50.0f));
     REQUIRE(mgr.GetTransform(e).Position.x == 50.0f);
     requireDensePacking(mgr, { e }, {});
 

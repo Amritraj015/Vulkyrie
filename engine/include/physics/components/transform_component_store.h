@@ -142,7 +142,7 @@ namespace Vulkyrie {
              * @param entity The entity whose TransformComponent is to be updated. The entity must have a TransformComponent.
              * @param component The new TransformComponent values to be set for the specified entity.
              */
-            VE_FORCE_INLINE void SetComponent(const Entity entity, const TransformComponent &component) {
+            VE_FORCE_INLINE void SetTransform(const Entity entity, const TransformComponent &component) {
                 assert(_entityToComponentIndex.contains(entity) && "Entity does not have a TransformComponent.");
 
                 _components[_entityToComponentIndex[entity]] = component;
