@@ -25,7 +25,7 @@ namespace Vulkyrie {
         public:
             /** @brief Constructs an instance of TransformComponentStore. */
             TransformComponentStore() {
-                _components.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
+                _transforms.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
             }
 
             /** @brief Destructor for TransformComponentStore. */
@@ -34,16 +34,16 @@ namespace Vulkyrie {
             /** @brief Adds a TransformComponent to the specified entity. Active components are stored at the front of the vector and inactive ones at
              * the back to maintain dense packing for efficient iteration.
              * @param entity The entity to which the TransformComponent will be added. Must not already have a TransformComponent.
-             * @param component The TransformComponent to be added to the entity.
+             * @param transformComponent The TransformComponent to be added to the entity.
              * @param active Whether the entity is currently active.
              */
-            void AddComponent(Entity entity, const TransformComponent &component, bool active) {
+            void AddComponent(Entity entity, const TransformComponent &transformComponent, bool active) {
                 assert(!HasComponent(entity) && "Entity already has a TransformComponent.");
 
-                size_t index = _components.size();
+                size_t index = _transforms.size();
 
                 // Append the new component and its associated entity to the end of their respective vectors.
-                _components.push_back(component);
+                _transforms.push_back(transformComponent);
                 _entities.push_back(entity);
 
                 if (active) {
@@ -110,12 +110,12 @@ namespace Vulkyrie {
             /** @brief Sets the TransformComponent for the specified entity. The entity must already have a TransformComponent associated with it, and this
              * function will update the existing component with the new values provided.
              * @param entity The entity whose TransformComponent is to be updated. The entity must have a TransformComponent.
-             * @param component The new TransformComponent values to be set for the specified entity.
+             * @param transformComponent The new TransformComponent values to be set for the specified entity.
              */
-            VE_FORCE_INLINE void SetTransform(const Entity entity, const TransformComponent &component) {
+            VE_FORCE_INLINE void SetTransform(const Entity entity, const TransformComponent &transformComponent) {
                 assert(HasComponent(entity) && "Entity does not have a TransformComponent.");
 
-                _components[_entityToComponentIndex[entity]] = component;
+                _transforms[_entityToComponentIndex[entity]] = transformComponent;
             }
 
             /** @brief Retrieves a reference to the TransformComponent associated with the specified entity.
@@ -125,14 +125,14 @@ namespace Vulkyrie {
             VE_FORCE_INLINE TransformComponent &GetTransform(const Entity entity) {
                 assert(HasComponent(entity) && "Entity does not have a TransformComponent.");
 
-                return _components[_entityToComponentIndex[entity]];
+                return _transforms[_entityToComponentIndex[entity]];
             }
 
             /** @brief Returns a contiguous view of the active TransformComponents.
              * @return A span over the densely packed active TransformComponents at the front of the storage.
              */
             VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
-                return { _components.data(), _activeCount };
+                return { _transforms.data(), _activeCount };
             }
 
             /** @brief Returns a contiguous view of the entities that have active TransformComponents.
@@ -146,7 +146,7 @@ namespace Vulkyrie {
             void swapComponents(size_t indexA, size_t indexB) override {
                 if (indexA == indexB) return;
 
-                std::swap(_components[indexA], _components[indexB]);
+                std::swap(_transforms[indexA], _transforms[indexB]);
                 std::swap(_entities[indexA], _entities[indexB]);
 
                 _entityToComponentIndex[_entities[indexA]] = indexA;
@@ -154,9 +154,9 @@ namespace Vulkyrie {
             }
 
             void removeLastComponentAndEntity() override {
-                assert(!_components.empty() && "No components to remove.");
+                assert(!_transforms.empty() && "There are no TransformComponents available to be removed.");
 
-                _components.pop_back();
+                _transforms.pop_back();
                 _entities.pop_back();
             }
 
@@ -165,7 +165,7 @@ namespace Vulkyrie {
              * at the beginning of the vector and inactive components stored at the end. This allows for efficient iteration over active components while still
              * supporting inactive entities without fragmentation in memory. The index of a component in this vector corresponds to the index of its associated
              * entity in the _entities vector, allowing for efficient lookup and management of components based on their associated entities. */
-            std::vector<TransformComponent> _components;
+            std::vector<TransformComponent> _transforms;
     };
 
 } // namespace Vulkyrie
