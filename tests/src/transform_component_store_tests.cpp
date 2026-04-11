@@ -302,10 +302,10 @@ TEST_CASE("TransformComponentStore - Remove all components one by one", "[ecs][t
 }
 
 // ===========================================================================================
-// Activate
+// SetActiveStatus
 // ===========================================================================================
 
-TEST_CASE("TransformComponentStore - Activate inactive component", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true on inactive component", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -314,26 +314,26 @@ TEST_CASE("TransformComponentStore - Activate inactive component", "[ecs][transf
 
     requireDensePacking(store, {}, { e });
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
 
     requireDensePacking(store, { e }, {});
     REQUIRE(store.GetTransform(e).Position.x == 5.0f);
 }
 
-TEST_CASE("TransformComponentStore - Activate already active component is no-op", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true on already active component is no-op", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(5.0f), true);
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
 
     requireDensePacking(store, { e }, {});
     REQUIRE(store.GetTransform(e).Position.x == 5.0f);
 }
 
-TEST_CASE("TransformComponentStore - Activate one of several inactive components", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true on one of several inactive components", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -345,7 +345,7 @@ TEST_CASE("TransformComponentStore - Activate one of several inactive components
     store.AddComponent(e2, makeTransform(2.0f), false);
     store.AddComponent(e3, makeTransform(3.0f), false);
 
-    store.Activate(e2);
+    store.SetActiveStatus(e2, true);
 
     requireDensePacking(store, { e2 }, { e1, e3 });
     REQUIRE(store.GetTransform(e1).Position.x == 1.0f);
@@ -353,7 +353,7 @@ TEST_CASE("TransformComponentStore - Activate one of several inactive components
     REQUIRE(store.GetTransform(e3).Position.x == 3.0f);
 }
 
-TEST_CASE("TransformComponentStore - Activate with existing active components", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true with existing active components", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -363,7 +363,7 @@ TEST_CASE("TransformComponentStore - Activate with existing active components", 
     store.AddComponent(a1, makeTransform(1.0f), true);
     store.AddComponent(i1, makeTransform(2.0f), false);
 
-    store.Activate(i1);
+    store.SetActiveStatus(i1, true);
 
     requireDensePacking(store, { a1, i1 }, {});
     REQUIRE(store.GetTransform(a1).Position.x == 1.0f);
@@ -371,10 +371,10 @@ TEST_CASE("TransformComponentStore - Activate with existing active components", 
 }
 
 // ===========================================================================================
-// Deactivate
+// SetActiveStatus (deactivate)
 // ===========================================================================================
 
-TEST_CASE("TransformComponentStore - Deactivate active component", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false on active component", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -383,26 +383,26 @@ TEST_CASE("TransformComponentStore - Deactivate active component", "[ecs][transf
 
     requireDensePacking(store, { e }, {});
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
 
     requireDensePacking(store, {}, { e });
     REQUIRE(store.GetTransform(e).Position.x == 5.0f);
 }
 
-TEST_CASE("TransformComponentStore - Deactivate already inactive component is no-op", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false on already inactive component is no-op", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(5.0f), false);
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
 
     requireDensePacking(store, {}, { e });
     REQUIRE(store.GetTransform(e).Position.x == 5.0f);
 }
 
-TEST_CASE("TransformComponentStore - Deactivate one of several active components", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false on one of several active components", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -414,7 +414,7 @@ TEST_CASE("TransformComponentStore - Deactivate one of several active components
     store.AddComponent(e2, makeTransform(2.0f), true);
     store.AddComponent(e3, makeTransform(3.0f), true);
 
-    store.Deactivate(e2);
+    store.SetActiveStatus(e2, false);
 
     requireDensePacking(store, { e1, e3 }, { e2 });
     REQUIRE(store.GetTransform(e1).Position.x == 1.0f);
@@ -422,7 +422,7 @@ TEST_CASE("TransformComponentStore - Deactivate one of several active components
     REQUIRE(store.GetTransform(e3).Position.x == 3.0f);
 }
 
-TEST_CASE("TransformComponentStore - Deactivate preserves inactive components", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false preserves inactive components", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -434,7 +434,7 @@ TEST_CASE("TransformComponentStore - Deactivate preserves inactive components", 
     store.AddComponent(a2, makeTransform(2.0f), true);
     store.AddComponent(i1, makeTransform(3.0f), false);
 
-    store.Deactivate(a1);
+    store.SetActiveStatus(a1, false);
 
     requireDensePacking(store, { a2 }, { a1, i1 });
     REQUIRE(store.GetTransform(a1).Position.x == 1.0f);
@@ -443,10 +443,10 @@ TEST_CASE("TransformComponentStore - Deactivate preserves inactive components", 
 }
 
 // ===========================================================================================
-// Activate / Deactivate round-trips
+// SetActiveStatus round-trips
 // ===========================================================================================
 
-TEST_CASE("TransformComponentStore - Activate then deactivate returns to original state", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true then false returns to original state", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -456,31 +456,31 @@ TEST_CASE("TransformComponentStore - Activate then deactivate returns to origina
     store.AddComponent(a1, makeTransform(1.0f), true);
     store.AddComponent(i1, makeTransform(2.0f), false);
 
-    store.Activate(i1);
+    store.SetActiveStatus(i1, true);
     requireDensePacking(store, { a1, i1 }, {});
 
-    store.Deactivate(i1);
+    store.SetActiveStatus(i1, false);
     requireDensePacking(store, { a1 }, { i1 });
     REQUIRE(store.GetTransform(a1).Position.x == 1.0f);
     REQUIRE(store.GetTransform(i1).Position.x == 2.0f);
 }
 
-TEST_CASE("TransformComponentStore - Deactivate then activate returns to original state", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false then true returns to original state", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(7.0f), true);
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
     requireDensePacking(store, {}, { e });
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
     requireDensePacking(store, { e }, {});
     REQUIRE(store.GetTransform(e).Position.x == 7.0f);
 }
 
-TEST_CASE("TransformComponentStore - Activate all inactive components one by one", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true on all inactive components one by one", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -492,13 +492,13 @@ TEST_CASE("TransformComponentStore - Activate all inactive components one by one
     store.AddComponent(e2, makeTransform(2.0f), false);
     store.AddComponent(e3, makeTransform(3.0f), false);
 
-    store.Activate(e3);
+    store.SetActiveStatus(e3, true);
     requireDensePacking(store, { e3 }, { e1, e2 });
 
-    store.Activate(e1);
+    store.SetActiveStatus(e1, true);
     requireDensePacking(store, { e3, e1 }, { e2 });
 
-    store.Activate(e2);
+    store.SetActiveStatus(e2, true);
     requireDensePacking(store, { e3, e1, e2 }, {});
 
     REQUIRE(store.GetTransform(e1).Position.x == 1.0f);
@@ -506,7 +506,7 @@ TEST_CASE("TransformComponentStore - Activate all inactive components one by one
     REQUIRE(store.GetTransform(e3).Position.x == 3.0f);
 }
 
-TEST_CASE("TransformComponentStore - Deactivate all active components one by one", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false on all active components one by one", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -518,13 +518,13 @@ TEST_CASE("TransformComponentStore - Deactivate all active components one by one
     store.AddComponent(e2, makeTransform(2.0f), true);
     store.AddComponent(e3, makeTransform(3.0f), true);
 
-    store.Deactivate(e2);
+    store.SetActiveStatus(e2, false);
     requireDensePacking(store, { e1, e3 }, { e2 });
 
-    store.Deactivate(e1);
+    store.SetActiveStatus(e1, false);
     requireDensePacking(store, { e3 }, { e1, e2 });
 
-    store.Deactivate(e3);
+    store.SetActiveStatus(e3, false);
     requireDensePacking(store, {}, { e1, e2, e3 });
 
     REQUIRE(store.GetTransform(e1).Position.x == 1.0f);
@@ -533,10 +533,10 @@ TEST_CASE("TransformComponentStore - Deactivate all active components one by one
 }
 
 // ===========================================================================================
-// Combined operations (add, remove, activate, deactivate, set)
+// Combined operations (add, remove, SetActiveStatus, set)
 // ===========================================================================================
 
-TEST_CASE("TransformComponentStore - Add, deactivate, remove active", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - Add, SetActiveStatus false, remove active", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -548,7 +548,7 @@ TEST_CASE("TransformComponentStore - Add, deactivate, remove active", "[ecs][tra
     store.AddComponent(e2, makeTransform(2.0f), true);
     store.AddComponent(e3, makeTransform(3.0f), true);
 
-    store.Deactivate(e2);
+    store.SetActiveStatus(e2, false);
     requireDensePacking(store, { e1, e3 }, { e2 });
 
     store.RemoveComponent(e1);
@@ -557,7 +557,7 @@ TEST_CASE("TransformComponentStore - Add, deactivate, remove active", "[ecs][tra
     REQUIRE(store.GetTransform(e2).Position.x == 2.0f);
 }
 
-TEST_CASE("TransformComponentStore - Add inactive, activate, set, deactivate", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - Add inactive, SetActiveStatus true, set, SetActiveStatus false", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -565,14 +565,14 @@ TEST_CASE("TransformComponentStore - Add inactive, activate, set, deactivate", "
     store.AddComponent(e, makeTransform(0.0f), false);
     requireDensePacking(store, {}, { e });
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
     requireDensePacking(store, { e }, {});
 
     store.SetTransform(e, makeTransform(50.0f));
     REQUIRE(store.GetTransform(e).Position.x == 50.0f);
     requireDensePacking(store, { e }, {});
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
     requireDensePacking(store, {}, { e });
     REQUIRE(store.GetTransform(e).Position.x == 50.0f);
 }
@@ -591,7 +591,7 @@ TEST_CASE("TransformComponentStore - Remove then re-add same entity", "[ecs][tra
     REQUIRE(store.GetTransform(e).Position.x == 99.0f);
 }
 
-TEST_CASE("TransformComponentStore - Stress: many adds, removes, activates, deactivates", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - Stress: many adds, removes, SetActiveStatus calls", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -623,15 +623,15 @@ TEST_CASE("TransformComponentStore - Stress: many adds, removes, activates, deac
         REQUIRE(store.GetTransform(entities[i]).Position.x == static_cast<float>(i));
     }
 
-    // Activate all odd-indexed (inactive) entities.
+    // SetActiveStatus true for all odd-indexed (inactive) entities.
     for (int i = 1; i < N; i += 2) {
-        store.Activate(entities[i]);
+        store.SetActiveStatus(entities[i], true);
     }
     requireDensePacking(store, entities, {});
 
-    // Deactivate the first half.
+    // SetActiveStatus false for the first half.
     for (int i = 0; i < N / 2; i++) {
-        store.Deactivate(entities[i]);
+        store.SetActiveStatus(entities[i], false);
     }
     {
         std::vector<Entity> active(entities.begin() + N / 2, entities.end());
@@ -747,28 +747,28 @@ TEST_CASE("TransformComponentStore - Add and remove single active leaves empty",
     requireDensePacking(store, {}, {});
 }
 
-TEST_CASE("TransformComponentStore - Deactivate single active then remove", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus false on single active then remove", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), true);
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
     requireDensePacking(store, {}, { e });
 
     store.RemoveComponent(e);
     requireDensePacking(store, {}, {});
 }
 
-TEST_CASE("TransformComponentStore - Activate single inactive then remove", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - SetActiveStatus true on single inactive then remove", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), false);
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
     requireDensePacking(store, { e }, {});
 
     store.RemoveComponent(e);
@@ -864,7 +864,7 @@ TEST_CASE("TransformComponentStore - IsDisabled returns true for inactive entity
     REQUIRE(store.IsDisabled(e));
 }
 
-TEST_CASE("TransformComponentStore - IsDisabled returns true after deactivation", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - IsDisabled returns true after SetActiveStatus false", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -873,12 +873,12 @@ TEST_CASE("TransformComponentStore - IsDisabled returns true after deactivation"
 
     REQUIRE_FALSE(store.IsDisabled(e));
 
-    store.Deactivate(e);
+    store.SetActiveStatus(e, false);
 
     REQUIRE(store.IsDisabled(e));
 }
 
-TEST_CASE("TransformComponentStore - IsDisabled returns false after activation", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - IsDisabled returns false after SetActiveStatus true", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -887,7 +887,7 @@ TEST_CASE("TransformComponentStore - IsDisabled returns false after activation",
 
     REQUIRE(store.IsDisabled(e));
 
-    store.Activate(e);
+    store.SetActiveStatus(e, true);
 
     REQUIRE_FALSE(store.IsDisabled(e));
 }
@@ -921,7 +921,7 @@ TEST_CASE("TransformComponentStore - GetEntityIndex returns index in inactive zo
     REQUIRE(idx < store.GetTotalComponentCount());
 }
 
-TEST_CASE("TransformComponentStore - GetEntityIndex updates after activate", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - GetEntityIndex updates after SetActiveStatus true", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -932,12 +932,12 @@ TEST_CASE("TransformComponentStore - GetEntityIndex updates after activate", "[e
 
     REQUIRE(store.GetEntityIndex(i) >= store.GetActiveComponentCount());
 
-    store.Activate(i);
+    store.SetActiveStatus(i, true);
 
     REQUIRE(store.GetEntityIndex(i) < store.GetActiveComponentCount());
 }
 
-TEST_CASE("TransformComponentStore - GetEntityIndex updates after deactivate", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - GetEntityIndex updates after SetActiveStatus false", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -948,7 +948,7 @@ TEST_CASE("TransformComponentStore - GetEntityIndex updates after deactivate", "
 
     REQUIRE(store.GetEntityIndex(e1) < store.GetActiveComponentCount());
 
-    store.Deactivate(e1);
+    store.SetActiveStatus(e1, false);
 
     REQUIRE(store.GetEntityIndex(e1) >= store.GetActiveComponentCount());
 }
@@ -1005,7 +1005,7 @@ TEST_CASE("TransformComponentStore - Remove last inactive that is also last elem
     REQUIRE(store.GetTransform(a).Position.x == 1.0f);
 }
 
-TEST_CASE("TransformComponentStore - Multiple activate/deactivate cycles on same entity", "[ecs][transform]") {
+TEST_CASE("TransformComponentStore - Multiple SetActiveStatus cycles on same entity", "[ecs][transform]") {
     EntityManager em;
     TransformComponentStore store;
 
@@ -1016,11 +1016,11 @@ TEST_CASE("TransformComponentStore - Multiple activate/deactivate cycles on same
     store.AddComponent(e, makeTransform(2.0f), false);
 
     for (int i = 0; i < 10; i++) {
-        store.Activate(e);
+        store.SetActiveStatus(e, true);
         requireDensePacking(store, { a, e }, {});
         REQUIRE(store.GetTransform(e).Position.x == 2.0f);
 
-        store.Deactivate(e);
+        store.SetActiveStatus(e, false);
         requireDensePacking(store, { a }, { e });
         REQUIRE(store.GetTransform(e).Position.x == 2.0f);
     }

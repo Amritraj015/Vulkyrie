@@ -7,11 +7,7 @@ namespace Vulkyrie {
     class ComponentStore {
         protected:
             /** @brief Constructs an instance of ComponentStore. Initializes the active component count to zero. */
-            ComponentStore()
-                : _activeCount(0) {
-                _entities.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
-                _entityToComponentIndex.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
-            }
+            ComponentStore();
 
             /** @brief Virtual destructor for ComponentStore. Ensures proper cleanup of derived classes. */
             virtual ~ComponentStore() = default;
@@ -49,41 +45,19 @@ namespace Vulkyrie {
             virtual void removeLastComponentAndEntity() = 0;
 
         public:
+            /** @brief Sets the active status of the component associated with the specified entity. If the entity is being activated, its component is swapped
+             * into the active zone at the front of the vector. If the entity is being deactivated, its component is swapped out of the active zone to maintain
+             * dense packing of active components. The method updates the _activeCount accordingly to reflect the new count of active components.
+             * @param entity The entity whose component's active status is to be set. The entity must have a component associated with it.
+             * @param active True to activate the entity's component, false to deactivate it.
+             */
+            void SetActiveStatus(Entity entity, bool active);
+
             /** @brief Removes the component associated with the specified entity. If the entity's component is active, it is first swapped with the
              * last active component to maintain the dense packing of active components. The component is then swapped to the end of the vector and popped off.
              * @param entity The entity whose component is to be removed. The entity must have a component.
              */
-            void RemoveComponent(Entity entity) {
-                assert(HasComponent(entity) && "Entity does not have a component.");
-
-                size_t index = _entityToComponentIndex[entity];
-                bool wasActive = index < _activeCount;
-                size_t lastIndex = _entities.size() - 1;
-
-                if (wasActive) {
-                    // Swap the removed component with the last active component to fill the gap in the active zone,
-                    // then update index to point to where the removed component now sits (at the active/inactive boundary).
-                    size_t lastActiveIndex = _activeCount - 1;
-                    if (index != lastActiveIndex) {
-                        swapComponents(index, lastActiveIndex);
-                        index = lastActiveIndex;
-                    }
-
-                    // Shrink the active zone since the removed component is no longer active.
-                    _activeCount--;
-                }
-
-                // Swap the removed component to the very end of the vector so it can be popped off.
-                if (index != lastIndex) {
-                    swapComponents(index, lastIndex);
-                }
-
-                // Pop the last component off the vector and remove the corresponding entity from the _entities vector.
-                removeLastComponentAndEntity();
-
-                // Remove the entity from the _entityToComponentIndex map since it no longer has an associated component.
-                _entityToComponentIndex.erase(entity);
-            }
+            void RemoveComponent(Entity entity);
 
             /** @brief Checks if the specified entity is currently disabled in this component store.
              * @param entity The entity to check for being disabled.
@@ -127,10 +101,6 @@ namespace Vulkyrie {
 
                 return _entityToComponentIndex.at(entity);
             }
-
-            // void Enabled(Entity entity, bool enabled);
-            //
-            // bool HasComponentGetIndex(Entity entity, uint32 &entityIndex) const;
     };
 
 } // namespace Vulkyrie

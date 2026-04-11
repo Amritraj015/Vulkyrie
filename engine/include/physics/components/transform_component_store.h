@@ -64,49 +64,6 @@ namespace Vulkyrie {
                 }
             }
 
-            /** @brief Activates the TransformComponent associated with the specified entity, making it active and included in the count of active components.
-             * The entity must already have a TransformComponent associated with it, and this function will move the component to the appropriate index in the
-             * component vector to maintain the dense packing of active components.
-             * @param entity The entity whose TransformComponent is to be activated. The entity must have a TransformComponent.
-             */
-            void Activate(Entity entity) {
-                assert(HasComponent(entity) && "Entity does not have a TransformComponent.");
-
-                size_t index = _entityToComponentIndex[entity];
-
-                // If entity is already active, we don't need to do anything.
-                if (index < _activeCount) return;
-
-                // Swap the component at the current index with the component at the index corresponding to
-                // the current count of active components to maintain the dense packing of active components.
-                swapComponents(index, _activeCount);
-
-                // Increment the count of active components since we have activated a new component.
-                _activeCount++;
-            }
-
-            /** @brief Deactivates the TransformComponent associated with the specified entity. The entity must already have a TransformComponent associated
-             * with it, and this function will mark the component as inactive by swapping it with the last active component in the vector and decrementing the
-             * count of active components. This maintains the dense packing of active components in memory while allowing for efficient deactivation of
-             * components without fragmentation.
-             * @param entity The entity whose TransformComponent is to be deactivated. The entity must have a TransformComponent.
-             */
-            void Deactivate(Entity entity) {
-                assert(HasComponent(entity) && "Entity does not have a TransformComponent.");
-
-                size_t index = _entityToComponentIndex[entity];
-
-                // If entity is already inactive, we don't need to do anything.
-                if (index >= _activeCount) return;
-
-                // Decrement the count of active components since we will be deactivating a component.
-                _activeCount--;
-
-                // Swap the component at the current index with the component at the index corresponding to
-                // the new count of active components to maintain the dense packing of active components.
-                swapComponents(index, _activeCount);
-            }
-
             /** @brief Sets the TransformComponent for the specified entity. The entity must already have a TransformComponent associated with it, and this
              * function will update the existing component with the new values provided.
              * @param entity The entity whose TransformComponent is to be updated. The entity must have a TransformComponent.
