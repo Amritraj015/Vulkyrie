@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/entity.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -33,7 +34,7 @@ namespace Vulkyrie {
                     _generations.push_back(0);
 
                     // Assert that the index does not exceed the maximum allowed by the entity ID.
-                    assert(index < (u64(1) << Entity::ENTITY_INDEX_BITS));
+                    VASSERT_EXPR(index < (u64(1) << Entity::ENTITY_INDEX_BITS), "Entity index exceeds maximum allowed bits.");
                 }
 
                 // Return a newly created entity.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/entity.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -64,7 +65,7 @@ namespace Vulkyrie {
              * @return True if the entity has a component that is currently inactive, false otherwise.
              */
             VE_FORCE_INLINE bool IsDisabled(Entity entity) {
-                assert(HasComponent(entity) && "Entity does not have a component.");
+                VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
                 return _entityToComponentIndex[entity] >= _activeCount;
             }
@@ -97,7 +98,7 @@ namespace Vulkyrie {
              * @return The index of the component associated with the specified entity in the component vector.
              */
             VE_FORCE_INLINE size_t GetEntityIndex(Entity entity) const {
-                assert(HasComponent(entity) && "Entity does not have a component.");
+                VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
                 return _entityToComponentIndex.at(entity);
             }

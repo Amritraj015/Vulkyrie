@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -15,7 +16,7 @@ namespace Vulkyrie {
             AABB(const glm::vec3 &minCoordinates, const glm::vec3 &maxCoordinates)
                 : _minCoordinates(minCoordinates)
                 , _maxCoordinates(maxCoordinates) {
-                assert(minCoordinates.x <= maxCoordinates.x && minCoordinates.y <= maxCoordinates.y && minCoordinates.z <= maxCoordinates.z &&
+                VASSERT_EXPR(minCoordinates.x <= maxCoordinates.x && minCoordinates.y <= maxCoordinates.y && minCoordinates.z <= maxCoordinates.z,
                        "Min coordinates must not exceed max coordinates.");
             }
 
@@ -37,14 +38,14 @@ namespace Vulkyrie {
                 _minCoordinates -= inflation;
                 _maxCoordinates += inflation;
 
-                assert(_minCoordinates.x <= _maxCoordinates.x && _minCoordinates.y <= _maxCoordinates.y && _minCoordinates.z <= _maxCoordinates.z &&
+                VASSERT_EXPR(_minCoordinates.x <= _maxCoordinates.x && _minCoordinates.y <= _maxCoordinates.y && _minCoordinates.z <= _maxCoordinates.z,
                        "Inflation resulted in min exceeding max.");
             }
 
             /** @brief Scales the AABB relative to the world origin by multiplying both corners by the given scale factors.
              * @param scale The scale factors for each axis. Must be positive. */
             VE_FORCE_INLINE void Scale(const glm::vec3 &scale) {
-                assert(scale.x > 0 && scale.y > 0 && scale.z > 0 && "Scale factors must be positive.");
+                VASSERT_EXPR(scale.x > 0 && scale.y > 0 && scale.z > 0, "Scale factors must be positive.");
 
                 _minCoordinates = _minCoordinates * scale;
                 _maxCoordinates = _maxCoordinates * scale;
@@ -84,7 +85,7 @@ namespace Vulkyrie {
             /** @brief Sets the minimum corner of the AABB.
              * @param min The new minimum corner coordinates. */
             VE_FORCE_INLINE void SetMin(const glm::vec3 &min) {
-                assert(min.x <= _maxCoordinates.x && min.y <= _maxCoordinates.y && min.z <= _maxCoordinates.z && "New min must not exceed current max.");
+                VASSERT_EXPR(min.x <= _maxCoordinates.x && min.y <= _maxCoordinates.y && min.z <= _maxCoordinates.z, "New min must not exceed current max.");
 
                 _minCoordinates = min;
             }
@@ -97,7 +98,7 @@ namespace Vulkyrie {
             /** @brief Sets the maximum corner of the AABB.
              * @param max The new maximum corner coordinates. */
             VE_FORCE_INLINE void SetMax(const glm::vec3 &max) {
-                assert(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z && "New max must not be less than current min.");
+                VASSERT_EXPR(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z, "New max must not be less than current min.");
 
                 _maxCoordinates = max;
             }

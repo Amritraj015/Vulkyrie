@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
     /** @brief The FrameGraphBlackboard class provides a type-safe storage mechanism for arbitrary data associated with a frame graph.
@@ -23,7 +24,7 @@ namespace Vulkyrie {
              * @param args The arguments to forward to the constructor of T.
              * @return A reference to the stored value of type T. */
             template <typename T, typename... Args> T &Set(Args &&...args) {
-                assert(!Contains<T>());
+                VASSERT_EXPR(!Contains<T>(), "Blackboard already contains an entry for this type.");
 
                 return std::any_cast<T &>(_cache[typeid(T)] = T(std::forward<Args>(args)...));
             }
@@ -46,7 +47,7 @@ namespace Vulkyrie {
              * @tparam T The type of the value to retrieve. Must exist in the blackboard.
              * @return A reference to the stored value of type T. */
             template <typename T> [[nodiscard]] const T &Get() const {
-                assert(Contains<T>());
+                VASSERT_EXPR(Contains<T>(), "Blackboard does not contain an entry for this type.");
 
                 return std::any_cast<const T &>(_cache.at(typeid(T)));
             }

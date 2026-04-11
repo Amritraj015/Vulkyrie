@@ -90,6 +90,7 @@ namespace Sandbox {
                 akAudioClip = audioSystem->LoadClip("assets/sounds/csgo-ak.wav");
                 deniedClip = audioSystem->LoadClip("assets/sounds/denied.wav");
                 humiliationClip = audioSystem->LoadClip("assets/sounds/humiliation.wav");
+                lionScanClip = audioSystem->LoadClip("assets/sounds/lion_scan.wav");
 
                 // Load shader and texture.
                 shader = Shader::Create("assets/shaders/color.glsl");
@@ -233,6 +234,9 @@ namespace Sandbox {
                     } else if (e.MouseButton == MouseButton::MouseButton4) {
                         audioSystem->PlaySound(humiliationClip);
                         return true;
+                    } else if (e.MouseButton == MouseButton::MouseButton5) {
+                        audioSystem->PlaySound(lionScanClip);
+                        return true;
                     }
 
                     return false;
@@ -259,6 +263,7 @@ namespace Sandbox {
             AudioClip *akAudioClip;
             AudioClip *deniedClip;
             AudioClip *humiliationClip;
+            AudioClip *lionScanClip;
 
             Ref<Shader> shader;
 

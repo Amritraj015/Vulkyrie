@@ -2,6 +2,7 @@
 
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/frame_graph_types.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -174,7 +175,7 @@ namespace Vulkyrie {
              * types of reads.
              * @return The ID of the resource being read, which can be used for chaining calls or for further processing. */
             [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags) {
-                assert(!CreatesResource(resourceID) && !WritesToResource(resourceID));
+                VASSERT_EXPR(!CreatesResource(resourceID) && !WritesToResource(resourceID), "Resource is already being created or written to by this pass.");
 
                 ResourceAccess access{ resourceID, flags };
 

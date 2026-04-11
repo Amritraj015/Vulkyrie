@@ -5,6 +5,7 @@
 #include "renderer/frame_graph/pass_node.h"
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/resource_entry.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
     class ResourceEntry;
@@ -61,7 +62,7 @@ namespace Vulkyrie {
                      * required for this read operation.
                      * @return The ResourceID of the resource being read, which can be used for chaining calls or for further processing. */
                     [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
-                        assert(_frameGraph.IsValid(resourceID));
+                        VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
                         return _passNode.Read(resourceID, flags);
                     }
 
@@ -74,7 +75,7 @@ namespace Vulkyrie {
                      * handling is required for this write operation.
                      * @return The ResourceID of the resource being written to, which can be used for chaining calls or for further processing. */
                     [[nodiscard]] ResourceID Write(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
-                        assert(_frameGraph.IsValid(resourceID));
+                        VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
 
                         if (_frameGraph.GetResourceEntry(resourceID).IsImported()) {
                             SetSideEffect();
@@ -157,7 +158,7 @@ namespace Vulkyrie {
                         continue;
                     }
 
-                    assert(creator._liveOutputCount >= 1);
+                    VASSERT_EXPR(creator._liveOutputCount >= 1, "Pass creator has no live outputs.");
 
                     // We decrement the reference count of the creator pass, and if it drops to zero, we consider it unreferenced.
                     if (--creator._liveOutputCount == 0) {
@@ -380,7 +381,7 @@ namespace Vulkyrie {
              * @returns A const reference to the ResourceEntry associated with the specified ResourceNode.
              * */
             [[nodiscard]] const ResourceEntry &GetResourceEntry(const ResourceNode &node) const {
-                assert(node._resourceEntryID < _resourceRegistry.size());
+                VASSERT_EXPR(node._resourceEntryID < _resourceRegistry.size(), "Resource entry ID is out of range.");
                 return _resourceRegistry[node._resourceEntryID];
             }
 
@@ -397,7 +398,7 @@ namespace Vulkyrie {
              * @returns A const reference to the ResourceNode associated with the specified ResourceID.
              * */
             [[nodiscard]] const ResourceNode &GetResourceNode(ResourceID resourceID) const {
-                assert(resourceID < _resourceNodes.size());
+                VASSERT_EXPR(resourceID < _resourceNodes.size(), "Resource ID is out of range.");
                 return _resourceNodes[resourceID];
             }
 

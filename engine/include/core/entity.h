@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -61,8 +62,8 @@ namespace Vulkyrie {
              */
             Entity(u64 index, u64 generation)
                 : _id((index & ENTITY_INDEX_MASK) | ((generation & ENTITY_GENERATION_MASK) << ENTITY_INDEX_BITS)) {
-                assert(index < (1ULL << ENTITY_INDEX_BITS));
-                assert(generation < (1ULL << ENTITY_GENERATION_BITS));
+                VASSERT_EXPR(index < (1ULL << ENTITY_INDEX_BITS), "Entity index exceeds maximum allowed bits.");
+                VASSERT_EXPR(generation < (1ULL << ENTITY_GENERATION_BITS), "Entity generation exceeds maximum allowed bits.");
             }
 
             friend class EntityManager;

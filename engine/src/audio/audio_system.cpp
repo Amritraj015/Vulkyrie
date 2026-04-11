@@ -1,4 +1,5 @@
 #include "audio/audio_system.h"
+#include "core/asserts.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 
@@ -7,7 +8,7 @@ namespace Vulkyrie {
     AudioSystem::AudioSystem() {
         // Initialize OpenAL
         _device = alcOpenDevice(nullptr);
-        assert(_device && "Failed to open OpenAL device");
+        VASSERT_EXPR(_device, "Failed to open OpenAL device.");
 
         _context = alcCreateContext(static_cast<ALCdevice *>(_device), nullptr);
         alcMakeContextCurrent(static_cast<ALCcontext *>(_context));

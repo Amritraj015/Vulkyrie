@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="6" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+  </component>
+  <component name="CMakePresetLoader"><![CDATA[{
+  "useNewFormat": true
+}]]></component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="vulkyrie" targetName="ExperimentalConfigure" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="glad" />
+      <config projectName="vulkyrie" targetName="engine" />
+      <config projectName="vulkyrie" targetName="ContinuousStart" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ContinuousCoverage" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyCoverage" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ExperimentalBuild" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyMemoryCheck" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ExperimentalTest" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ContinuousUpdate" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ExperimentalMemCheck" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="asteroids" />
+      <config projectName="vulkyrie" targetName="ExperimentalUpdate" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyUpdate" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="Continuous" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="vulky" />
+      <config projectName="vulkyrie" targetName="ContinuousSubmit" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="Catch2WithMain" />
+      <config projectName="vulkyrie" targetName="NightlyBuild" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyMemCheck" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="sandbox" />
+      <config projectName="vulkyrie" targetName="ContinuousConfigure" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ExperimentalStart" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ExperimentalCoverage" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyStart" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ContinuousTest" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="ContinuousMemCheck" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="editor" />
+      <config projectName="vulkyrie" targetName="ExperimentalSubmit" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyTest" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="Nightly" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlySubmit" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="tests" />
+      <config projectName="vulkyrie" targetName="ContinuousBuild" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="Catch2" />
+      <config projectName="vulkyrie" targetName="Experimental" folderName="CTestDashboardTargets" />
+      <config projectName="vulkyrie" targetName="NightlyConfigure" folderName="CTestDashboardTargets" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="true">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+      <configuration PROFILE_NAME="clang-all-debug" PROFILE_DISPLAY_NAME="(Clang) - All Targets (Debug)" ENABLED="true" FROM_PRESET="true" GENERATION_DIR="build/clang-all-debug" />
+      <configuration PROFILE_NAME="all-release" PROFILE_DISPLAY_NAME="All Targets (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/all-release" />
+      <configuration PROFILE_NAME="examples-release" PROFILE_DISPLAY_NAME="Examples (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/examples-release" />
+      <configuration PROFILE_NAME="cli-release" PROFILE_DISPLAY_NAME="CLI (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/cli-release" />
+      <configuration PROFILE_NAME="tests-release" PROFILE_DISPLAY_NAME="Tests (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/tests-release" />
+      <configuration PROFILE_NAME="gcc-all-release" PROFILE_DISPLAY_NAME="(GCC) - All Targets (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-all-release" />
+      <configuration PROFILE_NAME="gcc-examples-release" PROFILE_DISPLAY_NAME="(GCC) - Examples (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-examples-release" />
+      <configuration PROFILE_NAME="gcc-cli-release" PROFILE_DISPLAY_NAME="(GCC) - CLI (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-cli-release" />
+      <configuration PROFILE_NAME="gcc-tests-release" PROFILE_DISPLAY_NAME="(GCC) - Tests (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-tests-release" />
+      <configuration PROFILE_NAME="clang-all-release" PROFILE_DISPLAY_NAME="(Clang) - All Targets (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-all-release" />
+      <configuration PROFILE_NAME="clang-examples-release" PROFILE_DISPLAY_NAME="(Clang) - Examples (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-examples-release" />
+      <configuration PROFILE_NAME="clang-cli-release" PROFILE_DISPLAY_NAME="(Clang) - CLI (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-cli-release" />
+      <configuration PROFILE_NAME="clang-tests-release" PROFILE_DISPLAY_NAME="(Clang) - Tests (Release)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-tests-release" />
+      <configuration PROFILE_NAME="all-debug" PROFILE_DISPLAY_NAME="All Targets (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/all-debug" />
+      <configuration PROFILE_NAME="examples-debug" PROFILE_DISPLAY_NAME="Examples (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/examples-debug" />
+      <configuration PROFILE_NAME="cli-debug" PROFILE_DISPLAY_NAME="CLI (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/cli-debug" />
+      <configuration PROFILE_NAME="tests-debug" PROFILE_DISPLAY_NAME="Tests (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/tests-debug" />
+      <configuration PROFILE_NAME="gcc-all-debug" PROFILE_DISPLAY_NAME="(GCC) - All Targets (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-all-debug" />
+      <configuration PROFILE_NAME="gcc-examples-debug" PROFILE_DISPLAY_NAME="(GCC) - Examples (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-examples-debug" />
+      <configuration PROFILE_NAME="gcc-cli-debug" PROFILE_DISPLAY_NAME="(GCC) - CLI (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-cli-debug" />
+      <configuration PROFILE_NAME="gcc-tests-debug" PROFILE_DISPLAY_NAME="(GCC) - Tests (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-tests-debug" />
+      <configuration PROFILE_NAME="clang-examples-debug" PROFILE_DISPLAY_NAME="(Clang) - Examples (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-examples-debug" />
+      <configuration PROFILE_NAME="clang-cli-debug" PROFILE_DISPLAY_NAME="(Clang) - CLI (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-cli-debug" />
+      <configuration PROFILE_NAME="clang-tests-debug" PROFILE_DISPLAY_NAME="(Clang) - Tests (Debug)" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-tests-debug" />
+      <configuration PROFILE_NAME="all-debug - all-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/all-debug" />
+      <configuration PROFILE_NAME="examples-debug - examples-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/examples-debug" />
+      <configuration PROFILE_NAME="cli-debug - cli-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/cli-debug" />
+      <configuration PROFILE_NAME="tests-debug - tests-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/tests-debug" />
+      <configuration PROFILE_NAME="gcc-all-debug - gcc-all-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-all-debug" />
+      <configuration PROFILE_NAME="gcc-examples-debug - gcc-examples-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-examples-debug" />
+      <configuration PROFILE_NAME="gcc-cli-debug - gcc-cli-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-cli-debug" />
+      <configuration PROFILE_NAME="gcc-tests-debug - gcc-tests-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-tests-debug" />
+      <configuration PROFILE_NAME="clang-all-debug - clang-all-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-all-debug" />
+      <configuration PROFILE_NAME="clang-examples-debug - clang-examples-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-examples-debug" />
+      <configuration PROFILE_NAME="clang-cli-debug - clang-cli-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-cli-debug" />
+      <configuration PROFILE_NAME="clang-tests-debug - clang-tests-debug" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-tests-debug" />
+      <configuration PROFILE_NAME="all-release - all-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/all-release" />
+      <configuration PROFILE_NAME="examples-release - examples-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/examples-release" />
+      <configuration PROFILE_NAME="cli-release - cli-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/cli-release" />
+      <configuration PROFILE_NAME="tests-release - tests-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/tests-release" />
+      <configuration PROFILE_NAME="gcc-all-release - gcc-all-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-all-release" />
+      <configuration PROFILE_NAME="gcc-examples-release - gcc-examples-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-examples-release" />
+      <configuration PROFILE_NAME="gcc-cli-release - gcc-cli-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-cli-release" />
+      <configuration PROFILE_NAME="gcc-tests-release - gcc-tests-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/gcc-tests-release" />
+      <configuration PROFILE_NAME="clang-all-release - clang-all-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-all-release" />
+      <configuration PROFILE_NAME="clang-examples-release - clang-examples-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-examples-release" />
+      <configuration PROFILE_NAME="clang-cli-release - clang-cli-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-cli-release" />
+      <configuration PROFILE_NAME="clang-tests-release - clang-tests-release" ENABLED="false" FROM_PRESET="true" GENERATION_DIR="build/clang-tests-release" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f2deecec-4a92-4a39-a1cf-fbb7f6b7122b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Vulkyrie.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/test.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/core/entity.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/core/entity.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/core/entity_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/core/entity_manager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/physics/collision/shapes/aabb.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/physics/collision/shapes/aabb.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/physics/components/component_store.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/physics/components/component_store.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/renderer/frame_graph/frame_graph.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/renderer/frame_graph/frame_graph.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/renderer/frame_graph/frame_graph_blackboard.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/renderer/frame_graph/frame_graph_blackboard.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/include/renderer/frame_graph/pass_node.h" beforeDir="false" afterPath="$PROJECT_DIR$/engine/include/renderer/frame_graph/pass_node.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/src/audio/audio_system.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/engine/src/audio/audio_system.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/src/physics/components/component_store.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/engine/src/physics/components/component_store.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/sandbox/src/sandbox_layer_sphere.h" beforeDir="false" afterPath="$PROJECT_DIR$/examples/sandbox/src/sandbox_layer_sphere.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/home/raj/Projects/CppProjects/Vulkyrie" value="3CCPIIHM06kwhwRbBfZitLpo0dq" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="2170" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:clang-all-debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Amritraj015"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:Amritraj015/Vulkyrie.git",
+    "accountId": "c40379d9-dc9c-4743-aa9b-0c5b68b66686"
+  }
+}]]></component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="2zNXuwPa" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2026" />
+    <option name="minorVersion" value="1" />
+    <option name="productBranch" value="Classic" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="3CCPIIHM06kwhwRbBfZitLpo0dq" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "RunOnceActivity.west.config.association.type.startup.service": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "features/dev-raj",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.first.attach.projects": "true",
+    "settings.editor.selected.configurable": "CMakeSettings",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="CMake Application.asteroids">
+    <configuration name="tests" type="CMakeCatchTestRunConfigurationType" factoryName="Catch Test" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="tests" CONFIG_NAME="clang-all-debug" RUN_TARGET_PROJECT_NAME="vulkyrie" RUN_TARGET_NAME="tests" TEST_MODE="SUITE_TEST">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="BeforeTestRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Catch2" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="Catch2" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Catch2WithMain" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="Catch2WithMain" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Continuous" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="Continuous" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousBuild" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousBuild" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousConfigure" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousConfigure" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousCoverage" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousCoverage" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousMemCheck" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousMemCheck" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousStart" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousStart" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousSubmit" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousSubmit" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousTest" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousTest" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousUpdate" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ContinuousUpdate" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Experimental" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="Experimental" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalBuild" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalBuild" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalConfigure" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalConfigure" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalCoverage" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalCoverage" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalMemCheck" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalMemCheck" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalStart" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalStart" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalSubmit" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalSubmit" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalTest" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalTest" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalUpdate" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="ExperimentalUpdate" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Nightly" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="Nightly" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyBuild" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyBuild" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyConfigure" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyConfigure" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyCoverage" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyCoverage" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyMemCheck" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyMemCheck" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyMemoryCheck" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyMemoryCheck" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyStart" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyStart" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlySubmit" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlySubmit" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyTest" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyTest" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyUpdate" type="CMakeRunConfiguration" factoryName="Application" folderName="CTestDashboardTargets" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="NightlyUpdate" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="asteroids" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="asteroids" CONFIG_NAME="clang-all-debug" RUN_TARGET_PROJECT_NAME="vulkyrie" RUN_TARGET_NAME="asteroids">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="editor" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="editor" CONFIG_NAME="clang-all-debug" RUN_TARGET_PROJECT_NAME="vulkyrie" RUN_TARGET_NAME="editor">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="engine" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="engine" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="glad" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="glad" CONFIG_NAME="clang-all-debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sandbox" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="sandbox" CONFIG_NAME="clang-all-debug" RUN_TARGET_PROJECT_NAME="vulkyrie" RUN_TARGET_NAME="sandbox">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="vulky" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="vulkyrie" TARGET_NAME="vulky" CONFIG_NAME="clang-all-debug" RUN_TARGET_PROJECT_NAME="vulkyrie" RUN_TARGET_NAME="vulky">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Catch.tests" />
+      <item itemvalue="CMake Application.Continuous" />
+      <item itemvalue="CMake Application.ContinuousBuild" />
+      <item itemvalue="CMake Application.ContinuousConfigure" />
+      <item itemvalue="CMake Application.ContinuousCoverage" />
+      <item itemvalue="CMake Application.ContinuousMemCheck" />
+      <item itemvalue="CMake Application.ContinuousStart" />
+      <item itemvalue="CMake Application.ContinuousSubmit" />
+      <item itemvalue="CMake Application.ContinuousTest" />
+      <item itemvalue="CMake Application.ContinuousUpdate" />
+      <item itemvalue="CMake Application.Experimental" />
+      <item itemvalue="CMake Application.ExperimentalBuild" />
+      <item itemvalue="CMake Application.ExperimentalConfigure" />
+      <item itemvalue="CMake Application.ExperimentalCoverage" />
+      <item itemvalue="CMake Application.ExperimentalMemCheck" />
+      <item itemvalue="CMake Application.ExperimentalStart" />
+      <item itemvalue="CMake Application.ExperimentalSubmit" />
+      <item itemvalue="CMake Application.ExperimentalTest" />
+      <item itemvalue="CMake Application.ExperimentalUpdate" />
+      <item itemvalue="CMake Application.Nightly" />
+      <item itemvalue="CMake Application.NightlyBuild" />
+      <item itemvalue="CMake Application.NightlyConfigure" />
+      <item itemvalue="CMake Application.NightlyCoverage" />
+      <item itemvalue="CMake Application.NightlyMemCheck" />
+      <item itemvalue="CMake Application.NightlyMemoryCheck" />
+      <item itemvalue="CMake Application.NightlyStart" />
+      <item itemvalue="CMake Application.NightlySubmit" />
+      <item itemvalue="CMake Application.NightlyTest" />
+      <item itemvalue="CMake Application.NightlyUpdate" />
+      <item itemvalue="CMake Application.glad" />
+      <item itemvalue="CMake Application.Catch2" />
+      <item itemvalue="CMake Application.Catch2WithMain" />
+      <item itemvalue="CMake Application.asteroids" />
+      <item itemvalue="CMake Application.vulky" />
+      <item itemvalue="CMake Application.editor" />
+      <item itemvalue="CMake Application.engine" />
+      <item itemvalue="CMake Application.sandbox" />
+    </list>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f2deecec-4a92-4a39-a1cf-fbb7f6b7122b" name="Changes" comment="" />
+      <created>1775886498134</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1775886498134</updated>
+      <workItem from="1775886500209" duration="517000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
+    <isAutomaticBootstrapAfterUpdate value="false" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

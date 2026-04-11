@@ -1,4 +1,5 @@
 #include "physics/components/component_store.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -9,7 +10,7 @@ namespace Vulkyrie {
     }
 
     void ComponentStore::SetActiveStatus(Entity entity, bool active) {
-        assert(HasComponent(entity) && "Entity does not have a TransformComponent.");
+        VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
         size_t index = _entityToComponentIndex[entity];
 
@@ -31,7 +32,7 @@ namespace Vulkyrie {
     }
 
     void ComponentStore::RemoveComponent(Entity entity) {
-        assert(HasComponent(entity) && "Entity does not have a component.");
+        VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
         size_t index = _entityToComponentIndex[entity];
         bool wasActive = index < _activeCount;
