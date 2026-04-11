@@ -8,17 +8,15 @@ namespace Vulkyrie {
     /** @brief Represents an Axis-Aligned Bounding Box (AABB) defined by its minimum and maximum coordinates in 3D "world" space. The edges of the box are
      * aligned with the world axes, meaning that the box is not rotated and its faces are parallel to the coordinate planes. The AABB is used in collision
      * detection and spatial partitioning algorithms due to its simplicity and efficiency. */
-    class AABB {
+    class AABB final {
         public:
             /** @brief Constructs an AABB from the given minimum and maximum corner coordinates.
              * @param minCoordinates The minimum corner of the box (smallest x, y, z values).
              * @param maxCoordinates The maximum corner of the box (largest x, y, z values). */
-            AABB(const glm::vec3 &minCoordinates, const glm::vec3 &maxCoordinates)
-                : _minCoordinates(minCoordinates)
-                , _maxCoordinates(maxCoordinates) {
-                VASSERT_EXPR(minCoordinates.x <= maxCoordinates.x && minCoordinates.y <= maxCoordinates.y && minCoordinates.z <= maxCoordinates.z,
-                       "Min coordinates must not exceed max coordinates.");
-            }
+            AABB(const glm::vec3 &minCoordinates, const glm::vec3 &maxCoordinates);
+
+            /** @brief Default destructor for AABB. */
+            ~AABB() = default;
 
             /** @brief Returns the center point of the AABB. */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetCenter() const {
@@ -39,7 +37,7 @@ namespace Vulkyrie {
                 _maxCoordinates += inflation;
 
                 VASSERT_EXPR(_minCoordinates.x <= _maxCoordinates.x && _minCoordinates.y <= _maxCoordinates.y && _minCoordinates.z <= _maxCoordinates.z,
-                       "Inflation resulted in min exceeding max.");
+                             "Inflation resulted in min exceeding max.");
             }
 
             /** @brief Scales the AABB relative to the world origin by multiplying both corners by the given scale factors.
@@ -98,7 +96,8 @@ namespace Vulkyrie {
             /** @brief Sets the maximum corner of the AABB.
              * @param max The new maximum corner coordinates. */
             VE_FORCE_INLINE void SetMax(const glm::vec3 &max) {
-                VASSERT_EXPR(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z, "New max must not be less than current min.");
+                VASSERT_EXPR(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z,
+                             "New max must not be less than current min.");
 
                 _maxCoordinates = max;
             }

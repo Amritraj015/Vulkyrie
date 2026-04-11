@@ -5,6 +5,10 @@
 
 namespace Vulkyrie {
 
+    /** @brief Base class for component stores that manage components associated with entities. The ComponentStore class provides common functionality for
+     * managing the active status of components, as well as efficient storage and lookup of components based on their associated entities. Derived classes are
+     * expected to implement the specific storage and management of their respective component types, while leveraging the common functionality provided by this
+     * base class to maintain a consistent and efficient approach to component management across different types of components in the ECS architecture. */
     class ComponentStore {
         protected:
             /** @brief Constructs an instance of ComponentStore. Initializes the active component count to zero. */
@@ -64,7 +68,7 @@ namespace Vulkyrie {
              * @param entity The entity to check for being disabled.
              * @return True if the entity has a component that is currently inactive, false otherwise.
              */
-            VE_FORCE_INLINE bool IsDisabled(Entity entity) {
+            [[nodiscard]] VE_FORCE_INLINE bool IsDisabled(Entity entity) {
                 VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
                 return _entityToComponentIndex[entity] >= _activeCount;
@@ -74,21 +78,21 @@ namespace Vulkyrie {
              * @param entity The entity to check for having a component.
              * @return True if the entity has a component associated with it, false otherwise.
              */
-            VE_FORCE_INLINE bool HasComponent(Entity entity) const {
+            [[nodiscard]] VE_FORCE_INLINE bool HasComponent(Entity entity) const {
                 return _entityToComponentIndex.contains(entity);
             }
 
             /** @brief Gets the total number of components (active + inactive) currently managed.
              * @return The total number of entities that have a component associated with them.
              */
-            VE_FORCE_INLINE size_t GetTotalComponentCount() const {
+            [[nodiscard]] VE_FORCE_INLINE size_t GetTotalComponentCount() const {
                 return _entities.size();
             }
 
             /** @brief Gets the total number of active components currently managed by this component store.
              * @return The total number of entities that currently have an active component associated with them.
              */
-            VE_FORCE_INLINE size_t GetActiveComponentCount() const {
+            [[nodiscard]] VE_FORCE_INLINE size_t GetActiveComponentCount() const {
                 return _activeCount;
             }
 
@@ -97,7 +101,7 @@ namespace Vulkyrie {
              * @param entity The entity whose component index is to be retrieved. The entity must have a component associated with it.
              * @return The index of the component associated with the specified entity in the component vector.
              */
-            VE_FORCE_INLINE size_t GetEntityIndex(Entity entity) const {
+            [[nodiscard]] VE_FORCE_INLINE size_t GetEntityIndex(Entity entity) const {
                 VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
 
                 return _entityToComponentIndex.at(entity);

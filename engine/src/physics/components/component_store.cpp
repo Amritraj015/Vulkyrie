@@ -62,4 +62,5 @@ namespace Vulkyrie {
         // Remove the entity from the _entityToComponentIndex map since it no longer has an associated component.
         _entityToComponentIndex.erase(entity);
     }
+
 } // namespace Vulkyrie
