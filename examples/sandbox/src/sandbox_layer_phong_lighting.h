@@ -10,7 +10,8 @@ namespace Sandbox {
     class SandboxLayerPhongLighting final : public Layer {
         public:
             SandboxLayerPhongLighting()
-                : camera(Camera::Create()) {
+                : app(Application::GetSingleton())
+                , camera(Camera::Create()) {
                 // Load and compile shader programs.
                 objectShader = Shader::Create("assets/shaders/reflective-object.glsl");
                 lightShader = Shader::Create("assets/shaders/light-source.glsl");
@@ -92,7 +93,7 @@ namespace Sandbox {
 
                 // Change ambient and diffuse light color over time.
                 glm::vec3 lightColor;
-                f64 currentTime = glfwGetTime();
+                f32 currentTime = app.GetTime();
                 lightColor.x = sin(currentTime * 2.0f);
                 lightColor.y = sin(currentTime * 0.7f);
                 lightColor.z = sin(currentTime * 1.3f);
@@ -134,6 +135,7 @@ namespace Sandbox {
             }
 
         private:
+            Application &app;
             Camera camera;
 
             Ref<VertexArray> objectVertexArray;

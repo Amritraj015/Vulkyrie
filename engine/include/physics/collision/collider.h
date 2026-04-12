@@ -19,11 +19,11 @@ namespace Vulkyrie {
             Collider(const Collider &) = delete;
             Collider &operator=(const Collider &) = delete;
 
-            VE_FORCE_INLINE Entity GetEntity() const {
+            [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
                 return _entity;
             }
 
-            VE_FORCE_INLINE const Body &GetBody() const {
+            [[nodiscard]] VE_FORCE_INLINE const Body &GetBody() const {
                 return _body;
             }
 
@@ -32,7 +32,7 @@ namespace Vulkyrie {
 
             const AABB &GetAABB() const;
 
-            VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
+            [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
                 return aabb.CollidesWith(GetAABB());
             }
 

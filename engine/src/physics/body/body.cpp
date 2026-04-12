@@ -8,7 +8,7 @@ namespace Vulkyrie {
     // const TransformComponent &GetTransform() const;
 
     void Body::SetTransform(const TransformComponent &transform) {
-        _physicsWorld._transformComponentStore.SetTransform(_entity, transform);
+        _physicsWorld.GetTransformComponentStore().SetTransform(_entity, transform);
     }
 
     // void AddCollider(CollisionShape *shape, const TransformComponent &transform);

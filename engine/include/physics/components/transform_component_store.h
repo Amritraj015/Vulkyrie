@@ -52,7 +52,7 @@ namespace Vulkyrie {
              * @param entity The entity whose TransformComponent is to be retrieved. The entity must have a TransformComponent.
              * @return A reference to the TransformComponent associated with the specified entity.
              */
-            VE_FORCE_INLINE TransformComponent &GetTransform(const Entity entity) {
+            [[nodiscard]] VE_FORCE_INLINE TransformComponent &GetTransform(const Entity entity) {
                 VASSERT_EXPR(HasComponent(entity), "Entity does not have a TransformComponent.");
 
                 return _transforms[_entityToComponentIndex[entity]];
@@ -61,14 +61,14 @@ namespace Vulkyrie {
             /** @brief Returns a contiguous view of the active TransformComponents.
              * @return A span over the densely packed active TransformComponents at the front of the storage.
              */
-            VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
+            [[nodiscard]] VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
                 return { _transforms.data(), _activeCount };
             }
 
             /** @brief Returns a contiguous view of the entities that have active TransformComponents.
              * @return A span over the entities corresponding to the densely packed active TransformComponents.
              */
-            VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
+            [[nodiscard]] VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
                 return { _entities.data(), _activeCount };
             }
 

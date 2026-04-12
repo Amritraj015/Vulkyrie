@@ -19,6 +19,10 @@ namespace Vulkyrie {
                 // , _transformComponentStore() {
             }
 
+            [[nodiscard]] VE_FORCE_INLINE TransformComponentStore &GetTransformComponentStore() {
+                return _transformComponentStore;
+            }
+
             void Update() {
             }
 
@@ -29,8 +33,6 @@ namespace Vulkyrie {
             // RigidBodyComponentStore _rigidBodyComponentStore;
             // ColliderComponentStore _colliderComponentStore;
             TransformComponentStore _transformComponentStore;
-
-            friend class Body;
     };
 
 } // namespace Vulkyrie

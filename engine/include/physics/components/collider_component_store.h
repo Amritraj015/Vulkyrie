@@ -10,6 +10,10 @@ namespace Vulkyrie {
             ColliderComponentStore() = default;
             ~ColliderComponentStore() override = default;
 
+        protected:
+            void swapComponents(size_t indexA, size_t indexB) override;
+            void removeLastComponentAndEntity() override;
+
         private:
     };
 

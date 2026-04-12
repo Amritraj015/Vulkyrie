@@ -22,7 +22,7 @@ namespace Vulkyrie {
 
             virtual ~Body() = default;
 
-            VE_FORCE_INLINE Entity GetEntity() const {
+            [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
                 return _entity;
             }
 
@@ -39,7 +39,7 @@ namespace Vulkyrie {
             u32 GetColliderCount() const;
 
             void ContainsPoint(const glm::vec3 &point) const;
-            VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
+            [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
                 return aabb.CollidesWith(GetAABB());
             }
             AABB GetAABB() const;
