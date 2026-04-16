@@ -454,3 +454,59 @@ TEST_CASE("AABB - Encapsulate then check volume grows", "[physics][aabb]") {
 
     REQUIRE(box.GetVolume() == 2.0f);
 }
+
+// ===========================================================================================
+// SetMinMax
+// ===========================================================================================
+
+TEST_CASE("AABB - SetMinMax sets min and max correctly", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+    box.SetMinMax(glm::vec3(2.0f, 3.0f, 4.0f), glm::vec3(5.0f, 6.0f, 7.0f));
+
+    REQUIRE(box.GetMin() == glm::vec3(2.0f, 3.0f, 4.0f));
+    REQUIRE(box.GetMax() == glm::vec3(5.0f, 6.0f, 7.0f));
+}
+
+TEST_CASE("AABB - SetMinMax where new min exceeds old max does not assert", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+
+    // New min (10) is far beyond current max (1) — would trigger SetMin's assertion but not SetMinMax
+    box.SetMinMax(glm::vec3(10.0f), glm::vec3(20.0f));
+
+    REQUIRE(box.GetMin() == glm::vec3(10.0f));
+    REQUIRE(box.GetMax() == glm::vec3(20.0f));
+}
+
+TEST_CASE("AABB - SetMinMax where new max is below old min does not assert", "[physics][aabb]") {
+    AABB box(glm::vec3(10.0f), glm::vec3(20.0f));
+
+    // New max (1) is far below current min (10) — would trigger SetMax's assertion but not SetMinMax
+    box.SetMinMax(glm::vec3(-5.0f), glm::vec3(1.0f));
+
+    REQUIRE(box.GetMin() == glm::vec3(-5.0f));
+    REQUIRE(box.GetMax() == glm::vec3(1.0f));
+}
+
+TEST_CASE("AABB - SetMinMax with equal min and max produces zero-volume AABB", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+    box.SetMinMax(glm::vec3(3.0f), glm::vec3(3.0f));
+
+    REQUIRE(box.GetMin() == glm::vec3(3.0f));
+    REQUIRE(box.GetMax() == glm::vec3(3.0f));
+    REQUIRE(box.GetVolume() == 0.0f);
+}
+
+TEST_CASE("AABB - SetMinMax with negative coordinates", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+    box.SetMinMax(glm::vec3(-10.0f, -5.0f, -3.0f), glm::vec3(-1.0f, -2.0f, -1.0f));
+
+    REQUIRE(box.GetMin() == glm::vec3(-10.0f, -5.0f, -3.0f));
+    REQUIRE(box.GetMax() == glm::vec3(-1.0f, -2.0f, -1.0f));
+}
+
+TEST_CASE("AABB - SetMinMax updates GetCenter", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+    box.SetMinMax(glm::vec3(0.0f), glm::vec3(4.0f, 6.0f, 8.0f));
+
+    REQUIRE(box.GetCenter() == glm::vec3(2.0f, 3.0f, 4.0f));
+}

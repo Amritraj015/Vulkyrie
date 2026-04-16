@@ -4,6 +4,10 @@
 
 namespace Vulkyrie {
 
+    /** @brief The `BoxShape` class represents a box-shaped collision shape, which is a specific type of convex polyhedral shape defined by its half extents
+     * along the x, y, and z axes. This class provides an efficient implementation for box-specific operations such as vertex position retrieval and face normal
+     * calculation, taking advantage of the box's regular geometry to avoid unnecessary computations. It is designed to be used in collision detection and
+     * physics simulations where a simple and computationally inexpensive convex shape is required. */
     class BoxShape final : public ConvexPolyhedronShape {
         public:
             /** @brief Construct a box shape with the specified half extents and margin.
@@ -61,6 +65,13 @@ namespace Vulkyrie {
                 return 24;
             }
 
+            /** @brief Get the position of a specific vertex of the box shape.
+             * @param vertexIndex The index of the vertex for which to retrieve the position. The valid range for this index is from 0 to 7, since a box has 8
+             * vertices.
+             * @return The position of the specified vertex as a glm::vec3. The position is given in the local coordinate space of the shape, where the origin
+             * is typically at the centroid of the shape. The vertices are ordered in a consistent manner, such as starting from one corner and proceeding in a
+             * specific order around the box.
+             */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
                 VASSERT(vertexIndex < GetVerticesCount(), "Vertex index out of bounds for box shape.");
 
@@ -88,6 +99,13 @@ namespace Vulkyrie {
                 return glm::vec3(0.0f);
             }
 
+            /** @brief Get the normal vector of a specific face of the box shape.
+             * @param faceIndex The index of the face for which to retrieve the normal vector. The valid range for this index is from 0 to 5, since a box has 6
+             * faces.
+             * @return The normal vector of the specified face as a glm::vec3. The normal vector is a unit vector that is perpendicular to the face and points
+             * outward from the surface of the shape. The faces are ordered in a consistent manner, such as starting from one face and proceeding in a specific
+             * order around the box.
+             */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetFaceNormal(u32 faceIndex) const override {
                 VASSERT(faceIndex < GetFacesCount(), "Face index out of bounds for box shape.");
 
@@ -111,14 +129,30 @@ namespace Vulkyrie {
                 return glm::vec3(0.0f);
             }
 
+            /** @brief Get the centroid of the box shape.
+             * @return The centroid of the box shape as a glm::vec3. For a box defined in local space with its center at the origin, the centroid is simply (0,
+             * 0, 0).
+             */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetCentroid() const override {
                 return glm::vec3(0.0f);
             }
 
+            /** @brief Compute the local-space AABB of the box shape (i.e. before any transform is applied).
+             * @return An AABB centered at the origin with min corner at (-halfExtents) and max corner at (halfExtents), where halfExtents is the half extents
+             * of the box shape. This represents the axis-aligned bounding box of the box shape in its local coordinate space.
+             */
             [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
                 return AABB(-_halfExtents, _halfExtents);
             }
 
+            /** @brief Compute the local-space inertia tensor diagonal for a solid box.
+             * @param mass The mass of the body this shape belongs to.
+             * @return A vector whose components are given by the formula:
+             * (1/3) * mass * (halfExtents.y² + halfExtents.z²) for the x component,
+             * (1/3) * mass * (halfExtents.x² + halfExtents.z²) for the y component,
+             * (1/3) * mass * (halfExtents.x² + halfExtents.y²) for the z component.
+             * This gives a diagonal inertia tensor for a solid box, where halfExtents is the half extents of the box shape.
+             */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
                 const f32 factor = (f32(1.0) / f32(3.0)) * mass;
                 const f32 xSquare = _halfExtents.x * _halfExtents.x;
@@ -128,16 +162,29 @@ namespace Vulkyrie {
                 return glm::vec3(factor * (ySquare + zSquare), factor * (xSquare + zSquare), factor * (xSquare + ySquare));
             }
 
+            /** @brief Get the volume of the box shape.
+             * @return The volume of the box shape, calculated using the formula V = 8 * halfExtents.x * halfExtents.y * halfExtents.z, where halfExtents is
+             * the half extents of the box shape. This formula accounts for the fact that the full extents of the box are twice the half extents along each
+             * axis.
+             */
             [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
                 return 8.0f * _halfExtents.x * _halfExtents.y * _halfExtents.z;
             }
 
+            /** @brief Check if a given point is contained within the box shape.
+             * @param point The point to check for containment, specified as a glm::vec3 in the local coordinate space of the box shape. The local coordinate
+             * space is defined such that the center of the box is at the origin (0, 0, 0).
+             * @return True if the point is contained within the box shape, false otherwise. A point is considered to be contained within the box if its
+             * coordinates along each axis are between -halfExtents and halfExtents, where halfExtents is the half extents of the box shape.
+             */
             [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
                 return (point.x < _halfExtents.x && point.x > -_halfExtents.x && point.y < _halfExtents.y && point.y > -_halfExtents.y &&
                         point.z < _halfExtents.z && point.z > -_halfExtents.z);
             }
 
         private:
+            /** @brief The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis. All
+             * components must be positive. */
             glm::vec3 _halfExtents;
     };
 

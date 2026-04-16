@@ -102,6 +102,17 @@ namespace Vulkyrie {
                 _maxCoordinates = max;
             }
 
+            /** @brief Sets both the minimum and maximum corners of the AABB simultaneously. Use this instead of calling SetMin and SetMax separately when
+             * both bounds need to change at the same time, as those methods validate against the current (stale) opposite bound and would fire a false assertion.
+             * @param min The new minimum corner coordinates.
+             * @param max The new maximum corner coordinates. Must be component-wise >= min. */
+            VE_FORCE_INLINE void SetMinMax(const glm::vec3 &min, const glm::vec3 &max) {
+                VASSERT_EXPR(min.x <= max.x && min.y <= max.y && min.z <= max.z, "New min must not exceed new max.");
+
+                _minCoordinates = min;
+                _maxCoordinates = max;
+            }
+
         private:
             /** @brief The world-space coordinates of the minimum corner of the AABB, representing the smallest x, y, and z values of the box.
              * This point is diagonally opposite to the maximum corner and defines the extent of the box along each axis. */

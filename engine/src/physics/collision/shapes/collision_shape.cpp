@@ -27,8 +27,7 @@ namespace Vulkyrie {
         const glm::mat3 absMatrix(glm::abs(matrix[0]), glm::abs(matrix[1]), glm::abs(matrix[2]));
         const glm::vec3 newHalfExtents = absMatrix * halfExtents;
 
-        aabb.SetMin(newCenter - newHalfExtents);
-        aabb.SetMax(newCenter + newHalfExtents);
+        aabb.SetMinMax(newCenter - newHalfExtents, newCenter + newHalfExtents);
 
         return aabb;
     }
