@@ -1,9 +1,97 @@
 #pragma once
 
+#include "physics/collision/shapes/convex_shape.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
+
 namespace Vulkyrie {
 
-    class SphereShape {
+    /** @brief The `SphereShape` class represents a spherical collision shape, which is a type of convex shape defined by a single radius centered at the local
+     * origin. This class provides an efficient implementation for sphere-specific operations such as AABB computation and inertia tensor calculation, taking
+     * advantage of the sphere's rotational symmetry to avoid unnecessary matrix operations. It is designed to be used in collision detection and physics
+     * simulations where a simple and computationally inexpensive convex shape is required. */
+    class SphereShape final : public ConvexShape {
         public:
+            /** @brief Construct a sphere collision shape.
+             * @param radius The radius of the sphere. Must be positive.
+             * @param margin Optional collision margin that expands the effective surface of the shape for broadphase and GJK/EPA stability. Defaults to 0. */
+            SphereShape(f32 radius, f32 margin = 0.0f);
+            ~SphereShape() override = default;
+
+            // Delete the copy constructor and the copy assignment operator.
+            SphereShape(const SphereShape &) = delete;
+            SphereShape &operator=(const SphereShape &) = delete;
+
+            // Delete the move constructor and the move assignment operator.
+            SphereShape(SphereShape &&) = delete;
+            SphereShape &operator=(SphereShape &&) = delete;
+
+            /** @brief Get the radius of the sphere.
+             * @return The radius of the sphere. */
+            [[nodiscard]] VE_FORCE_INLINE f32 GetRadius() const {
+                return _radius;
+            }
+
+            /** @brief Set the radius of the sphere.
+             * @param radius The new radius. Must be positive. */
+            void SetRadius(f32 radius) {
+                VASSERT(radius > 0.0f, "Radius must be positive for sphere shape.");
+
+                _radius = radius;
+            }
+
+            /** @brief A sphere is not a polyhedral shape.
+             * @return Always false. */
+            [[nodiscard]] VE_FORCE_INLINE constexpr bool IsPolyhedral() const override {
+                return false;
+            }
+
+            /** @brief Compute the local-space AABB of the sphere (i.e. before any transform is applied).
+             * @return An AABB centered at the origin with half-extents equal to the radius along every axis. */
+            [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
+                return AABB(glm::vec3(-_radius), glm::vec3(_radius));
+            }
+
+            /** @brief Compute the local-space inertia tensor diagonal for a solid sphere.
+             * @param mass The mass of the body this shape belongs to.
+             * @return A vector whose three equal components are `(2/5) * mass * radius²`, giving a uniform diagonal inertia tensor. */
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
+                f32 diag = f32(0.4) * mass * _radius * _radius;
+
+                return glm::vec3(diag, diag, diag);
+            }
+
+            /** @brief Get the volume of the sphere shape.
+             * @return The volume of the sphere shape, calculated using the formula V = (4/3) * π * r^3, where r is the radius of the sphere.
+             */
+            [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
+                return f32(4.0) / f32(3.0) * static_cast<f32>(std::numbers::pi) * _radius * _radius * _radius;
+            }
+
+            /** @brief Check if a given point is contained within the sphere shape.
+             * @param point The point to check for containment, specified as a glm::vec3 in the local coordinate space of the sphere shape. The local coordinate
+             * space is defined such that the center of the sphere is at the origin (0, 0, 0).
+             * @return True if the point is contained within the sphere shape, false otherwise. A point is considered to be contained within the sphere if
+             * its distance from the center of the sphere (the origin) is less than the radius of the sphere.
+             */
+            [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
+                return (glm::length2(point) < _radius * _radius);
+            }
+
+            /** @brief Compute the axis-aligned bounding box (AABB) of the sphere shape after applying the given transformation.
+             * @param transform The transformation to apply to the sphere shape, which includes translation, rotation, and scaling. The AABB will be computed
+             * based on the transformed position and size of the sphere.
+             * @return The AABB of the transformed sphere shape, defined by its minimum and maximum coordinates in world space. Since a sphere is rotationally
+             * symmetric, the AABB will always be a cube that encompasses the entire sphere regardless of its orientation. The effective radius used for the
+             * AABB calculation includes the collision margin to ensure that the broadphase collision detection does not miss contacts when objects are close to
+             * each other.
+             */
+            AABB ComputeTransformedAABB(const TransformComponent &transform) const override;
+
+        private:
+            /** @brief The radius of the sphere shape. */
+            f32 _radius;
     };
 
 } // namespace Vulkyrie
