@@ -64,7 +64,9 @@ if (MSVC)
        PRIVATE 
             /W4
             /WX
+       PUBLIC
             /Zc:preprocessor
+            /EHsc
     )
 else()
     target_compile_options(engine

@@ -3,15 +3,16 @@
 #include "renderer/index_buffer.h"
 
 namespace Vulkyrie {
+
     class OpenGLIndexBuffer final : public IndexBuffer {
         public:
-            OpenGLIndexBuffer(u32 *indices, u32 count);
-            OpenGLIndexBuffer(u16 *indices, u32 count);
-            OpenGLIndexBuffer(u8 *indices, u32 count);
+            OpenGLIndexBuffer(u32 *indices, size_t count);
+            OpenGLIndexBuffer(u16 *indices, size_t count);
+            OpenGLIndexBuffer(u8 *indices, size_t count);
 
             ~OpenGLIndexBuffer() override;
 
-            u32 GetCount() const override;
+            size_t GetCount() const override;
 
             /** @brief Gets the OpenGL index buffer ID.
              * @returns The index buffer ID.
@@ -22,6 +23,7 @@ namespace Vulkyrie {
 
         private:
             u32 _eboID;
-            u32 _count;
+            size_t _count;
     };
+
 } // namespace Vulkyrie

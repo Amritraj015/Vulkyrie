@@ -6,6 +6,7 @@
 #include "renderer/open_gl/open_gl_index_buffer.h"
 
 namespace Vulkyrie {
+
     static constexpr GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
         switch (type) {
             case ShaderDataType::Float:
@@ -72,7 +73,7 @@ namespace Vulkyrie {
                 case ShaderDataType::Float3:
                 case ShaderDataType::Float4: {
                     glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
-                    glVertexArrayAttribFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Normalized ? GL_TRUE : GL_FALSE, element.Offset);
+                    glVertexArrayAttribFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(element.Offset));
                     glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                     _vertexBufferIndex++;
                     break;
@@ -84,7 +85,7 @@ namespace Vulkyrie {
                 case ShaderDataType::Int4:
                 case ShaderDataType::Bool: {
                     glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
-                    glVertexArrayAttribIFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Offset);
+                    glVertexArrayAttribIFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, static_cast<GLuint>(element.Offset));
                     glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                     _vertexBufferIndex++;
                     break;
@@ -100,7 +101,7 @@ namespace Vulkyrie {
                                                   componentCount,
                                                   dataType,
                                                   element.Normalized ? GL_TRUE : GL_FALSE,
-                                                  element.Offset + sizeof(f32) * componentCount * i);
+                                                  static_cast<GLuint>(element.Offset + sizeof(f32) * componentCount * i));
                         glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                         glVertexArrayBindingDivisor(_vaoID, _vertexBufferIndex, 1);
 

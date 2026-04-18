@@ -22,7 +22,7 @@ namespace Vulkyrie {
         // Read the file contents into a string.
         std::string contents;
         file.seekg(0, std::ios::end);
-        contents.resize(file.tellg());
+        contents.resize(static_cast<std::size_t>(file.tellg()));
         file.seekg(0, std::ios::beg);
         file.read(contents.data(), contents.size());
 

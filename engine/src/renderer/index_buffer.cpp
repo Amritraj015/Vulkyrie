@@ -4,7 +4,7 @@
 #include "renderer/renderer.h"
 
 namespace Vulkyrie {
-    Ref<IndexBuffer> IndexBuffer::Create(u32 *indices, u32 count) {
+    Ref<IndexBuffer> IndexBuffer::Create(u32 *indices, size_t count) {
         switch (GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLIndexBuffer>(indices, count);
@@ -16,4 +16,31 @@ namespace Vulkyrie {
 
         return nullptr;
     }
+
+    Ref<IndexBuffer> IndexBuffer::Create(u16 *indices, size_t count) {
+        switch (GetCurrentGraphicsAPI()) {
+            case GraphicsAPI::OpenGL:
+                return CreateRef<OpenGLIndexBuffer>(indices, count);
+            case GraphicsAPI::Vulkan:
+            default:
+                VFATAL("Unsupported Graphics API specified for IndexBuffer creation!");
+                break;
+        }
+
+        return nullptr;
+    }
+
+    Ref<IndexBuffer> IndexBuffer::Create(u8 *indices, size_t count) {
+        switch (GetCurrentGraphicsAPI()) {
+            case GraphicsAPI::OpenGL:
+                return CreateRef<OpenGLIndexBuffer>(indices, count);
+            case GraphicsAPI::Vulkan:
+            default:
+                VFATAL("Unsupported Graphics API specified for IndexBuffer creation!");
+                break;
+        }
+
+        return nullptr;
+    }
+
 } // namespace Vulkyrie

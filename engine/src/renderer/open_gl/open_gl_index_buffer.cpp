@@ -2,7 +2,8 @@
 #include "renderer/open_gl/open_gl_index_buffer.h"
 
 namespace Vulkyrie {
-    OpenGLIndexBuffer::OpenGLIndexBuffer(u32 *indices, u32 count) {
+
+    OpenGLIndexBuffer::OpenGLIndexBuffer(u32 *indices, size_t count) {
         glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
@@ -12,7 +13,7 @@ namespace Vulkyrie {
         _count = count;
     }
 
-    OpenGLIndexBuffer::OpenGLIndexBuffer(u16 *indices, u32 count) {
+    OpenGLIndexBuffer::OpenGLIndexBuffer(u16 *indices, size_t count) {
         glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
@@ -22,7 +23,7 @@ namespace Vulkyrie {
         _count = count;
     }
 
-    OpenGLIndexBuffer::OpenGLIndexBuffer(u8 *indices, u32 count) {
+    OpenGLIndexBuffer::OpenGLIndexBuffer(u8 *indices, size_t count) {
         glCreateBuffers(1, &_eboID);
 
         // GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
@@ -36,7 +37,8 @@ namespace Vulkyrie {
         glDeleteBuffers(1, &_eboID);
     }
 
-    u32 OpenGLIndexBuffer::GetCount() const {
+    size_t OpenGLIndexBuffer::GetCount() const {
         return _count;
     }
+
 } // namespace Vulkyrie

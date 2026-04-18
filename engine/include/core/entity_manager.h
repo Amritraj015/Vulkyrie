@@ -18,7 +18,7 @@ namespace Vulkyrie {
              * @return The newly created entity.
              */
             [[nodiscard]] Entity CreateEntity() {
-                u64 index;
+                size_t index;
 
                 // If there are free indices available, we can reuse one of them.
                 if (_freeIndices.size() > MINIMUM_FREE_INDICES) {
@@ -27,7 +27,7 @@ namespace Vulkyrie {
                     _freeIndices.pop_front();
                 } else {
                     // The index for the new entity is the current size of the vector of generations, which represents the next available index.
-                    index = static_cast<u64>(_generations.size());
+                    index = _generations.size();
 
                     // If there are no free indices available,
                     // we need to create a new one by adding a new generation entry to the vector of generations.
@@ -38,7 +38,7 @@ namespace Vulkyrie {
                 }
 
                 // Return a newly created entity.
-                return Entity(index, _generations[index]);
+                return Entity(static_cast<u64>(index), _generations[index]);
             }
 
             /** @brief Destroys the specified entity, making it inactive and available for reuse.
@@ -46,7 +46,7 @@ namespace Vulkyrie {
              */
             void DestroyEntity(const Entity entity) {
                 // Get the index of the entity to be destroyed.
-                const u64 index = entity.GetIndex();
+                const size_t index = static_cast<size_t>(entity.GetIndex());
 
                 // Increment the generation of the entity index to invalidate any existing entities with the same index and make it available for reuse.
                 _generations[index]++;
@@ -60,7 +60,7 @@ namespace Vulkyrie {
              * @return True if the entity is active, false otherwise.
              */
             [[nodiscard]] VE_FORCE_INLINE bool IsActive(const Entity entity) const {
-                return _generations[entity.GetIndex()] == entity.GetGeneration();
+                return _generations[static_cast<size_t>(entity.GetIndex())] == entity.GetGeneration();
             }
 
         private:
@@ -70,7 +70,7 @@ namespace Vulkyrie {
 
             /// TODO: This is not a very good option, if the deque of free indices grows too large, it could lead to memory issues. Consider implementing a
             /// more efficient data structure for managing free indices if necessary.
-            std::deque<u64> _freeIndices;
+            std::deque<size_t> _freeIndices;
     };
 
 } // namespace Vulkyrie

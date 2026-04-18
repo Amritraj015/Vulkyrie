@@ -11,6 +11,7 @@
   - [Building with CMake Presets (Recommended)](#building-with-cmake-presets-recommended)
   - [Building without Presets](#building-without-presets)
 - [Running the Applications](#running-the-applications)
+  - [Vulkyrie Editor](#vulkyrie-editor)
   - [Sandbox Application](#sandbox-application)
   - [Asteroids Application](#asteroids-application)
 
@@ -26,6 +27,9 @@ Make sure you have the following installed:
   - **MSVC**
   - **Clang**
 - **Ninja** build system (required for CMake presets) ([Can be downloaded from here](https://github.com/ninja-build/ninja/releases))
+- **vcpkg** with the `VCPKG_ROOT` environment variable set, since the presets use `$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake`
+
+On Windows with **MSVC**, run CMake from an **x64 Developer PowerShell** or **x64 Developer Command Prompt** so `cl.exe`, the Windows SDK, and the STL headers are available to the preset.
 
 If you prefer not to use Ninja, you can build without presets as described [here](#building-without-presets).
 
@@ -34,78 +38,93 @@ If you prefer not to use Ninja, you can build without presets as described [here
 The project supports several CMake options to control what gets built:
 
 - `VULKYRIE_BUILD_EXAMPLES` - Build example applications (default: ON)
+- `VULKYRIE_BUILD_EDITOR` - Build the Vulkyrie editor application (default: ON)
 - `VULKYRIE_BUILD_CLI` - Build the vulky-cli tool (default: ON)
 - `VULKYRIE_BUILD_TESTS` - Build tests (default: ON)
 - `VULKYRIE_EXPORT_COMPILE_COMMANDS` - Export compile_commands.json (default: ON)
 
 ### Building with CMake Presets (Recommended)
 
-The project includes CMake presets for different build configurations. **All presets use the Ninja generator.**
+The project includes configure and build presets for multiple compilers and target sets. **All presets use the Ninja generator**, and the configure preset name matches the build preset name.
+
+General usage:
+
+```bash
+cmake --preset <preset-name>
+cmake --build --preset <preset-name>
+```
 
 #### System Default Compiler
 
-| Preset Name      | Targets                            | Configure & Build Commands                                               |
-| ---------------- | ---------------------------------- | ------------------------------------------------------------------------ |
-| `all-debug`      | All (Engine, Examples, CLI, Tests) | `cmake --preset all-debug && cmake --build --preset all-debug`           |
-| `examples-debug` | Examples only                      | `cmake --preset examples-debug && cmake --build --preset examples-debug` |
-| `cli-debug`      | CLI only                           | `cmake --preset cli-debug && cmake --build --preset cli-debug`           |
-| `tests-debug`    | Tests only                         | `cmake --preset tests-debug && cmake --build --preset tests-debug`       |
+- Debug presets: `all-debug`, `examples-debug`, `cli-debug`, `tests-debug`
+- Release presets: `all-release`, `examples-release`, `cli-release`, `tests-release`
+- `all-*` presets build the engine, editor, examples, CLI, and tests
 
 #### GCC
 
 ##### Linux
 
-| Preset Name          | Targets                            | Configure & Build Commands                                                       |
-| -------------------- | ---------------------------------- | -------------------------------------------------------------------------------- |
-| `gcc-all-debug`      | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug && cmake --build --preset gcc-all-debug`           |
-| `gcc-examples-debug` | Examples only                      | `cmake --preset gcc-examples-debug && cmake --build --preset gcc-examples-debug` |
-| `gcc-cli-debug`      | CLI only                           | `cmake --preset gcc-cli-debug && cmake --build --preset gcc-cli-debug`           |
-| `gcc-tests-debug`    | Tests only                         | `cmake --preset gcc-tests-debug && cmake --build --preset gcc-tests-debug`       |
+- Debug presets: `gcc-all-debug`, `gcc-examples-debug`, `gcc-cli-debug`, `gcc-tests-debug`
+- Release presets: `gcc-all-release`, `gcc-examples-release`, `gcc-cli-release`, `gcc-tests-release`
 
 ##### Windows (MinGW)
 
-| Preset Name              | Targets                            | Configure & Build Commands                                                               |
-| ------------------------ | ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `gcc-all-debug-win`      | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug-win && cmake --build --preset gcc-all-debug-win`           |
-| `gcc-examples-debug-win` | Examples only                      | `cmake --preset gcc-examples-debug-win && cmake --build --preset gcc-examples-debug-win` |
-| `gcc-cli-debug-win`      | CLI only                           | `cmake --preset gcc-cli-debug-win && cmake --build --preset gcc-cli-debug-win`           |
-| `gcc-tests-debug-win`    | Tests only                         | `cmake --preset gcc-tests-debug-win && cmake --build --preset gcc-tests-debug-win`       |
+- Debug presets: `gcc-all-debug-win`, `gcc-examples-debug-win`, `gcc-cli-debug-win`, `gcc-tests-debug-win`
+- Release presets: `gcc-all-release-win`, `gcc-examples-release-win`, `gcc-cli-release-win`, `gcc-tests-release-win`
 
 #### Clang
 
-| Preset Name            | Targets                            | Configure & Build Commands                                                           |
-| ---------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
-| `clang-all-debug`      | All (Engine, Examples, CLI, Tests) | `cmake --preset clang-all-debug && cmake --build --preset clang-all-debug`           |
-| `clang-examples-debug` | Examples only                      | `cmake --preset clang-examples-debug && cmake --build --preset clang-examples-debug` |
-| `clang-cli-debug`      | CLI only                           | `cmake --preset clang-cli-debug && cmake --build --preset clang-cli-debug`           |
-| `clang-tests-debug`    | Tests only                         | `cmake --preset clang-tests-debug && cmake --build --preset clang-tests-debug`       |
+- Debug presets: `clang-all-debug`, `clang-examples-debug`, `clang-cli-debug`, `clang-tests-debug`
+- Release presets: `clang-all-release`, `clang-examples-release`, `clang-cli-release`, `clang-tests-release`
+
+#### MSVC (Windows)
+
+- Debug presets: `msvc-all-debug`, `msvc-examples-debug`, `msvc-cli-debug`, `msvc-tests-debug`
+- Release presets: `msvc-all-release`, `msvc-examples-release`, `msvc-cli-release`, `msvc-tests-release`
+- Use these presets from an x64 Visual Studio developer shell
+
+Example:
+
+```powershell
+cmake --preset msvc-all-debug
+cmake --build --preset msvc-all-debug
+```
 
 ### Building without Presets
 
 If you prefer not to use presets (does not require Ninja):
 
 ```bash
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 cmake --build build
 ```
 
+On PowerShell, use `$env:VCPKG_ROOT`. On Windows Command Prompt, use `%VCPKG_ROOT%`.
+
 ## Running the Applications
+
+Executables are written under `build/<preset-name>/...`. On Windows, use the `.exe` suffix.
+
+### Vulkyrie Editor
+
+```bash
+build/<preset-name>/editor/editor
+```
 
 ### Sandbox Application
 
 ```bash
-cd build/gcc-all-debug/examples/sandbox && ./sandbox
+build/<preset-name>/examples/sandbox/sandbox
 ```
 
 ### Asteroids Application
 
 ```bash
-cd build/gcc-all-debug/examples/asteroids && ./asteroids
+build/<preset-name>/examples/asteroids/asteroids
 ```
 
-**Note:** Adjust the build directory path based on which preset you used:
+Examples:
 
-- Generic presets: `build/all-debug`, `build/examples-debug`, etc.
-- GCC presets (Linux): `build/gcc-all-debug`, `build/gcc-examples-debug`, etc.
-- GCC presets (Windows): `build/gcc-all-debug-win`, `build/gcc-examples-debug-win`, etc.
-- Clang presets: `build/clang-all-debug`, `build/clang-examples-debug`, etc.
+- `build/clang-all-debug/examples/sandbox/sandbox`
+- `build/gcc-all-debug-win/examples/asteroids/asteroids.exe`
+- `build/msvc-all-debug/editor/editor.exe`

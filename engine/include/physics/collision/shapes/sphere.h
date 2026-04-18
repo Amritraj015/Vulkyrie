@@ -43,7 +43,7 @@ namespace Vulkyrie {
             std::vector<u32> _indices;
 
             void CreateSphere(f32 radius, u32 stacks, u32 sectors) {
-                f32 pi = std::numbers::pi;
+                f32 pi = std::numbers::pi_v<f32>;
 
                 // Each vertex has 8 attributes (position, normal, texCoords)
                 _vertices.reserve((stacks + 1) * (sectors + 1) * 8);

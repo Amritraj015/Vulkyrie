@@ -286,12 +286,12 @@ namespace Vulkyrie {
         }
     }
 
-    static constexpr u8 shiftKeyModifier = std::to_underlying(KeyModifier::Shift);
-    static constexpr u8 controlKeyModifier = std::to_underlying(KeyModifier::Control);
-    static constexpr u8 altKeyModifier = std::to_underlying(KeyModifier::Alt);
-    static constexpr u8 superKeyModifier = std::to_underlying(KeyModifier::Super);
-    static constexpr u8 capsLockKeyModifier = std::to_underlying(KeyModifier::CapsLock);
-    static constexpr u8 numLockKeyModifier = std::to_underlying(KeyModifier::NumLock);
+    static constexpr u8 shiftKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::Shift));
+    static constexpr u8 controlKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::Control));
+    static constexpr u8 altKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::Alt));
+    static constexpr u8 superKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::Super));
+    static constexpr u8 capsLockKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::CapsLock));
+    static constexpr u8 numLockKeyModifier = static_cast<u8>(std::to_underlying(KeyModifier::NumLock));
 
     /** @brief Converts GLFW modifier flags to Vulkyrie key modifiers.
      * @param glfwMods The GLFW modifier flags.
@@ -483,7 +483,7 @@ namespace Vulkyrie {
         });
 
         glfwSetScrollCallback(_window, [](GLFWwindow *window, f64 offsetX, f64 offsetY) {
-            MouseScrolledEvent event(offsetX, offsetY);
+            MouseScrolledEvent event(static_cast<f32>(offsetX), static_cast<f32>(offsetY));
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));
@@ -493,7 +493,7 @@ namespace Vulkyrie {
         });
 
         glfwSetCursorPosCallback(_window, [](GLFWwindow *window, const f64 positionX, const f64 positionY) {
-            MouseMovedEvent event(positionX, positionY);
+            MouseMovedEvent event(static_cast<f32>(positionX), static_cast<f32>(positionY));
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));

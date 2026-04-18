@@ -242,10 +242,10 @@ namespace Vulkyrie {
             bool _firstMouseMove;
 
             /** @brief The last recorded mouse X position. */
-            f64 _lastMouseX;
+            f32 _lastMouseX;
 
             /** @brief The last recorded mouse Y position. */
-            f64 _lastMouseY;
+            f32 _lastMouseY;
 
             /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
             inline void updateCameraVectors() {
