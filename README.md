@@ -53,12 +53,23 @@ The project includes CMake presets for different build configurations. **All pre
 
 #### GCC
 
+##### Linux
+
 | Preset Name          | Targets                            | Configure & Build Commands                                                       |
 | -------------------- | ---------------------------------- | -------------------------------------------------------------------------------- |
 | `gcc-all-debug`      | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug && cmake --build --preset gcc-all-debug`           |
 | `gcc-examples-debug` | Examples only                      | `cmake --preset gcc-examples-debug && cmake --build --preset gcc-examples-debug` |
 | `gcc-cli-debug`      | CLI only                           | `cmake --preset gcc-cli-debug && cmake --build --preset gcc-cli-debug`           |
 | `gcc-tests-debug`    | Tests only                         | `cmake --preset gcc-tests-debug && cmake --build --preset gcc-tests-debug`       |
+
+##### Windows (MinGW)
+
+| Preset Name              | Targets                            | Configure & Build Commands                                                               |
+| ------------------------ | ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `gcc-all-debug-win`      | All (Engine, Examples, CLI, Tests) | `cmake --preset gcc-all-debug-win && cmake --build --preset gcc-all-debug-win`           |
+| `gcc-examples-debug-win` | Examples only                      | `cmake --preset gcc-examples-debug-win && cmake --build --preset gcc-examples-debug-win` |
+| `gcc-cli-debug-win`      | CLI only                           | `cmake --preset gcc-cli-debug-win && cmake --build --preset gcc-cli-debug-win`           |
+| `gcc-tests-debug-win`    | Tests only                         | `cmake --preset gcc-tests-debug-win && cmake --build --preset gcc-tests-debug-win`       |
 
 #### Clang
 
@@ -95,5 +106,6 @@ cd build/gcc-all-debug/examples/asteroids && ./asteroids
 **Note:** Adjust the build directory path based on which preset you used:
 
 - Generic presets: `build/all-debug`, `build/examples-debug`, etc.
-- GCC presets: `build/gcc-all-debug`, `build/gcc-examples-debug`, etc.
+- GCC presets (Linux): `build/gcc-all-debug`, `build/gcc-examples-debug`, etc.
+- GCC presets (Windows): `build/gcc-all-debug-win`, `build/gcc-examples-debug-win`, etc.
 - Clang presets: `build/clang-all-debug`, `build/clang-examples-debug`, etc.
