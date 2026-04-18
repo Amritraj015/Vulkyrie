@@ -51,4 +51,4 @@ find_package(OpenAL CONFIG REQUIRED)
 # -------------------------------------------------
 # GLAD
 Add_Library(glad STATIC external/glad/src/glad.c)
-Target_Include_Directories(glad PUBLIC external/glad/include) # TODO Change this to private include directory.
+Target_Include_Directories(glad SYSTEM PUBLIC external/glad/include) # TODO Change this to private include directory.

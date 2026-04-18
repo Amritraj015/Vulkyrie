@@ -9,7 +9,11 @@ namespace Vulkyrie {
     }
 
     StatusCode FileLogSink::Initialize() {
+#if defined(VE_PLATFORM_WINDOWS)
+        fopen_s(&_logFile, "vulkyrie_log.txt", "a");
+#else
         _logFile = std::fopen("vulkyrie_log.txt", "a");
+#endif
 
         if (nullptr == _logFile) {
             return StatusCode::FailedToInitializeLogger;

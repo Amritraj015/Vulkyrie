@@ -29,6 +29,16 @@
       }
     },
     {
+      "name": "gcc-base-release-win",
+      "hidden": true,
+      "inherits": "base-release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic"
+      }
+    },
+    {
       "name": "clang-base-release",
       "hidden": true,
       "inherits": "base-release",
@@ -84,6 +94,19 @@
       "name": "gcc-all-release",
       "displayName": "(GCC) - All Targets (Release)",
       "inherits": "gcc-base-release",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_EDITOR": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-all-release-win",
+      "displayName": "(GCC) - All Targets (Release)",
+      "inherits": "gcc-base-release-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
@@ -95,6 +118,18 @@
       "name": "gcc-examples-release",
       "displayName": "(GCC) - Examples (Release)",
       "inherits": "gcc-base-release",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-examples-release-win",
+      "displayName": "(GCC) - Examples (Release)",
+      "inherits": "gcc-base-release-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -105,6 +140,18 @@
       "name": "gcc-cli-release",
       "displayName": "(GCC) - CLI (Release)",
       "inherits": "gcc-base-release",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-cli-release-win",
+      "displayName": "(GCC) - CLI (Release)",
+      "inherits": "gcc-base-release-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -115,6 +162,18 @@
       "name": "gcc-tests-release",
       "displayName": "(GCC) - Tests (Release)",
       "inherits": "gcc-base-release",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-tests-release-win",
+      "displayName": "(GCC) - Tests (Release)",
+      "inherits": "gcc-base-release-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -186,6 +245,16 @@
       }
     },
     {
+      "name": "gcc-base-debug-win",
+      "hidden": true,
+      "inherits": "base-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic"
+      }
+    },
+    {
       "name": "clang-base-debug",
       "hidden": true,
       "inherits": "base-debug",
@@ -241,6 +310,19 @@
       "name": "gcc-all-debug",
       "displayName": "(GCC) - All Targets (Debug)",
       "inherits": "gcc-base-debug",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_EDITOR": "ON",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-all-debug-win",
+      "displayName": "(GCC) - All Targets (Debug)",
+      "inherits": "gcc-base-debug-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
@@ -252,6 +334,18 @@
       "name": "gcc-examples-debug",
       "displayName": "(GCC) - Examples (Debug)",
       "inherits": "gcc-base-debug",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "ON",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-examples-debug-win",
+      "displayName": "(GCC) - Examples (Debug)",
+      "inherits": "gcc-base-debug-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -262,6 +356,18 @@
       "name": "gcc-cli-debug",
       "displayName": "(GCC) - CLI (Debug)",
       "inherits": "gcc-base-debug",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "ON",
+        "VULKYRIE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "gcc-cli-debug-win",
+      "displayName": "(GCC) - CLI (Debug)",
+      "inherits": "gcc-base-debug-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -272,6 +378,18 @@
       "name": "gcc-tests-debug",
       "displayName": "(GCC) - Tests (Debug)",
       "inherits": "gcc-base-debug",
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "gcc-tests-debug-win",
+      "displayName": "(GCC) - Tests (Debug)",
+      "inherits": "gcc-base-debug-win",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "cacheVariables": {
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
@@ -328,16 +446,18 @@
     { "name": "cli-debug", "configurePreset": "cli-debug" },
     { "name": "tests-debug", "configurePreset": "tests-debug" },
 
-    { "name": "gcc-all-debug", "configurePreset": "gcc-all-debug" },
-    { "name": "gcc-examples-debug", "configurePreset": "gcc-examples-debug" },
-    { "name": "gcc-cli-debug", "configurePreset": "gcc-cli-debug" },
-    { "name": "gcc-tests-debug", "configurePreset": "gcc-tests-debug" },
+    { "name": "gcc-all-debug", "configurePreset": "gcc-all-debug", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-examples-debug", "configurePreset": "gcc-examples-debug", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-cli-debug", "configurePreset": "gcc-cli-debug", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-tests-debug", "configurePreset": "gcc-tests-debug", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+
+    { "name": "gcc-all-debug-win", "configurePreset": "gcc-all-debug-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-examples-debug-win", "configurePreset": "gcc-examples-debug-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-cli-debug-win", "configurePreset": "gcc-cli-debug-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-tests-debug-win", "configurePreset": "gcc-tests-debug-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
 
     { "name": "clang-all-debug", "configurePreset": "clang-all-debug" },
-    {
-      "name": "clang-examples-debug",
-      "configurePreset": "clang-examples-debug"
-    },
+    { "name": "clang-examples-debug", "configurePreset": "clang-examples-debug" },
     { "name": "clang-cli-debug", "configurePreset": "clang-cli-debug" },
     { "name": "clang-tests-debug", "configurePreset": "clang-tests-debug" },
 
@@ -346,19 +466,18 @@
     { "name": "cli-release", "configurePreset": "cli-release" },
     { "name": "tests-release", "configurePreset": "tests-release" },
 
-    { "name": "gcc-all-release", "configurePreset": "gcc-all-release" },
-    {
-      "name": "gcc-examples-release",
-      "configurePreset": "gcc-examples-release"
-    },
-    { "name": "gcc-cli-release", "configurePreset": "gcc-cli-release" },
-    { "name": "gcc-tests-release", "configurePreset": "gcc-tests-release" },
+    { "name": "gcc-all-release", "configurePreset": "gcc-all-release", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-examples-release", "configurePreset": "gcc-examples-release", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-cli-release", "configurePreset": "gcc-cli-release", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-tests-release", "configurePreset": "gcc-tests-release", "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+
+    { "name": "gcc-all-release-win", "configurePreset": "gcc-all-release-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-examples-release-win", "configurePreset": "gcc-examples-release-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-cli-release-win", "configurePreset": "gcc-cli-release-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "gcc-tests-release-win", "configurePreset": "gcc-tests-release-win", "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
 
     { "name": "clang-all-release", "configurePreset": "clang-all-release" },
-    {
-      "name": "clang-examples-release",
-      "configurePreset": "clang-examples-release"
-    },
+    { "name": "clang-examples-release", "configurePreset": "clang-examples-release" },
     { "name": "clang-cli-release", "configurePreset": "clang-cli-release" },
     { "name": "clang-tests-release", "configurePreset": "clang-tests-release" }
   ]

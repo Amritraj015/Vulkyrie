@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numbers>
 #include <cstdint>
 #include <cstring>
 #include <cstdarg>
@@ -56,25 +57,25 @@ typedef double f64;
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
 
 // Windows OS.
-#define PLATFORM_WINDOWS 1
+#define VE_PLATFORM_WINDOWS 1
 
 #if defined(VULKYRIE_EXPORTS)
-#define VULKYRIE_API __declspec(dllexport)
+#define VE_API __declspec(dllexport)
 #else
-#define VULKYRIE_API __declspec(dllimport)
+#define VE_API __declspec(dllimport)
 #endif
 
 #elif defined(__linux__) || defined(__gnu_linux__)
 
 // Linux OS.
-#define PLATFORM_LINUX 1
-#define VULKYRIE_API __attribute__((visibility("default")))
+#define VE_PLATFORM_LINUX 1
+#define VE_API __attribute__((visibility("default")))
 
 #else
 
 // Unsupported platform.
 #error "Unknown platform!"
-#define VULKYRIE_API
+#define VE_API
 
 #endif
 

@@ -54,7 +54,7 @@ namespace Vulkyrie {
 
         // Load the WAV file and create an OpenAL buffer for it.
         if (!LoadWAV(filepath, clip)) {
-            VERROR("Failed to load WAV file: {}", filepath.c_str());
+            VERROR("Failed to load WAV file: {}", filepath.string());
             return nullptr;
         }
 

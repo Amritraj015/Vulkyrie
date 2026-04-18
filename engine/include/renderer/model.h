@@ -65,7 +65,7 @@ namespace Vulkyrie {
              * @param path The file path to the 3D model.
              * @param gammaCorrection Whether to apply gamma correction.
              */
-            Model(const std::string &path, bool gammaCorrection)
+            Model(const std::filesystem::path &path, bool gammaCorrection)
                 : _path(path)
                 , _gammaCorrection(gammaCorrection) {
             }

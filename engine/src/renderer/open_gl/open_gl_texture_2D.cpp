@@ -70,12 +70,13 @@ namespace Vulkyrie {
         : _path(path)
         , _fileName(_path.filename().string()) {
         int width, height, channels;
+        const std::string pathString = path.string();
 
         stbi_set_flip_vertically_on_load(true);
 
         stbi_uc *data = nullptr;
         {
-            data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+            data = stbi_load(pathString.c_str(), &width, &height, &channels, 0);
         }
 
         stbi_set_flip_vertically_on_load(false);

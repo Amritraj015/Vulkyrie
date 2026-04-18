@@ -17,13 +17,14 @@ namespace Vulkyrie {
         i32 width = 0;
         i32 height = 0;
         i32 channels = 0;
+        const std::string firstFacePath = _faces[0].string();
 
         // ---- Load first face to establish format and size ----
-        stbi_uc *data = stbi_load(_faces[0].c_str(), &width, &height, &channels, 0);
+        stbi_uc *data = stbi_load(firstFacePath.c_str(), &width, &height, &channels, 0);
 
         if (!data) {
             glDeleteTextures(1, &_textureId);
-            VASSERT_EXPR(false, "Failed to load cubemap face: {}", _faces[0].c_str());
+            VASSERT_EXPR(false, "Failed to load cubemap face: {}", firstFacePath);
         }
 
         GLenum internalFormat = 0;
@@ -38,7 +39,7 @@ namespace Vulkyrie {
         } else {
             stbi_image_free(data);
             glDeleteTextures(1, &_textureId);
-            VASSERT_EXPR(false, "Unsupported channel count for cubemap face: {}", _faces[0].c_str());
+            VASSERT_EXPR(false, "Unsupported channel count for cubemap face: {}", firstFacePath);
         }
 
         // Allocate immutable storage for all faces
@@ -53,25 +54,26 @@ namespace Vulkyrie {
             i32 faceWidth = 0;
             i32 faceHeight = 0;
             i32 faceChannels = 0;
+            const std::string facePath = _faces[i].string();
 
-            data = stbi_load(_faces[i].c_str(), &faceWidth, &faceHeight, &faceChannels, 0);
+            data = stbi_load(facePath.c_str(), &faceWidth, &faceHeight, &faceChannels, 0);
             if (!data) {
                 glDeleteTextures(1, &_textureId);
-                VASSERT_EXPR(false, "Failed to load cubemap face: {}", _faces[i].c_str());
+                VASSERT_EXPR(false, "Failed to load cubemap face: {}", facePath);
             }
 
             // Validate dimensions
             if (faceWidth != width || faceHeight != height) {
                 stbi_image_free(data);
                 glDeleteTextures(1, &_textureId);
-                VASSERT_EXPR(false, "Cubemap face size mismatch: {}", _faces[i].c_str());
+                VASSERT_EXPR(false, "Cubemap face size mismatch: {}", facePath);
             }
 
             // Validate channel count
             if (faceChannels != channels) {
                 stbi_image_free(data);
                 glDeleteTextures(1, &_textureId);
-                VASSERT_EXPR(false, "Cubemap face channel mismatch: {}", _faces[i].c_str());
+                VASSERT_EXPR(false, "Cubemap face channel mismatch: {}", facePath);
             }
 
             // Upload face
