@@ -7,12 +7,12 @@
 namespace Vulkyrie {
     class MouseButtonEvent : public Event {
         public:
-            explicit MouseButtonEvent(const MouseButton mouseButton)
+            explicit MouseButtonEvent(const Vulkyrie::MouseButton mouseButton)
                 : MouseButton(mouseButton) {
             }
 
             /** @brief The mouse button associated with the event. */
-            const MouseButton MouseButton;
+            const Vulkyrie::MouseButton MouseButton;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;

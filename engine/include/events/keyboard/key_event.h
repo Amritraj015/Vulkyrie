@@ -8,11 +8,11 @@ namespace Vulkyrie {
     // A class to represent a key press or release event.
     class KeyEvent : public Event {
         public:
-            KeyEvent(KeyCode keycode) : KeyCode(keycode) {
+            KeyEvent(Vulkyrie::KeyCode keycode) : KeyCode(keycode) {
             }
 
             /** @brief The key code associated with the event. */
-            const KeyCode KeyCode;
+            const Vulkyrie::KeyCode KeyCode;
 
             [[nodiscard]] inline i32 GetCategoryFlags() const override {
                 return _categoryFlags;
