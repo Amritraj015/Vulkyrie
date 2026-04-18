@@ -26,7 +26,7 @@ Make sure you have the following installed:
   - **GCC**
   - **MSVC**
   - **Clang**
-- **Ninja** build system (required for CMake presets) ([Can be downloaded from here](https://github.com/ninja-build/ninja/releases))
+- **Ninja** build system (required for CMake presets) ([Can be downloaded from here](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages))
 - **vcpkg** with the `VCPKG_ROOT` environment variable set, since the presets use `$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake`
 
 On Windows with **MSVC**, run CMake from an **x64 Developer PowerShell** or **x64 Developer Command Prompt** so `cl.exe`, the Windows SDK, and the STL headers are available to the preset.
