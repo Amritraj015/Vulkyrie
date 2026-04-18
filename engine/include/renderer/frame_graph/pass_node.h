@@ -67,7 +67,7 @@ namespace Vulkyrie {
             struct ResourceAccess {
                 public:
                     /** @brief The ID of the resource being accessed. */
-                    ResourceID ResourceID;
+                    Vulkyrie::ResourceID ResourceID;
 
                     /** @brief Flags indicating the type of access (e.g., read or write) and any additional information about the access. */
                     i32 Flags;

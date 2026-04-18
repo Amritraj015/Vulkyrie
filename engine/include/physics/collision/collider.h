@@ -19,6 +19,9 @@ namespace Vulkyrie {
             Collider(const Collider &) = delete;
             Collider &operator=(const Collider &) = delete;
 
+            Collider(Collider &&) = delete;
+            Collider &operator=(Collider &&) = delete;
+
             [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
                 return _entity;
             }
