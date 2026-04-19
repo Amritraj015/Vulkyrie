@@ -60,7 +60,7 @@
 // -----------------------------------------------------------
 
 // Material includes
-#include "materials/material_library.h"
+#include "materials/lighting_props.h"
 
 // Physics includes
 #include "physics/physics_world_settings.h"

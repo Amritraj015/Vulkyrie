@@ -7,6 +7,9 @@ namespace Vulkyrie {
 
     class EntityManager;
 
+    /** @brief The Entity struct represents a unique identifier for an entity in the ECS architecture. It encodes both an index and a generation to allow for
+     * efficient reuse of entity IDs while preventing issues with dangling references. The index is used to locate the entity's components in the storage, while
+     * the generation is used to distinguish between different incarnations of the same index after an entity has been destroyed and its index reused. */
     struct Entity {
         public:
             /** @brief Gets the unique identifier of the entity.

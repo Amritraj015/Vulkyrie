@@ -3,6 +3,7 @@
 #include "core/entity.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/collision/shapes/collision_shape.h"
+#include "physics/materials/material.h"
 
 namespace Vulkyrie {
     class Body;
@@ -33,13 +34,22 @@ namespace Vulkyrie {
             CollisionShape &GetCollisionShape();
             const CollisionShape &GetCollisionShape() const;
 
-            const AABB &GetAABB() const;
+            const TransformComponent &GetLocalBodyTransform() const;
+            void SetLocalBodyTransform(const TransformComponent &transform);
+
+            const AABB &GetWorldSpaceAABB() const;
 
             [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
-                return aabb.CollidesWith(GetAABB());
+                return aabb.CollidesWith(GetWorldSpaceAABB());
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 point) const {
+                return GetWorldSpaceAABB().ContainsPoint(point);
             }
 
             bool ContainsPoint(const glm::vec3 &point) const;
+
+            [[nodiscard]] VE_FORCE_INLINE Material &GetMaterial() const;
 
         protected:
             Entity _entity;

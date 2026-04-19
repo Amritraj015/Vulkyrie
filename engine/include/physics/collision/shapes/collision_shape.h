@@ -10,7 +10,7 @@ namespace Vulkyrie {
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
 
     /** The total number of collision shape types defined in the `CollisionShapeType` enum. */
-    static constexpr u8 COLLISION_SHAPE_TYPE_COUNT = 4;
+    // static constexpr u8 COLLISION_SHAPE_TYPE_COUNT = 4;
 
     /** The specific name of the collision shape, used to identify the exact type of shape. */
     enum class CollisionShapeName : u32 { Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield };
