@@ -1,4 +1,5 @@
 {
+    "C_Cpp.intelliSenseEngine": "disabled",
     "testMate.cpp.test.advancedExecutables": [
         {
             "pattern": "{build,Build,BUILD,out,Out,OUT}/**/**/*{tests,Test,TEST}*",

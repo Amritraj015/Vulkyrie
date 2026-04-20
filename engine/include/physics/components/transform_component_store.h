@@ -43,9 +43,9 @@ namespace Vulkyrie {
              * @param transformComponent The new TransformComponent values to be set for the specified entity.
              */
             VE_FORCE_INLINE void SetTransform(const Entity entity, const TransformComponent &transformComponent) {
-                VASSERT_EXPR(HasComponent(entity), "Entity does not have a TransformComponent.");
+                VASSERT(HasComponent(entity), "Entity does not have a TransformComponent.");
 
-                _transforms[_entityToComponentIndex[entity]] = transformComponent;
+                _transforms[_entityToComponentIndex.find(entity)->second] = transformComponent;
             }
 
             /** @brief Retrieves a reference to the TransformComponent associated with the specified entity.
@@ -53,9 +53,9 @@ namespace Vulkyrie {
              * @return A reference to the TransformComponent associated with the specified entity.
              */
             [[nodiscard]] VE_FORCE_INLINE TransformComponent &GetTransform(const Entity entity) {
-                VASSERT_EXPR(HasComponent(entity), "Entity does not have a TransformComponent.");
+                VASSERT(HasComponent(entity), "Entity does not have a TransformComponent.");
 
-                return _transforms[_entityToComponentIndex[entity]];
+                return _transforms[_entityToComponentIndex.find(entity)->second];
             }
 
             /** @brief Returns a contiguous view of the active TransformComponents.
@@ -63,13 +63,6 @@ namespace Vulkyrie {
              */
             [[nodiscard]] VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
                 return { _transforms.data(), _activeCount };
-            }
-
-            /** @brief Returns a contiguous view of the entities that have active TransformComponents.
-             * @return A span over the entities corresponding to the densely packed active TransformComponents.
-             */
-            [[nodiscard]] VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
-                return { _entities.data(), _activeCount };
             }
 
         protected:

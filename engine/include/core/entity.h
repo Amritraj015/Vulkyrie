@@ -1,17 +1,25 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/asserts.h"
 
 namespace Vulkyrie {
-
-    class EntityManager;
 
     /** @brief The Entity struct represents a unique identifier for an entity in the ECS architecture. It encodes both an index and a generation to allow for
      * efficient reuse of entity IDs while preventing issues with dangling references. The index is used to locate the entity's components in the storage, while
      * the generation is used to distinguish between different incarnations of the same index after an entity has been destroyed and its index reused. */
     struct Entity {
         public:
+            static constexpr u64 ENTITY_INDEX_BITS = 48;
+            static constexpr u64 ENTITY_INDEX_MASK = (1ULL << ENTITY_INDEX_BITS) - 1;
+            static constexpr u64 ENTITY_GENERATION_BITS = 16;
+            static constexpr u64 ENTITY_GENERATION_MASK = (1ULL << ENTITY_GENERATION_BITS) - 1;
+
+            /** @brief Constructs an entity with the given index and generation.
+             * @param index The index of the entity in the entity manager's storage.
+             * @param generation The generation of the entity used to distinguish between different incarnations of the same index.
+             */
+            Entity(u64 index, u64 generation);
+
             /** @brief Gets the unique identifier of the entity.
              * @return The unique identifier of the entity.
              */
@@ -52,24 +60,6 @@ namespace Vulkyrie {
         private:
             /** @brief Unique identifier for the entity. */
             u64 _id;
-
-            static constexpr u64 ENTITY_INDEX_BITS = 48;
-            static constexpr u64 ENTITY_INDEX_MASK = (1ULL << ENTITY_INDEX_BITS) - 1;
-            static constexpr u64 ENTITY_GENERATION_BITS = 16;
-            static constexpr u64 ENTITY_GENERATION_MASK = (1ULL << ENTITY_GENERATION_BITS) - 1;
-            // static constexpr u32 MINIMUM_FREE_INDICES = 2048;
-
-            /** @brief Constructs an entity with the given index and generation.
-             * @param index The index of the entity in the entity manager's storage.
-             * @param generation The generation of the entity used to distinguish between different incarnations of the same index.
-             */
-            Entity(u64 index, u64 generation)
-                : _id((index & ENTITY_INDEX_MASK) | ((generation & ENTITY_GENERATION_MASK) << ENTITY_INDEX_BITS)) {
-                VASSERT_EXPR(index < (1ULL << ENTITY_INDEX_BITS), "Entity index exceeds maximum allowed bits.");
-                VASSERT_EXPR(generation < (1ULL << ENTITY_GENERATION_BITS), "Entity generation exceeds maximum allowed bits.");
-            }
-
-            friend class EntityManager;
     };
 
 } // namespace Vulkyrie

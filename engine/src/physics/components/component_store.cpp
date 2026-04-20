@@ -10,9 +10,9 @@ namespace Vulkyrie {
     }
 
     void ComponentStore::SetActiveStatus(Entity entity, bool active) {
-        VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
+        VASSERT(HasComponent(entity), "Entity does not have a component.");
 
-        size_t index = _entityToComponentIndex[entity];
+        size_t index = _entityToComponentIndex.find(entity)->second;
 
         if (active && index >= _activeCount) {
             // Swap the component at the current index with the component at the index corresponding to
@@ -32,9 +32,9 @@ namespace Vulkyrie {
     }
 
     void ComponentStore::RemoveComponent(Entity entity) {
-        VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
+        VASSERT(HasComponent(entity), "Entity does not have a component.");
 
-        size_t index = _entityToComponentIndex[entity];
+        size_t index = _entityToComponentIndex.find(entity)->second;
         bool wasActive = index < _activeCount;
         size_t lastIndex = _entities.size() - 1;
 

@@ -7,9 +7,9 @@ namespace Vulkyrie {
     }
 
     void TransformComponentStore::AddComponent(Entity entity, const TransformComponent &transformComponent, bool active) {
-        VASSERT_EXPR(!HasComponent(entity), "Entity already has a TransformComponent.");
+        VASSERT(!HasComponent(entity), "Entity already has a TransformComponent.");
 
-        size_t index = _transforms.size();
+        size_t index = _entities.size();
 
         // Append the new component and its associated entity to the end of their respective vectors.
         _transforms.push_back(transformComponent);
@@ -44,7 +44,7 @@ namespace Vulkyrie {
     }
 
     void TransformComponentStore::removeLastComponentAndEntity() {
-        VASSERT_EXPR(!_transforms.empty(), "There are no TransformComponents available to be removed.");
+        VASSERT(!_entities.empty(), "There are no TransformComponents available to be removed.");
 
         _transforms.pop_back();
         _entities.pop_back();

@@ -68,10 +68,10 @@ namespace Vulkyrie {
              * @param entity The entity to check for being disabled.
              * @return True if the entity has a component that is currently inactive, false otherwise.
              */
-            [[nodiscard]] VE_FORCE_INLINE bool IsDisabled(Entity entity) {
-                VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
+            [[nodiscard]] VE_FORCE_INLINE bool IsDisabled(Entity entity) const {
+                VASSERT(HasComponent(entity), "Entity does not have a component.");
 
-                return _entityToComponentIndex[entity] >= _activeCount;
+                return _entityToComponentIndex.find(entity)->second >= _activeCount;
             }
 
             /** @brief Checks if the specified entity has a component associated with it in this component store.
@@ -96,15 +96,22 @@ namespace Vulkyrie {
                 return _activeCount;
             }
 
+            /** @brief Returns a contiguous view of the entities that have active components.
+             * @return A span over the entities corresponding to the densely packed active components at the front of the storage.
+             */
+            [[nodiscard]] VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
+                return { _entities.data(), _activeCount };
+            }
+
             /** @brief Retrieves the index of the component in the component vector associated with the specified entity. The entity must have a component
              * associated with it.
              * @param entity The entity whose component index is to be retrieved. The entity must have a component associated with it.
              * @return The index of the component associated with the specified entity in the component vector.
              */
             [[nodiscard]] VE_FORCE_INLINE size_t GetEntityIndex(Entity entity) const {
-                VASSERT_EXPR(HasComponent(entity), "Entity does not have a component.");
+                VASSERT(HasComponent(entity), "Entity does not have a component.");
 
-                return _entityToComponentIndex.at(entity);
+                return _entityToComponentIndex.find(entity)->second;
             }
     };
 
