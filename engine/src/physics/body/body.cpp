@@ -2,6 +2,11 @@
 
 namespace Vulkyrie {
 
+    Body::Body(Entity entity, PhysicsWorld &physicsWorld)
+        : _entity(entity)
+        , _physicsWorld(physicsWorld) {
+    }
+
     // bool IsActive() const;
     // void SetIsActive(bool active);
 

@@ -329,7 +329,7 @@ namespace Vulkyrie {
              * with it.
              * @param colliderEntity The entity whose material properties are to be retrieved.
              * @return A reference to the Material associated with the specified collider entity. */
-            [[nodiscard]] VE_FORCE_INLINE const Material &GetMaterial(Entity colliderEntity) const {
+            [[nodiscard]] VE_FORCE_INLINE Material &GetMaterial(Entity colliderEntity) {
                 VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
                 return _materials[_entityToComponentIndex.find(colliderEntity)->second];

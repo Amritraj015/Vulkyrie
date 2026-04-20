@@ -10,7 +10,7 @@ namespace Vulkyrie {
 
     class Collider final {
         public:
-            Collider(Entity entity, const Body &body);
+            Collider(Entity entity, Body &body);
 
             Collider(const Collider &) = delete;
             Collider &operator=(const Collider &) = delete;
@@ -36,7 +36,7 @@ namespace Vulkyrie {
 
             [[nodiscard]] const TransformComponent &GetLocalToWorldTransform() const;
 
-            [[nodiscard]] const AABB &GetWorldSpaceAABB() const;
+            [[nodiscard]] const AABB GetWorldSpaceAABB() const;
 
             [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
                 return aabb.CollidesWith(GetWorldSpaceAABB());
@@ -64,9 +64,9 @@ namespace Vulkyrie {
             [[nodiscard]] bool IsQueryCollider() const;
             void SetQueryCollider(bool isQueryCollider);
 
-        protected:
+        private:
             Entity _entity;
-            const Body &_body;
+            Body &_body;
     };
 
 } // namespace Vulkyrie

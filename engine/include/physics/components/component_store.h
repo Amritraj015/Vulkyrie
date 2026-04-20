@@ -14,6 +14,14 @@ namespace Vulkyrie {
             /** @brief Constructs an instance of ComponentStore. Initializes the active component count to zero. */
             ComponentStore();
 
+            // Delete the copy constructor and copy assignment operator.
+            ComponentStore(const ComponentStore &) = delete;
+            ComponentStore &operator=(const ComponentStore &) = delete;
+
+            // Delete the move constructor and move assignment operator.
+            ComponentStore(ComponentStore &&) = delete;
+            ComponentStore &operator=(ComponentStore &&) = delete;
+
             /** @brief Virtual destructor for ComponentStore. Ensures proper cleanup of derived classes. */
             virtual ~ComponentStore() = default;
 
