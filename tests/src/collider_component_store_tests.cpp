@@ -17,7 +17,6 @@ static TransformComponent makeTransform(float x, float y = 0.0f, float z = 0.0f)
     TransformComponent t{};
     t.Position = glm::vec3(x, y, z);
     t.Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    t.Scale    = glm::vec3(1.0f);
     return t;
 }
 

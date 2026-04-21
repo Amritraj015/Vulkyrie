@@ -5,7 +5,9 @@
 
 namespace Vulkyrie {
 
-    /** @brief Component that represents the position, rotation, and scale of an entity in 3D space. */
+    /** @brief Component that represents the position and orientation of an entity in 3D space.
+     *  Scale is intentionally excluded; collision shapes encode their own size. This keeps
+     *  transform composition numerically exact (no non-uniform scale / rotation interaction). */
     struct TransformComponent final {
         public:
             /** Position of the entity in 3D space. */
@@ -14,8 +16,10 @@ namespace Vulkyrie {
             /** Rotation of the entity represented as a quaternion. */
             glm::quat Rotation;
 
-            /** Scale factor for the entity in 3D space. */
-            glm::vec3 Scale;
+            TransformComponent operator*(const TransformComponent &other) const {
+                return { Position + Rotation * other.Position,
+                         Rotation * other.Rotation };
+            }
     };
 
     /** @brief The TransformComponentStore is responsible for managing TransformComponents associated with entities. It maintains a dense packing of active

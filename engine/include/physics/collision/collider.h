@@ -42,7 +42,7 @@ namespace Vulkyrie {
                 return aabb.CollidesWith(GetWorldSpaceAABB());
             }
 
-            [[nodiscard]] bool ContainsPoint(const glm::vec3 &point) const;
+            [[nodiscard]] bool ContainsPoint(const glm::vec3 &worldSpacePoint) const;
 
             [[nodiscard]] Material &GetMaterial() const;
             void SetMaterial(const Material &material);

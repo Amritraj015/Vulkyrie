@@ -32,8 +32,15 @@ namespace Vulkyrie {
         return shape.ComputeTransformedAABB(GetLocalToWorldTransform());
     }
 
-    // bool Collider::ContainsPoint(const glm::vec3 &point) const {
-    // }
+    bool Collider::ContainsPoint(const glm::vec3 &worldSpacePoint) const {
+
+        const TransformComponent localToWorld = _body.GetPhysicsWorld().GetTransformComponentStore().GetTransform(_body.GetEntity()) *
+                                                _body.GetPhysicsWorld().GetColliderComponentStore().GetLocalToBodyTransform(_entity);
+
+        const glm::vec3 localPoint = glm::inverse(localToWorld.Rotation) * (worldSpacePoint - localToWorld.Position);
+        const CollisionShape &collisionShape = _body.GetPhysicsWorld().GetColliderComponentStore().GetCollisionShape(_entity);
+        return collisionShape.ContainsPoint(localPoint);
+    }
 
     Material &Collider::GetMaterial() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetMaterial(_entity);
@@ -48,6 +55,9 @@ namespace Vulkyrie {
     }
 
     // void Collider::SetCollisionCategoryBits(u16 collisionCategoryBits) {
+    // _body.GetPhysicsWorld().GetColliderComponentStore().SetCollisionCategoryBits(_entity, collisionCategoryBits);
+    //
+    // auto broadPhaseID = GetBroadPhaseID();
     // }
 
     u16 Collider::GetCollidesWithMaskBits() const {
@@ -56,6 +66,10 @@ namespace Vulkyrie {
 
     // void Collider::SetCollidesWithMaskBits(u16 maskBits) {
     // }
+
+    i32 Collider::GetBroadPhaseID() const {
+        return _body.GetPhysicsWorld().GetColliderComponentStore().GetBroadPhaseID(_entity);
+    }
 
     bool Collider::IsTrigger() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().IsTrigger(_entity);
@@ -76,8 +90,25 @@ namespace Vulkyrie {
         return _body.GetPhysicsWorld().GetColliderComponentStore().IsSimulationCollider(_entity);
     }
 
-    // void Collider::SetSimulationCollider(bool isSimulationCollider) {
-    // }
+    void Collider::SetSimulationCollider(bool isSimulationCollider) {
+        // Set the simulation collider flag for this collider.
+        _body.GetPhysicsWorld().GetColliderComponentStore().SetSimulationCollider(_entity, isSimulationCollider);
+
+        if (isSimulationCollider) {
+            // If this collider is now a simulation collider,
+            // ensure the owning body is marked as having simulation colliders so it will be included in the simulation step.
+            _body.GetPhysicsWorld().GetBodyComponentStore().SetHasSimulationColliders(_body.GetEntity(), true);
+        } else {
+            // If this collider is no longer a simulation collider,
+            // check if the owning body still has any simulation colliders and update its flag accordingly.
+            _body.UpdateHasSimulationCollidersFlag();
+        }
+
+        // If this collider is now a simulation collider, it should not be a trigger.
+        if (isSimulationCollider && IsTrigger()) {
+            SetTrigger(false);
+        }
+    }
 
     bool Collider::IsQueryCollider() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().IsQueryCollider(_entity);

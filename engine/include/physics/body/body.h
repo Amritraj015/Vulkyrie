@@ -41,19 +41,28 @@ namespace Vulkyrie {
                 return _physicsWorld;
             }
 
-            // bool IsActive() const;
+            bool IsActive() const;
             // virtual void SetIsActive(bool active);
-            //
-            // const TransformComponent &GetTransform() const;
+
+            const TransformComponent &GetTransform() const;
             virtual void SetTransform(const TransformComponent &transform);
 
             // virtual void AddCollider(CollisionShape *shape, const TransformComponent &transform);
             // virtual void RemoveCollider(Collider *collider);
-            // Collider &GetCollider(size_t colliderIndex);
-            // const Collider &GetCollider(size_t colliderIndex) const;
-            // u32 GetColliderCount() const;
-            //
-            // void ContainsPoint(const glm::vec3 &point) const;
+
+            Collider &GetCollider(size_t colliderIndex);
+            const Collider &GetCollider(size_t colliderIndex) const;
+
+            /** @brief Retrieves the number of colliders currently attached to this body.
+             * @return The number of colliders currently attached to this body. */
+            size_t GetColliderCount() const;
+
+            /** @brief Checks if the specified point in world space is contained within any of the colliders attached to this body. This method iterates through
+             * all colliders associated with the body and checks if the point lies within any of them, returning true if it does and false otherwise.
+             * @param point The point in world space to be checked for containment within the body's colliders.
+             * @return True if the specified point is contained within any of the colliders attached to this body, false otherwise. */
+            bool ContainsPoint(const glm::vec3 &point) const;
+
             // [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
             //     return aabb.CollidesWith(GetAABB());
             // }
@@ -63,6 +72,8 @@ namespace Vulkyrie {
             // glm::vec3 GetWorldVector(const glm::vec3 &localVector) const;
             // glm::vec3 GetLocalPoint(const glm::vec3 &worldPoint) const;
             // glm::vec3 GetLocalVector(const glm::vec3 &worldVector) const;
+
+            void UpdateHasSimulationCollidersFlag();
 
         protected:
             Entity _entity;

@@ -11,11 +11,10 @@ using namespace Vulkyrie;
 
 namespace {
 
-    TransformComponent MakeTransform(glm::vec3 position, glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3 scale = glm::vec3(1.0f)) {
+    TransformComponent MakeTransform(glm::vec3 position, glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f)) {
         TransformComponent t;
         t.Position = position;
         t.Rotation = rotation;
-        t.Scale    = scale;
         return t;
     }
 
