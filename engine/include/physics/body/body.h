@@ -27,7 +27,7 @@ namespace Vulkyrie {
             Body &operator=(const Body &) = delete;
 
             // Delete the move constructor and the move assignment operator to prevent moving of Body instances,
-            // as they are tightly coupled with their entity and physics world, and moving them could lead
+            // as they are tightly coupled with their entity and physics world, and moving them could lead to dangling references and other issues.
             Body(Body &&) = delete;
             Body &operator=(Body &&) = delete;
 
