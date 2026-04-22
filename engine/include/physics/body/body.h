@@ -52,8 +52,6 @@ namespace Vulkyrie {
              * @return True if this body is active in the simulation, false otherwise. */
             bool IsActive() const;
 
-            // virtual void SetIsActive(bool active);
-
             /** @brief Retrieves the current transform of this body, which includes its position and rotation in world space. The transform defines the body's
              * location and orientation in the physics world, and it affects how the body's colliders are positioned and how it interacts with other bodies. The
              * returned transform is a reference to the TransformComponent associated with this body's entity in the physics world.
@@ -132,13 +130,14 @@ namespace Vulkyrie {
              * @return The corresponding vector in the body's local space after applying the inverse of the body's rotation. */
             [[nodiscard]] glm::vec3 GetLocalVector(const glm::vec3 &worldVector) const;
 
-            // virtual void AddCollider(CollisionShape *shape, const TransformComponent &transform);
-            // virtual void RemoveCollider(Collider *collider);
-
             /** @brief Scans all colliders attached to this body and sets the has-simulation-colliders flag to true on the body's component if at least one
              * simulation collider is found. This method should be called whenever colliders are added to or removed from the body to keep the flag consistent
              * with the current collider state. */
             void UpdateHasSimulationCollidersFlag();
+
+            // virtual void SetIsActive(bool active);
+            // virtual void AddCollider(CollisionShape *shape, const TransformComponent &transform);
+            // virtual void RemoveCollider(Collider *collider);
 
         protected:
             /** @brief The Entity associated with this Body. This entity must have a TransformComponent in the physics world for the body to function correctly.

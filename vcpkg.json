@@ -10,6 +10,7 @@
     "glfw3",
     "glm",
     "stb",
-    "openal-soft"
+    "openal-soft",
+    "catch2"
   ]
 }

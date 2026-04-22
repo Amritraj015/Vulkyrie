@@ -11,8 +11,6 @@ namespace Vulkyrie {
         return _physicsWorld.GetBodyComponentStore().IsBodyActive(_entity);
     }
 
-    // void SetIsActive(bool active);
-
     const TransformComponent &Body::GetTransform() const {
         return _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
     }
@@ -20,9 +18,6 @@ namespace Vulkyrie {
     void Body::SetTransform(const TransformComponent &transform) {
         _physicsWorld.GetTransformComponentStore().SetTransform(_entity, transform);
     }
-
-    // void AddCollider(CollisionShape *shape, const TransformComponent &transform);
-    // void RemoveCollider(Collider *collider);
 
     Collider &Body::GetCollider(size_t colliderIndex) {
         VASSERT(colliderIndex < GetColliderCount(), "Collider index out of bounds.");
@@ -115,8 +110,11 @@ namespace Vulkyrie {
     }
 
     void Body::UpdateHasSimulationCollidersFlag() {
+        // Get all collider entities associated with this body.
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
 
+        // Iterate through the colliders and check if any of them are simulation colliders.
+        // If at least one is found, set the flag to true and return early.
         for (Entity colliderEntity : colliderEntities) {
             const bool isSimulationCollider = _physicsWorld.GetColliderComponentStore().IsSimulationCollider(colliderEntity);
 
@@ -126,5 +124,9 @@ namespace Vulkyrie {
             }
         }
     }
+
+    // void SetIsActive(bool active);
+    // void AddCollider(CollisionShape *shape, const TransformComponent &transform);
+    // void RemoveCollider(Collider *collider);
 
 } // namespace Vulkyrie
