@@ -17,7 +17,7 @@ find_package(assimp CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 
 # STB
-# find_package(stb CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 # Catch2
 if(VULKYRIE_BUILD_TESTS)
@@ -25,6 +25,5 @@ if(VULKYRIE_BUILD_TESTS)
     find_package(Catch2 CONFIG REQUIRED)
 endif()
 
-# GLAD
-Add_Library(glad STATIC external/glad/src/glad.c)
-Target_Include_Directories(glad SYSTEM PUBLIC external/glad/include) # TODO Change this to private include directory.
+# GLAD (use vcpkg-provided port)
+find_package(glad CONFIG REQUIRED)

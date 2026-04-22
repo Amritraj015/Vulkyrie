@@ -32,7 +32,7 @@ target_include_directories(engine
 target_link_libraries(engine
     PUBLIC
         glfw
-        glad
+        glad::glad
         glm::glm
         assimp::assimp
         OpenAL::OpenAL
