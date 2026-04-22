@@ -1,10 +1,4 @@
 # ---------------------------
-# Catch2 Dependency
-# ---------------------------
-enable_testing()
-find_package(Catch2 CONFIG REQUIRED)
-
-# ---------------------------
 # Test Sources
 # ---------------------------
 file(GLOB_RECURSE VULKYRIE_TEST_SOURCES
