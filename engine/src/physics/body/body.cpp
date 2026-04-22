@@ -62,12 +62,57 @@ namespace Vulkyrie {
         return false;
     }
 
-    // AABB GetAABB() const;
+    AABB Body::GetAABB() const {
+        // Get all colliders entities associated with this body.
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
 
-    // glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const;
-    // glm::vec3 GetWorldVector(const glm::vec3 &localVector) const;
-    // glm::vec3 GetLocalPoint(const glm::vec3 &worldPoint) const;
-    // glm::vec3 GetLocalVector(const glm::vec3 &worldVector) const;
+        // If there are no colliders, return an empty AABB at the body's position.
+        if (colliderEntities.empty()) {
+            return AABB(glm::vec3(0.0f), glm::vec3(0.0f));
+        }
+
+        // Get the body's transform to world space.
+        const TransformComponent &bodyTransform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+
+        // Initialize the body's AABB to the world-space AABB of the first collider.
+        Collider &firstCollider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntities[0]);
+        AABB bodyAABB = firstCollider.GetCollisionShape().ComputeTransformedAABB(bodyTransform * firstCollider.GetLocalToBodyTransform());
+
+        // Merge the body's AABB with the world-space AABBs of the remaining colliders.
+        for (Entity colliderEntity : colliderEntities) {
+            Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
+            AABB colliderAABB = collider.GetCollisionShape().ComputeTransformedAABB(bodyTransform * collider.GetLocalToBodyTransform());
+
+            bodyAABB.MergeWithAABB(colliderAABB);
+        }
+
+        // Return the final merged AABB that encompasses all colliders attached to this body.
+        return bodyAABB;
+    }
+
+    glm::vec3 Body::GetWorldPoint(const glm::vec3 &localPoint) const {
+        return _physicsWorld.GetTransformComponentStore().GetTransform(_entity) * localPoint;
+    }
+
+    glm::vec3 Body::GetWorldVector(const glm::vec3 &localVector) const {
+        return _physicsWorld.GetTransformComponentStore().GetTransform(_entity).Rotation * localVector;
+    }
+
+    glm::vec3 Body::GetLocalPoint(const glm::vec3 &worldPoint) const {
+        const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+        const glm::quat inverseRotation = glm::inverse(transform.Rotation);
+        const glm::vec3 localPoint = inverseRotation * (worldPoint - transform.Position);
+
+        return localPoint;
+    }
+
+    glm::vec3 Body::GetLocalVector(const glm::vec3 &worldVector) const {
+        const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+        const glm::quat inverseRotation = glm::inverse(transform.Rotation);
+        const glm::vec3 localVector = inverseRotation * worldVector;
+
+        return localVector;
+    }
 
     void Body::UpdateHasSimulationCollidersFlag() {
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);

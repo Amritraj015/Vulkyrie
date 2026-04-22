@@ -510,3 +510,146 @@ TEST_CASE("AABB - SetMinMax updates GetCenter", "[physics][aabb]") {
 
     REQUIRE(box.GetCenter() == glm::vec3(2.0f, 3.0f, 4.0f));
 }
+
+// ===========================================================================================
+// MergeWithAABB
+// ===========================================================================================
+
+TEST_CASE("AABB - MergeWithAABB two non-overlapping boxes on X axis", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(2.0f));
+    AABB b(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(7.0f, 2.0f, 2.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(0.0f));
+    REQUIRE(a.GetMax() == glm::vec3(7.0f, 2.0f, 2.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB two non-overlapping boxes on Y axis", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(2.0f));
+    AABB b(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(2.0f, 7.0f, 2.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(0.0f));
+    REQUIRE(a.GetMax() == glm::vec3(2.0f, 7.0f, 2.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB two non-overlapping boxes on Z axis", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(2.0f));
+    AABB b(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(2.0f, 2.0f, 7.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(0.0f));
+    REQUIRE(a.GetMax() == glm::vec3(2.0f, 2.0f, 7.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB two overlapping boxes", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(5.0f));
+    AABB b(glm::vec3(3.0f), glm::vec3(8.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(0.0f));
+    REQUIRE(a.GetMax() == glm::vec3(8.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB one box fully inside the other", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB inner(glm::vec3(2.0f), glm::vec3(4.0f));
+    outer.MergeWithAABB(inner);
+
+    REQUIRE(outer.GetMin() == glm::vec3(0.0f));
+    REQUIRE(outer.GetMax() == glm::vec3(10.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB inner absorbs outer expands to outer bounds", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB inner(glm::vec3(2.0f), glm::vec3(4.0f));
+    inner.MergeWithAABB(outer);
+
+    REQUIRE(inner.GetMin() == glm::vec3(0.0f));
+    REQUIRE(inner.GetMax() == glm::vec3(10.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB identical boxes produces same box", "[physics][aabb]") {
+    AABB a(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(4.0f, 5.0f, 6.0f));
+    AABB b(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(4.0f, 5.0f, 6.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(1.0f, 2.0f, 3.0f));
+    REQUIRE(a.GetMax() == glm::vec3(4.0f, 5.0f, 6.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB with itself does not change bounds", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(5.0f));
+    a.MergeWithAABB(a);
+
+    REQUIRE(a.GetMin() == glm::vec3(0.0f));
+    REQUIRE(a.GetMax() == glm::vec3(5.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB with zero-volume AABB inside expands nothing", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB point(glm::vec3(5.0f), glm::vec3(5.0f));
+    box.MergeWithAABB(point);
+
+    REQUIRE(box.GetMin() == glm::vec3(0.0f));
+    REQUIRE(box.GetMax() == glm::vec3(10.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB with zero-volume AABB outside expands to include it", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(5.0f));
+    AABB point(glm::vec3(10.0f), glm::vec3(10.0f));
+    box.MergeWithAABB(point);
+
+    REQUIRE(box.GetMin() == glm::vec3(0.0f));
+    REQUIRE(box.GetMax() == glm::vec3(10.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB of two zero-volume AABBs at different points", "[physics][aabb]") {
+    AABB a(glm::vec3(1.0f), glm::vec3(1.0f));
+    AABB b(glm::vec3(5.0f), glm::vec3(5.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(1.0f));
+    REQUIRE(a.GetMax() == glm::vec3(5.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB result contains both original mins and maxes", "[physics][aabb]") {
+    AABB a(glm::vec3(-3.0f, 0.0f, 1.0f), glm::vec3(2.0f, 4.0f, 5.0f));
+    AABB b(glm::vec3(0.0f, -2.0f, 3.0f), glm::vec3(6.0f, 1.0f, 9.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(-3.0f, -2.0f, 1.0f));
+    REQUIRE(a.GetMax() == glm::vec3(6.0f, 4.0f, 9.0f));
+}
+
+TEST_CASE("AABB - MergeWithAABB result contains all original corners", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(3.0f));
+    AABB b(glm::vec3(5.0f, 1.0f, 2.0f), glm::vec3(8.0f, 6.0f, 7.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.ContainsPoint(glm::vec3(0.0f)));
+    REQUIRE(a.ContainsPoint(glm::vec3(3.0f)));
+    REQUIRE(a.ContainsPoint(glm::vec3(5.0f, 1.0f, 2.0f)));
+    REQUIRE(a.ContainsPoint(glm::vec3(8.0f, 6.0f, 7.0f)));
+}
+
+TEST_CASE("AABB - MergeWithAABB is commutative in result bounds", "[physics][aabb]") {
+    AABB a1(glm::vec3(-1.0f, 0.0f, 2.0f), glm::vec3(3.0f, 4.0f, 5.0f));
+    AABB a2(glm::vec3(-1.0f, 0.0f, 2.0f), glm::vec3(3.0f, 4.0f, 5.0f));
+    AABB b(glm::vec3(1.0f, -2.0f, 0.0f), glm::vec3(6.0f, 3.0f, 8.0f));
+
+    a1.MergeWithAABB(b);
+    b.MergeWithAABB(a2);
+
+    REQUIRE(a1.GetMin() == b.GetMin());
+    REQUIRE(a1.GetMax() == b.GetMax());
+}
+
+TEST_CASE("AABB - MergeWithAABB with negative-coordinate boxes", "[physics][aabb]") {
+    AABB a(glm::vec3(-10.0f, -8.0f, -6.0f), glm::vec3(-5.0f, -3.0f, -1.0f));
+    AABB b(glm::vec3(-20.0f, -1.0f, -4.0f), glm::vec3(-7.0f, 2.0f, 0.0f));
+    a.MergeWithAABB(b);
+
+    REQUIRE(a.GetMin() == glm::vec3(-20.0f, -8.0f, -6.0f));
+    REQUIRE(a.GetMax() == glm::vec3(-5.0f, 2.0f, 0.0f));
+}

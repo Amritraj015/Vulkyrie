@@ -103,7 +103,8 @@ namespace Vulkyrie {
             }
 
             /** @brief Sets both the minimum and maximum corners of the AABB simultaneously. Use this instead of calling SetMin and SetMax separately when
-             * both bounds need to change at the same time, as those methods validate against the current (stale) opposite bound and would fire a false assertion.
+             * both bounds need to change at the same time, as those methods validate against the current (stale) opposite bound and would fire a false
+             * assertion.
              * @param min The new minimum corner coordinates.
              * @param max The new maximum corner coordinates. Must be component-wise >= min. */
             VE_FORCE_INLINE void SetMinMax(const glm::vec3 &min, const glm::vec3 &max) {
@@ -111,6 +112,14 @@ namespace Vulkyrie {
 
                 _minCoordinates = min;
                 _maxCoordinates = max;
+            }
+
+            /** @brief Expands this AABB to encompass the volume of another AABB. The resulting AABB will be the smallest box that contains both the original
+             * and the other AABB.
+             * @param other The other AABB to merge with. */
+            VE_FORCE_INLINE void MergeWithAABB(const AABB &other) {
+                _minCoordinates = glm::min(_minCoordinates, other._minCoordinates);
+                _maxCoordinates = glm::max(_maxCoordinates, other._maxCoordinates);
             }
 
         private:

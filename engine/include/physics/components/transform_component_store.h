@@ -16,9 +16,13 @@ namespace Vulkyrie {
             /** Rotation of the entity represented as a quaternion. */
             glm::quat Rotation;
 
-            TransformComponent operator*(const TransformComponent &other) const {
+            VE_FORCE_INLINE TransformComponent operator*(const TransformComponent &other) const {
                 return { Position + Rotation * other.Position,
                          Rotation * other.Rotation };
+            }
+
+            VE_FORCE_INLINE glm::vec3 operator*(const glm::vec3 &point) const {
+                return Position + Rotation * point; 
             }
     };
 
