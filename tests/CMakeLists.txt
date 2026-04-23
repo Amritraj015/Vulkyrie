@@ -1,4 +1,9 @@
 # ---------------------------
+# Enable Testing.
+# ---------------------------
+enable_testing()
+
+# ---------------------------
 # Test Sources
 # ---------------------------
 file(GLOB_RECURSE VULKYRIE_TEST_SOURCES

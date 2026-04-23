@@ -21,7 +21,6 @@ find_package(Stb REQUIRED)
 
 # Catch2
 if(VULKYRIE_BUILD_TESTS)
-    enable_testing()
     find_package(Catch2 CONFIG REQUIRED)
 endif()
 
