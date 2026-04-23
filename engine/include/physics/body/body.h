@@ -135,6 +135,7 @@ namespace Vulkyrie {
              * with the current collider state. */
             void UpdateHasSimulationCollidersFlag();
 
+            // TODO: Implement the following methods.
             // virtual void SetIsActive(bool active);
             // virtual void AddCollider(CollisionShape *shape, const TransformComponent &transform);
             // virtual void RemoveCollider(Collider *collider);

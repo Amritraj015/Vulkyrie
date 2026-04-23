@@ -73,6 +73,14 @@ namespace Vulkyrie {
             /** @brief Constructs an instance of ColliderComponentStore. */
             ColliderComponentStore();
 
+            // Delete the copy constructor and copy assignment operator.
+            ColliderComponentStore(const ColliderComponentStore &) = delete;
+            ColliderComponentStore &operator=(const ColliderComponentStore &) = delete;
+
+            // Delete the move constructor and move assignment operator.
+            ColliderComponentStore(ColliderComponentStore &&) = delete;
+            ColliderComponentStore &operator=(ColliderComponentStore &&) = delete;
+
             /** @brief Destructor for ColliderComponentStore. */
             ~ColliderComponentStore() override = default;
 

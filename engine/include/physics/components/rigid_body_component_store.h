@@ -25,6 +25,10 @@ namespace Vulkyrie {
             /** @brief World-space position of the body's reference point at time of construction. */
             glm::vec3 WorldPosition;
 
+            /** @brief Constructs a RigidBodyComponent with the specified parameters.
+             * @param body Non-owning pointer to the RigidBody instance associated with the entity.
+             * @param type Initial body type (static / kinematic / dynamic).
+             * @param worldPosition World-space position of the body's reference point at time of construction. */
             RigidBodyComponent(RigidBody *body, BodyType type, const glm::vec3 &worldPosition)
                 : Body(body)
                 , Type(type)
@@ -44,6 +48,14 @@ namespace Vulkyrie {
         public:
             /** @brief Constructs an instance of RigidBodyComponentStore. */
             RigidBodyComponentStore();
+
+            // Delete the copy constructor and copy assignment operator.
+            RigidBodyComponentStore(const RigidBodyComponentStore &) = delete;
+            RigidBodyComponentStore &operator=(const RigidBodyComponentStore &) = delete;
+
+            // Delete the move constructor and move assignment operator.
+            RigidBodyComponentStore(RigidBodyComponentStore &&) = delete;
+            RigidBodyComponentStore &operator=(RigidBodyComponentStore &&) = delete;
 
             /** @brief Destructor for RigidBodyComponentStore. */
             ~RigidBodyComponentStore() override = default;

@@ -17,12 +17,11 @@ namespace Vulkyrie {
             glm::quat Rotation;
 
             VE_FORCE_INLINE TransformComponent operator*(const TransformComponent &other) const {
-                return { Position + Rotation * other.Position,
-                         Rotation * other.Rotation };
+                return { Position + Rotation * other.Position, Rotation * other.Rotation };
             }
 
             VE_FORCE_INLINE glm::vec3 operator*(const glm::vec3 &point) const {
-                return Position + Rotation * point; 
+                return Position + Rotation * point;
             }
     };
 
@@ -33,6 +32,14 @@ namespace Vulkyrie {
         public:
             /** @brief Constructs an instance of TransformComponentStore. */
             TransformComponentStore();
+
+            // Delete the copy constructor and copy assignment operator.
+            TransformComponentStore(const TransformComponentStore &) = delete;
+            TransformComponentStore &operator=(const TransformComponentStore &) = delete;
+
+            // Delete the move constructor and move assignment operator.
+            TransformComponentStore(TransformComponentStore &&) = delete;
+            TransformComponentStore &operator=(TransformComponentStore &&) = delete;
 
             /** @brief Destructor for TransformComponentStore. */
             ~TransformComponentStore() override = default;

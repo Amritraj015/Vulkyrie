@@ -21,45 +21,45 @@ namespace Vulkyrie {
             /** @brief Default destructor for Body. */
             ~RigidBody() override = default;
 
-            void SetTransform([[maybe_unused]] const TransformComponent &transform) override {}
+            void SetTransform([[maybe_unused]] const TransformComponent &transform) override;
 
-            // f32 GetMass() const;
+            f32 GetMass() const;
             // void SetMass(f32 mass);
 
-            // glm::vec3 GetLinearVelocity() const;
+            glm::vec3 GetLinearVelocity() const;
             // void SetLinearVelocity(const glm::vec3 &velocity);
 
-            // glm::vec3 GetAngularVelocity() const;
+            glm::vec3 GetAngularVelocity() const;
             // void SetAngularVelocity(const glm::vec3 &angularVelocity);
 
-            // glm::vec3 GetLocalInertiaTensor() const;
+            glm::vec3 GetLocalInertiaTensor() const;
             // void SetLocalInertiaTensor(const glm::vec3 &localInertiaTensor);
 
-            // glm::vec3 GetLocalCenterOfMass() const;
+            glm::vec3 GetLocalCenterOfMass() const;
             // void SetLocalCenterOfMass(const glm::vec3 &localCenterOfMass);
 
-            // f32 GetLinearDamping() const;
+            f32 GetLinearDamping() const;
             // void SetLinearDamping(f32 linearDamping);
 
-            // glm::vec3 GetLinearLockAxisFactors() const;
-            // void SetLinearLockAxisFactors(const glm::vec3 &lockAxisFactors);
+            glm::vec3 GetLinearLockAxisFactor() const;
+            void SetLinearLockAxisFactor(const glm::vec3 &lockAxisFactor);
 
-            // f32 GetAngularDamping() const;
+            f32 GetAngularDamping() const;
             // void SetAngularDamping(f32 angularDamping);
 
-            // glm::vec3 GetAngularLockAxisFactors() const;
-            // void SetAngularLockAxisFactors(const glm::vec3 &lockAxisFactors);
+            glm::vec3 GetAngularLockAxisFactor() const;
+            void SetAngularLockAxisFactor(const glm::vec3 &lockAxisFactor);
 
             // void UpdateLocalCenterOfMassFromColliders();
             // void UpdateLocalInertiaTensorFromColliders();
             // void UpdateMassFromColliders();
             // void UpdateMassPropertiesFromColliders();
 
-            // BodyType GetBodyType() const;
+            BodyType GetBodyType() const;
             // void SetBodyType(BodyType bodyType);
 
-            // bool GravityEnabled() const;
-            // void SetGravityEnabled(bool gravityEnabled);
+            bool GravityEnabled() const;
+            void SetGravityEnabled(bool gravityEnabled);
 
             // void SetIsSleeping(bool sleeping);
 
@@ -74,15 +74,15 @@ namespace Vulkyrie {
             // void ApplyLocalTorque(const glm::vec3 &torque);
             // void ApplyWorldTorque(const glm::vec3 &torque);
 
-            // void ResetForce();
-            // void ResetTorque();
+            void ResetForce();
+            void ResetTorque();
 
-            // const glm::vec3 &GetAccumulatedForce() const;
-            // const glm::vec3 &GetAccumulatedTorque() const;
+            const glm::vec3 &GetAccumulatedForce() const;
+            const glm::vec3 &GetAccumulatedTorque() const;
 
-            // bool CanSleep() const;
+            bool CanSleep() const;
             // void SetCanSleep(bool canSleep);
-            // bool IsSleeping() const;
+            bool IsSleeping() const;
 
             // void SetIsActive(bool isActive) override;
             // Collider &AddCollider(CollisionShape *collisionShape, const TransformComponent &transform) override;
