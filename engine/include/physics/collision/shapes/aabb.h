@@ -18,6 +18,51 @@ namespace Vulkyrie {
             /** @brief Default destructor for AABB. */
             ~AABB() = default;
 
+            /** @brief Returns the minimum corner of the AABB. */
+            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetMin() const {
+                return _minCoordinates;
+            }
+
+            /** @brief Sets the minimum corner of the AABB.
+             * @param min The new minimum corner coordinates. */
+            VE_FORCE_INLINE void SetMin(const glm::vec3 &min) {
+                VASSERT_EXPR(min.x <= _maxCoordinates.x && min.y <= _maxCoordinates.y && min.z <= _maxCoordinates.z, "New min must not exceed current max.");
+
+                _minCoordinates = min;
+            }
+
+            /** @brief Returns the maximum corner of the AABB. */
+            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetMax() const {
+                return _maxCoordinates;
+            }
+
+            /** @brief Sets the maximum corner of the AABB.
+             * @param max The new maximum corner coordinates. */
+            VE_FORCE_INLINE void SetMax(const glm::vec3 &max) {
+                VASSERT_EXPR(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z,
+                             "New max must not be less than current min.");
+
+                _maxCoordinates = max;
+            }
+
+            /** @brief Sets both the minimum and maximum corners of the AABB simultaneously. Use this instead of calling SetMin and SetMax separately when
+             * both bounds need to change at the same time, as those methods validate against the current (stale) opposite bound and would fire a false
+             * assertion.
+             * @param min The new minimum corner coordinates.
+             * @param max The new maximum corner coordinates. Must be component-wise >= min. */
+            VE_FORCE_INLINE void SetMinMax(const glm::vec3 &min, const glm::vec3 &max) {
+                VASSERT_EXPR(min.x <= max.x && min.y <= max.y && min.z <= max.z, "New min must not exceed new max.");
+
+                _minCoordinates = min;
+                _maxCoordinates = max;
+            }
+
+            /** @brief Returns the extents of the AABB, which are the lengths of the box along each axis. This is computed as the difference between the max and
+             * min coordinates. */
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetExtents() const {
+                return _maxCoordinates - _minCoordinates;
+            }
+
             /** @brief Returns the center point of the AABB. */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetCenter() const {
                 return (_minCoordinates + _maxCoordinates) * 0.5f;
@@ -67,51 +112,26 @@ namespace Vulkyrie {
                 return extents.x * extents.y * extents.z;
             }
 
-            /** @brief Tests whether the given point lies inside or on the surface of the AABB.
-             * @param point The world-space point to test.
-             * @return True if the point is inside or on the boundary of the AABB, false otherwise. */
-            [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const {
-                return (point.x >= _minCoordinates.x && point.x <= _maxCoordinates.x) && (point.y >= _minCoordinates.y && point.y <= _maxCoordinates.y) &&
-                       (point.z >= _minCoordinates.z && point.z <= _maxCoordinates.z);
+            /** @brief Tests whether a given point is inside or on the surface of this AABB, with an optional epsilon tolerance to account for floating-point
+             * precision issues.
+             * @param point The world-space point to test for containment.
+             * @param epsilon A small tolerance value to allow points that are very close to the surface to be considered inside. Defaults to the smallest
+             * representable positive float. This is useful to avoid false negatives due to floating-point inaccuracies when a point is very close to the
+             * boundary of the AABB.
+             * @return True if the point is inside or on the surface of the AABB (within the epsilon tolerance), false otherwise. */
+            [[nodiscard]] VE_FORCE_INLINE bool Contains(const glm::vec3 &point, f32 epsilon = std::numeric_limits<f32>::epsilon()) const {
+                return (point.x >= _minCoordinates.x - epsilon && point.x <= _maxCoordinates.x + epsilon) &&
+                       (point.y >= _minCoordinates.y - epsilon && point.y <= _maxCoordinates.y + epsilon) &&
+                       (point.z >= _minCoordinates.z - epsilon && point.z <= _maxCoordinates.z + epsilon);
             }
 
-            /** @brief Returns the minimum corner of the AABB. */
-            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetMin() const {
-                return _minCoordinates;
-            }
-
-            /** @brief Sets the minimum corner of the AABB.
-             * @param min The new minimum corner coordinates. */
-            VE_FORCE_INLINE void SetMin(const glm::vec3 &min) {
-                VASSERT_EXPR(min.x <= _maxCoordinates.x && min.y <= _maxCoordinates.y && min.z <= _maxCoordinates.z, "New min must not exceed current max.");
-
-                _minCoordinates = min;
-            }
-
-            /** @brief Returns the maximum corner of the AABB. */
-            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetMax() const {
-                return _maxCoordinates;
-            }
-
-            /** @brief Sets the maximum corner of the AABB.
-             * @param max The new maximum corner coordinates. */
-            VE_FORCE_INLINE void SetMax(const glm::vec3 &max) {
-                VASSERT_EXPR(max.x >= _minCoordinates.x && max.y >= _minCoordinates.y && max.z >= _minCoordinates.z,
-                             "New max must not be less than current min.");
-
-                _maxCoordinates = max;
-            }
-
-            /** @brief Sets both the minimum and maximum corners of the AABB simultaneously. Use this instead of calling SetMin and SetMax separately when
-             * both bounds need to change at the same time, as those methods validate against the current (stale) opposite bound and would fire a false
-             * assertion.
-             * @param min The new minimum corner coordinates.
-             * @param max The new maximum corner coordinates. Must be component-wise >= min. */
-            VE_FORCE_INLINE void SetMinMax(const glm::vec3 &min, const glm::vec3 &max) {
-                VASSERT_EXPR(min.x <= max.x && min.y <= max.y && min.z <= max.z, "New min must not exceed new max.");
-
-                _minCoordinates = min;
-                _maxCoordinates = max;
+            /** @brief Tests whether this AABB completely contains another AABB, meaning that the other box is entirely inside or on the surface of this box.
+             * @param other The other AABB to test for containment.
+             * @return True if this AABB contains the other AABB, false otherwise. */
+            [[nodiscard]] VE_FORCE_INLINE bool Contains(const AABB &other) const {
+                return (other._minCoordinates.x >= _minCoordinates.x && other._maxCoordinates.x <= _maxCoordinates.x) &&
+                       (other._minCoordinates.y >= _minCoordinates.y && other._maxCoordinates.y <= _maxCoordinates.y) &&
+                       (other._minCoordinates.z >= _minCoordinates.z && other._maxCoordinates.z <= _maxCoordinates.z);
             }
 
             /** @brief Expands this AABB to encompass the volume of another AABB. The resulting AABB will be the smallest box that contains both the original

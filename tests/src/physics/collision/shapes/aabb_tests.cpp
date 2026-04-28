@@ -38,6 +38,54 @@ TEST_CASE("AABB - Construct with min spanning negative to positive", "[physics][
 }
 
 // ===========================================================================================
+// GetExtents
+// ===========================================================================================
+
+TEST_CASE("AABB - GetExtents of unit box", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(1.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(1.0f));
+}
+
+TEST_CASE("AABB - GetExtents with different extents per axis", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(2.0f, 3.0f, 4.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(2.0f, 3.0f, 4.0f));
+}
+
+TEST_CASE("AABB - GetExtents of zero-volume box", "[physics][aabb]") {
+    AABB box(glm::vec3(5.0f), glm::vec3(5.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(0.0f));
+}
+
+TEST_CASE("AABB - GetExtents with negative coordinates", "[physics][aabb]") {
+    AABB box(glm::vec3(-10.0f, -20.0f, -30.0f), glm::vec3(-5.0f, -10.0f, -15.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(5.0f, 10.0f, 15.0f));
+}
+
+TEST_CASE("AABB - GetExtents spanning negative to positive", "[physics][aabb]") {
+    AABB box(glm::vec3(-5.0f, -3.0f, -2.0f), glm::vec3(5.0f, 7.0f, 8.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(10.0f, 10.0f, 10.0f));
+}
+
+TEST_CASE("AABB - GetExtents after inflation", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+    box.Inflate(glm::vec3(2.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(14.0f));
+}
+
+TEST_CASE("AABB - GetExtents after scale", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(5.0f));
+    box.Scale(glm::vec3(2.0f));
+
+    REQUIRE(box.GetExtents() == glm::vec3(10.0f));
+}
+
+// ===========================================================================================
 // GetCenter
 // ===========================================================================================
 
@@ -320,66 +368,198 @@ TEST_CASE("AABB - GetVolume of flat box (zero on one axis)", "[physics][aabb]") 
 }
 
 // ===========================================================================================
-// ContainsPoint
+// Contains (point)
 // ===========================================================================================
 
-TEST_CASE("AABB - ContainsPoint inside", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point inside", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(5.0f)));
+    REQUIRE(box.Contains(glm::vec3(5.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint outside", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point outside", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(15.0f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(15.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint on min corner", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point on min corner", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(0.0f)));
+    REQUIRE(box.Contains(glm::vec3(0.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint on max corner", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point on max corner", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(10.0f)));
+    REQUIRE(box.Contains(glm::vec3(10.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint on face", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point on face", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(0.0f, 5.0f, 5.0f)));
-    REQUIRE(box.ContainsPoint(glm::vec3(5.0f, 10.0f, 5.0f)));
-    REQUIRE(box.ContainsPoint(glm::vec3(5.0f, 5.0f, 0.0f)));
+    REQUIRE(box.Contains(glm::vec3(0.0f, 5.0f, 5.0f)));
+    REQUIRE(box.Contains(glm::vec3(5.0f, 10.0f, 5.0f)));
+    REQUIRE(box.Contains(glm::vec3(5.0f, 5.0f, 0.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint on edge", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point on edge", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(0.0f, 0.0f, 5.0f)));
-    REQUIRE(box.ContainsPoint(glm::vec3(10.0f, 10.0f, 5.0f)));
+    REQUIRE(box.Contains(glm::vec3(0.0f, 0.0f, 5.0f)));
+    REQUIRE(box.Contains(glm::vec3(10.0f, 10.0f, 5.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint just outside each axis", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point just outside each axis", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(-0.001f, 5.0f, 5.0f)));
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(5.0f, 10.001f, 5.0f)));
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(5.0f, 5.0f, -0.001f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(-0.001f, 5.0f, 5.0f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(5.0f, 10.001f, 5.0f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(5.0f, 5.0f, -0.001f)));
 }
 
-TEST_CASE("AABB - ContainsPoint in zero-volume box at same point", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point in zero-volume box at same point", "[physics][aabb]") {
     AABB box(glm::vec3(5.0f), glm::vec3(5.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(5.0f)));
+    REQUIRE(box.Contains(glm::vec3(5.0f)));
 }
 
-TEST_CASE("AABB - ContainsPoint in zero-volume box at different point", "[physics][aabb]") {
+TEST_CASE("AABB - Contains point in zero-volume box at different point", "[physics][aabb]") {
     AABB box(glm::vec3(5.0f), glm::vec3(5.0f));
 
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(5.001f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(5.001f)));
+}
+
+TEST_CASE("AABB - Contains point with custom epsilon allows near-boundary points", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+    f32 epsilon = 0.1f;
+
+    // Points just outside the boundary but within epsilon should be contained
+    REQUIRE(box.Contains(glm::vec3(-0.05f, 5.0f, 5.0f), epsilon));
+    REQUIRE(box.Contains(glm::vec3(10.05f, 5.0f, 5.0f), epsilon));
+    REQUIRE(box.Contains(glm::vec3(5.0f, -0.1f, 5.0f), epsilon));
+    REQUIRE(box.Contains(glm::vec3(5.0f, 10.1f, 5.0f), epsilon));
+}
+
+TEST_CASE("AABB - Contains point with custom epsilon rejects far-outside points", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+    f32 epsilon = 0.1f;
+
+    // Points beyond epsilon should not be contained
+    REQUIRE_FALSE(box.Contains(glm::vec3(-0.2f, 5.0f, 5.0f), epsilon));
+    REQUIRE_FALSE(box.Contains(glm::vec3(10.2f, 5.0f, 5.0f), epsilon));
+}
+
+TEST_CASE("AABB - Contains point with zero epsilon is exact", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+
+    REQUIRE(box.Contains(glm::vec3(10.0f), 0.0f));
+    REQUIRE_FALSE(box.Contains(glm::vec3(10.00001f), 0.0f));
+}
+
+TEST_CASE("AABB - Contains point with large epsilon expands containment significantly", "[physics][aabb]") {
+    AABB box(glm::vec3(0.0f), glm::vec3(10.0f));
+    f32 epsilon = 5.0f;
+
+    REQUIRE(box.Contains(glm::vec3(-4.0f, 5.0f, 5.0f), epsilon));
+    REQUIRE(box.Contains(glm::vec3(14.0f, 5.0f, 5.0f), epsilon));
+    REQUIRE_FALSE(box.Contains(glm::vec3(-6.0f, 5.0f, 5.0f), epsilon));
+}
+
+// ===========================================================================================
+// Contains (AABB)
+// ===========================================================================================
+
+TEST_CASE("AABB - Contains AABB fully inside", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB inner(glm::vec3(2.0f), glm::vec3(8.0f));
+
+    REQUIRE(outer.Contains(inner));
+}
+
+TEST_CASE("AABB - Contains AABB not contained", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(5.0f));
+    AABB b(glm::vec3(3.0f), glm::vec3(8.0f));
+
+    REQUIRE_FALSE(a.Contains(b));
+}
+
+TEST_CASE("AABB - Contains AABB identical boxes contains each other", "[physics][aabb]") {
+    AABB a(glm::vec3(1.0f), glm::vec3(5.0f));
+    AABB b(glm::vec3(1.0f), glm::vec3(5.0f));
+
+    REQUIRE(a.Contains(b));
+    REQUIRE(b.Contains(a));
+}
+
+TEST_CASE("AABB - Contains AABB contains itself", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(10.0f));
+
+    REQUIRE(a.Contains(a));
+}
+
+TEST_CASE("AABB - Contains AABB touching boundary is contained", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB boundary(glm::vec3(0.0f), glm::vec3(5.0f));
+
+    REQUIRE(outer.Contains(boundary));
+}
+
+TEST_CASE("AABB - Contains AABB exceeding on one axis is not contained", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB b(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(8.0f, 8.0f, 11.0f));
+
+    REQUIRE_FALSE(a.Contains(b));
+}
+
+TEST_CASE("AABB - Contains AABB exceeding on min side is not contained", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB b(glm::vec3(-1.0f, 2.0f, 2.0f), glm::vec3(8.0f, 8.0f, 8.0f));
+
+    REQUIRE_FALSE(a.Contains(b));
+}
+
+TEST_CASE("AABB - Contains AABB zero-volume inside", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB point(glm::vec3(5.0f), glm::vec3(5.0f));
+
+    REQUIRE(outer.Contains(point));
+}
+
+TEST_CASE("AABB - Contains AABB zero-volume on boundary", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB point(glm::vec3(0.0f), glm::vec3(0.0f));
+
+    REQUIRE(outer.Contains(point));
+}
+
+TEST_CASE("AABB - Contains AABB zero-volume outside", "[physics][aabb]") {
+    AABB outer(glm::vec3(0.0f), glm::vec3(10.0f));
+    AABB point(glm::vec3(15.0f), glm::vec3(15.0f));
+
+    REQUIRE_FALSE(outer.Contains(point));
+}
+
+TEST_CASE("AABB - Contains AABB larger box does not contain smaller parent", "[physics][aabb]") {
+    AABB small(glm::vec3(2.0f), glm::vec3(4.0f));
+    AABB large(glm::vec3(0.0f), glm::vec3(10.0f));
+
+    REQUIRE_FALSE(small.Contains(large));
+}
+
+TEST_CASE("AABB - Contains AABB with negative coordinates", "[physics][aabb]") {
+    AABB outer(glm::vec3(-10.0f), glm::vec3(-1.0f));
+    AABB inner(glm::vec3(-8.0f), glm::vec3(-3.0f));
+
+    REQUIRE(outer.Contains(inner));
+}
+
+TEST_CASE("AABB - Contains AABB partially overlapping is not contained", "[physics][aabb]") {
+    AABB a(glm::vec3(0.0f), glm::vec3(5.0f));
+    AABB b(glm::vec3(2.0f), glm::vec3(7.0f));
+
+    REQUIRE_FALSE(a.Contains(b));
+    REQUIRE_FALSE(b.Contains(a));
 }
 
 // ===========================================================================================
@@ -438,11 +618,11 @@ TEST_CASE("AABB - Inflate then check collision", "[physics][aabb]") {
 TEST_CASE("AABB - Scale then check containment", "[physics][aabb]") {
     AABB box(glm::vec3(0.0f), glm::vec3(5.0f));
 
-    REQUIRE_FALSE(box.ContainsPoint(glm::vec3(8.0f)));
+    REQUIRE_FALSE(box.Contains(glm::vec3(8.0f)));
 
     box.Scale(glm::vec3(2.0f));
 
-    REQUIRE(box.ContainsPoint(glm::vec3(8.0f)));
+    REQUIRE(box.Contains(glm::vec3(8.0f)));
 }
 
 TEST_CASE("AABB - Encapsulate then check volume grows", "[physics][aabb]") {
@@ -627,10 +807,10 @@ TEST_CASE("AABB - MergeWithAABB result contains all original corners", "[physics
     AABB b(glm::vec3(5.0f, 1.0f, 2.0f), glm::vec3(8.0f, 6.0f, 7.0f));
     a.MergeWithAABB(b);
 
-    REQUIRE(a.ContainsPoint(glm::vec3(0.0f)));
-    REQUIRE(a.ContainsPoint(glm::vec3(3.0f)));
-    REQUIRE(a.ContainsPoint(glm::vec3(5.0f, 1.0f, 2.0f)));
-    REQUIRE(a.ContainsPoint(glm::vec3(8.0f, 6.0f, 7.0f)));
+    REQUIRE(a.Contains(glm::vec3(0.0f)));
+    REQUIRE(a.Contains(glm::vec3(3.0f)));
+    REQUIRE(a.Contains(glm::vec3(5.0f, 1.0f, 2.0f)));
+    REQUIRE(a.Contains(glm::vec3(8.0f, 6.0f, 7.0f)));
 }
 
 TEST_CASE("AABB - MergeWithAABB is commutative in result bounds", "[physics][aabb]") {
