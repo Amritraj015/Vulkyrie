@@ -1,10 +1,11 @@
-# -------------------------------------
-# Third-party dependencies
-# -------------------------------------
+# ------------------------------------------------
+# Third-party dependencies (vcpkg provided ports)
+# ------------------------------------------------
+
 # GLFW
 find_package(glfw3 CONFIG REQUIRED)
 
-# GLAD (use vcpkg-provided port)
+# GLAD
 find_package(glad CONFIG REQUIRED)
 
 # GLM
