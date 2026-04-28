@@ -1,7 +1,7 @@
 # -------------------------------------
 # Global configuration
 # -------------------------------------
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.3)
 project(vulkyrie)
 set(CMAKE_CXX_STANDARD 23)
 
