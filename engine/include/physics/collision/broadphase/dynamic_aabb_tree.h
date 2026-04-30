@@ -19,7 +19,14 @@ namespace Vulkyrie {
 
             i32 Height;
 
-            DynamicAABBTreeNode();
+            DynamicAABBTreeNode()
+                : AABB(glm::vec3(0.0f), glm::vec3(0.0f))
+                , NextNodeID(NULL_NODE)
+                , Height(-1) {};
+
+            [[nodiscard]] VE_FORCE_INLINE bool IsLeaf() const {
+                return Height == 0;
+            }
     };
 
     class DynamicAABBTree final {
