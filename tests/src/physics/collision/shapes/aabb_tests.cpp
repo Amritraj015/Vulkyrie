@@ -1049,8 +1049,10 @@ TEST_CASE("AABB - With identical boxes produces same box", "[physics][aabb]") {
 TEST_CASE("AABB - With does not modify either input", "[physics][aabb]") {
     AABB a(glm::vec3(0.0f), glm::vec3(3.0f));
     AABB b(glm::vec3(5.0f), glm::vec3(8.0f));
-    AABB::With(a, b);
+    AABB result = AABB::With(a, b);
 
+    REQUIRE(result.GetMin() == glm::vec3(0.0f));
+    REQUIRE(result.GetMax() == glm::vec3(8.0f));
     REQUIRE(a.GetMin() == glm::vec3(0.0f));
     REQUIRE(a.GetMax() == glm::vec3(3.0f));
     REQUIRE(b.GetMin() == glm::vec3(5.0f));
