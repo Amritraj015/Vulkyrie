@@ -141,6 +141,15 @@ namespace Vulkyrie {
                 _maxCoordinates = glm::max(_maxCoordinates, other._maxCoordinates);
             }
 
+            /** @brief Sets this AABB to the smallest AABB that contains both given AABBs. This replaces this AABB's current bounds entirely with the
+             * union of the two input boxes. Unlike MergeWithAABB, this does not incorporate the current bounds of this AABB into the result.
+             * @param first The first AABB to merge.
+             * @param second The second AABB to merge. */
+            VE_FORCE_INLINE void MergeTwoAABBs(const AABB &first, const AABB &second) {
+                _minCoordinates = glm::min(first._minCoordinates, second._minCoordinates);
+                _maxCoordinates = glm::max(first._maxCoordinates, second._maxCoordinates);
+            }
+
         private:
             /** @brief The world-space coordinates of the minimum corner of the AABB, representing the smallest x, y, and z values of the box.
              * This point is diagonally opposite to the maximum corner and defines the extent of the box along each axis. */
