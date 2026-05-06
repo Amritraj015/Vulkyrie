@@ -5,6 +5,11 @@ namespace Vulkyrie {
     DynamicAABBTree::DynamicAABBTree(f32 inflationPercentage, size_t initialNodeCapacity)
         : _rootNodeIndex(AABB_TREE_NULL_NODE)
         , _inflationPercentage(inflationPercentage) {
+
+        // Reserve the
+        _queryNodesToVisit.reserve(initialNodeCapacity);
+
+        // Pre-allocate a pool of nodes for the tree to use, and link them together in a free list for efficient allocation and deallocation.
         _nodes.resize(initialNodeCapacity);
 
         for (size_t i = 0; i < initialNodeCapacity - 1; ++i) {
@@ -41,6 +46,113 @@ namespace Vulkyrie {
 
         // Return true to indicate that the tree was updated and may need to be re-queried for collisions.
         return true;
+    }
+
+    void DynamicAABBTree::QueryOverlaps(const AABB &queryAABB, std::vector<i32> &outResults) {
+
+        // If the tree is empty, there are no overlaps to find, so we can return early.
+        if (_rootNodeIndex == AABB_TREE_NULL_NODE) {
+            return;
+        }
+
+        // Start the query by adding the root node to the list of nodes to visit.
+        // We will perform a depth-first traversal of the tree, checking for AABB overlaps at each node.
+        _queryNodesToVisit.emplace_back(_rootNodeIndex);
+
+        // Continue traversing the tree until there are no more nodes to visit.
+        while (!_queryNodesToVisit.empty()) {
+            // Pop the next node index from the list of nodes to visit.
+            // This will be the current node we are checking for overlap with the query AABB.
+            const i32 currentNodeIndex = _queryNodesToVisit.back();
+            _queryNodesToVisit.pop_back();
+
+            VASSERT(currentNodeIndex >= 0 && currentNodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+
+            // If the current node index is AABB_TREE_NULL_NODE, it means we've reached a leaf node that
+            // has been removed from the tree, so we can skip it and continue with the next node in the list.
+            if (currentNodeIndex == AABB_TREE_NULL_NODE) {
+                continue;
+            }
+
+            const AABBTreeNode &currentNode = _nodes[currentNodeIndex];
+
+            // Check if the query AABB overlaps with the current node's AABB.
+            // If it does, we need to check if it's a leaf node or an internal node.
+            if (queryAABB.CollidesWith(currentNode.AABB)) {
+
+                // If the current node is a leaf, it means it corresponds to an actual object in
+                // the world that overlaps with the query AABB, so we add its index to the results.
+                if (currentNode.IsLeaf()) {
+                    outResults.emplace_back(currentNodeIndex);
+                } else {
+                    // If the current node is an internal node, it means it is used for spatial partitioning and does not correspond to a real
+                    // object, so we need to add its children to the list of nodes to visit so that we can check them for overlap as well.
+                    _queryNodesToVisit.emplace_back(currentNode.Children[0]);
+                    _queryNodesToVisit.emplace_back(currentNode.Children[1]);
+                }
+            }
+        }
+    }
+
+    void DynamicAABBTree::QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<std::pair<i32, i32>> &outOverlappingPairs) {
+
+        // If the tree is empty, there are no overlapping pairs to find, so we can return early.
+        if (_rootNodeIndex == AABB_TREE_NULL_NODE) {
+            return;
+        }
+
+        // For each node index in the input vector, we will perform a query against the tree to find all overlapping nodes.
+        for (const i32 testNodeIndex : nodeIndices) {
+            VASSERT(testNodeIndex >= 0 && testNodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+
+            // Start the query for this node by adding the root node to the list of nodes to visit.
+            // We will perform a depth-first traversal of the tree, checking for AABB overlaps between the test node and the nodes in the tree.
+            _queryNodesToVisit.emplace_back(_rootNodeIndex);
+
+            // Get the AABB of the test node that we will be checking for overlaps against the nodes in the tree.
+            const AABB &testNodeAABB = _nodes[testNodeIndex].AABB;
+
+            // Continue traversing the tree until there are no more nodes to visit.
+            while (!_queryNodesToVisit.empty()) {
+
+                // Pop the next node index from the list of nodes to visit. This will be the current node we are checking for overlap with the test node's AABB.
+                const i32 currentNodeIndex = _queryNodesToVisit.back();
+                _queryNodesToVisit.pop_back();
+
+                // Skip comparing the test node with itself, as we are only interested in finding pairs of distinct nodes that overlap.
+                // And, If the current node index is AABB_TREE_NULL_NODE, it means we've reached a leaf node that
+                // has been removed from the tree, so we can skip it and continue with the next node in the list.
+                if (testNodeIndex == currentNodeIndex || currentNodeIndex == AABB_TREE_NULL_NODE) {
+                    continue;
+                }
+
+                const AABBTreeNode &currentNode = _nodes[currentNodeIndex];
+
+                // Check if the test node's AABB overlaps with the current node's AABB.
+                // If it does, we need to check if it's a leaf node or an internal node.
+                if (testNodeAABB.CollidesWith(currentNode.AABB)) {
+
+                    // If the current node is a leaf, it means it corresponds to an actual object in the world that overlaps
+                    // with the test node's AABB, so we add the pair of indices (test node index, current node index) to the results.
+                    if (currentNode.IsLeaf()) {
+
+                        // To avoid adding duplicate pairs in the results (e.g., both (A, B) and (B, A)), we can enforce a consistent
+                        // ordering of the indices in the pair. For example, we can always store the pair with the smaller index first.
+                        if (testNodeIndex < currentNodeIndex) {
+                            outOverlappingPairs.emplace_back(testNodeIndex, currentNodeIndex);
+                        } else {
+                            outOverlappingPairs.emplace_back(currentNodeIndex, testNodeIndex);
+                        }
+                    } else {
+
+                        // If the current node is an internal node, it means it is used for spatial partitioning and does not correspond to a
+                        // real object, so we need to add its children to the list of nodes to visit so that we can check them for overlap as well.
+                        _queryNodesToVisit.emplace_back(currentNode.Children[0]);
+                        _queryNodesToVisit.emplace_back(currentNode.Children[1]);
+                    }
+                }
+            }
+        }
     }
 
     void DynamicAABBTree::removeLeafNode(i32 leafNodeIndex) {

@@ -120,6 +120,24 @@ namespace Vulkyrie {
                 return _nodes[nodeIndex].DataPointer;
             }
 
+            /** @brief Queries the tree for all leaf nodes whose AABBs overlap with the specified query AABB. The results are returned as a vector of node
+             * indices, which can be used to retrieve the associated data for each overlapping node. This is useful for broad-phase collision detection, where
+             * you want to quickly find potential collisions before performing more detailed checks.
+             * @param queryAABB The AABB to query against. All leaf nodes whose AABBs overlap with this AABB will be included in the results.
+             * @param outResults A vector that will be populated with the indices of the overlapping leaf nodes. The caller is responsible for clearing this
+             * vector before calling the function if they want to avoid appending to existing results. */
+            void QueryOverlaps(const AABB &queryAABB, std::vector<i32> &outResults);
+
+            /** @brief Queries the tree for all pairs of leaf nodes that overlap with each other among the specified node indices. This is useful for finding
+             * potential collisions between objects in the tree without needing to specify a separate query AABB, as it will check for overlaps between all
+             * pairs of nodes in the input vector. The results are returned as a vector of pairs of node indices, where each pair represents two overlapping
+             * nodes. To avoid duplicate pairs (e.g., both (A, B) and (B, A)), the function can enforce a consistent ordering of the indices in the pairs.
+             * @param nodeIndices A vector of node indices to check for overlaps. Each index must be a valid index into the _nodes vector and should correspond
+             * to a leaf node.
+             * @param outOverlappingPairs A vector that will be populated with pairs of indices representing overlapping nodes. The caller is responsible for
+             * clearing this vector before calling the function if they want to avoid appending to existing results. */
+            void QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<std::pair<i32, i32>> &outOverlappingPairs);
+
         private:
             /** @brief The vector of nodes in the dynamic AABB tree. Each node represents either a leaf (which corresponds to an actual object in the world) or
              * an internal node (which is used for spatial partitioning and does not correspond to a real object). The tree is stored as a contiguous array of
@@ -127,6 +145,10 @@ namespace Vulkyrie {
              * LeftChildIndex and RightChildIndex point to its children in the vector. Leaf nodes have their LeftChildIndex and RightChildIndex set to
              * AABB_TREE_NULL_NODE. */
             std::vector<AABBTreeNode> _nodes;
+
+            // WARN: This is not thread-safe. If you need to perform queries from multiple threads,
+            // you should use a separate instance of this vector for each thread.
+            std::vector<i32> _queryNodesToVisit;
 
             /** @brief The index of the root node in the _nodes vector. This is used to quickly access the top-level AABB that encompasses all objects in the
              * tree. If the tree is empty, this will be set to AABB_TREE_NULL_NODE. */
@@ -148,7 +170,6 @@ namespace Vulkyrie {
             void insertLeafNode(i32 leafNodeIndex);
             void releaseNode(i32 nodeIndex);
             i32 balanceSubtree(i32 nodeIndex);
-
             i32 allocateNode();
     };
 

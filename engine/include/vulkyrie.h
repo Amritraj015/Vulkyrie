@@ -69,6 +69,7 @@
 #include "physics/physics_world.h"
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/plane.h"
+#include "physics/collision/broadphase/dynamic_aabb_tree.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/components/transform_component_store.h"
 
