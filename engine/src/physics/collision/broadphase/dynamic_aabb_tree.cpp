@@ -2,6 +2,12 @@
 
 namespace Vulkyrie {
 
+    AABBTreeNode::AABBTreeNode()
+        : AABB(glm::vec3(0.0f), glm::vec3(0.0f))
+        , Children{ AABB_TREE_NULL_NODE, AABB_TREE_NULL_NODE }
+        , NextNodeIndex(AABB_TREE_NULL_NODE)
+        , Height(-1) {};
+
     DynamicAABBTree::DynamicAABBTree(f32 inflationPercentage, size_t initialNodeCapacity)
         : _rootNodeIndex(AABB_TREE_NULL_NODE)
         , _inflationPercentage(inflationPercentage) {
@@ -9,13 +15,18 @@ namespace Vulkyrie {
         // Reserve the
         _queryNodesToVisit.reserve(initialNodeCapacity);
 
-        // Pre-allocate a pool of nodes for the tree to use, and link them together in a free list for efficient allocation and deallocation.
+        // Pre-allocate a pool of nodes for the tree to use.
         _nodes.resize(initialNodeCapacity);
 
+        // Link all the nodes together in a free list. Each node's NextNodeIndex points to the next
+        // free node in the list, and the last node's NextNodeIndex is set to AABB_TREE_NULL_NODE to indicate the end of the list.
         for (size_t i = 0; i < initialNodeCapacity - 1; ++i) {
             _nodes[i].NextNodeIndex = i + 1;
         }
 
+        _nodes[initialNodeCapacity - 1].NextNodeIndex = AABB_TREE_NULL_NODE;
+
+        // Set the index of the first free node to 0, because the tree is empty and all nodes are currently available for allocation.
         _firstFreeNodeIndex = 0;
     }
 
