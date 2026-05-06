@@ -3,7 +3,6 @@
 #include "core/asserts.h"
 #include "physics/physics_constants.h"
 #include "physics/collision/shapes/aabb.h"
-// #include "physics/collision/collider.h"
 
 namespace Vulkyrie {
 
