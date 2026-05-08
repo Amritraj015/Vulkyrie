@@ -42,21 +42,31 @@ namespace Vulkyrie {
 
             /** @brief Retrieves a reference to the PhysicsWorld that this body belongs to.
              * @return A reference to the PhysicsWorld that this body belongs to. */
-            [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
-                return _physicsWorld;
-            }
+            // [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
+            //     return _physicsWorld;
+            // }
 
             /** @brief Checks whether this body is active in the physics simulation. An active body participates in collision detection and response, while an
              * inactive body does not. The active state of a body can be used to temporarily disable its physical interactions without removing it from the
              * physics world.
              * @return True if this body is active in the simulation, false otherwise. */
-            bool IsActive() const;
+            [[nodiscard]] VE_FORCE_INLINE bool IsActive() const {
+                return _physicsWorld.GetBodyComponentStore().IsBodyActive(_entity);
+            }
+
+            /** @brief Sets whether this body is active in the physics simulation. An active body participates in collision detection and response, while an
+             * inactive body does not. Setting a body to inactive can be used to temporarily disable its physical interactions without removing it from the
+             * physics world.
+             * @param active True to set this body as active in the simulation, false to set it as inactive. */
+            virtual void SetIsActive(bool active);
 
             /** @brief Retrieves the current transform of this body, which includes its position and rotation in world space. The transform defines the body's
              * location and orientation in the physics world, and it affects how the body's colliders are positioned and how it interacts with other bodies. The
              * returned transform is a reference to the TransformComponent associated with this body's entity in the physics world.
              * @return A const reference to the TransformComponent representing this body's transform in world space. */
-            const TransformComponent &GetTransform() const;
+            [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetTransform() const {
+                return _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+            }
 
             /** @brief Sets the transform of this body. The transform includes the position and rotation of the body in world space. Changing the body's
              * transform will affect the positions of its colliders and how it interacts with other bodies in the physics simulation. The provided transform
@@ -70,24 +80,47 @@ namespace Vulkyrie {
              * querying of their properties and collision geometry.
              * @param colliderIndex The index of the collider to retrieve, which must be in the range [0, GetColliderCount()).
              * @return A reference to the Collider at the specified index in this body's collider list. */
-            Collider &GetCollider(size_t colliderIndex);
+            [[nodiscard]] Collider &GetCollider(size_t colliderIndex);
 
             /** @brief Retrieves a const reference to the Collider at the specified index in this body's collider list. The index must be less than the number
              * of colliders currently attached to this body, as returned by GetColliderCount(). This method allows read-only access to the colliders for
              * querying their properties and collision geometry without modifying them.
              * @param colliderIndex The index of the collider to retrieve, which must be in the range [0, GetColliderCount()).
              * @return A const reference to the Collider at the specified index in this body's collider list. */
-            const Collider &GetCollider(size_t colliderIndex) const;
+            [[nodiscard]] const Collider &GetCollider(size_t colliderIndex) const;
 
             /** @brief Retrieves the number of colliders currently attached to this body.
              * @return The number of colliders currently attached to this body. */
-            size_t GetColliderCount() const;
+            [[nodiscard]] size_t GetColliderCount() const;
+
+            /** @brief Adds a new collider to this body using the specified collision shape and local transform. This method creates a new Collider instance
+             * based on the provided collision shape and local transform, attaches it to this body, and adds it to the physics simulation. The new collider will
+             * be included in the body's collision geometry and will affect how the body interacts with other bodies in the simulation. The method returns a
+             * reference to the newly created Collider, which can be used for further manipulation or querying of its properties.
+             * @param collisionShape The CollisionShape that defines the geometric representation of the new collider to be added to this body.
+             * @param transform The local transform that specifies the position and rotation of the new collider relative to this body's origin. This transform
+             * determines how the collider is positioned and oriented in relation to the body, which affects collision detection and response.
+             * @return A reference to the newly created Collider that has been added to this body. This collider will be part of the body's collision geometry
+             * and can be used for further manipulation or querying of its properties. */
+            [[nodiscard]] virtual Collider &AddCollider(CollisionShape &collisionShape, const TransformComponent &transform);
+
+            /** @brief Removes the specified collider from this body. This method detaches the collider from the body and removes it from the physics
+             * simulation, which will affect the body's collision geometry and interactions with other bodies. After calling this method, the specified collider
+             * will no longer be associated with this body, and the body's AABB will be updated accordingly to reflect the change in its colliders. The caller
+             * is responsible for ensuring that the collider being removed is currently attached to this body.
+             * @param collider The collider to be removed from this body. This collider must currently be attached to the body for the removal to be valid. */
+            virtual void RemoveCollider(Collider &collider);
+
+            /** @brief Removes all colliders currently attached to this body. This method iterates through all colliders associated with the body and removes
+             * them from the physics simulation, effectively clearing the body's collision geometry. After calling this method, the body will have no colliders
+             * attached to it, and its AABB will be empty until new colliders are added. */
+            void RemoveAllColliders();
 
             /** @brief Checks if the specified point in world space is contained within any of the colliders attached to this body. This method iterates through
              * all colliders associated with the body and checks if the point lies within any of them, returning true if it does and false otherwise.
              * @param point The point in world space to be checked for containment within the body's colliders.
              * @return True if the specified point is contained within any of the colliders attached to this body, false otherwise. */
-            bool ContainsPoint(const glm::vec3 &point) const;
+            [[nodiscard]] bool ContainsPoint(const glm::vec3 &point) const;
 
             /** @brief Checks if this body collides with the given axis-aligned bounding box (AABB). This method computes the AABB that encompasses all
              * colliders attached to this body and tests it against the provided AABB for overlap. It returns true if there is any collision (overlap) between
@@ -102,7 +135,7 @@ namespace Vulkyrie {
              * through all colliders associated with the body, computes their world-space AABBs, and combines them to produce a single AABB that fully contains
              * the body's collision geometry.
              * @return The AABB that encompasses all colliders attached to this body. */
-            AABB GetAABB() const;
+            [[nodiscard]] AABB GetAABB() const;
 
             /** @brief Transforms a point from the body's local space to world space using the body's current transform. This method applies the body's position
              * and rotation to the given local point to compute its corresponding position in world space.
@@ -135,11 +168,6 @@ namespace Vulkyrie {
              * with the current collider state. */
             void UpdateHasSimulationCollidersFlag();
 
-            // TODO: Implement the following methods.
-            // virtual void SetIsActive(bool active);
-            // virtual void AddCollider(CollisionShape *shape, const TransformComponent &transform);
-            // virtual void RemoveCollider(Collider *collider);
-
         protected:
             /** @brief The Entity associated with this Body. This entity must have a TransformComponent in the physics world for the body to function correctly.
              * The body manages the colliders and transform of this entity within the physics simulation. */
@@ -148,6 +176,12 @@ namespace Vulkyrie {
             /** @brief Reference to the PhysicsWorld that this body belongs to. The body interacts with this world for collision detection and response, and it
              * uses the physics world to access component stores and manage its colliders and transform. */
             PhysicsWorld &_physicsWorld;
+
+            /** @brief Requests a broad-phase collision check for this body. This method should be called whenever the body's colliders are added, removed, or
+             * modified in a way that affects their AABBs, to ensure that the broad-phase collision detection system is updated with the latest information
+             * about the body's collision geometry. The physics world will handle the actual scheduling and execution of the broad-phase collision check based
+             * on this request. */
+            void requestBroadPhaseCollisionCheck();
     };
 
 } // namespace Vulkyrie

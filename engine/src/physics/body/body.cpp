@@ -1,4 +1,5 @@
 #include "physics/body/body.h"
+#include "physics/materials/material.h"
 
 namespace Vulkyrie {
 
@@ -7,16 +8,11 @@ namespace Vulkyrie {
         , _physicsWorld(physicsWorld) {
     }
 
-    bool Body::IsActive() const {
-        return _physicsWorld.GetBodyComponentStore().IsBodyActive(_entity);
-    }
-
-    const TransformComponent &Body::GetTransform() const {
-        return _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
-    }
-
     void Body::SetTransform(const TransformComponent &transform) {
         _physicsWorld.GetTransformComponentStore().SetTransform(_entity, transform);
+
+        // TODO: Implement this.
+        // UpdateBroadPhaseSystemWithUpdatedTransform();
     }
 
     Collider &Body::GetCollider(size_t colliderIndex) {
@@ -110,8 +106,10 @@ namespace Vulkyrie {
     }
 
     void Body::UpdateHasSimulationCollidersFlag() {
+        auto &bodyComponentStore = _physicsWorld.GetBodyComponentStore();
+
         // Get all collider entities associated with this body.
-        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
 
         // Iterate through the colliders and check if any of them are simulation colliders.
         // If at least one is found, set the flag to true and return early.
@@ -119,14 +117,121 @@ namespace Vulkyrie {
             const bool isSimulationCollider = _physicsWorld.GetColliderComponentStore().IsSimulationCollider(colliderEntity);
 
             if (isSimulationCollider) {
-                _physicsWorld.GetBodyComponentStore().SetHasSimulationColliders(_entity, true);
+                bodyComponentStore.SetHasSimulationColliders(_entity, true);
                 return;
             }
         }
     }
 
-    // void SetIsActive(bool active);
-    // void AddCollider(CollisionShape *shape, const TransformComponent &transform);
-    // void RemoveCollider(Collider *collider);
+    void Body::RemoveAllColliders() {
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        // TODO: This can be optimized by batching the removal of colliders from the
+        // collision system instead of doing it one by one in the RemoveCollider method.
+        for (Entity colliderEntity : colliderEntities) {
+            RemoveCollider(_physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity));
+        }
+    }
+
+    void Body::SetIsActive(bool active) {
+        auto &bodyComponentStore = _physicsWorld.GetBodyComponentStore();
+
+        // If the body is already in the desired active state, do nothing.
+        if (bodyComponentStore.IsBodyActive(_entity) == active) return;
+
+        // Else set the active status of the body in the body component store.
+        bodyComponentStore.SetActiveStatus(_entity, active);
+
+        if (active) {
+            const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+            const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
+
+            for (Entity colliderEntity : colliderEntities) {
+                Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
+                const TransformComponent &localToBodyTransform = _physicsWorld.GetColliderComponentStore().GetLocalToBodyTransform(colliderEntity);
+
+                const auto aabb = collider.GetCollisionShape().ComputeTransformedAABB(transform * localToBodyTransform);
+
+                _physicsWorld.GetCollisionSystem().AddCollider(collider, aabb);
+            }
+        } else {
+            const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
+
+            for (Entity colliderEntity : colliderEntities) {
+                Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
+
+                if (collider.GetBroadPhaseID() != -1) {
+                    _physicsWorld.GetCollisionSystem().RemoveCollider(collider);
+                }
+            }
+        }
+    }
+
+    Collider &Body::AddCollider(CollisionShape &collisionShape, const TransformComponent &transform) {
+        const Entity colliderEntity = _physicsWorld.GetEntityManager().CreateEntity();
+        Collider *collider = new Collider(colliderEntity, *this);
+
+        const TransformComponent localToWorldTransform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity) * transform;
+        const PhysicsWorldSettings &settings = _physicsWorld.GetSettings();
+        const Material material(settings.FrictionCoefficient, settings.RestitutionCoefficient);
+
+        ColliderComponent colliderComponent{
+            _entity,
+            collider,
+            transform,
+            &collisionShape,
+            0x0001, // Default to category 1
+            0xFFFF, // Default to colliding with all categories
+            localToWorldTransform,
+            material // Default material
+        };
+
+        const bool isActive = IsActive();
+        _physicsWorld.GetColliderComponentStore().AddComponent(colliderEntity, colliderComponent, isActive);
+        _physicsWorld.GetBodyComponentStore().AddColliderToBody(_entity, colliderEntity);
+
+        collisionShape.AddCollider(*collider);
+
+        if (isActive) {
+            const AABB aabb = collisionShape.ComputeTransformedAABB(localToWorldTransform);
+            _physicsWorld.GetCollisionSystem().AddCollider(*collider, aabb);
+        }
+
+        return *collider;
+    }
+
+    void Body::RemoveCollider(Collider &collider) {
+        if (collider.GetBroadPhaseID() != -1) {
+            _physicsWorld.GetCollisionSystem().RemoveCollider(collider);
+        }
+
+        auto &bodyComponentStore = _physicsWorld.GetBodyComponentStore();
+
+        bodyComponentStore.RemoveColliderFromBody(_entity, collider.GetEntity());
+
+        collider.GetCollisionShape().RemoveCollider(collider);
+
+        _physicsWorld.GetColliderComponentStore().RemoveComponent(collider.GetEntity());
+
+        _physicsWorld.GetEntityManager().DestroyEntity(collider.GetEntity());
+
+        if (bodyComponentStore.HasSimulationColliders(_entity)) {
+            UpdateHasSimulationCollidersFlag();
+        }
+
+        delete &collider;
+    }
+
+    void Body::requestBroadPhaseCollisionCheck() {
+        // Get all collider entities associated with this body.
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        // Request a broad phase collision check for each collider to update their positions in the broad phase system
+        // and ensure that any new or moved colliders are correctly accounted for in the next collision detection phase.
+        for (Entity colliderEntity : colliderEntities) {
+            Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
+            _physicsWorld.GetCollisionSystem().RequestBroadPhaseCollisionCheck(collider);
+        }
+    }
 
 } // namespace Vulkyrie

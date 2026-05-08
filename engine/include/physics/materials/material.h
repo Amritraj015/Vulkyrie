@@ -19,7 +19,7 @@ namespace Vulkyrie {
              * collision. It is a value between 0 and 1, where 0 represents a perfectly inelastic collision and 1 represents a perfectly elastic collision.
              * @param density The density of the material, which is a measure of how much mass is contained in a given volume of the material. Must be a
              * positive value. */
-            Material(f32 frictionCoefficient, f32 restitutionCoefficient, f32 density);
+            Material(f32 frictionCoefficient, f32 restitutionCoefficient, f32 density = 1.0f);
 
             /** @brief Destructor for the Material class. */
             ~Material() = default;

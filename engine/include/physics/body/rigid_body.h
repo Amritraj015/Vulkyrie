@@ -21,72 +21,125 @@ namespace Vulkyrie {
             /** @brief Default destructor for Body. */
             ~RigidBody() override = default;
 
-            void SetTransform([[maybe_unused]] const TransformComponent &transform) override;
+            [[nodiscard]] VE_FORCE_INLINE f32 GetMass() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetMass(_entity);
+            }
 
-            f32 GetMass() const;
-            // void SetMass(f32 mass);
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLinearVelocity() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetLinearVelocity(_entity);
+            }
 
-            glm::vec3 GetLinearVelocity() const;
-            // void SetLinearVelocity(const glm::vec3 &velocity);
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetAngularVelocity() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetAngularVelocity(_entity);
+            }
 
-            glm::vec3 GetAngularVelocity() const;
-            // void SetAngularVelocity(const glm::vec3 &angularVelocity);
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetLocalInertiaTensor(_entity);
+            }
 
-            glm::vec3 GetLocalInertiaTensor() const;
-            // void SetLocalInertiaTensor(const glm::vec3 &localInertiaTensor);
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalCenterOfMass() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetLocalCenterOfMass(_entity);
+            }
 
-            glm::vec3 GetLocalCenterOfMass() const;
-            // void SetLocalCenterOfMass(const glm::vec3 &localCenterOfMass);
+            [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDamping() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetLinearDamping(_entity);
+            }
 
-            f32 GetLinearDamping() const;
-            // void SetLinearDamping(f32 linearDamping);
+            VE_FORCE_INLINE void SetLinearDamping(f32 linearDamping) {
+                VASSERT(linearDamping >= 0.0f, "Linear damping must be greater than or equal to zero.");
 
-            glm::vec3 GetLinearLockAxisFactor() const;
-            void SetLinearLockAxisFactor(const glm::vec3 &lockAxisFactor);
+                _physicsWorld.GetRigidBodyComponentStore().SetLinearDamping(_entity, linearDamping);
+            }
 
-            f32 GetAngularDamping() const;
-            // void SetAngularDamping(f32 angularDamping);
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLinearLockAxisFactor() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetLinearLockAxisFactor(_entity);
+            }
 
-            glm::vec3 GetAngularLockAxisFactor() const;
-            void SetAngularLockAxisFactor(const glm::vec3 &lockAxisFactor);
+            VE_FORCE_INLINE void SetLinearLockAxisFactor(const glm::vec3 &lockAxisFactor) {
+                _physicsWorld.GetRigidBodyComponentStore().SetLinearLockAxisFactor(_entity, lockAxisFactor);
+            }
 
-            // void UpdateLocalCenterOfMassFromColliders();
+            [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDamping() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetAngularDamping(_entity);
+            }
+
+            VE_FORCE_INLINE void SetAngularDamping(f32 angularDamping) {
+                VASSERT(angularDamping >= 0.0f, "Angular damping must be greater than or equal to zero.");
+
+                _physicsWorld.GetRigidBodyComponentStore().SetAngularDamping(_entity, angularDamping);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetAngularLockAxisFactor() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetAngularLockAxisFactor(_entity);
+            }
+
+            VE_FORCE_INLINE void SetAngularLockAxisFactor(const glm::vec3 &lockAxisFactor) {
+                _physicsWorld.GetRigidBodyComponentStore().SetAngularLockAxisFactor(_entity, lockAxisFactor);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE BodyType GetBodyType() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetBodyType(_entity);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE bool GravityEnabled() const {
+                return _physicsWorld.GetRigidBodyComponentStore().IsGravityEnabled(_entity);
+            }
+
+            VE_FORCE_INLINE void SetGravityEnabled(bool gravityEnabled) {
+                _physicsWorld.GetRigidBodyComponentStore().SetGravityEnabled(_entity, gravityEnabled);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAccumulatedForce() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetExternalForce(_entity);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAccumulatedTorque() const {
+                return _physicsWorld.GetRigidBodyComponentStore().GetExternalTorque(_entity);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE bool CanSleep() const {
+                return _physicsWorld.GetRigidBodyComponentStore().CanSleep(_entity);
+            }
+
+            [[nodiscard]] VE_FORCE_INLINE bool IsSleeping() const {
+                return _physicsWorld.GetRigidBodyComponentStore().IsSleeping(_entity);
+            }
+
+            void SetTransform(const TransformComponent &transform) override;
+            void SetMass(f32 mass);
+            void SetLinearVelocity(const glm::vec3 &velocity);
+            void SetAngularVelocity(const glm::vec3 &angularVelocity);
+            void SetLocalInertiaTensor(const glm::vec3 &localInertiaTensor);
+            void SetLocalCenterOfMass(const glm::vec3 &localCenterOfMass);
+            void UpdateLocalCenterOfMassFromColliders();
             // void UpdateLocalInertiaTensorFromColliders();
             // void UpdateMassFromColliders();
             // void UpdateMassPropertiesFromColliders();
+            void SetBodyType(BodyType bodyType);
+            void SetIsSleeping(bool sleeping);
 
-            BodyType GetBodyType() const;
-            // void SetBodyType(BodyType bodyType);
+            void ApplyLocalForceAtCenterOfMass(const glm::vec3 &force);
+            void ApplyWorldForceAtCenterOfMass(const glm::vec3 &force);
+            void ApplyLocalForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint);
+            void ApplyWorldForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint);
+            void ApplyLocalForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint);
+            void ApplyWorldForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint);
 
-            bool GravityEnabled() const;
-            void SetGravityEnabled(bool gravityEnabled);
-
-            // void SetIsSleeping(bool sleeping);
-
-            // void ApplyLocalForceAtCenterOfMass(const glm::vec3 &force);
-            // void ApplyWorldForceAtCenterOfMass(const glm::vec3 &force);
-
-            // void ApplyLocalForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint);
-            // void ApplyWorldForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint);
-            // void ApplyLocalForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint);
-            // void ApplyWorldForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint);
-
-            // void ApplyLocalTorque(const glm::vec3 &torque);
-            // void ApplyWorldTorque(const glm::vec3 &torque);
+            void ApplyLocalTorque(const glm::vec3 &torque);
+            void ApplyWorldTorque(const glm::vec3 &torque);
 
             void ResetForce();
             void ResetTorque();
 
-            const glm::vec3 &GetAccumulatedForce() const;
-            const glm::vec3 &GetAccumulatedTorque() const;
-
-            bool CanSleep() const;
-            // void SetCanSleep(bool canSleep);
-            bool IsSleeping() const;
-
-            // void SetIsActive(bool isActive) override;
+            void SetCanSleep(bool canSleep);
+            void SetIsActive(bool isActive) override;
             // Collider &AddCollider(CollisionShape *collisionShape, const TransformComponent &transform) override;
             // void RemoveCollider(Collider *collider) override;
+
+        private:
+            void enableOverlappingPairs();
+            void checkForDisabledOverlappingPairs();
+            glm::vec3 computeCenterOfMass();
     };
 
 } // namespace Vulkyrie

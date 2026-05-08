@@ -225,6 +225,16 @@ namespace Vulkyrie {
                 return _externalForces[_entityToComponentIndex.find(bodyEntity)->second];
             }
 
+            /** @brief Sets the accumulated external force applied to the body associated with the specified entity. The entity must
+             * have a RigidBodyComponent associated with it.
+             * @param bodyEntity The entity to be updated.
+             * @param externalForce The external force vector to apply (Newtons). */
+            VE_FORCE_INLINE void SetExternalForce(Entity bodyEntity, const glm::vec3 &externalForce) {
+                VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
+
+                _externalForces[_entityToComponentIndex.find(bodyEntity)->second] = externalForce;
+            }
+
             /** @brief Retrieves the accumulated external torque currently applied to the body associated with the specified entity.
              * External torques are typically reset each simulation step after being integrated into the body's angular velocity. The
              * entity must have a RigidBodyComponent associated with it.
@@ -234,16 +244,6 @@ namespace Vulkyrie {
                 VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
                 return _externalTorques[_entityToComponentIndex.find(bodyEntity)->second];
-            }
-
-            /** @brief Sets the accumulated external force applied to the body associated with the specified entity. The entity must
-             * have a RigidBodyComponent associated with it.
-             * @param bodyEntity The entity to be updated.
-             * @param externalForce The external force vector to apply (Newtons). */
-            VE_FORCE_INLINE void SetExternalForce(Entity bodyEntity, const glm::vec3 &externalForce) {
-                VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
-
-                _externalForces[_entityToComponentIndex.find(bodyEntity)->second] = externalForce;
             }
 
             /** @brief Sets the accumulated external torque applied to the body associated with the specified entity. The entity must

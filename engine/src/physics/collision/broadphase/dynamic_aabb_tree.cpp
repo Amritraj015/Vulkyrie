@@ -12,7 +12,7 @@ namespace Vulkyrie {
         : _rootNodeIndex(AABB_TREE_NULL_NODE)
         , _inflationPercentage(inflationPercentage) {
 
-        // Reserve the
+        // Reserve space in the query vector to avoid unnecessary allocations.
         _queryNodesToVisit.reserve(initialNodeCapacity);
 
         // Pre-allocate a pool of nodes for the tree to use.

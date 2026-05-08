@@ -6,12 +6,21 @@
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
 #include "physics/components/transform_component_store.h"
+#include "physics/systems/collision_system.h"
 
 namespace Vulkyrie {
 
     class PhysicsWorld {
         public:
             explicit PhysicsWorld(const PhysicsWorldSettings &settings);
+
+            /** @brief Provides access to the settings of the physics world, which include parameters such as gravity, time step, and other global
+             * configurations that affect the behavior of the physics simulation. This method allows other parts of the physics system to query the current
+             * settings and adjust their behavior accordingly during simulation updates.
+             * @return A reference to the PhysicsWorldSettings that contains the configuration parameters for the physics world. */
+            [[nodiscard]] VE_FORCE_INLINE const PhysicsWorldSettings &GetSettings() const {
+                return _settings;
+            }
 
             /** @brief Provides access to the EntityManager, which manages the creation and destruction of entities in the physics world. The EntityManager is
              * responsible for generating unique entity identifiers, tracking entity lifetimes, and providing an interface for creating and destroying entities.
@@ -60,7 +69,13 @@ namespace Vulkyrie {
                 return _transformComponentStore;
             }
 
+            [[nodiscard]] VE_FORCE_INLINE CollisionSystem &GetCollisionSystem() {
+                return _collisionSystem;
+            }
+
             void Update();
+
+            void SetBodyDisabled(Entity entity, bool disabled);
 
         private:
             PhysicsWorldSettings _settings;
@@ -69,6 +84,8 @@ namespace Vulkyrie {
             RigidBodyComponentStore _rigidBodyComponentStore;
             ColliderComponentStore _colliderComponentStore;
             TransformComponentStore _transformComponentStore;
+
+            CollisionSystem _collisionSystem;
     };
 
 } // namespace Vulkyrie

@@ -6,6 +6,8 @@
 
 namespace Vulkyrie {
 
+    class Collider;
+
     /** The type of the collision shape, used to categorize shapes into broad types for efficient processing. */
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
 
@@ -49,6 +51,18 @@ namespace Vulkyrie {
                 return _name;
             }
 
+            /** @brief Add a collider to the list of colliders using this collision shape.
+             * @param collider The collider to be added to the list of colliders using this collision shape. */
+            VE_FORCE_INLINE void AddCollider(Collider &collider) {
+                _colliders.push_back(&collider);
+            }
+
+            /** @brief Remove a collider from the list of colliders using this collision shape.
+             * @param collider The collider to be removed from the list of colliders using this collision shape. */
+            VE_FORCE_INLINE void RemoveCollider(Collider &collider) {
+                _colliders.erase(std::remove(_colliders.begin(), _colliders.end(), &collider), _colliders.end());
+            }
+
             /** @brief Check if the collision shape is convex.
              * @return True if the collision shape is convex, false otherwise.
              */
@@ -89,11 +103,15 @@ namespace Vulkyrie {
             virtual AABB ComputeTransformedAABB(const TransformComponent &transform) const;
 
         protected:
-            /** The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave). */
+            /** @brief The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave). */
             const CollisionShapeType _type;
 
-            /** The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield). */
+            /** @brief The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield). */
             const CollisionShapeName _name;
+
+            /** @brief Colliders that are using this collision shape. This allows the shape to notify its colliders of any changes that may affect collision
+             * detection or response. */
+            std::vector<Collider *> _colliders;
     };
 
 } // namespace Vulkyrie
