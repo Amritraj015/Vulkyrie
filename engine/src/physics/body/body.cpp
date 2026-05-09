@@ -63,7 +63,7 @@ namespace Vulkyrie {
         }
 
         // Get the body's transform to world space.
-        const TransformComponent &bodyTransform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+        const TransformComponent &bodyTransform = GetTransform();
 
         // Initialize the body's AABB to the world-space AABB of the first collider.
         Collider &firstCollider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntities[0]);
@@ -81,16 +81,8 @@ namespace Vulkyrie {
         return bodyAABB;
     }
 
-    glm::vec3 Body::GetWorldPoint(const glm::vec3 &localPoint) const {
-        return _physicsWorld.GetTransformComponentStore().GetTransform(_entity) * localPoint;
-    }
-
-    glm::vec3 Body::GetWorldVector(const glm::vec3 &localVector) const {
-        return _physicsWorld.GetTransformComponentStore().GetTransform(_entity).Rotation * localVector;
-    }
-
     glm::vec3 Body::GetLocalPoint(const glm::vec3 &worldPoint) const {
-        const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+        const TransformComponent &transform = GetTransform();
         const glm::quat inverseRotation = glm::inverse(transform.Rotation);
         const glm::vec3 localPoint = inverseRotation * (worldPoint - transform.Position);
 
@@ -98,7 +90,7 @@ namespace Vulkyrie {
     }
 
     glm::vec3 Body::GetLocalVector(const glm::vec3 &worldVector) const {
-        const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+        const TransformComponent &transform = GetTransform();
         const glm::quat inverseRotation = glm::inverse(transform.Rotation);
         const glm::vec3 localVector = inverseRotation * worldVector;
 
@@ -144,7 +136,7 @@ namespace Vulkyrie {
 
         // When activating the body, we need to add its colliders to the collision system so that it can participate in collision detection.
         if (active) {
-            const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
+            const TransformComponent &transform = GetTransform();
             const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
 
             for (Entity colliderEntity : colliderEntities) {
@@ -173,7 +165,7 @@ namespace Vulkyrie {
         const Entity colliderEntity = _physicsWorld.GetEntityManager().CreateEntity();
         Collider *collider = new Collider(colliderEntity, *this);
 
-        const TransformComponent localToWorldTransform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity) * transform;
+        const TransformComponent localToWorldTransform = GetTransform() * transform;
         const PhysicsWorldSettings &settings = _physicsWorld.GetSettings();
         const Material material(settings.FrictionCoefficient, settings.RestitutionCoefficient);
 

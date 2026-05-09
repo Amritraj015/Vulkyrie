@@ -403,12 +403,21 @@ namespace Vulkyrie {
              * @param isActive True to set this rigid body as active in the simulation, false to set it as inactive. */
             void SetIsActive(bool isActive) override;
 
-            // Collider &AddCollider(CollisionShape *collisionShape, const TransformComponent &transform) override;
-            // void RemoveCollider(Collider *collider) override;
+            /** @brief Overrides the AddCollider method from the Body class to add a new collider to this rigid body using the specified collision shape and
+             * local transform.
+             * @param collisionShape The CollisionShape that defines the geometry of the new collider to be added to this rigid body.
+             * @param transform The local transform of the new collider relative to this rigid body's origin.
+             * @return A reference to the newly created Collider that has been added to this rigid body. */
+            Collider &AddCollider(CollisionShape &collisionShape, const TransformComponent &transform) override;
+
+            /** @brief Overrides the RemoveCollider method from the Body class to remove a collider from this rigid body.
+             * @param collider The collider to be removed from this rigid body. The collider must be currently attached to this body. */
+            void RemoveCollider(Collider &collider) override;
 
         private:
             void enableOverlappingPairs();
             void checkForDisabledOverlappingPairs();
+            void awakeNeighborDisabledBodies();
     };
 
 } // namespace Vulkyrie

@@ -540,8 +540,47 @@ namespace Vulkyrie {
         Body::SetIsActive(isActive);
     }
 
-    // Collider &AddCollider(CollisionShape *collisionShape, const TransformComponent &transform);
-    // void RemoveCollider(Collider *collider);
+    Collider &RigidBody::AddCollider(CollisionShape &collisionShape, const TransformComponent &transform) {
+        Entity colliderEntity = _physicsWorld.GetEntityManager().CreateEntity();
+        Collider *collider = new Collider(colliderEntity, *this);
+
+        const TransformComponent localToWorldTransform = GetTransform() * transform;
+        const PhysicsWorldSettings &settings = _physicsWorld.GetSettings();
+        Material material(settings.FrictionCoefficient, settings.RestitutionCoefficient);
+
+        ColliderComponent colliderComponent{
+            _entity,
+            collider,
+            transform,
+            &collisionShape,
+            0x0001, // Default to category 1
+            0xFFFF, // Default to colliding with all categories
+            localToWorldTransform,
+            material // Default material
+        };
+        const bool isDisabled = _physicsWorld.GetRigidBodyComponentStore().IsDisabled(_entity);
+        _physicsWorld.GetColliderComponentStore().AddComponent(colliderEntity, colliderComponent, !isDisabled);
+        _physicsWorld.GetBodyComponentStore().AddColliderToBody(_entity, colliderEntity);
+
+        collisionShape.AddCollider(*collider);
+
+        const bool isActive = IsActive();
+
+        if (isActive) {
+            const AABB aabb = collisionShape.ComputeTransformedAABB(localToWorldTransform);
+            _physicsWorld.GetCollisionSystem().AddCollider(*collider, aabb);
+        }
+
+        _physicsWorld.GetBodyComponentStore().SetHasSimulationColliders(_entity, true);
+
+        return *collider;
+    }
+
+    void RigidBody::RemoveCollider(Collider &collider) {
+        awakeNeighborDisabledBodies();
+
+        Body::RemoveCollider(collider);
+    }
 
     void RigidBody::enableOverlappingPairs() {
         // const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
@@ -577,6 +616,9 @@ namespace Vulkyrie {
         //     }
         //
         // }
+    }
+
+    void awakeNeighborDisabledBodies() {
     }
 
 } // namespace Vulkyrie

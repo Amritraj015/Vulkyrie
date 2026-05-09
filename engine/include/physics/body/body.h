@@ -97,8 +97,7 @@ namespace Vulkyrie {
              * be included in the body's collision geometry and will affect how the body interacts with other bodies in the simulation. The method returns a
              * reference to the newly created Collider, which can be used for further manipulation or querying of its properties.
              * @param collisionShape The CollisionShape that defines the geometric representation of the new collider to be added to this body.
-             * @param transform The local transform that specifies the position and rotation of the new collider relative to this body's origin. This transform
-             * determines how the collider is positioned and oriented in relation to the body, which affects collision detection and response.
+             * @param transform The local transform that specifies the position and rotation of the new collider relative to this body's origin.
              * @return A reference to the newly created Collider that has been added to this body. This collider will be part of the body's collision geometry
              * and can be used for further manipulation or querying of its properties. */
             [[nodiscard]] virtual Collider &AddCollider(CollisionShape &collisionShape, const TransformComponent &transform);
@@ -140,14 +139,18 @@ namespace Vulkyrie {
              * and rotation to the given local point to compute its corresponding position in world space.
              * @param localPoint The point in the body's local space to be transformed to world space.
              * @return The corresponding point in world space after applying the body's transform. */
-            [[nodiscard]] glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const;
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const {
+                return GetTransform() * localPoint;
+            }
 
             /** @brief Transforms a vector from the body's local space to world space using the body's current rotation. This method applies the body's rotation
              * to the given local vector to compute its corresponding direction in world space. Note that this transformation does not apply the body's
              * position, as vectors represent directions rather than points.
              * @param localVector The vector in the body's local space to be transformed to world space.
              * @return The corresponding vector in world space after applying the body's rotation. */
-            [[nodiscard]] glm::vec3 GetWorldVector(const glm::vec3 &localVector) const;
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldVector(const glm::vec3 &localVector) const {
+                return GetTransform().Rotation * localVector;
+            }
 
             /** @brief Transforms a point from world space to the body's local space using the inverse of the body's current transform. This method applies the
              * inverse of the body's position and rotation to the given world point to compute its corresponding position in the body's local space.
