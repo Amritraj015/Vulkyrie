@@ -112,9 +112,9 @@ namespace Vulkyrie {
             void SetLocalInertiaTensor(const glm::vec3 &localInertiaTensor);
             void SetLocalCenterOfMass(const glm::vec3 &localCenterOfMass);
             void UpdateLocalCenterOfMassFromColliders();
-            // void UpdateLocalInertiaTensorFromColliders();
-            // void UpdateMassFromColliders();
-            // void UpdateMassPropertiesFromColliders();
+            void UpdateLocalInertiaTensorFromColliders();
+            void UpdateMassFromColliders();
+            void UpdateMassPropertiesFromColliders();
             void SetBodyType(BodyType bodyType);
             void SetIsSleeping(bool sleeping);
 
@@ -139,7 +139,7 @@ namespace Vulkyrie {
         private:
             void enableOverlappingPairs();
             void checkForDisabledOverlappingPairs();
-            glm::vec3 computeCenterOfMass();
+            void computeMassAndInertiaTensorLocal(glm::vec3 inertiaTensorLocal, f32 &mass);
     };
 
 } // namespace Vulkyrie

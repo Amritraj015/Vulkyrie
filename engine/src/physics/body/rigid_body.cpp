@@ -121,16 +121,49 @@ namespace Vulkyrie {
         // The angular velocity remains unchanged, but the linear velocity needs to be updated based on the change in the center of mass position and the
         // current angular velocity of the body.
         // The formula for adjusting the linear velocity is: newLinearVelocity = oldLinearVelocity + cross(angularVelocity, newCenterOfMass - oldCenterOfMass)
-        glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
-        const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
-        linearVelocity += glm::cross(angularVelocity, newCenterOfMass - oldCenterOfMass);
-        rigidBodyComponentStore.SetLinearVelocity(_entity, linearVelocity);
+        if (BodyType::DYNAMIC == GetBodyType()) {
+            glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
+            const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
+            linearVelocity += glm::cross(angularVelocity, newCenterOfMass - oldCenterOfMass);
+            rigidBodyComponentStore.SetLinearVelocity(_entity, linearVelocity);
+        }
     }
 
     void RigidBody::UpdateLocalCenterOfMassFromColliders() {
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+
+        f32 totalMass(0.0f);
+        glm::vec3 centerOfMassLocal(0.0f);
+
+        // Get all colliders associated with this body.
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        // Iterate through each collider and accumulate the mass-weighted position of the center of mass in local space, as well as the total mass.
+        for (Entity colliderEntity : colliderEntities) {
+            const f32 colliderVolume = colliderComponentStore.GetCollisionShape(colliderEntity).GetVolume();
+            const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
+
+            // We can calculate the mass of the collider using its volume and density,
+            // and then use that mass to weight the position of the center of mass contribution from this collider.
+            const f32 colliderMass = colliderVolume * colliderDensity;
+
+            const TransformComponent &localToBodyTransform = colliderComponentStore.GetLocalToBodyTransform(colliderEntity);
+
+            // The center of mass contribution from this collider is its local position (from the local to body transform) weighted by its mass.
+            centerOfMassLocal += localToBodyTransform.Position * colliderMass;
+
+            // We also accumulate the total mass of the body by summing up the masses of all its colliders.
+            totalMass += colliderMass;
+        }
+
+        // Finally, we can calculate the overall center of mass in local space
+        // by dividing the accumulated mass-weighted position by the total mass.
+        if (totalMass > 0.0f) {
+            centerOfMassLocal /= totalMass;
+        }
+
         const glm::vec3 oldCenterOfMassWorld = rigidBodyComponentStore.GetWorldCenterOfMass(_entity);
-        glm::vec3 centerOfMassLocal = computeCenterOfMass();
         const TransformComponent &transform = GetTransform();
         const glm::vec3 newCenterOfMassWorld = transform * centerOfMassLocal;
 
@@ -142,15 +175,46 @@ namespace Vulkyrie {
         // The angular velocity remains unchanged, but the linear velocity needs to be updated based on the change in the center of mass position and the
         // current angular velocity of the body.
         // The formula for adjusting the linear velocity is: newLinearVelocity = oldLinearVelocity + cross(angularVelocity, newCenterOfMass - oldCenterOfMass)
-        glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
-        const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
-        linearVelocity += glm::cross(angularVelocity, newCenterOfMassWorld - oldCenterOfMassWorld);
-        rigidBodyComponentStore.SetLinearVelocity(_entity, linearVelocity);
+        if (BodyType::DYNAMIC == GetBodyType()) {
+            glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
+            const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
+            linearVelocity += glm::cross(angularVelocity, newCenterOfMassWorld - oldCenterOfMassWorld);
+            rigidBodyComponentStore.SetLinearVelocity(_entity, linearVelocity);
+        }
     }
 
-    // void UpdateLocalInertiaTensorFromColliders();
-    // void UpdateMassFromColliders();
-    // void UpdateMassPropertiesFromColliders();
+    void RigidBody::UpdateLocalInertiaTensorFromColliders() {
+        glm::vec3 inertiaTensor(0.0f);
+
+        ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        for (Entity colliderEntity : colliderEntities) {
+            const auto &shape = colliderComponentStore.GetCollisionShape(colliderEntity);
+            const f32 colliderVolume = shape.GetVolume();
+            const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
+            const f32 colliderMass = colliderVolume * colliderDensity;
+        }
+    }
+
+    void RigidBody::UpdateMassFromColliders() {
+        f32 totalMass(0.0f);
+        ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        for (Entity colliderEntity : colliderEntities) {
+            const f32 colliderVolume = colliderComponentStore.GetCollisionShape(colliderEntity).GetVolume();
+            const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
+
+            const f32 colliderMass = colliderVolume * colliderDensity;
+            totalMass += colliderMass;
+        }
+
+        SetMass(totalMass);
+    }
+
+    void RigidBody::UpdateMassPropertiesFromColliders() {
+    }
 
     void RigidBody::SetBodyType(BodyType bodyType) {
         if (GetBodyType() == bodyType) {
@@ -439,41 +503,6 @@ namespace Vulkyrie {
             // }
             //
         }
-    }
-
-    glm::vec3 RigidBody::computeCenterOfMass() {
-        f32 totalMass(0.0f);
-        glm::vec3 centerOfMassLocal(0.0f);
-        ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
-
-        // Get all colliders associated with this body.
-        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
-
-        // Iterate through each collider and accumulate the mass-weighted position of the center of mass in local space, as well as the total mass.
-        for (Entity colliderEntity : colliderEntities) {
-            const f32 colliderVolume = colliderComponentStore.GetCollisionShape(colliderEntity).GetVolume();
-            const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
-
-            // We can calculate the mass of the collider using its volume and density,
-            // and then use that mass to weight the position of the center of mass contribution from this collider.
-            const f32 colliderMass = colliderVolume * colliderDensity;
-
-            const TransformComponent &localToBodyTransform = colliderComponentStore.GetLocalToBodyTransform(colliderEntity);
-
-            // The center of mass contribution from this collider is its local position (from the local to body transform) weighted by its mass.
-            centerOfMassLocal += localToBodyTransform.Position * colliderMass;
-
-            // We also accumulate the total mass of the body by summing up the masses of all its colliders.
-            totalMass += colliderMass;
-        }
-
-        // Finally, we can calculate the overall center of mass in local space
-        // by dividing the accumulated mass-weighted position by the total mass.
-        if (totalMass > 0.0f) {
-            centerOfMassLocal /= totalMass;
-        }
-
-        return centerOfMassLocal;
     }
 
 } // namespace Vulkyrie
