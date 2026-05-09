@@ -6,7 +6,7 @@ namespace Vulkyrie {
         : Body(entity, physicsWorld) {};
 
     void RigidBody::SetTransform(const TransformComponent &transform) {
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         const glm::vec3 oldCenterOfMass = rigidBodyComponentStore.GetWorldCenterOfMass(_entity);
         const glm::vec3 centerOfMassLocal = rigidBodyComponentStore.GetLocalCenterOfMass(_entity);
 
@@ -45,7 +45,7 @@ namespace Vulkyrie {
     void RigidBody::SetMass(f32 mass) {
         VASSERT(mass >= 0.0f, "Mass must be greater than or equal zero.");
 
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         rigidBodyComponentStore.SetMass(_entity, mass);
 
         if (BodyType::DYNAMIC == GetBodyType()) {
@@ -92,7 +92,7 @@ namespace Vulkyrie {
     }
 
     void RigidBody::SetLocalInertiaTensor(const glm::vec3 &localInertiaTensor) {
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         // Set the new local inertia tensor in the component store.
         rigidBodyComponentStore.SetLocalInertiaTensor(_entity, localInertiaTensor);
@@ -107,14 +107,15 @@ namespace Vulkyrie {
     }
 
     void RigidBody::SetLocalCenterOfMass(const glm::vec3 &localCenterOfMass) {
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         // First, we need to calculate the new world-space center of mass based on the new local center of mass and the body's current transform.
         const glm::vec3 oldCenterOfMass = rigidBodyComponentStore.GetWorldCenterOfMass(_entity);
         const TransformComponent &transform = GetTransform();
         const glm::vec3 newCenterOfMass = transform * localCenterOfMass;
 
-        // Update the world-space center of mass in the component store based on the new local center of mass and the body's transform.
+        // Update the local and world-space center of mass in the component store.
+        rigidBodyComponentStore.SetLocalCenterOfMass(_entity, localCenterOfMass);
         rigidBodyComponentStore.SetWorldCenterOfMass(_entity, newCenterOfMass);
 
         // We need to adjust the linear velocity of the body to account for the change in the center of mass position.
@@ -131,7 +132,6 @@ namespace Vulkyrie {
 
     void RigidBody::UpdateLocalCenterOfMassFromColliders() {
         ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
-        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         f32 totalMass(0.0f);
         glm::vec3 centerOfMassLocal(0.0f);
@@ -163,57 +163,118 @@ namespace Vulkyrie {
             centerOfMassLocal /= totalMass;
         }
 
-        const glm::vec3 oldCenterOfMassWorld = rigidBodyComponentStore.GetWorldCenterOfMass(_entity);
-        const TransformComponent &transform = GetTransform();
-        const glm::vec3 newCenterOfMassWorld = transform * centerOfMassLocal;
-
-        // Update the local and world-space center of mass in the component store.
-        rigidBodyComponentStore.SetLocalCenterOfMass(_entity, centerOfMassLocal);
-        rigidBodyComponentStore.SetWorldCenterOfMass(_entity, newCenterOfMassWorld);
-
-        // We need to adjust the linear velocity of the body to account for the change in the center of mass position.
-        // The angular velocity remains unchanged, but the linear velocity needs to be updated based on the change in the center of mass position and the
-        // current angular velocity of the body.
-        // The formula for adjusting the linear velocity is: newLinearVelocity = oldLinearVelocity + cross(angularVelocity, newCenterOfMass - oldCenterOfMass)
-        if (BodyType::DYNAMIC == GetBodyType()) {
-            glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
-            const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
-            linearVelocity += glm::cross(angularVelocity, newCenterOfMassWorld - oldCenterOfMassWorld);
-            rigidBodyComponentStore.SetLinearVelocity(_entity, linearVelocity);
-        }
+        // Set the new local center of mass in the component store, which will also
+        // update the world center of mass and adjust the linear velocity accordingly.
+        SetLocalCenterOfMass(centerOfMassLocal);
     }
 
     void RigidBody::UpdateLocalInertiaTensorFromColliders() {
-        glm::vec3 inertiaTensor(0.0f);
+        glm::mat3 inertiaTensor(0.0f);
 
         ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        // The parallel axis theorem requires the displacement from each collider's center to the body's
+        // center of mass, so we need to fetch it before iterating over colliders.
+        const glm::vec3 centerOfMassLocal = rigidBodyComponentStore.GetLocalCenterOfMass(_entity);
 
         for (Entity colliderEntity : colliderEntities) {
             const auto &shape = colliderComponentStore.GetCollisionShape(colliderEntity);
             const f32 colliderVolume = shape.GetVolume();
             const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
             const f32 colliderMass = colliderVolume * colliderDensity;
+
+            // Get the inertia tensor of this shape in its own local frame (returned as a diagonal vec3).
+            const glm::vec3 shapeInertiaDiag = shape.GetLocalInertiaTensor(colliderMass);
+
+            // Rotate the diagonal shape tensor into body space: I_body = R * diag(I_shape) * R^T
+            const TransformComponent &localToBodyTransform = colliderComponentStore.GetLocalToBodyTransform(colliderEntity);
+            const glm::mat3 R = glm::mat3_cast(localToBodyTransform.Rotation);
+            const glm::mat3 shapeInertiaMat(shapeInertiaDiag.x, 0.0f, 0.0f, 0.0f, shapeInertiaDiag.y, 0.0f, 0.0f, 0.0f, shapeInertiaDiag.z);
+            const glm::mat3 bodyFrameTensor = R * shapeInertiaMat * glm::transpose(R);
+
+            // Apply the parallel axis theorem to shift the tensor from the collider's center to the
+            // body's center of mass: I_shifted = I_body + m * (|d|^2 * I3 - d (x) d)
+            const glm::vec3 d = localToBodyTransform.Position - centerOfMassLocal;
+            const glm::mat3 parallelAxisTerm = colliderMass * (glm::dot(d, d) * glm::mat3(1.0f) - glm::outerProduct(d, d));
+
+            inertiaTensor += bodyFrameTensor + parallelAxisTerm;
         }
+
+        // The result is a symmetric 3x3 matrix. We store only the diagonal (principal moments)
+        // as the local inertia tensor, which is exact when all collider axes are body-aligned and
+        // is a standard approximation for compound shapes in game physics.
+        SetLocalInertiaTensor(glm::vec3(inertiaTensor[0][0], inertiaTensor[1][1], inertiaTensor[2][2]));
     }
 
     void RigidBody::UpdateMassFromColliders() {
         f32 totalMass(0.0f);
         ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+
+        // Get all colliders associated with this body.
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
 
+        // Iterate through each collider and accumulate the total mass by summing up the mass of each collider,
+        // which can be calculated using its volume and density from the collider component store.
         for (Entity colliderEntity : colliderEntities) {
             const f32 colliderVolume = colliderComponentStore.GetCollisionShape(colliderEntity).GetVolume();
             const f32 colliderDensity = colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
-
             const f32 colliderMass = colliderVolume * colliderDensity;
+
             totalMass += colliderMass;
         }
 
+        // Finally, we can set the total mass of the body in the component store,
+        // which will also update the inverse mass for dynamic bodies.
         SetMass(totalMass);
     }
 
     void RigidBody::UpdateMassPropertiesFromColliders() {
+        ColliderComponentStore &colliderComponentStore = _physicsWorld.GetColliderComponentStore();
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        // ── Pass 1: accumulate total mass and mass-weighted local center of mass ──
+        f32 totalMass(0.0f);
+        glm::vec3 centerOfMassLocal(0.0f);
+
+        for (Entity colliderEntity : colliderEntities) {
+            const CollisionShape &shape = colliderComponentStore.GetCollisionShape(colliderEntity);
+            const f32 colliderMass = shape.GetVolume() * colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
+            centerOfMassLocal += colliderComponentStore.GetLocalToBodyTransform(colliderEntity).Position * colliderMass;
+            totalMass += colliderMass;
+        }
+
+        if (totalMass > 0.0f) {
+            centerOfMassLocal /= totalMass;
+        }
+
+        // Commit mass (also updates inverse mass for dynamic bodies).
+        SetMass(totalMass);
+
+        // Commit local/world center of mass and adjust linear velocity to account for the CoM shift.
+        SetLocalCenterOfMass(centerOfMassLocal);
+
+        // ── Pass 2: accumulate inertia tensor using the now-known center of mass ──
+        glm::mat3 inertiaTensor(0.0f);
+
+        for (Entity colliderEntity : colliderEntities) {
+            const CollisionShape &shape = colliderComponentStore.GetCollisionShape(colliderEntity);
+            const f32 colliderMass = shape.GetVolume() * colliderComponentStore.GetMaterial(colliderEntity).GetDensity();
+            const glm::vec3 shapeInertiaDiag = shape.GetLocalInertiaTensor(colliderMass);
+
+            const TransformComponent &localToBodyTransform = colliderComponentStore.GetLocalToBodyTransform(colliderEntity);
+            const glm::mat3 R = glm::mat3_cast(localToBodyTransform.Rotation);
+            const glm::mat3 shapeInertiaMat(shapeInertiaDiag.x, 0.0f, 0.0f, 0.0f, shapeInertiaDiag.y, 0.0f, 0.0f, 0.0f, shapeInertiaDiag.z);
+            const glm::mat3 bodyFrameTensor = R * shapeInertiaMat * glm::transpose(R);
+
+            const glm::vec3 d = localToBodyTransform.Position - centerOfMassLocal;
+            const glm::mat3 parallelAxisTerm = colliderMass * (glm::dot(d, d) * glm::mat3(1.0f) - glm::outerProduct(d, d));
+            inertiaTensor += bodyFrameTensor + parallelAxisTerm;
+        }
+
+        // Commit inertia tensor (also updates inverse tensor for dynamic bodies).
+        SetLocalInertiaTensor(glm::vec3(inertiaTensor[0][0], inertiaTensor[1][1], inertiaTensor[2][2]));
     }
 
     void RigidBody::SetBodyType(BodyType bodyType) {
@@ -221,7 +282,7 @@ namespace Vulkyrie {
             return;
         }
 
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         rigidBodyComponentStore.SetBodyType(_entity, bodyType);
 
         if (BodyType::STATIC == bodyType) {
@@ -253,7 +314,7 @@ namespace Vulkyrie {
                                                                            localInertiaTensor.z > 0.0f ? 1.0f / localInertiaTensor.z : 0.0f));
         }
 
-        _physicsWorld.SetBodyDisabled(_entity, BodyType::STATIC == bodyType);
+        _physicsWorld.SetActiveStatusForBody(_entity, BodyType::STATIC != bodyType);
 
         SetIsSleeping(false);
 
@@ -266,7 +327,7 @@ namespace Vulkyrie {
     }
 
     void RigidBody::SetIsSleeping(bool sleeping) {
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         const bool isCurrentlySleeping = rigidBodyComponentStore.IsSleeping(_entity);
 
         if (sleeping == isCurrentlySleeping) {
@@ -288,7 +349,7 @@ namespace Vulkyrie {
 
         rigidBodyComponentStore.SetIsSleeping(_entity, sleeping);
 
-        _physicsWorld.SetBodyDisabled(_entity, sleeping);
+        _physicsWorld.SetActiveStatusForBody(_entity, !sleeping);
 
         if (sleeping) {
 
@@ -315,9 +376,9 @@ namespace Vulkyrie {
     }
 
     void RigidBody::ApplyWorldForceAtCenterOfMass(const glm::vec3 &force) {
-        // If this is a static body, it should not have forces applied to it,
+        // If this not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::DYNAMIC != GetBodyType()) {
             return;
         }
 
@@ -341,9 +402,9 @@ namespace Vulkyrie {
     }
 
     void RigidBody::ApplyWorldForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint) {
-        // If this is a static body, it should not have forces applied to it,
+        // If this is not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::DYNAMIC != GetBodyType()) {
             return;
         }
 
@@ -352,7 +413,7 @@ namespace Vulkyrie {
             SetIsSleeping(false);
         }
 
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         // First, we need to calculate the new accumulated external force by adding the new force to
         // any existing external force in the component store, and update it in the component store.
@@ -377,9 +438,9 @@ namespace Vulkyrie {
     }
 
     void RigidBody::ApplyWorldForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint) {
-        // If this is a static body, it should not have forces applied to it,
+        // If this is not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::DYNAMIC != GetBodyType()) {
             return;
         }
 
@@ -388,7 +449,7 @@ namespace Vulkyrie {
             SetIsSleeping(false);
         }
 
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         // First, we need to calculate the new accumulated external force by adding the new force to
         // any existing external force in the component store, and update it in the component store.
@@ -404,19 +465,21 @@ namespace Vulkyrie {
     }
 
     void RigidBody::ApplyLocalTorque(const glm::vec3 &torque) {
+        // Convert the local-space torque to world space by applying the body's rotation from its transform.
         const glm::vec3 worldTorque = GetTransform().Rotation * torque;
 
+        // Then we can apply the transformed world-space torque to the body.
         ApplyWorldTorque(worldTorque);
     }
 
     void RigidBody::ApplyWorldTorque(const glm::vec3 &torque) {
-        // If this is a static body, it should not have torques applied to it,
+        // If this is not a dynamic body, it should not have torques applied to it,
         // so we can skip applying the torque and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::DYNAMIC != GetBodyType()) {
             return;
         }
 
-        auto &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
+        RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
 
         // Else, accumulate the new torque with any existing external torque in the component store.
         const glm::vec3 currentTorque = rigidBodyComponentStore.GetExternalTorque(_entity);
@@ -431,7 +494,7 @@ namespace Vulkyrie {
 
     void RigidBody::ResetForce() {
         // If the body is not dynamic, it should not have forces applied to it, so we can skip resetting.
-        if (BodyType::STATIC == GetBodyType()) return;
+        if (BodyType::DYNAMIC != GetBodyType()) return;
 
         // Else reset the accumulated force to zero for the next simulation step.
         _physicsWorld.GetRigidBodyComponentStore().SetExternalForce(_entity, glm::vec3(0.0f));
@@ -439,70 +502,81 @@ namespace Vulkyrie {
 
     void RigidBody::ResetTorque() {
         // If the body is not dynamic, it should not have torques applied to it, so we can skip resetting.
-        if (BodyType::STATIC == GetBodyType()) return;
+        if (BodyType::DYNAMIC != GetBodyType()) return;
 
         // Else reset the accumulated torque to zero for the next simulation step.
         _physicsWorld.GetRigidBodyComponentStore().SetExternalTorque(_entity, glm::vec3(0.0f));
     }
 
     void RigidBody::SetCanSleep(bool canSleep) {
+        // If this is a static body, it should not be able to sleep or wake up since it's always inactive,
         if (BodyType::STATIC == GetBodyType()) {
             return;
         }
 
+        // Set the can sleep flag in the component store,
+        // which will allow or disallow the body from being put to sleep by the physics simulation.
         _physicsWorld.GetRigidBodyComponentStore().SetCanSleep(_entity, canSleep);
 
+        // If canSleep is false, we need to wake the body up if it's currently sleeping, since it should not be allowed to sleep.
         if (!canSleep) {
             SetIsSleeping(false);
         }
     }
 
     void RigidBody::SetIsActive(bool isActive) {
+        // If the body is currently in the desired active state,
+        // we can skip changing it and return early.
         if (IsActive() == isActive) {
             return;
         }
 
+        // When activating a body, we need to wake it up if it's currently sleeping,
+        // since an active body should be able to participate in the simulation and respond to forces.
         SetIsSleeping(!isActive);
 
+        // Set the active status on the body component store,
+        // which will also disable the body in the physics world when deactivating.
         Body::SetIsActive(isActive);
     }
+
     // Collider &AddCollider(CollisionShape *collisionShape, const TransformComponent &transform);
     // void RemoveCollider(Collider *collider);
 
     void RigidBody::enableOverlappingPairs() {
-        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
-
-        for (Entity colliderEntity : colliderEntities) {
-
-            // OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
-            //
-            // if (!pair->isEnabled) {
-            //
-            //     mWorld.mCollisionDetection.mOverlappingPairs.enablePair(overlappingPairs[j]);
-            // }
-        }
+        // const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        //
+        // for (Entity colliderEntity : colliderEntities) {
+        //
+        //     OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
+        //
+        //     if (!pair->isEnabled) {
+        //
+        //         mWorld.mCollisionDetection.mOverlappingPairs.enablePair(overlappingPairs[j]);
+        //     }
+        // }
     }
 
     void RigidBody::checkForDisabledOverlappingPairs() {
-        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
-
-        for (Entity colliderEntity : colliderEntities) {
-            //
-            // OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
-            //
-            // const Entity body1Entity = mWorld.mCollidersComponents.getBody(pair->collider1);
-            // const Entity body2Entity = mWorld.mCollidersComponents.getBody(pair->collider2);
-            //
-            // const bool isBody1Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body1Entity);
-            // const bool isBody2Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body2Entity);
-            //
-            // // If both bodies of the pair are disabled, we disable the overlapping pair
-            // if (isBody1Disabled && isBody2Disabled) {
-            //
-            //     mWorld.mCollisionDetection.disableOverlappingPair(overlappingPairs[j]);
-            // }
-            //
-        }
+        // const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        //
+        // for (Entity colliderEntity : colliderEntities) {
+        //
+        //     OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
+        //
+        //     const Entity body1Entity = mWorld.mCollidersComponents.getBody(pair->collider1);
+        //     const Entity body2Entity = mWorld.mCollidersComponents.getBody(pair->collider2);
+        //
+        //     const bool isBody1Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body1Entity);
+        //     const bool isBody2Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body2Entity);
+        //
+        //     // If both bodies of the pair are disabled, we disable the overlapping pair
+        //     if (isBody1Disabled && isBody2Disabled) {
+        //
+        //         mWorld.mCollisionDetection.disableOverlappingPair(overlappingPairs[j]);
+        //     }
+        //
+        // }
     }
 
 } // namespace Vulkyrie

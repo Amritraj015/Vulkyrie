@@ -32,11 +32,11 @@ namespace Vulkyrie {
         private:
             DynamicAABBTree _aabbTree;
             ColliderComponentStore &_colliderComponentStore;
-            TransformComponentStore &_transformComponentStore;
-            RigidBodyComponentStore &_rigidBodyComponentStore;
+            [[maybe_unused]] TransformComponentStore &_transformComponentStore;
+            [[maybe_unused]] RigidBodyComponentStore &_rigidBodyComponentStore;
             std::unordered_set<i32> _movedShapes;
 
-            void AddMovedCollider(i32 broadPhaseID, Collider &collider) {
+            void AddMovedCollider(i32 broadPhaseID, [[maybe_unused]] Collider &collider) {
                 VASSERT(broadPhaseID != -1, "Collider must already be in the broad phase system to be moved.");
 
                 _movedShapes.insert(broadPhaseID);

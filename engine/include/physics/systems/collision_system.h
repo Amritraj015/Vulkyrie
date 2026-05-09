@@ -13,19 +13,19 @@ namespace Vulkyrie {
 
             ~CollisionSystem() = default;
 
-            VE_FORCE_INLINE void AddCollider(Collider &collider, const AABB &aabb) {
+            VE_FORCE_INLINE void AddCollider([[maybe_unused]] Collider &collider, [[maybe_unused]] const AABB &aabb) {
             }
 
-            void NotifyOverlappingPairsToTestOverlap(Collider &collider) {
-                const std::vector<i32> &overlappingPairs = _colliderComponentStore.GetCollisionPairs(collider.GetEntity());
-
-                for (const auto overlappingPair : overlappingPairs) {
-                    // Notify that the overlapping pair needs to be testbed for overlap
-                    // _overlappingPairs.SetNeedToTestOverlap(overlappingPair, true);
-                }
+            void NotifyOverlappingPairsToTestOverlap([[maybe_unused]] Collider &collider) {
+                // const std::vector<i32> &overlappingPairs = _colliderComponentStore.GetCollisionPairs(collider.GetEntity());
+                //
+                // for (const auto overlappingPair : overlappingPairs) {
+                //     Notify that the overlapping pair needs to be testbed for overlap
+                //     _overlappingPairs.SetNeedToTestOverlap(overlappingPair, true);
+                // }
             }
 
-            void RemoveCollider(Collider &collider) {
+            void RemoveCollider([[maybe_unused]] Collider &collider) {
             }
 
             VE_FORCE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
@@ -35,7 +35,7 @@ namespace Vulkyrie {
             }
 
         private:
-            ColliderComponentStore &_colliderComponentStore;
+            [[maybe_unused]] ColliderComponentStore &_colliderComponentStore;
     };
 
 } // namespace Vulkyrie

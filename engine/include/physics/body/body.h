@@ -4,7 +4,6 @@
 #include "physics/physics_world.h"
 #include "physics/collision/shapes/collision_shape.h"
 #include "physics/collision/shapes/aabb.h"
-#include "physics/collision/collider.h"
 
 namespace Vulkyrie {
 
@@ -42,9 +41,9 @@ namespace Vulkyrie {
 
             /** @brief Retrieves a reference to the PhysicsWorld that this body belongs to.
              * @return A reference to the PhysicsWorld that this body belongs to. */
-            // [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
-            //     return _physicsWorld;
-            // }
+            [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
+                return _physicsWorld;
+            }
 
             /** @brief Checks whether this body is active in the physics simulation. An active body participates in collision detection and response, while an
              * inactive body does not. The active state of a body can be used to temporarily disable its physical interactions without removing it from the

@@ -15,4 +15,24 @@ namespace Vulkyrie {
     void PhysicsWorld::Update() {
     }
 
+    void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
+        const bool isCurrentlyActive = !_bodyComponentStore.IsDisabled(entity);
+
+        // If the body is already in the desired active state, we can skip changing it and return early.
+        if (active == isCurrentlyActive) {
+            return;
+        }
+
+        // Else, activate or deactivate the body from all component stores.
+        _bodyComponentStore.SetActiveStatus(entity, active);
+        _transformComponentStore.SetActiveStatus(entity, active);
+        _rigidBodyComponentStore.SetActiveStatus(entity, active);
+
+        const std::vector<Entity> &colliderEntities = _bodyComponentStore.GetColliders(entity);
+
+        for (Entity colliderEntity : colliderEntities) {
+            _colliderComponentStore.SetActiveStatus(colliderEntity, active);
+        }
+    }
+
 } // namespace Vulkyrie

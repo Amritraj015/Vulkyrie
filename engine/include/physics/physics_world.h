@@ -75,7 +75,7 @@ namespace Vulkyrie {
 
             void Update();
 
-            void SetBodyDisabled(Entity entity, bool disabled);
+            void SetActiveStatusForBody(Entity entity, bool disabled);
 
         private:
             PhysicsWorldSettings _settings;

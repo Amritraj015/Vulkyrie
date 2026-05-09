@@ -1,5 +1,5 @@
 #include "physics/collision/collider.h"
-#include "physics/body/body.h"
+#include "physics/body/rigid_body.h"
 
 namespace Vulkyrie {
 
@@ -20,8 +20,19 @@ namespace Vulkyrie {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetLocalToBodyTransform(_entity);
     }
 
-    // void Collider::SetLocalToBodyTransform(const TransformComponent &transform) {
-    // }
+    void Collider::SetLocalToBodyTransform(const TransformComponent &transform) {
+        _body.GetPhysicsWorld().GetColliderComponentStore().SetLocalToBodyTransform(_entity, transform);
+
+        const TransformComponent &bodyTransform = _body.GetPhysicsWorld().GetTransformComponentStore().GetTransform(_body.GetEntity());
+        const TransformComponent localToWorld = bodyTransform * transform;
+        _body.GetPhysicsWorld().GetColliderComponentStore().SetLocalToWorldTransform(_entity, localToWorld);
+
+        RigidBody *rigidBody = dynamic_cast<RigidBody *>(&_body);
+
+        if (nullptr != rigidBody) {
+            rigidBody->SetIsSleeping(false);
+        }
+    }
 
     const TransformComponent &Collider::GetLocalToWorldTransform() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetLocalToWorldTransform(_entity);

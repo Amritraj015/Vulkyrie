@@ -142,6 +142,7 @@ namespace Vulkyrie {
         // Else set the active status of the body in the body component store.
         bodyComponentStore.SetActiveStatus(_entity, active);
 
+        // When activating the body, we need to add its colliders to the collision system so that it can participate in collision detection.
         if (active) {
             const TransformComponent &transform = _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
             const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
@@ -155,6 +156,7 @@ namespace Vulkyrie {
                 _physicsWorld.GetCollisionSystem().AddCollider(collider, aabb);
             }
         } else {
+            // When deactivating the body, we need to remove its colliders from the collision system so that it no longer participates in collision detection.
             const std::vector<Entity> &colliderEntities = bodyComponentStore.GetColliders(_entity);
 
             for (Entity colliderEntity : colliderEntities) {

@@ -28,6 +28,10 @@ namespace Vulkyrie {
                 return _body;
             }
 
+            [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
+                return aabb.CollidesWith(GetWorldSpaceAABB());
+            }
+
             [[nodiscard]] CollisionShape &GetCollisionShape();
             [[nodiscard]] const CollisionShape &GetCollisionShape() const;
 
@@ -37,10 +41,6 @@ namespace Vulkyrie {
             [[nodiscard]] const TransformComponent &GetLocalToWorldTransform() const;
 
             [[nodiscard]] const AABB GetWorldSpaceAABB() const;
-
-            [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
-                return aabb.CollidesWith(GetWorldSpaceAABB());
-            }
 
             [[nodiscard]] bool ContainsPoint(const glm::vec3 &worldSpacePoint) const;
 
