@@ -65,18 +65,27 @@ namespace Vulkyrie {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetCollisionCategoryBits(_entity);
     }
 
-    // void Collider::SetCollisionCategoryBits(u16 collisionCategoryBits) {
-    // _body.GetPhysicsWorld().GetColliderComponentStore().SetCollisionCategoryBits(_entity, collisionCategoryBits);
-    //
-    // auto broadPhaseID = GetBroadPhaseID();
-    // }
+    void Collider::SetCollisionCategoryBits(u16 collisionCategoryBits) {
+        ColliderComponentStore &colliderComponentStore = _body.GetPhysicsWorld().GetColliderComponentStore();
+        colliderComponentStore.SetCollisionCategoryBits(_entity, collisionCategoryBits);
+
+        _body.GetPhysicsWorld().GetCollisionSystem().RequestBroadPhaseCollisionCheck(*this);
+
+        VTRACE("Collider {}: Set Collision category bits: {}", colliderComponentStore.GetBroadPhaseID(_entity), collisionCategoryBits);
+    }
 
     u16 Collider::GetCollidesWithMaskBits() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetCollidesWithMaskBits(_entity);
     }
 
-    // void Collider::SetCollidesWithMaskBits(u16 maskBits) {
-    // }
+    void Collider::SetCollidesWithMaskBits(u16 maskBits) {
+        ColliderComponentStore &colliderComponentStore = _body.GetPhysicsWorld().GetColliderComponentStore();
+        colliderComponentStore.SetCollidesWithMaskBits(_entity, maskBits);
+
+        _body.GetPhysicsWorld().GetCollisionSystem().RequestBroadPhaseCollisionCheck(*this);
+
+        VTRACE("Collider {}: Set Collides With mask bits: {}", colliderComponentStore.GetBroadPhaseID(_entity), maskBits);
+    }
 
     i32 Collider::GetBroadPhaseID() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetBroadPhaseID(_entity);
