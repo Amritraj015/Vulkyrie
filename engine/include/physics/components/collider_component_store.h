@@ -102,16 +102,35 @@ namespace Vulkyrie {
                 return _bodyEntities[_entityToComponentIndex.find(colliderEntity)->second];
             }
 
+            /** @brief Retrieves the entity associated with the body at the specified index in the component vector. The index must be a valid index within
+             * the component vector.
+             * @param index The index of the component whose associated entity is to be retrieved. Must be a valid index within the component vector.
+             * @return The entity associated with the component at the specified index in the component vector. */
+            [[nodiscard]] VE_FORCE_INLINE Entity GetBodyEntityAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return _bodyEntities[index];
+            }
+
             /** @brief Retrieves a reference to the Collider associated with the specified collider entity. The Collider represents the collision properties and
              * behavior of the entity in the physics simulation. The entity must have a ColliderComponent associated with it.
              * @param colliderEntity The entity of the collider whose Collider is to be retrieved.
              * @return A reference to the Collider associated with the specified collider entity. This Collider can be used to access and modify the collision
              * properties and behavior of the entity in the physics simulation. */
-            [[nodiscard]]
-            VE_FORCE_INLINE Collider &GetCollider(Entity colliderEntity) const {
+            [[nodiscard]] VE_FORCE_INLINE Collider &GetCollider(Entity colliderEntity) const {
                 VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
                 return *_colliders[_entityToComponentIndex.find(colliderEntity)->second];
+            }
+
+            /** @brief Retrieves a reference to the Collider associated with the component at the specified index in the component vector. The index must be a
+             * valid index within the component vector.
+             * @param index The index of the component whose Collider is to be retrieved. Must be a valid index within the component vector.
+             * @return A reference to the Collider associated with the component at the specified index in the component vector. */
+            [[nodiscard]] VE_FORCE_INLINE Collider &GetColliderAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return *_colliders[index];
             }
 
             /** @brief Retrieves a reference to the local-to-body transform associated with the specified collider entity. The local-to-body transform
@@ -124,6 +143,16 @@ namespace Vulkyrie {
                 VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
                 return _localToBodyTransforms[_entityToComponentIndex.find(colliderEntity)->second];
+            }
+
+            /** @brief Retrieves a reference to the local-to-body transform associated with the component at the specified index in the component vector. The
+             * index must be a valid index within the component vector.
+             * @param index The index of the component whose local-to-body transform is to be retrieved. Must be a valid index within the component vector.
+             * @return A reference to the local-to-body transform associated with the component at the specified index in the component vector. */
+            [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetLocalToBodyTransformAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return _localToBodyTransforms[index];
             }
 
             /** @brief Sets the local-to-body transform for the specified collider entity. The local-to-body transform represents the transformation that
@@ -149,6 +178,16 @@ namespace Vulkyrie {
                 return *_collisionShapes[_entityToComponentIndex.find(colliderEntity)->second];
             }
 
+            /** @brief Retrieves a reference to the collision shape associated with the component at the specified index in the component vector. The index must
+             * be a valid index within the component vector.
+             * @param index The index of the component whose collision shape is to be retrieved. Must be a valid index within the component vector.
+             * @return A reference to the collision shape associated with the component at the specified index in the component vector. */
+            [[nodiscard]] VE_FORCE_INLINE CollisionShape &GetCollisionShapeAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return *_collisionShapes[index];
+            }
+
             /** @brief Retrieves the broad-phase ID assigned to the specified collider entity. The broad-phase ID is used by the broad-phase collision
              * detection system to track the collider's bounding volume. A value of -1 indicates the collider has not yet been registered with the broad phase.
              * The entity must have a ColliderComponent associated with it.
@@ -168,6 +207,16 @@ namespace Vulkyrie {
                 VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
                 _broadPhaseIDs[_entityToComponentIndex.find(colliderEntity)->second] = broadPhaseID;
+            }
+
+            /** @brief Retrieves the broad-phase ID assigned to the component at the specified index in the component vector. The index must be a valid index
+             * within the component vector.
+             * @param index The index of the component whose broad-phase ID is to be retrieved. Must be a valid index within the component vector.
+             * @return The broad-phase ID of the component at the specified index, or -1 if not yet registered. */
+            [[nodiscard]] VE_FORCE_INLINE i32 GetBroadPhaseIDAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return _broadPhaseIDs[index];
             }
 
             /** @brief Retrieves the collision category bitmask for the specified collider entity. The category bits define the collision group this collider
@@ -258,6 +307,15 @@ namespace Vulkyrie {
                 return static_cast<bool>(_collisionShapeChangedSizeFlags[_entityToComponentIndex.find(colliderEntity)->second]);
             }
 
+            /** @brief Checks if the collision shape of the component at the specified index in the component vector has changed size.
+             * @param index The index of the component to be checked for collision shape size change. Must be a valid index within the component vector.
+             * @return True if the collision shape of the component at the specified index has changed size, false otherwise. */
+            [[nodiscard]] VE_FORCE_INLINE bool HasCollisionShapeChangedSizeAtIndex(size_t index) const {
+                VASSERT(index < _activeCount, "Index out of bounds.");
+
+                return static_cast<bool>(_collisionShapeChangedSizeFlags[index]);
+            }
+
             /** @brief Sets whether the collision shape of the specified collider entity has changed size. This flag can be used to indicate that the collision
              * shape associated with the collider has undergone a size change, which may require updates to the physics simulation or broad-phase collision
              * detection. The entity must have a ColliderComponent associated with it.
@@ -267,6 +325,17 @@ namespace Vulkyrie {
                 VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
                 _collisionShapeChangedSizeFlags[_entityToComponentIndex.find(colliderEntity)->second] = static_cast<u8>(hasChanged);
+            }
+
+            /** @brief Sets whether the collision shape of the specified collider entity has changed size by index. This is an alternative to
+             * SetCollisionShapeChangedSize that allows setting the flag directly by component index, which can be more efficient when iterating over
+             * components. The index must be valid and correspond to a component in the store.
+             * @param index The index of the collider component whose collision shape size change status is to be set.
+             * @param hasChanged True to indicate that the collision shape has changed size, false otherwise. */
+            VE_FORCE_INLINE void SetCollisionShapeChangedSizeAtIndex(size_t index, bool hasChanged) {
+                VASSERT(index < _collisionShapeChangedSizeFlags.size(), "Index out of bounds.");
+
+                _collisionShapeChangedSizeFlags[index] = static_cast<u8>(hasChanged);
             }
 
             /** @brief Checks if the specified collider entity is a trigger. A trigger is a special type of collider that does not participate in physics

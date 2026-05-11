@@ -2,14 +2,15 @@
 
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
+#include "physics/components/rigid_body_component_store.h"
 
 namespace Vulkyrie {
 
+    class PhysicsWorld;
+
     class CollisionSystem {
         public:
-            CollisionSystem(ColliderComponentStore &colliderComponentStore)
-                : _colliderComponentStore(colliderComponentStore) {
-            }
+            explicit CollisionSystem(PhysicsWorld &physicsWorld);
 
             ~CollisionSystem() = default;
 
@@ -35,7 +36,9 @@ namespace Vulkyrie {
             }
 
         private:
-            [[maybe_unused]] ColliderComponentStore &_colliderComponentStore;
+            PhysicsWorld &_physicsWorld;
+            ColliderComponentStore &_colliderComponentStore;
+            RigidBodyComponentStore &_rigidBodyComponentStore;
     };
 
 } // namespace Vulkyrie

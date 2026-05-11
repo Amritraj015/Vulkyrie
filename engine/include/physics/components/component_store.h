@@ -26,7 +26,7 @@ namespace Vulkyrie {
             virtual ~ComponentStore() = default;
 
             /** @brief Initial reservation count for component storage vectors. */
-            static constexpr u16 INITIAL_COMPONENT_RESERVATION_COUNT = 100;
+            static constexpr u16 INITIAL_COMPONENT_RESERVATION_COUNT = 128;
 
             /** @brief A parallel vector to _components that stores the corresponding entities for each component. The index of an entity in this
              * vector corresponds to the index of its associated component in the component store vector. This allows for efficient lookup and management
@@ -109,6 +109,16 @@ namespace Vulkyrie {
              */
             [[nodiscard]] VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
                 return { _entities.data(), _activeCount };
+            }
+
+            /** @brief Retrieves the entity associated with the component at the specified index in the component vector. The index must be a valid index within
+             * the component vector.
+             * @param index The index of the component whose associated entity is to be retrieved. Must be a valid index within the component vector.
+             * @return The entity associated with the component at the specified index in the component vector. */
+            [[nodiscard]] VE_FORCE_INLINE Entity GetEntityAtIndex(size_t index) const {
+                VASSERT(index < _entities.size(), "Index out of bounds.");
+
+                return _entities[index];
             }
 
             /** @brief Retrieves the index of the component in the component vector associated with the specified entity. The entity must have a component

@@ -9,7 +9,7 @@ namespace Vulkyrie {
         , _rigidBodyComponentStore()
         , _colliderComponentStore()
         , _transformComponentStore()
-        , _collisionSystem(_colliderComponentStore) {
+        , _collisionSystem(*this) {
     }
 
     void PhysicsWorld::Update() {

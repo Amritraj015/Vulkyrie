@@ -31,10 +31,6 @@ namespace Vulkyrie {
         return _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
     }
 
-    size_t Body::GetColliderCount() const {
-        return _physicsWorld.GetBodyComponentStore().GetColliders(_entity).size();
-    }
-
     bool Body::ContainsPoint(const glm::vec3 &point) const {
         // Get all colliders associated with this body.
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);

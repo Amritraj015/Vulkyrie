@@ -90,7 +90,9 @@ namespace Vulkyrie {
 
             /** @brief Retrieves the number of colliders currently attached to this body.
              * @return The number of colliders currently attached to this body. */
-            [[nodiscard]] size_t GetColliderCount() const;
+            [[nodiscard]] VE_FORCE_INLINE size_t GetColliderCount() const {
+                return _physicsWorld.GetBodyComponentStore().GetColliders(_entity).size();
+            }
 
             /** @brief Adds a new collider to this body using the specified collision shape and local transform. This method creates a new Collider instance
              * based on the provided collision shape and local transform, attaches it to this body, and adds it to the physics simulation. The new collider will

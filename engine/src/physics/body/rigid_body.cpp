@@ -618,7 +618,7 @@ namespace Vulkyrie {
         // }
     }
 
-    void awakeNeighborDisabledBodies() {
+    void RigidBody::awakeNeighborDisabledBodies() {
     }
 
 } // namespace Vulkyrie
