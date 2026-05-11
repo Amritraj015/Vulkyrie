@@ -49,22 +49,15 @@ namespace Vulkyrie {
             }
 
             /** @brief Sets the penetration impulse for this contact point. The penetration impulse represents the corrective impulse that should be applied to
-             * resolve the interpenetration between the two colliding bodies at this contact point. Setting the penetration impulse for a contact point allows
-             * the physics engine to apply the appropriate response to resolve collisions and maintain realistic physical interactions between entities in the
-             * simulation.
-             * @param penetrationDepth The penetration depth to set for this contact point. This value should be computed based on the collision response
-             * calculations performed by the physics engine. */
+             * resolve the interpenetration between the two colliding bodies at this contact point.
+             * @param penetrationDepth The penetration depth to set for this contact point. */
             [[nodiscard]] VE_FORCE_INLINE f32 GetPenetrationImpulse() const {
                 return _penetrationImpulse;
             }
 
             /** @brief Sets the penetration impulse for this contact point. The penetration impulse represents the corrective impulse that should be applied to
-             * resolve the interpenetration between the two colliding bodies at this contact point. It is typically computed during the collision response phase
-             * of the physics simulation and is used to adjust the velocities of the colliding bodies to prevent them from interpenetrating. Setting the
-             * penetration impulse for a contact point allows the physics engine to apply the appropriate response to resolve collisions and maintain realistic
-             * physical interactions between entities in the simulation.
-             * @param penetrationImpulse The penetration impulse to set for this contact point. This value should be computed based on the collision response
-             * calculations performed by the physics engine. */
+             * resolve the interpenetration between the two colliding bodies at this contact point.
+             * @param penetrationImpulse The penetration impulse to set for this contact point. */
             VE_FORCE_INLINE void setPenetrationImpulse(f32 penetrationImpulse) {
                 _penetrationImpulse = penetrationImpulse;
             }
