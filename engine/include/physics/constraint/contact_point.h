@@ -92,16 +92,6 @@ namespace Vulkyrie {
             /** @brief The contact point on the second body, represented in the local space of the second body. */
             glm::vec3 _localSpaceContactPointOnBodyTwo;
 
-            /** @brief A pointer to the next contact point in the contact manifold. The contact manifold is a collection of contact points that represent the
-             * contacts between two colliding bodies. The _nextInManifold pointer allows for traversal of the contact points in the manifold, which can be
-             * useful for managing and updating the contact points during the physics simulation. */
-            ContactPoint *_nextInManifold;
-
-            /** @brief A pointer to the previous contact point in the contact manifold. The contact manifold is a collection of contact points that represent
-             * the contacts between two colliding bodies. The _previousInManifold pointer allows for traversal of the contact points in the manifold, which can
-             * be useful for managing and updating the contact points during the physics simulation. */
-            ContactPoint *_previousInManifold;
-
             /** @brief The penetration depth for this contact point, representing how much the two shapes are interpenetrating at this contact point. */
             f32 _penetrationDepth;
 
@@ -116,7 +106,7 @@ namespace Vulkyrie {
             bool _isRestingContact;
 
             /** @brief A flag indicating whether this contact point is obsolete and should be removed from the contact manifold. */
-            bool _isObsolete;
+            // bool _isObsolete;
     };
 
 } // namespace Vulkyrie

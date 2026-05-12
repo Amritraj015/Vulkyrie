@@ -42,6 +42,10 @@ namespace Vulkyrie {
              */
             void SetHalfExtents(const glm::vec3 &halfExtents) {
                 _halfExtents = halfExtents;
+
+                // Notify colliders that the shape has changed so they can update their internal
+                // state accordingly (e.g., recompute AABBs, update broadphase proxies).
+                NotifyCollidersOfShapeChange();
             }
 
             /** @brief Get the number of faces of the box shape.
@@ -154,7 +158,8 @@ namespace Vulkyrie {
              * This gives a diagonal inertia tensor for a solid box, where halfExtents is the half extents of the box shape.
              */
             [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
-                const f32 factor = (f32(1.0) / f32(3.0)) * mass;
+                constexpr f32 oneThird = f32(1.0) / f32(3.0);
+                const f32 factor = oneThird * mass;
                 const f32 xSquare = _halfExtents.x * _halfExtents.x;
                 const f32 ySquare = _halfExtents.y * _halfExtents.y;
                 const f32 zSquare = _halfExtents.z * _halfExtents.z;
@@ -180,6 +185,18 @@ namespace Vulkyrie {
             [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
                 return (point.x < _halfExtents.x && point.x > -_halfExtents.x && point.y < _halfExtents.y && point.y > -_halfExtents.y &&
                         point.z < _halfExtents.z && point.z > -_halfExtents.z);
+            }
+
+            /** @brief Compute the local support point of the box shape in a given direction, without considering the margin.
+             * @param direction The direction in which to compute the support point, specified as a glm::vec3. This vector does not need to be normalized.
+             * @return The local support point of the box shape in the given direction, calculated by taking the sign of each component of the direction vector
+             * and multiplying it by the corresponding half extent of the box shape. This gives the vertex of the box that is furthest in the specified
+             * direction, without accounting for any margin that may be applied to the shape for collision detection purposes.
+             */
+            [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
+                return glm::vec3(direction.x < f32(0.0) ? -_halfExtents.x : _halfExtents.x,
+                                 direction.y < f32(0.0) ? -_halfExtents.y : _halfExtents.y,
+                                 direction.z < f32(0.0) ? -_halfExtents.z : _halfExtents.z);
             }
 
         private:

@@ -63,6 +63,11 @@ namespace Vulkyrie {
                 _colliders.erase(std::remove(_colliders.begin(), _colliders.end(), &collider), _colliders.end());
             }
 
+            /** @brief Notify all colliders that are using this collision shape that the shape has changed. This is important for ensuring that any changes to
+             * the collision shape (e.g., resizing, changing properties) are properly communicated to the colliders that rely on it for collision detection and
+             * response, allowing them to update their internal state accordingly. */
+            void NotifyCollidersOfShapeChange() const;
+
             /** @brief Check if the collision shape is convex.
              * @return True if the collision shape is convex, false otherwise.
              */

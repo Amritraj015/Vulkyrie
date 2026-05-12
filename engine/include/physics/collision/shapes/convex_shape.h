@@ -47,14 +47,29 @@ namespace Vulkyrie {
                 return true;
             }
 
-        protected:
-            const f32 _margin;
+            /** @brief Get the local support point on the convex shape in the given direction, applying the margin. The support point is the point on the shape
+             * that is farthest in the specified direction, and it is used in collision detection algorithms like GJK to determine if two shapes are
+             * intersecting. This function should be implemented by derived classes to provide the specific logic for calculating the support point based on the
+             * geometry of the shape, while also taking into account the margin to ensure stability in collision detection. The margin is typically added to the
+             * support point in the direction of the input vector to create a buffer around the shape for collision detection purposes.
+             * @param direction The direction in which to calculate the support point, represented as a glm::vec3. The direction vector does not need to be
+             * normalized.
+             * @return The local support point on the convex shape in the given direction, with the margin applied. This is the point on the shape that is
+             * farthest in the specified direction, and it is used for collision detection purposes. */
+            virtual glm::vec3 GetLocalSupportPointWithMargin(const glm::vec3 &direction) const;
 
-            // /** Return a local support point in a given direction with the object margin. */
-            // glm::vec3 getLocalSupportPointWithMargin(const glm::vec3 &direction) const;
-            //
-            // /** Return a local support point in a given direction without the object margin. */
-            // virtual glm::vec3 getLocalSupportPointWithoutMargin(const glm::vec3 &direction) const = 0;
+            /** @brief Get the local support point on the convex shape in the given direction, without applying the margin. The support point is the point on
+             * the shape that is farthest in the specified direction, and it is used in collision detection algorithms like GJK to determine if two shapes are
+             * intersecting. This function should be implemented by derived classes to provide the specific logic for calculating the support point based on the
+             * geometry of the shape.
+             * @param direction The direction in which to calculate the support point, represented as a glm::vec3. The direction vector does not need to be
+             * normalized.
+             * @return The local support point on the convex shape in the given direction, without applying the margin. This is the point on the shape that is
+             * farthest in the specified direction, and it is used for collision detection purposes. */
+            virtual glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const = 0;
+
+        protected:
+            f32 _margin;
     };
 
 } // namespace Vulkyrie

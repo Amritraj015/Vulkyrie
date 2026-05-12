@@ -6,32 +6,9 @@
 #include "physics/components/body_component_store.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
+#include "physics/types/last_frame_collision_info.h"
 
 namespace Vulkyrie {
-
-    struct LastFrameCollisionInfo {
-            bool IsValid;
-            bool IsObsolete;
-            bool WasColliding;
-            bool WasUsingGJKAlgorithm;
-            bool WasUsingSATAlgorithm;
-
-            glm::vec3 GJKSeparatingAxis;
-
-            LastFrameCollisionInfo()
-                : IsValid(false)
-                , IsObsolete(false)
-                , WasColliding(false)
-                , WasUsingGJKAlgorithm(false)
-                , WasUsingSATAlgorithm(false)
-                , GJKSeparatingAxis(glm::vec3(0, 1, 0)) {
-                // , satIsAxisFacePolyhedron1(false)
-                // , satIsAxisFacePolyhedron2(false)
-                // , satMinAxisFaceIndex(0)
-                // , satMinEdge1Index(0)
-                // , satMinEdge2Index(0) {
-            }
-    };
 
     struct OverlappingPair {
         public:

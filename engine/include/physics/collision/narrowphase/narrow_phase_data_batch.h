@@ -1,35 +1,54 @@
 #pragma once
 
-#include "core/entity.h"
-#include "physics/physics_constants.h"
-#include "physics/components/transform_component_store.h"
-#include "physics/collision/shapes/collision_shape.h"
+#include "physics/types/narrow_phase_data.h"
+#include "physics/types/overlapping_pairs.h"
 
 namespace Vulkyrie {
 
-    struct NarrowPhaseDataBatch final {
+    class NarrowPhaseDataBatch final {
         public:
-            NarrowPhaseDataBatch() = default;
+            NarrowPhaseDataBatch(OverlappingPairs &overlappingPairs);
+            ~NarrowPhaseDataBatch();
 
-            NarrowPhaseDataBatch(const NarrowPhaseDataBatch &) = delete;
-            NarrowPhaseDataBatch &operator=(const NarrowPhaseDataBatch &) = delete;
+            std::vector<NarrowPhaseData> Data;
 
-            NarrowPhaseDataBatch(NarrowPhaseDataBatch &&) = delete;
-            NarrowPhaseDataBatch &operator=(NarrowPhaseDataBatch &&) = delete;
+            VE_FORCE_INLINE void AddNarrowPhaseData(u64 pairID,
+                                                    Entity colliderOne,
+                                                    Entity colliderTwo,
+                                                    CollisionShape &shapeOne,
+                                                    CollisionShape &shapeTwo,
+                                                    const TransformComponent &shapeOneTransform,
+                                                    const TransformComponent &shapeTwoTransform,
+                                                    bool reportContacts,
+                                                    LastFrameCollisionInfo &lastFrameInfo) {
+                Data.emplace_back(pairID, colliderOne, colliderTwo, lastFrameInfo, shapeOne, shapeTwo, shapeOneTransform, shapeTwoTransform, reportContacts);
+            }
 
-            ~NarrowPhaseDataBatch() = default;
+            VE_FORCE_INLINE void AddContactPoint(size_t index,
+                                                 const glm::vec3 &contactNormal,
+                                                 f32 penetrationDepth,
+                                                 const glm::vec3 &localSpaceContactPointOnBodyOne,
+                                                 const glm::vec3 &localSpaceContactPointOnBodyTwo) {
 
-            u64 OverlappingPairID;
-            Entity ColliderOneEntity;
-            Entity ColliderTwoEntity;
-            TransformComponent ShapeOneWorldTransform;
-            TransformComponent ShapeTwoWorldTransform;
-            CollisionShape &ShapeOne;
-            CollisionShape &ShapeTwo;
-            bool ReportContacts;
-            bool IsColliding;
-            u8 ContactPointCount;
-            ContactPoint ContactPoints[MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE];
+                VASSERT(penetrationDepth > f32(0.0), "Penetration depth should be greater than zero for a valid contact point.");
+
+                if (Data[index].ContactPointCount < MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE) {
+                    VASSERT(glm::length2(contactNormal) == f32(1.0), "Contact normal should be a normalized vector with length of 1.");
+
+                    Data[index].ContactPoints[Data[index].ContactPointCount] = {
+                        contactNormal, localSpaceContactPointOnBodyOne, localSpaceContactPointOnBodyTwo, penetrationDepth
+                    };
+                    Data[index].ContactPointCount++;
+                }
+            }
+
+            // void ReserveMemory();
+            // void Clear();
+
+        private:
+            OverlappingPairs &_overlappingPairs;
+            size_t _cachedCapacity;
+            // static constexpr size_t TRIANGLE_SHAPE_ALLOCATED_SIZE;
     };
 
 } // namespace Vulkyrie

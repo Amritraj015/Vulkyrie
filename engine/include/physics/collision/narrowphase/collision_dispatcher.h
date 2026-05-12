@@ -23,6 +23,8 @@ namespace Vulkyrie {
             CollisionDispatcher &operator=(CollisionDispatcher &&) = delete;
 
             ~CollisionDispatcher() = default;
+
+            void SetSphereVsSphereAlgorithm(size_t pairID);
     };
 
 } // namespace Vulkyrie

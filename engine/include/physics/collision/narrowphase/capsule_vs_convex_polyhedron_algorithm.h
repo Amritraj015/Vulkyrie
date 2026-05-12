@@ -16,7 +16,7 @@ namespace Vulkyrie {
 
             ~CapsuleVsConvexPolyhedronAlgorithm() = default;
 
-            bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
+            bool PerformCollisionCheck(NarrowPhaseData &narrowPhaseDataBatch,
                                        size_t batchStartIndex,
                                        size_t batchItemsCount,
                                        bool clipWithPreviousAxisIfStillColliding);

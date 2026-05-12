@@ -3,9 +3,6 @@
 #include <vulkyrie.h>
 #include "glad/glad.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/norm.hpp>
-
 namespace Sandbox {
     using namespace Vulkyrie;
 

@@ -59,6 +59,14 @@ namespace Vulkyrie {
                 return aabb.CollidesWith(GetWorldSpaceAABB());
             }
 
+            /** @brief Sets whether the shape of this collider has changed. This is important for ensuring that any changes to the collision shape are properly
+             * communicated to the physics simulation, allowing it to update its internal state and recalculate collision detection and response as needed. When
+             * the shape of a collider changes (e.g., resizing, changing properties), this method should be called with `hasChanged` set to true to notify the
+             * physics simulation of the change. If `hasChanged` is set to false, it indicates that the shape has not changed and no updates are necessary.
+             * @param hasChanged A boolean value indicating whether the shape of this collider has changed. Set to true if the shape has changed, false
+             * otherwise. */
+            void SetHasColliderShapeChanged(bool hasChanged) const;
+
             /** @brief Retrieves a reference to the CollisionShape associated with this collider. The CollisionShape defines the geometric shape used for
              * collision detection and response in the physics simulation.
              * @return A reference to the CollisionShape associated with this collider. */

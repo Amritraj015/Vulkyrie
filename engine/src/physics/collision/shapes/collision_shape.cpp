@@ -1,4 +1,5 @@
 #include "physics/collision/shapes/collision_shape.h"
+#include "physics/collision/collider.h"
 
 namespace Vulkyrie {
 
@@ -30,6 +31,12 @@ namespace Vulkyrie {
         aabb.SetMinMax(newCenter - newHalfExtents, newCenter + newHalfExtents);
 
         return aabb;
+    }
+
+    void CollisionShape::NotifyCollidersOfShapeChange() const {
+        for (Collider *collider : _colliders) {
+            collider->SetHasColliderShapeChanged(true);
+        }
     }
 
 } // namespace Vulkyrie

@@ -8,6 +8,10 @@ namespace Vulkyrie {
         , _body(body) {
     }
 
+    void Collider::SetHasColliderShapeChanged(bool hasChanged) const {
+        _body.GetPhysicsWorld().GetColliderComponentStore().SetCollisionShapeChangedSize(_entity, hasChanged);
+    }
+
     CollisionShape &Collider::GetCollisionShape() {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetCollisionShape(_entity);
     }

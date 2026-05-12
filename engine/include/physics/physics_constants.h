@@ -4,6 +4,9 @@
 
 namespace Vulkyrie {
 
+    // General physics constants.
+    constexpr f32 VE_MACHINE_EPSILON = std::numeric_limits<f32>::epsilon();
+
     // Dynamic AABB tree parameters.
     constexpr i32 AABB_TREE_NULL_NODE = -1;
     constexpr f32 AABB_TREE_DEFAULT_INFLATION_PERCENTAGE = 0.04f;
