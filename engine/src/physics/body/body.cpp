@@ -9,17 +9,20 @@ namespace Vulkyrie {
     }
 
     void Body::SetTransform(const TransformComponent &transform) {
+        // Update the body's transform component in the physics world with the new transform.
         _physicsWorld.GetTransformComponentStore().SetTransform(_entity, transform);
 
-        // TODO: Implement this.
-        // UpdateBroadPhaseSystemWithUpdatedTransform();
+        // After updating the body's transform, we need to update the state of all colliders
+        // attached to this body in the broad-phase system so that their AABBs
+        // are updated based on the new transform and any overlapping pairs
+        // involving these colliders will be tested for overlap again.
+        updateBroadPhaseState();
     }
 
     Collider &Body::GetCollider(size_t colliderIndex) {
         VASSERT(colliderIndex < GetColliderCount(), "Collider index out of bounds.");
 
         Entity colliderEntity = _physicsWorld.GetBodyComponentStore().GetColliders(_entity)[colliderIndex];
-
         return _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
     }
 
@@ -27,7 +30,6 @@ namespace Vulkyrie {
         VASSERT(colliderIndex < GetColliderCount(), "Collider index out of bounds.");
 
         Entity colliderEntity = _physicsWorld.GetBodyComponentStore().GetColliders(_entity)[colliderIndex];
-
         return _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
     }
 
@@ -221,6 +223,23 @@ namespace Vulkyrie {
         for (Entity colliderEntity : colliderEntities) {
             Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
             _physicsWorld.GetCollisionSystem().RequestBroadPhaseCollisionCheck(collider);
+        }
+    }
+
+    void Body::updateBroadPhaseState() {
+        // Get all collider entities associated with this body.
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        for (Entity colliderEntity : colliderEntities) {
+            // Update local-to-world transform for this collider in the collider component store based on the body's current transform.
+            const TransformComponent &bodyTransform = GetTransform();
+            const TransformComponent &localToBodyTransform = _physicsWorld.GetColliderComponentStore().GetLocalToBodyTransform(colliderEntity);
+            _physicsWorld.GetColliderComponentStore().SetLocalToWorldTransform(colliderEntity, bodyTransform * localToBodyTransform);
+
+            // After updating the local-to-world transform for this collider,
+            // we need to update its position in the broad phase system to
+            // ensure that it is correctly accounted for in collision detection.
+            _physicsWorld.GetCollisionSystem().UpdateCollider(colliderEntity);
         }
     }
 

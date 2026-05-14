@@ -14,6 +14,12 @@ namespace Vulkyrie {
         _sphereVsCapsuleAlgorithm = new SphereVsCapsuleAlgorithm();
         _sphereVsConvexPolyhedronAlgorithm = new SphereVsConvexPolyhedronAlgorithm();
         _sphereVsSphereAlgorithm = new SphereVsSphereAlgorithm();
+
+        for (i32 i = 0; i < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; i++) {
+            for (i32 j = 0; j < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; j++) {
+                _collisionMatrix[i][j] = selectAlgorithm(i, j);
+            }
+        }
     }
 
     CollisionSystem::~CollisionSystem() {
@@ -25,12 +31,29 @@ namespace Vulkyrie {
         delete _sphereVsSphereAlgorithm;
     }
 
-    void CollisionSystem::populateCollisionMatrix() {
-        for (i32 i = 0; i < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; i++) {
-            for (i32 j = 0; j < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; j++) {
-                _collisionMatrix[i][j] = selectAlgorithm(i, j);
-            }
+    void CollisionSystem::RemoveCollider(Collider &collider) {
+    }
+
+    void CollisionSystem::NotifyOverlappingPairsToTestOverlap(Collider &collider) {
+        // const std::vector<i32> &overlappingPairs = _colliderComponentStore.GetCollisionPairs(collider.GetEntity());
+        //
+        // for (const auto overlappingPair : overlappingPairs) {
+        //     // Notify that the overlapping pair needs to be testbed for overlap
+        //     _overlappingPairs.SetNeedToTestOverlap(overlappingPair, true);
+        // }
+    }
+
+    NarrowPhaseAlgorithm CollisionSystem::SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const {
+        u32 shapeOneIndex = static_cast<u32>(shapeOne);
+        u32 shapeTwoIndex = static_cast<u32>(shapeTwo);
+
+        VASSERT(shapeOneIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT && shapeTwoIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT, "Shape type(s) out of bounds.");
+
+        if (shapeOneIndex > shapeTwoIndex) {
+            return _collisionMatrix[shapeTwoIndex][shapeOneIndex];
         }
+
+        return _collisionMatrix[shapeOneIndex][shapeTwoIndex];
     }
 
     NarrowPhaseAlgorithm CollisionSystem::selectAlgorithm(i32 shapeOne, i32 shapeTwo) {
@@ -66,19 +89,6 @@ namespace Vulkyrie {
         }
 
         return NarrowPhaseAlgorithm::NoCollisionCheck;
-    }
-
-    NarrowPhaseAlgorithm CollisionSystem::SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const {
-        u32 shapeOneIndex = static_cast<u32>(shapeOne);
-        u32 shapeTwoIndex = static_cast<u32>(shapeTwo);
-
-        VASSERT(shapeOneIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT && shapeTwoIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT, "Shape type(s) out of bounds.");
-
-        if (shapeOneIndex > shapeTwoIndex) {
-            return _collisionMatrix[shapeTwoIndex][shapeOneIndex];
-        }
-
-        return _collisionMatrix[shapeOneIndex][shapeTwoIndex];
     }
 
 } // namespace Vulkyrie

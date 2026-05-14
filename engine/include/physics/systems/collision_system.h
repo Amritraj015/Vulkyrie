@@ -11,14 +11,14 @@
 #include "physics/collision/narrowphase/sphere_vs_capsule_algorithm.h"
 #include "physics/collision/narrowphase/sphere_vs_convex_polyhedron_algorithm.h"
 #include "physics/collision/narrowphase/sphere_vs_sphere_algorithm.h"
+#include "physics/systems/broad_phase_system.h"
 #include "physics/types/narrow_phase_algorithm.h"
 
 namespace Vulkyrie {
 
     class PhysicsWorld;
-    class BroadPhaseSystem;
 
-    class CollisionSystem {
+    class CollisionSystem final {
         public:
             explicit CollisionSystem(PhysicsWorld &physicsWorld);
 
@@ -33,34 +33,33 @@ namespace Vulkyrie {
             /** @brief Destructor for CollisionSystem. */
             ~CollisionSystem();
 
-            VE_FORCE_INLINE void AddCollider([[maybe_unused]] Collider &collider, [[maybe_unused]] const AABB &aabb) {
+            VE_FORCE_INLINE void AddCollider(Collider &collider, const AABB &aabb) {
             }
 
-            void NotifyOverlappingPairsToTestOverlap([[maybe_unused]] Collider &collider) {
-                // const std::vector<i32> &overlappingPairs = _colliderComponentStore.GetCollisionPairs(collider.GetEntity());
-                //
-                // for (const auto overlappingPair : overlappingPairs) {
-                //     Notify that the overlapping pair needs to be testbed for overlap
-                //     _overlappingPairs.SetNeedToTestOverlap(overlappingPair, true);
-                // }
+            void RemoveCollider(Collider &collider);
+
+            VE_FORCE_INLINE void UpdateCollider(Entity entity) {
+                _broadPhaseSystem.UpdateCollider(entity);
             }
 
-            void RemoveCollider([[maybe_unused]] Collider &collider) {
+            VE_FORCE_INLINE void UpdateColliders() {
+                _broadPhaseSystem.UpdateColliders();
             }
 
             VE_FORCE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
                 if (collider.GetBroadPhaseID() != -1) {
-                    // _broadPhaseSystem.AddMovedCollider(collider.GetBroadPhaseID(), collider);
+                    _broadPhaseSystem.AddMovedCollider(collider.GetBroadPhaseID(), collider);
                 }
             }
 
+            void NotifyOverlappingPairsToTestOverlap(Collider &collider);
             NarrowPhaseAlgorithm SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const;
 
         private:
             PhysicsWorld &_physicsWorld;
             ColliderComponentStore &_colliderComponentStore;
             RigidBodyComponentStore &_rigidBodyComponentStore;
-            std::unordered_set<std::pair<Entity, Entity>> _nonCollidablePairs;
+            // std::unordered_set<std::pair<Entity, Entity>> _nonCollidablePairs;
             OverlappingPairs _overlappingPairs;
             std::vector<std::pair<i32, i32>> _broadphaseOverlappingPairsToTest;
             BroadPhaseSystem _broadPhaseSystem;
@@ -74,7 +73,6 @@ namespace Vulkyrie {
             SphereVsConvexPolyhedronAlgorithm *_sphereVsConvexPolyhedronAlgorithm;
             SphereVsSphereAlgorithm *_sphereVsSphereAlgorithm;
 
-            void populateCollisionMatrix();
             NarrowPhaseAlgorithm selectAlgorithm(i32 shapeOne, i32 shapeTwo);
     };
 

@@ -2,7 +2,7 @@
 
 namespace Vulkyrie {
 
-    class ConstraintSolverSystem {
+    class ConstraintSolverSystem final {
         public:
             ~ConstraintSolverSystem() = default;
     };

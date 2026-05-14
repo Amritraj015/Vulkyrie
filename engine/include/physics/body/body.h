@@ -186,6 +186,8 @@ namespace Vulkyrie {
              * about the body's collision geometry. The physics world will handle the actual scheduling and execution of the broad-phase collision check based
              * on this request. */
             void requestBroadPhaseCollisionCheck();
+
+            void updateBroadPhaseState();
     };
 
 } // namespace Vulkyrie

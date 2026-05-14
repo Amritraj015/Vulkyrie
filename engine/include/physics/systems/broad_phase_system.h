@@ -4,9 +4,11 @@
 #include "physics/components/collider_component_store.h"
 #include "physics/components/transform_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
-#include "physics/systems/collision_system.h"
 
 namespace Vulkyrie {
+
+    class CollisionSystem;
+    class PhysicsWorld;
 
     /** @brief The BroadPhaseSystem is responsible for managing the broad phase of collision detection in the physics simulation. It uses a dynamic AABB tree to
      * efficiently organize colliders in the physics world and quickly identify potential collisions between entities. The broad phase system interacts with the

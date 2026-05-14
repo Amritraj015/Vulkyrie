@@ -4,7 +4,7 @@
 
 namespace Vulkyrie {
 
-    class Sphere {
+    class Sphere final {
         public:
             Sphere(f32 radius, u32 stacks, u32 sectors)
                 : _radius(radius)

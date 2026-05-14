@@ -2,7 +2,7 @@
 
 namespace Vulkyrie {
 
-    struct LastFrameCollisionInfo {
+    struct LastFrameCollisionInfo final {
         public:
             bool IsValid;
             bool IsObsolete;
