@@ -1,14 +1,15 @@
 #pragma once
 
 #include "core/entity.h"
-#include "physics/physics_world.h"
-#include "physics/collision/narrowphase/collision_dispatcher.h"
 #include "physics/components/body_component_store.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
+#include "physics/types/narrow_phase_algorithm.h"
 #include "physics/types/last_frame_collision_info.h"
 
 namespace Vulkyrie {
+
+    class PhysicsWorld;
 
     struct OverlappingPair {
         public:

@@ -2,7 +2,7 @@
 
 namespace Vulkyrie {
 
-    bool CapsuleVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseData &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount) {
+    bool CapsuleVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount) {
         bool collisionDetected = false;
         return collisionDetected;
     }

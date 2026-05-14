@@ -1,21 +1,13 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "physics/physics_constants.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/components/transform_component_store.h"
 
 namespace Vulkyrie {
 
     class Collider;
-
-    /** The type of the collision shape, used to categorize shapes into broad types for efficient processing. */
-    enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
-
-    /** The total number of collision shape types defined in the `CollisionShapeType` enum. */
-    // static constexpr u8 COLLISION_SHAPE_TYPE_COUNT = 4;
-
-    /** The specific name of the collision shape, used to identify the exact type of shape. */
-    enum class CollisionShapeName : u32 { Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield };
 
     /** Base class for all collision shapes. */
     class CollisionShape {
