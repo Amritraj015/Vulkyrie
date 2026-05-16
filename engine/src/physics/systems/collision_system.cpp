@@ -6,7 +6,9 @@ namespace Vulkyrie {
     CollisionSystem::CollisionSystem(PhysicsWorld &physicsWorld)
         : _physicsWorld(physicsWorld)
         , _colliderComponentStore(_physicsWorld.GetColliderComponentStore())
-        , _rigidBodyComponentStore(_physicsWorld.GetRigidBodyComponentStore()) {
+        , _rigidBodyComponentStore(_physicsWorld.GetRigidBodyComponentStore())
+        , _overlappingPairs(physicsWorld, _nonCollidablePairs)
+        , _broadPhaseSystem(physicsWorld) {
 
         _capsuleVsCapsuleAlgorithm = new CapsuleVsCapsuleAlgorithm();
         _capsuleVsConvexPolyhedronAlgorithm = new CapsuleVsConvexPolyhedronAlgorithm();

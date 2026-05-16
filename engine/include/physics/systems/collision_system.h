@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/asserts.h"
+#include "core/pair.h"
 #include "physics/physics_constants.h"
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
@@ -59,7 +59,8 @@ namespace Vulkyrie {
             PhysicsWorld &_physicsWorld;
             ColliderComponentStore &_colliderComponentStore;
             RigidBodyComponentStore &_rigidBodyComponentStore;
-            // std::unordered_set<std::pair<Entity, Entity>> _nonCollidablePairs;
+
+            std::unordered_set<Pair<Entity, Entity>> _nonCollidablePairs;
             OverlappingPairs _overlappingPairs;
             std::vector<std::pair<i32, i32>> _broadphaseOverlappingPairsToTest;
             BroadPhaseSystem _broadPhaseSystem;

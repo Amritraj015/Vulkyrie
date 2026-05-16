@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/entity.h"
+#include "core/pair.h"
 #include "physics/components/body_component_store.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
@@ -84,7 +85,7 @@ namespace Vulkyrie {
 
     class OverlappingPairs final {
         public:
-            explicit OverlappingPairs(PhysicsWorld &physicsWorld, std::unordered_set<std::pair<Entity, Entity>> &pairsThatCannotCollide);
+            explicit OverlappingPairs(PhysicsWorld &physicsWorld, std::unordered_set<Pair<Entity, Entity>> &pairsThatCannotCollide);
 
             OverlappingPairs(const OverlappingPairs &) = delete;
             OverlappingPairs &operator=(const OverlappingPairs &) = delete;
@@ -107,7 +108,7 @@ namespace Vulkyrie {
             void SetRequiresCollisionCheck(size_t pairID, bool requiresCollisionCheck);
             OverlappingPair &GetPair(size_t pairID);
 
-            VE_FORCE_INLINE static std::pair<Entity, Entity> Compute(Entity bodyOneEntity, Entity bodyTwoEntity) {
+            VE_FORCE_INLINE static Pair<Entity, Entity> Compute(Entity bodyOneEntity, Entity bodyTwoEntity) {
                 VASSERT(bodyOneEntity != bodyTwoEntity, "Cannot compute overlapping pair for the same entity.");
 
                 if (bodyOneEntity.GetID() < bodyTwoEntity.GetID()) {
@@ -130,7 +131,7 @@ namespace Vulkyrie {
             BodyComponentStore &_bodyComponentStore;
             ColliderComponentStore &_colliderComponentStore;
             RigidBodyComponentStore &_rigidBodyComponentStore;
-            std::unordered_set<std::pair<Entity, Entity>> &_pairsThatCannotCollide;
+            std::unordered_set<Pair<Entity, Entity>> &_pairsThatCannotCollide;
     };
 
 } // namespace Vulkyrie

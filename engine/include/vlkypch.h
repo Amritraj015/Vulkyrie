@@ -105,3 +105,13 @@ template <typename T> using Ref = std::shared_ptr<T>;
 template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
+
+/** @brief Combines the hash of a value into an existing hash seed.
+ * @tparam T The type of the value being hashed.
+ * @param seed The existing hash seed to combine with.
+ * @param v The value to hash and combine with the seed.
+ */
+template <typename T> inline void CombineHash(std::size_t &seed, const T &v) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}

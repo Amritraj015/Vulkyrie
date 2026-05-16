@@ -1,8 +1,9 @@
 #include "physics/types/overlapping_pairs.h"
+#include "physics/physics_world.h"
 
 namespace Vulkyrie {
 
-    OverlappingPairs::OverlappingPairs(PhysicsWorld &physicsWorld, std::unordered_set<std::pair<Entity, Entity>> &pairsThatCannotCollide)
+    OverlappingPairs::OverlappingPairs(PhysicsWorld &physicsWorld, std::unordered_set<Pair<Entity, Entity>> &pairsThatCannotCollide)
         : _bodyComponentStore(physicsWorld.GetBodyComponentStore())
         , _colliderComponentStore(physicsWorld.GetColliderComponentStore())
         , _rigidBodyComponentStore(physicsWorld.GetRigidBodyComponentStore())
