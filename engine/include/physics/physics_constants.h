@@ -14,6 +14,8 @@ namespace Vulkyrie {
 
     // Constraints for the narrow-phase collision detection algorithms.
     constexpr size_t MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE = 16;
+    constexpr size_t MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD = 255;
+    constexpr i32 MAX_CONTACT_POINTS_IN_MANIFOLD = 4;
 
     /** The type of the collision shape, used to categorize shapes into broad types for efficient processing. */
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };
