@@ -8,158 +8,158 @@ namespace Sandbox {
     using namespace Vulkyrie;
 
     class SandboxLayerCubes final : public Layer {
-        public:
-            SandboxLayerCubes()
-                : app(Application::GetSingleton())
-                , camera(Camera::Create()) {
+    public:
+        SandboxLayerCubes()
+            : app(Application::GetSingleton())
+            , camera(Camera::Create()) {
 
-                // Load and compile shader program.
-                graphicsShader = Shader::Create("assets/shaders/triangle.glsl");
+            // Load and compile shader program.
+            graphicsShader = Shader::Create("assets/shaders/triangle.glsl");
 
-                // Textures.
-                texture1 = Texture2D::Create("assets/textures/wall.jpg");
-                texture2 = Texture2D::Create("assets/textures/awesomeface.png");
+            // Textures.
+            texture1 = Texture2D::Create("assets/textures/wall.jpg");
+            texture2 = Texture2D::Create("assets/textures/awesomeface.png");
 
-                // Assert that shader and textures are loaded successfully.
-                assert(graphicsShader->IsValid());
-                assert(texture1->IsLoaded());
-                assert(texture2->IsLoaded());
+            // Assert that shader and textures are loaded successfully.
+            assert(graphicsShader->IsValid());
+            assert(texture1->IsLoaded());
+            assert(texture2->IsLoaded());
 
-                vertexArray = VertexArray::Create();
-                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
-                vertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                    { ShaderDataType::Float2, "aTexCoord" },
-                });
-                vertexArray->AddVertexBuffer(vertexBuffer);
+            vertexArray = VertexArray::Create();
+            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+            vertexBuffer->SetLayout({
+                { ShaderDataType::Float3, "aPos" },
+                { ShaderDataType::Float2, "aTexCoord" },
+            });
+            vertexArray->AddVertexBuffer(vertexBuffer);
 
-                // This is required to make sure 3D rendering works properly.
-                glEnable(GL_DEPTH_TEST);
-            }
+            // This is required to make sure 3D rendering works properly.
+            glEnable(GL_DEPTH_TEST);
+        }
 
-            ~SandboxLayerCubes() = default;
+        ~SandboxLayerCubes() = default;
 
-            void OnUpdate(Timestep deltaTime) override {
-                VLKY_PROFILE_FUNCTION();
+        void OnUpdate(Timestep deltaTime) override {
+            VLKY_PROFILE_FUNCTION();
 
-                // clear the color and depth buffer
-                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // clear the color and depth buffer
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                // Update Camera position based on input.
-                camera.OnUpdate(deltaTime);
+            // Update Camera position based on input.
+            camera.OnUpdate(deltaTime);
 
-                // Use the graphics shader program.
-                graphicsShader->Use();
+            // Use the graphics shader program.
+            graphicsShader->Use();
 
-                // bind Texture
-                texture1->Bind(0);
-                texture2->Bind(1);
+            // bind Texture
+            texture1->Bind(0);
+            texture2->Bind(1);
 
-                glm::mat4 view = camera.GetViewMatrix();
-                graphicsShader->SetMat4Uniform("view", view);
+            glm::mat4 view = camera.GetViewMatrix();
+            graphicsShader->SetMat4Uniform("view", view);
 
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
-                graphicsShader->SetMat4Uniform("projection", projection);
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
+            graphicsShader->SetMat4Uniform("projection", projection);
 
-                // render container
-                vertexArray->Bind();
-                {
-                    for (u32 i = 0; i < cubePositions.size(); i++) {
-                        glm::mat4 model = glm::mat4(1.0f);
-                        model = glm::translate(model, cubePositions[i]);
-                        f32 angle = 20.0f * (i + 1);
+            // render container
+            vertexArray->Bind();
+            {
+                for (u32 i = 0; i < cubePositions.size(); i++) {
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, cubePositions[i]);
+                    f32 angle = 20.0f * (i + 1);
 
-                        model = glm::rotate(model, (f32)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
-                        graphicsShader->SetMat4Uniform("model", model);
+                    model = glm::rotate(model, (f32)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+                    graphicsShader->SetMat4Uniform("model", model);
 
-                        glDrawArrays(GL_TRIANGLES, 0, 36);
-                    }
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
                 }
-                vertexArray->Unbind();
             }
+            vertexArray->Unbind();
+        }
 
-            void OnEvent(Event &event) override {
-                EventDispatcher dispatcher(event);
+        void OnEvent(Event &event) override {
+            EventDispatcher dispatcher(event);
 
-                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
-                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+            dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                camera.ProcessMouseMovement(e.MouseX, e.MouseY);
 
-                    return true;
-                });
-            }
+                return true;
+            });
+        }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Cubes");
-            }
+        void OnAttached() override {
+            VDEBUG("Layer Attached: Cubes");
+        }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Cubes");
-            }
+        void OnDetached() override {
+            VDEBUG("Layer Detached: Cubes");
+        }
 
-        private:
-            Application &app;
-            Camera camera;
-            Ref<Texture2D> texture1;
-            Ref<Texture2D> texture2;
-            Ref<VertexArray> vertexArray;
-            Ref<Shader> graphicsShader;
+    private:
+        Application &app;
+        Camera camera;
+        Ref<Texture2D> texture1;
+        Ref<Texture2D> texture2;
+        Ref<VertexArray> vertexArray;
+        Ref<Shader> graphicsShader;
 
-            std::vector<glm::vec3> cubePositions = {
-                glm::vec3(0.0f, 0.0f, 0.0f),     // Cube 1
-                glm::vec3(2.0f, 5.0f, -15.0f),   // Cube 2
-                glm::vec3(-1.5f, -2.2f, -2.5f),  // Cube 3
-                glm::vec3(-3.8f, -2.0f, -12.3f), // Cube 4
-                glm::vec3(2.4f, -0.4f, -3.5f),   // Cube 5
-                glm::vec3(-1.7f, 3.0f, -7.5f),   // Cube 6
-                glm::vec3(1.3f, -2.0f, -2.5f),   // Cube 7
-                glm::vec3(1.5f, 2.0f, -2.5f),    // Cube 8
-                glm::vec3(1.5f, 0.2f, -1.5f),    // Cube 9
-                glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
-            };
+        std::vector<glm::vec3> cubePositions = {
+            glm::vec3(0.0f, 0.0f, 0.0f),     // Cube 1
+            glm::vec3(2.0f, 5.0f, -15.0f),   // Cube 2
+            glm::vec3(-1.5f, -2.2f, -2.5f),  // Cube 3
+            glm::vec3(-3.8f, -2.0f, -12.3f), // Cube 4
+            glm::vec3(2.4f, -0.4f, -3.5f),   // Cube 5
+            glm::vec3(-1.7f, 3.0f, -7.5f),   // Cube 6
+            glm::vec3(1.3f, -2.0f, -2.5f),   // Cube 7
+            glm::vec3(1.5f, 2.0f, -2.5f),    // Cube 8
+            glm::vec3(1.5f, 0.2f, -1.5f),    // Cube 9
+            glm::vec3(-1.3f, 1.0f, -1.5f)    // Cube 10
+        };
 
-            std::vector<f32> vertices = {
-                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
-                0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+        std::vector<f32> vertices = {
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
 
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
-                -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
 
-                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
-                -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
 
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
-                0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
 
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
 
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-                -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-            };
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
+        };
     };
 } // namespace Sandbox

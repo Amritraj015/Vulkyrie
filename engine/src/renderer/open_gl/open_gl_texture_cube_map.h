@@ -5,18 +5,18 @@
 namespace Vulkyrie {
     /** @brief OpenGL implementation of a cube map texture. */
     class OpenGLTextureCubeMap final : public TextureCubeMap {
-        public:
-            /** @brief Constructs an OpenGL cube map texture from the specified file paths.
-             * @param faces The file paths for the cube map faces.
-             */
-            explicit OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces);
+    public:
+        /** @brief Constructs an OpenGL cube map texture from the specified file paths.
+         * @param faces The file paths for the cube map faces.
+         */
+        explicit OpenGLTextureCubeMap(std::array<std::filesystem::path, 6> faces);
 
-            /** @brief Destructor for the OpenGLTextureCubeMap class. */
-            ~OpenGLTextureCubeMap() noexcept override;
+        /** @brief Destructor for the OpenGLTextureCubeMap class. */
+        ~OpenGLTextureCubeMap() noexcept override;
 
-            /** @brief Binds the cube map texture to the specified slot.
-             * @param slot The texture slot to bind to. Default is 0.
-             */
-            void Bind(u32 slot = 0) const override;
+        /** @brief Binds the cube map texture to the specified slot.
+         * @param slot The texture slot to bind to. Default is 0.
+         */
+        void Bind(u32 slot = 0) const override;
     };
 } // namespace Vulkyrie

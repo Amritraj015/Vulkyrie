@@ -11,65 +11,65 @@ using namespace Vulkyrie;
 // ===========================================================================================
 
 struct MockTextureDescriptor {
-        u32 width = 0;
-        u32 height = 0;
-        std::string format;
+    u32 width = 0;
+    u32 height = 0;
+    std::string format;
 };
 
 struct MockTexture {
-        using Descriptor = MockTextureDescriptor;
+    using Descriptor = MockTextureDescriptor;
 
-        bool created = false;
-        bool destroyed = false;
-        i32 preReadCount = 0;
-        i32 preWriteCount = 0;
+    bool created = false;
+    bool destroyed = false;
+    i32 preReadCount = 0;
+    i32 preWriteCount = 0;
 
-        void Create(const Descriptor &desc, void *allocator) {
-            created = true;
-            if (allocator) {
-                auto *stats = static_cast<std::vector<std::string> *>(allocator);
-                stats->push_back("Create:" + std::to_string(desc.width) + "x" + std::to_string(desc.height));
-            }
+    void Create(const Descriptor &desc, void *allocator) {
+        created = true;
+        if (allocator) {
+            auto *stats = static_cast<std::vector<std::string> *>(allocator);
+            stats->push_back("Create:" + std::to_string(desc.width) + "x" + std::to_string(desc.height));
         }
+    }
 
-        void Destroy(const Descriptor &desc, void *allocator) {
-            destroyed = true;
-            if (allocator) {
-                auto *stats = static_cast<std::vector<std::string> *>(allocator);
-                stats->push_back("Destroy:" + std::to_string(desc.width) + "x" + std::to_string(desc.height));
-            }
+    void Destroy(const Descriptor &desc, void *allocator) {
+        destroyed = true;
+        if (allocator) {
+            auto *stats = static_cast<std::vector<std::string> *>(allocator);
+            stats->push_back("Destroy:" + std::to_string(desc.width) + "x" + std::to_string(desc.height));
         }
+    }
 
-        void PreRead(i32 flags, void *context) {
-            preReadCount++;
-            if (context) {
-                auto *stats = static_cast<std::vector<std::string> *>(context);
-                stats->push_back("PreRead:flags=" + std::to_string(flags));
-            }
+    void PreRead(i32 flags, void *context) {
+        preReadCount++;
+        if (context) {
+            auto *stats = static_cast<std::vector<std::string> *>(context);
+            stats->push_back("PreRead:flags=" + std::to_string(flags));
         }
+    }
 
-        void PreWrite(i32 flags, void *context) {
-            preWriteCount++;
-            if (context) {
-                auto *stats = static_cast<std::vector<std::string> *>(context);
-                stats->push_back("PreWrite:flags=" + std::to_string(flags));
-            }
+    void PreWrite(i32 flags, void *context) {
+        preWriteCount++;
+        if (context) {
+            auto *stats = static_cast<std::vector<std::string> *>(context);
+            stats->push_back("PreWrite:flags=" + std::to_string(flags));
         }
+    }
 };
 
 struct MockBuffer {
-        using Descriptor = size_t; // Size in bytes
+    using Descriptor = size_t; // Size in bytes
 
-        bool created = false;
-        bool destroyed = false;
+    bool created = false;
+    bool destroyed = false;
 
-        void Create(const Descriptor &desc, void *allocator) {
-            created = true;
-        }
+    void Create(const Descriptor &desc, void *allocator) {
+        created = true;
+    }
 
-        void Destroy(const Descriptor &desc, void *allocator) {
-            destroyed = true;
-        }
+    void Destroy(const Descriptor &desc, void *allocator) {
+        destroyed = true;
+    }
 };
 
 // ===========================================================================================
@@ -81,7 +81,7 @@ TEST_CASE("FrameGraph - Basic pass addition", "[framegraph]") {
     int executionCount = 0;
 
     struct PassData {
-            int value = 42;
+        int value = 42;
     };
 
     const auto &data = graph.AddPass<PassData>(
@@ -105,7 +105,7 @@ TEST_CASE("FrameGraph - Resource creation and access", "[framegraph]") {
     bool passExecuted = false;
 
     struct PassData {
-            ResourceID texture;
+        ResourceID texture;
     };
 
     graph.AddPass<PassData>(
@@ -132,11 +132,11 @@ TEST_CASE("FrameGraph - Read and Write operations", "[framegraph]") {
     ResourceID sharedTexture;
 
     struct ProducerData {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct ConsumerData {
-            ResourceID input;
+        ResourceID input;
     };
 
     // Producer pass creates and writes to texture
@@ -177,7 +177,7 @@ TEST_CASE("FrameGraph - Pass culling for unreferenced resources", "[framegraph]"
     int consumerExecuted = 0;
 
     struct ProducerData {
-            ResourceID texture;
+        ResourceID texture;
     };
 
     struct ConsumerData {};
@@ -210,7 +210,7 @@ TEST_CASE("FrameGraph - Side effects prevent culling", "[framegraph]") {
     int executionCount = 0;
 
     struct PassData {
-            ResourceID texture;
+        ResourceID texture;
     };
 
     // Pass with side effects should not be culled even without consumers
@@ -237,16 +237,16 @@ TEST_CASE("FrameGraph - Multiple passes with dependencies", "[framegraph]") {
     ResourceID texture1, texture2;
 
     struct Pass1Data {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct Pass2Data {
-            ResourceID input;
-            ResourceID output;
+        ResourceID input;
+        ResourceID output;
     };
 
     struct Pass3Data {
-            ResourceID input;
+        ResourceID input;
     };
 
     // Pass 1: Create texture
@@ -296,15 +296,15 @@ TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph]") {
     int pass3Executed = 0;
 
     struct Pass1Data {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct Pass2Data {
-            ResourceID modified;
+        ResourceID modified;
     };
 
     struct Pass3Data {
-            ResourceID input;
+        ResourceID input;
     };
 
     // Pass 1: Create texture
@@ -348,7 +348,7 @@ TEST_CASE("FrameGraph - PreRead and PreWrite with flags", "[framegraph]") {
     ResourceID texture;
 
     struct PassData {
-            ResourceID res;
+        ResourceID res;
     };
 
     constexpr i32 READ_FLAG = 0x01;
@@ -393,22 +393,22 @@ TEST_CASE("FrameGraph - Diamond dependency pattern", "[framegraph]") {
     ResourceID source, intermediate1, intermediate2;
 
     struct SourceData {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct Path1Data {
-            ResourceID input;
-            ResourceID output;
+        ResourceID input;
+        ResourceID output;
     };
 
     struct Path2Data {
-            ResourceID input;
-            ResourceID output;
+        ResourceID input;
+        ResourceID output;
     };
 
     struct MergeData {
-            ResourceID input1;
-            ResourceID input2;
+        ResourceID input1;
+        ResourceID input2;
     };
 
     // Source pass
@@ -468,11 +468,11 @@ TEST_CASE("FrameGraph - Resource lifetime tracking", "[framegraph]") {
     std::vector<std::string> lifecycle;
 
     struct Pass1Data {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct Pass2Data {
-            ResourceID input;
+        ResourceID input;
     };
 
     // Create resource
@@ -522,8 +522,8 @@ TEST_CASE("FrameGraph - Multiple resource types", "[framegraph]") {
     int executionCount = 0;
 
     struct PassData {
-            ResourceID texture;
-            ResourceID buffer;
+        ResourceID texture;
+        ResourceID buffer;
     };
 
     graph.AddPass<PassData>(
@@ -551,15 +551,15 @@ TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegr
     ResourceID res;
 
     struct CreateData {
-            ResourceID output;
+        ResourceID output;
     };
 
     struct ModifyData {
-            ResourceID inOut;
+        ResourceID inOut;
     };
 
     struct ReadData {
-            ResourceID input;
+        ResourceID input;
     };
 
     // Create
@@ -613,8 +613,8 @@ TEST_CASE("FrameGraphBlackboard - Store and retrieve data", "[framegraph][blackb
     FrameGraphBlackboard blackboard;
 
     struct TestData {
-            int value = 42;
-            std::string name = "test";
+        int value = 42;
+        std::string name = "test";
     };
 
     SECTION("Set and Get") {
@@ -648,11 +648,11 @@ TEST_CASE("FrameGraphBlackboard - Multiple types", "[framegraph][blackboard]") {
     FrameGraphBlackboard blackboard;
 
     struct TypeA {
-            int x = 10;
+        int x = 10;
     };
 
     struct TypeB {
-            float y = 3.14f;
+        float y = 3.14f;
     };
 
     blackboard.Set<TypeA>();
@@ -680,7 +680,7 @@ TEST_CASE("FrameGraph - All passes culled except side effects", "[framegraph]") 
     int executed = 0;
 
     struct PassData {
-            ResourceID res;
+        ResourceID res;
     };
 
     // Add 5 passes, only one with side effects
@@ -713,14 +713,14 @@ TEST_CASE("FrameGraph - All passes culled except side effects", "[framegraph]") 
 TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
     FrameGraph graph;
     std::vector<std::string> executionOrder;
-    
+
     // Configuration flags to control which passes execute
-    bool enableSpotLight2 = false;      // Culled light
-    bool enablePointLight = false;      // Culled light
+    bool enableSpotLight2 = false; // Culled light
+    bool enablePointLight = false; // Culled light
     bool enableSSAO = true;
     bool enableBloom = true;
-    bool enableDebugVisualization = false;  // Debug passes will be culled
-    
+    bool enableDebugVisualization = false; // Debug passes will be culled
+
     // Resource handles for the pipeline
     ResourceID dirShadowMap, spot1ShadowMap, spot2ShadowMap, pointShadowMap;
     ResourceID gbufferAlbedo, gbufferNormal, gbufferDepth, gbufferMaterial;
@@ -730,10 +730,12 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
     ResourceID bloomUp1, bloomUp2;
     ResourceID toneMappedColor, gradedColor, finalColor;
     ResourceID debugOutput;
-    
+
     // Shadow map passes
-    struct ShadowMapData { ResourceID shadowMap; };
-    
+    struct ShadowMapData {
+        ResourceID shadowMap;
+    };
+
     graph.AddPass<ShadowMapData>(
         "DirectionalShadowMap",
         [&dirShadowMap](FrameGraph::Builder &builder, ShadowMapData &data) {
@@ -741,10 +743,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.shadowMap = builder.Create<MockTexture>("DirShadowMap", desc);
             dirShadowMap = data.shadowMap;
         },
-        [&executionOrder](const ShadowMapData &data, void *context) {
-            executionOrder.push_back("DirectionalShadowMap");
-        });
-    
+        [&executionOrder](const ShadowMapData &data, void *context) { executionOrder.push_back("DirectionalShadowMap"); });
+
     graph.AddPass<ShadowMapData>(
         "SpotLight1ShadowMap",
         [&spot1ShadowMap](FrameGraph::Builder &builder, ShadowMapData &data) {
@@ -752,10 +752,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.shadowMap = builder.Create<MockTexture>("Spot1ShadowMap", desc);
             spot1ShadowMap = data.shadowMap;
         },
-        [&executionOrder](const ShadowMapData &data, void *context) {
-            executionOrder.push_back("SpotLight1ShadowMap");
-        });
-    
+        [&executionOrder](const ShadowMapData &data, void *context) { executionOrder.push_back("SpotLight1ShadowMap"); });
+
     // This shadow map will be culled (not used by lighting pass)
     graph.AddPass<ShadowMapData>(
         "SpotLight2ShadowMap",
@@ -764,10 +762,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.shadowMap = builder.Create<MockTexture>("Spot2ShadowMap", desc);
             spot2ShadowMap = data.shadowMap;
         },
-        [&executionOrder](const ShadowMapData &data, void *context) {
-            executionOrder.push_back("SpotLight2ShadowMap");
-        });
-    
+        [&executionOrder](const ShadowMapData &data, void *context) { executionOrder.push_back("SpotLight2ShadowMap"); });
+
     // This shadow map will also be culled
     graph.AddPass<ShadowMapData>(
         "PointLightShadowMap",
@@ -776,43 +772,38 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.shadowMap = builder.Create<MockTexture>("PointShadowMap", desc);
             pointShadowMap = data.shadowMap;
         },
-        [&executionOrder](const ShadowMapData &data, void *context) {
-            executionOrder.push_back("PointLightShadowMap");
-        });
-    
+        [&executionOrder](const ShadowMapData &data, void *context) { executionOrder.push_back("PointLightShadowMap"); });
+
     // G-Buffer pass
     struct GBufferData {
         ResourceID albedo, normal, depth, material;
     };
-    
+
     graph.AddPass<GBufferData>(
         "GBufferPass",
-        [&gbufferAlbedo, &gbufferNormal, &gbufferDepth, &gbufferMaterial](
-            FrameGraph::Builder &builder, GBufferData &data) {
+        [&gbufferAlbedo, &gbufferNormal, &gbufferDepth, &gbufferMaterial](FrameGraph::Builder &builder, GBufferData &data) {
             MockTextureDescriptor albedoDesc{ 1920, 1080, "RGBA8" };
             MockTextureDescriptor normalDesc{ 1920, 1080, "RGBA16F" };
             MockTextureDescriptor depthDesc{ 1920, 1080, "D32" };
             MockTextureDescriptor materialDesc{ 1920, 1080, "RGBA8" };
-            
+
             data.albedo = builder.Create<MockTexture>("GBufferAlbedo", albedoDesc);
             data.normal = builder.Create<MockTexture>("GBufferNormal", normalDesc);
             data.depth = builder.Create<MockTexture>("GBufferDepth", depthDesc);
             data.material = builder.Create<MockTexture>("GBufferMaterial", materialDesc);
-            
+
             gbufferAlbedo = data.albedo;
             gbufferNormal = data.normal;
             gbufferDepth = data.depth;
             gbufferMaterial = data.material;
         },
-        [&executionOrder](const GBufferData &data, void *context) {
-            executionOrder.push_back("GBufferPass");
-        });
-    
+        [&executionOrder](const GBufferData &data, void *context) { executionOrder.push_back("GBufferPass"); });
+
     // SSAO Pass
     struct SSAOData {
         ResourceID depthIn, normalIn, ssaoOut;
     };
-    
+
     if (enableSSAO) {
         graph.AddPass<SSAOData>(
             "SSAOPass",
@@ -823,15 +814,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.ssaoOut = builder.Create<MockTexture>("SSAO", desc);
                 ssaoTexture = data.ssaoOut;
             },
-            [&executionOrder](const SSAOData &data, void *context) {
-                executionOrder.push_back("SSAOPass");
-            });
-        
+            [&executionOrder](const SSAOData &data, void *context) { executionOrder.push_back("SSAOPass"); });
+
         // SSAO Blur
         struct SSAOBlurData {
             ResourceID ssaoIn, ssaoOut;
         };
-        
+
         graph.AddPass<SSAOBlurData>(
             "SSAOBlurPass",
             [&ssaoTexture, &ssaoBlurred](FrameGraph::Builder &builder, SSAOBlurData &data) {
@@ -840,11 +829,9 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.ssaoOut = builder.Create<MockTexture>("SSAOBlurred", desc);
                 ssaoBlurred = data.ssaoOut;
             },
-            [&executionOrder](const SSAOBlurData &data, void *context) {
-                executionOrder.push_back("SSAOBlurPass");
-            });
+            [&executionOrder](const SSAOBlurData &data, void *context) { executionOrder.push_back("SSAOBlurPass"); });
     }
-    
+
     // Lighting Pass
     struct LightingData {
         ResourceID albedoIn, normalIn, depthIn, materialIn;
@@ -852,7 +839,7 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
         ResourceID ssaoIn;
         ResourceID colorOut, depthOut;
     };
-    
+
     graph.AddPass<LightingData>(
         "LightingPass",
         [&](FrameGraph::Builder &builder, LightingData &data) {
@@ -863,28 +850,26 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.dirShadowIn = builder.Read(dirShadowMap);
             data.spot1ShadowIn = builder.Read(spot1ShadowMap);
             // Only reading active shadow maps - spot2 and point will be culled
-            
+
             if (enableSSAO) {
                 data.ssaoIn = builder.Read(ssaoBlurred);
             }
-            
+
             MockTextureDescriptor colorDesc{ 1920, 1080, "RGBA16F" };
             MockTextureDescriptor depthDesc{ 1920, 1080, "D32" };
             data.colorOut = builder.Create<MockTexture>("SceneColor", colorDesc);
             data.depthOut = builder.Create<MockTexture>("SceneDepth", depthDesc);
-            
+
             sceneColor = data.colorOut;
             sceneDepth = data.depthOut;
         },
-        [&executionOrder](const LightingData &data, void *context) {
-            executionOrder.push_back("LightingPass");
-        });
-    
+        [&executionOrder](const LightingData &data, void *context) { executionOrder.push_back("LightingPass"); });
+
     // Sky Pass
     struct SkyData {
         ResourceID depthIn, colorInOut;
     };
-    
+
     graph.AddPass<SkyData>(
         "SkyPass",
         [&sceneDepth, &sceneColor](FrameGraph::Builder &builder, SkyData &data) {
@@ -892,15 +877,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.colorInOut = builder.Write(sceneColor);
             sceneColor = data.colorInOut;
         },
-        [&executionOrder](const SkyData &data, void *context) {
-            executionOrder.push_back("SkyPass");
-        });
-    
+        [&executionOrder](const SkyData &data, void *context) { executionOrder.push_back("SkyPass"); });
+
     // Transparent Pass
     struct TransparentData {
         ResourceID colorInOut, depthIn;
     };
-    
+
     graph.AddPass<TransparentData>(
         "TransparentPass",
         [&sceneColor, &sceneDepth](FrameGraph::Builder &builder, TransparentData &data) {
@@ -908,16 +891,14 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.colorInOut = builder.Write(sceneColor);
             sceneColor = data.colorInOut;
         },
-        [&executionOrder](const TransparentData &data, void *context) {
-            executionOrder.push_back("TransparentPass");
-        });
-    
+        [&executionOrder](const TransparentData &data, void *context) { executionOrder.push_back("TransparentPass"); });
+
     // Bloom chain (if enabled)
     if (enableBloom) {
         struct BloomDownsampleData {
             ResourceID input, output;
         };
-        
+
         graph.AddPass<BloomDownsampleData>(
             "BloomDownsample1",
             [&sceneColor, &bloomDown1](FrameGraph::Builder &builder, BloomDownsampleData &data) {
@@ -926,10 +907,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Create<MockTexture>("BloomDown1", desc);
                 bloomDown1 = data.output;
             },
-            [&executionOrder](const BloomDownsampleData &data, void *context) {
-                executionOrder.push_back("BloomDownsample1");
-            });
-        
+            [&executionOrder](const BloomDownsampleData &data, void *context) { executionOrder.push_back("BloomDownsample1"); });
+
         graph.AddPass<BloomDownsampleData>(
             "BloomDownsample2",
             [&bloomDown1, &bloomDown2](FrameGraph::Builder &builder, BloomDownsampleData &data) {
@@ -938,10 +917,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Create<MockTexture>("BloomDown2", desc);
                 bloomDown2 = data.output;
             },
-            [&executionOrder](const BloomDownsampleData &data, void *context) {
-                executionOrder.push_back("BloomDownsample2");
-            });
-        
+            [&executionOrder](const BloomDownsampleData &data, void *context) { executionOrder.push_back("BloomDownsample2"); });
+
         graph.AddPass<BloomDownsampleData>(
             "BloomDownsample3",
             [&bloomDown2, &bloomDown3](FrameGraph::Builder &builder, BloomDownsampleData &data) {
@@ -950,14 +927,12 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Create<MockTexture>("BloomDown3", desc);
                 bloomDown3 = data.output;
             },
-            [&executionOrder](const BloomDownsampleData &data, void *context) {
-                executionOrder.push_back("BloomDownsample3");
-            });
-        
+            [&executionOrder](const BloomDownsampleData &data, void *context) { executionOrder.push_back("BloomDownsample3"); });
+
         struct BloomUpsampleData {
             ResourceID input, output;
         };
-        
+
         graph.AddPass<BloomUpsampleData>(
             "BloomUpsample1",
             [&bloomDown3, &bloomUp1](FrameGraph::Builder &builder, BloomUpsampleData &data) {
@@ -966,10 +941,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Create<MockTexture>("BloomUp1", desc);
                 bloomUp1 = data.output;
             },
-            [&executionOrder](const BloomUpsampleData &data, void *context) {
-                executionOrder.push_back("BloomUpsample1");
-            });
-        
+            [&executionOrder](const BloomUpsampleData &data, void *context) { executionOrder.push_back("BloomUpsample1"); });
+
         graph.AddPass<BloomUpsampleData>(
             "BloomUpsample2",
             [&bloomUp1, &bloomUp2](FrameGraph::Builder &builder, BloomUpsampleData &data) {
@@ -978,15 +951,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Create<MockTexture>("BloomUp2", desc);
                 bloomUp2 = data.output;
             },
-            [&executionOrder](const BloomUpsampleData &data, void *context) {
-                executionOrder.push_back("BloomUpsample2");
-            });
-        
+            [&executionOrder](const BloomUpsampleData &data, void *context) { executionOrder.push_back("BloomUpsample2"); });
+
         // Bloom combine
         struct BloomCombineData {
             ResourceID scene, bloom, output;
         };
-        
+
         graph.AddPass<BloomCombineData>(
             "BloomCombine",
             [&sceneColor, &bloomUp2](FrameGraph::Builder &builder, BloomCombineData &data) {
@@ -995,16 +966,14 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
                 data.output = builder.Write(sceneColor);
                 sceneColor = data.output;
             },
-            [&executionOrder](const BloomCombineData &data, void *context) {
-                executionOrder.push_back("BloomCombine");
-            });
+            [&executionOrder](const BloomCombineData &data, void *context) { executionOrder.push_back("BloomCombine"); });
     }
-    
+
     // Tone Mapping
     struct ToneMappingData {
         ResourceID input, output;
     };
-    
+
     graph.AddPass<ToneMappingData>(
         "ToneMappingPass",
         [&sceneColor, &toneMappedColor](FrameGraph::Builder &builder, ToneMappingData &data) {
@@ -1013,15 +982,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.output = builder.Create<MockTexture>("ToneMapped", desc);
             toneMappedColor = data.output;
         },
-        [&executionOrder](const ToneMappingData &data, void *context) {
-            executionOrder.push_back("ToneMappingPass");
-        });
-    
+        [&executionOrder](const ToneMappingData &data, void *context) { executionOrder.push_back("ToneMappingPass"); });
+
     // Color Grading
     struct ColorGradingData {
         ResourceID input, output;
     };
-    
+
     graph.AddPass<ColorGradingData>(
         "ColorGradingPass",
         [&toneMappedColor, &gradedColor](FrameGraph::Builder &builder, ColorGradingData &data) {
@@ -1030,15 +997,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.output = builder.Create<MockTexture>("ColorGraded", desc);
             gradedColor = data.output;
         },
-        [&executionOrder](const ColorGradingData &data, void *context) {
-            executionOrder.push_back("ColorGradingPass");
-        });
-    
+        [&executionOrder](const ColorGradingData &data, void *context) { executionOrder.push_back("ColorGradingPass"); });
+
     // FXAA
     struct FXAAData {
         ResourceID input, output;
     };
-    
+
     graph.AddPass<FXAAData>(
         "FXAAPass",
         [&gradedColor, &finalColor](FrameGraph::Builder &builder, FXAAData &data) {
@@ -1047,15 +1012,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.output = builder.Create<MockTexture>("FinalColor", desc);
             finalColor = data.output;
         },
-        [&executionOrder](const FXAAData &data, void *context) {
-            executionOrder.push_back("FXAAPass");
-        });
-    
+        [&executionOrder](const FXAAData &data, void *context) { executionOrder.push_back("FXAAPass"); });
+
     // Debug passes (will be culled if not used)
     struct DebugData {
         ResourceID input, output;
     };
-    
+
     graph.AddPass<DebugData>(
         "DebugWireframePass",
         [&gbufferDepth, &debugOutput](FrameGraph::Builder &builder, DebugData &data) {
@@ -1064,10 +1027,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             data.output = builder.Create<MockTexture>("DebugWireframe", desc);
             debugOutput = data.output;
         },
-        [&executionOrder](const DebugData &data, void *context) {
-            executionOrder.push_back("DebugWireframePass");
-        });
-    
+        [&executionOrder](const DebugData &data, void *context) { executionOrder.push_back("DebugWireframePass"); });
+
     graph.AddPass<DebugData>(
         "DebugNormalsPass",
         [&gbufferNormal](FrameGraph::Builder &builder, DebugData &data) {
@@ -1075,10 +1036,8 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             MockTextureDescriptor desc{ 1920, 1080, "RGBA8" };
             data.output = builder.Create<MockTexture>("DebugNormals", desc);
         },
-        [&executionOrder](const DebugData &data, void *context) {
-            executionOrder.push_back("DebugNormalsPass");
-        });
-    
+        [&executionOrder](const DebugData &data, void *context) { executionOrder.push_back("DebugNormalsPass"); });
+
     graph.AddPass<DebugData>(
         "DebugLightHeatmapPass",
         [&gbufferAlbedo](FrameGraph::Builder &builder, DebugData &data) {
@@ -1086,47 +1045,41 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
             MockTextureDescriptor desc{ 1920, 1080, "RGBA8" };
             data.output = builder.Create<MockTexture>("DebugHeatmap", desc);
         },
-        [&executionOrder](const DebugData &data, void *context) {
-            executionOrder.push_back("DebugLightHeatmapPass");
-        });
-    
+        [&executionOrder](const DebugData &data, void *context) { executionOrder.push_back("DebugLightHeatmapPass"); });
+
     // UI Pass
     struct UIData {
         ResourceID colorInOut;
     };
-    
+
     graph.AddPass<UIData>(
         "UIPass",
         [&finalColor](FrameGraph::Builder &builder, UIData &data) {
             data.colorInOut = builder.Write(finalColor);
             finalColor = data.colorInOut;
         },
-        [&executionOrder](const UIData &data, void *context) {
-            executionOrder.push_back("UIPass");
-        });
-    
+        [&executionOrder](const UIData &data, void *context) { executionOrder.push_back("UIPass"); });
+
     // Final present pass (always executes - has side effect)
     struct PresentData {
         ResourceID finalImage;
     };
-    
+
     graph.AddPass<PresentData>(
         "PresentPass",
         [&finalColor](FrameGraph::Builder &builder, PresentData &data) {
             data.finalImage = builder.Read(finalColor);
             builder.SetSideEffect(); // Present to screen
         },
-        [&executionOrder](const PresentData &data, void *context) {
-            executionOrder.push_back("PresentPass");
-        });
-    
+        [&executionOrder](const PresentData &data, void *context) { executionOrder.push_back("PresentPass"); });
+
     // Compile and execute
     graph.Compile();
     graph.Execute(nullptr, nullptr);
-    
+
     // Verify execution order and culling
     REQUIRE(executionOrder.size() >= 15); // At least the main pipeline passes
-    
+
     // These passes should always execute (part of critical path to present)
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "DirectionalShadowMap") != executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "SpotLight1ShadowMap") != executionOrder.end());
@@ -1139,22 +1092,22 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "FXAAPass") != executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "UIPass") != executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "PresentPass") != executionOrder.end());
-    
+
     // These passes should be culled (not referenced by lighting pass)
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "SpotLight2ShadowMap") == executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "PointLightShadowMap") == executionOrder.end());
-    
+
     // Debug passes should be culled (no side effects and output not used)
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "DebugWireframePass") == executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "DebugNormalsPass") == executionOrder.end());
     REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "DebugLightHeatmapPass") == executionOrder.end());
-    
+
     // SSAO passes should execute if enabled
     if (enableSSAO) {
         REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "SSAOPass") != executionOrder.end());
         REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "SSAOBlurPass") != executionOrder.end());
     }
-    
+
     // Bloom passes should execute if enabled
     if (enableBloom) {
         REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "BloomDownsample1") != executionOrder.end());
@@ -1164,13 +1117,13 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
         REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "BloomUpsample2") != executionOrder.end());
         REQUIRE(std::find(executionOrder.begin(), executionOrder.end(), "BloomCombine") != executionOrder.end());
     }
-    
+
     // Verify proper ordering: GBuffer before Lighting, Lighting before ToneMapping, etc.
     auto gbufferPos = std::find(executionOrder.begin(), executionOrder.end(), "GBufferPass");
     auto lightingPos = std::find(executionOrder.begin(), executionOrder.end(), "LightingPass");
     auto toneMappingPos = std::find(executionOrder.begin(), executionOrder.end(), "ToneMappingPass");
     auto presentPos = std::find(executionOrder.begin(), executionOrder.end(), "PresentPass");
-    
+
     REQUIRE(gbufferPos < lightingPos);
     REQUIRE(lightingPos < toneMappingPos);
     REQUIRE(toneMappingPos < presentPos);

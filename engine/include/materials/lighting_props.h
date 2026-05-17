@@ -6,18 +6,18 @@ namespace Vulkyrie {
 
     /** @brief Represents a material with ambient, diffuse, specular properties and shininess factor. */
     struct LightingProps {
-        public:
-            /** @brief The ambient color component of the material. */
-            const glm::vec4 Ambient;
+    public:
+        /** @brief The ambient color component of the material. */
+        const glm::vec4 Ambient;
 
-            /** @brief The diffuse color component of the material. */
-            const glm::vec4 Diffuse;
+        /** @brief The diffuse color component of the material. */
+        const glm::vec4 Diffuse;
 
-            /** @brief The specular color component of the material. */
-            const glm::vec4 Specular;
+        /** @brief The specular color component of the material. */
+        const glm::vec4 Specular;
 
-            /** @brief The shininess factor of the material. */
-            const f32 Shininess;
+        /** @brief The shininess factor of the material. */
+        const f32 Shininess;
     };
 
     // Source: http://devernay.free.fr/cours/opengl/materials.html

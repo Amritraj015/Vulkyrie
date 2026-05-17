@@ -2,8 +2,8 @@
 
 namespace Vulkyrie {
     class Scene {
-        public:
-            Scene() = default;
-            ~Scene() = default;
+    public:
+        Scene() = default;
+        ~Scene() = default;
     };
 } // namespace Vulkyrie

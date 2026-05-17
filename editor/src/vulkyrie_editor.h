@@ -4,8 +4,8 @@
 
 namespace Vulkyrie::Editor {
     class VulkyrieEditor : public Application {
-        public:
-            VulkyrieEditor(const WindowProps &windowProps);
-            ~VulkyrieEditor() override = default;
+    public:
+        VulkyrieEditor(const WindowProps &windowProps);
+        ~VulkyrieEditor() override = default;
     };
 } // namespace Vulkyrie::Editor

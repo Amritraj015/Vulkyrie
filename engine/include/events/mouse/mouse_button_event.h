@@ -6,24 +6,24 @@
 
 namespace Vulkyrie {
     class MouseButtonEvent : public Event {
-        public:
-            explicit MouseButtonEvent(const Vulkyrie::MouseButton mouseButton)
-                : MouseButton(mouseButton) {
-            }
+    public:
+        explicit MouseButtonEvent(const Vulkyrie::MouseButton mouseButton)
+            : MouseButton(mouseButton) {
+        }
 
-            /** @brief The mouse button associated with the event. */
-            const Vulkyrie::MouseButton MouseButton;
+        /** @brief The mouse button associated with the event. */
+        const Vulkyrie::MouseButton MouseButton;
 
-            [[nodiscard]] inline i32 GetCategoryFlags() const override {
-                return _categoryFlags;
-            }
+        [[nodiscard]] inline i32 GetCategoryFlags() const override {
+            return _categoryFlags;
+        }
 
-            [[nodiscard]] inline std::string ToString() const override {
-                return std::format("MouseButtonEvent: {}", std::to_underlying(MouseButton));
-            }
+        [[nodiscard]] inline std::string ToString() const override {
+            return std::format("MouseButtonEvent: {}", std::to_underlying(MouseButton));
+        }
 
-        private:
-            const static i32 _categoryFlags =
-                std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input) | std::to_underlying(EventCategory::MouseButton);
+    private:
+        const static i32 _categoryFlags =
+            std::to_underlying(EventCategory::Mouse) | std::to_underlying(EventCategory::Input) | std::to_underlying(EventCategory::MouseButton);
     };
 } // namespace Vulkyrie

@@ -19,9 +19,7 @@ static BodyComponent makeBodyComp(Body *body) {
 
 // Verifies the dense-packing invariant: active components occupy [0, activeCount)
 // and inactive components occupy [activeCount, totalCount).
-static void requireDensePacking(BodyComponentStore &store,
-                                const std::vector<Entity> &expectedActive,
-                                const std::vector<Entity> &expectedInactive) {
+static void requireDensePacking(BodyComponentStore &store, const std::vector<Entity> &expectedActive, const std::vector<Entity> &expectedInactive) {
     REQUIRE(store.GetActiveComponentCount() == expectedActive.size());
     REQUIRE(store.GetTotalComponentCount() == expectedActive.size() + expectedInactive.size());
 
@@ -260,15 +258,15 @@ TEST_CASE("BodyComponentStore - SetBodyActive is independent of ECS active statu
     BodyComponentStore store;
 
     Entity e = em.CreateEntity();
-    store.AddComponent(e, makeBodyComp(nullptr), false);  // ECS inactive
+    store.AddComponent(e, makeBodyComp(nullptr), false); // ECS inactive
 
     store.SetBodyActive(e, false);
     REQUIRE_FALSE(store.IsBodyActive(e));
-    REQUIRE(store.IsDisabled(e));  // ECS still inactive
+    REQUIRE(store.IsDisabled(e)); // ECS still inactive
 
     store.SetBodyActive(e, true);
     REQUIRE(store.IsBodyActive(e));
-    REQUIRE(store.IsDisabled(e));  // ECS still inactive
+    REQUIRE(store.IsDisabled(e)); // ECS still inactive
 }
 
 // ===========================================================================================
@@ -446,7 +444,7 @@ TEST_CASE("BodyComponentStore - RemoveColliderFromBody removes first collider (s
     store.AddComponent(body, makeBodyComp(nullptr), true);
     store.AddColliderToBody(body, c1);
     store.AddColliderToBody(body, c2);
-    store.RemoveColliderFromBody(body, c1);  // c2 swaps into index 0
+    store.RemoveColliderFromBody(body, c1); // c2 swaps into index 0
 
     const auto &colliders = store.GetColliders(body);
     REQUIRE(colliders.size() == 1);
@@ -763,7 +761,7 @@ TEST_CASE("BodyComponentStore - All parallel arrays stay in sync after SetActive
     store.SetHasSimulationColliders(e1, true);
 
     store.AddColliderToBody(e2, c2);
-    store.SetBodyActive(e2, true);  // default is true anyway, just being explicit
+    store.SetBodyActive(e2, true); // default is true anyway, just being explicit
     store.SetHasSimulationColliders(e2, false);
 
     store.SetActiveStatus(e1, true);

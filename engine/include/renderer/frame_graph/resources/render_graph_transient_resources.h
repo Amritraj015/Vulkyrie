@@ -5,14 +5,14 @@
 
 namespace Vulkyrie {
     class RenderGraphTransientResources {
-        public:
-            void CreateTexture(const TextureSpecification &specification);
-            void DestroyTexture(const TextureSpecification &specification);
+    public:
+        void CreateTexture(const TextureSpecification &specification);
+        void DestroyTexture(const TextureSpecification &specification);
 
-            // void CreateBuffer(size_t size);
-            // void DestroyBuffer();
+        // void CreateBuffer(size_t size);
+        // void DestroyBuffer();
 
-        private:
-            std::unordered_map<std::string, Scope<Texture2D>> _textureMap;
+    private:
+        std::unordered_map<std::string, Scope<Texture2D>> _textureMap;
     };
 } // namespace Vulkyrie

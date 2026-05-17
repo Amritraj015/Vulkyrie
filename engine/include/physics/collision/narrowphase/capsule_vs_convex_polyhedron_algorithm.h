@@ -5,21 +5,21 @@
 namespace Vulkyrie {
 
     class CapsuleVsConvexPolyhedronAlgorithm final {
-        public:
-            CapsuleVsConvexPolyhedronAlgorithm() = default;
+    public:
+        CapsuleVsConvexPolyhedronAlgorithm() = default;
 
-            CapsuleVsConvexPolyhedronAlgorithm(const CapsuleVsConvexPolyhedronAlgorithm &) = delete;
-            CapsuleVsConvexPolyhedronAlgorithm &operator=(const CapsuleVsConvexPolyhedronAlgorithm &) = delete;
+        CapsuleVsConvexPolyhedronAlgorithm(const CapsuleVsConvexPolyhedronAlgorithm &) = delete;
+        CapsuleVsConvexPolyhedronAlgorithm &operator=(const CapsuleVsConvexPolyhedronAlgorithm &) = delete;
 
-            CapsuleVsConvexPolyhedronAlgorithm(CapsuleVsConvexPolyhedronAlgorithm &&) = delete;
-            CapsuleVsConvexPolyhedronAlgorithm &operator=(CapsuleVsConvexPolyhedronAlgorithm &&) = delete;
+        CapsuleVsConvexPolyhedronAlgorithm(CapsuleVsConvexPolyhedronAlgorithm &&) = delete;
+        CapsuleVsConvexPolyhedronAlgorithm &operator=(CapsuleVsConvexPolyhedronAlgorithm &&) = delete;
 
-            ~CapsuleVsConvexPolyhedronAlgorithm() = default;
+        ~CapsuleVsConvexPolyhedronAlgorithm() = default;
 
-            bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
-                                       size_t batchStartIndex,
-                                       size_t batchItemsCount,
-                                       bool clipWithPreviousAxisIfStillColliding);
+        bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
+                                   size_t batchStartIndex,
+                                   size_t batchItemsCount,
+                                   bool clipWithPreviousAxisIfStillColliding);
     };
 
 } // namespace Vulkyrie

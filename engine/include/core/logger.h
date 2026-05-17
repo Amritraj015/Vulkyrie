@@ -32,38 +32,38 @@ namespace Vulkyrie {
     };
 
     class LogSink {
-        public:
-            virtual ~LogSink() = default;
+    public:
+        virtual ~LogSink() = default;
 
-            /** Initializes the logger. */
-            virtual StatusCode Initialize() {
-                return StatusCode::Successful;
-            }
+        /** Initializes the logger. */
+        virtual StatusCode Initialize() {
+            return StatusCode::Successful;
+        }
 
-            virtual void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) = 0;
+        virtual void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) = 0;
 
-        protected:
-            static constexpr unsigned short LOG_BUFFER_SIZE = 512;
+    protected:
+        static constexpr unsigned short LOG_BUFFER_SIZE = 512;
     };
 
     class Logger {
-        public:
-            // Deleted copy constructor and assignment operator to prevent copies.
-            Logger(const Logger &) = delete;
-            Logger &operator=(const Logger &) = delete;
+    public:
+        // Deleted copy constructor and assignment operator to prevent copies.
+        Logger(const Logger &) = delete;
+        Logger &operator=(const Logger &) = delete;
 
-            Logger(Logger &&) = delete;
-            Logger &operator=(Logger &&) = delete;
+        Logger(Logger &&) = delete;
+        Logger &operator=(Logger &&) = delete;
 
-            static StatusCode InitializeLogger(LoggerType loggerType);
+        static StatusCode InitializeLogger(LoggerType loggerType);
 
-            template <typename... Args> static void Log(LogLevel logLevel, std::string_view fmt, Args &&...args) {
-                if (nullptr == _logSink) return;
-                _logSink->LogMessage(logLevel, fmt, std::make_format_args(args...));
-            }
+        template <typename... Args> static void Log(LogLevel logLevel, std::string_view fmt, Args &&...args) {
+            if (nullptr == _logSink) return;
+            _logSink->LogMessage(logLevel, fmt, std::make_format_args(args...));
+        }
 
-        private:
-            static std::unique_ptr<LogSink> _logSink;
+    private:
+        static std::unique_ptr<LogSink> _logSink;
     };
 } // namespace Vulkyrie
 

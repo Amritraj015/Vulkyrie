@@ -5,21 +5,21 @@
 namespace Vulkyrie {
 
     class ConvexPolyhedronVsConvexPolyhedronAlgorithm final {
-        public:
-            ConvexPolyhedronVsConvexPolyhedronAlgorithm() = default;
+    public:
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm() = default;
 
-            ConvexPolyhedronVsConvexPolyhedronAlgorithm(const ConvexPolyhedronVsConvexPolyhedronAlgorithm &) = delete;
-            ConvexPolyhedronVsConvexPolyhedronAlgorithm &operator=(const ConvexPolyhedronVsConvexPolyhedronAlgorithm &) = delete;
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm(const ConvexPolyhedronVsConvexPolyhedronAlgorithm &) = delete;
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm &operator=(const ConvexPolyhedronVsConvexPolyhedronAlgorithm &) = delete;
 
-            ConvexPolyhedronVsConvexPolyhedronAlgorithm(ConvexPolyhedronVsConvexPolyhedronAlgorithm &&) = delete;
-            ConvexPolyhedronVsConvexPolyhedronAlgorithm &operator=(ConvexPolyhedronVsConvexPolyhedronAlgorithm &&) = delete;
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm(ConvexPolyhedronVsConvexPolyhedronAlgorithm &&) = delete;
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm &operator=(ConvexPolyhedronVsConvexPolyhedronAlgorithm &&) = delete;
 
-            ~ConvexPolyhedronVsConvexPolyhedronAlgorithm() = default;
+        ~ConvexPolyhedronVsConvexPolyhedronAlgorithm() = default;
 
-            bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
-                                       size_t batchStartIndex,
-                                       size_t batchItemsCount,
-                                       bool clipWithPreviousAxisIfStillColliding);
+        bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
+                                   size_t batchStartIndex,
+                                   size_t batchItemsCount,
+                                   bool clipWithPreviousAxisIfStillColliding);
     };
 
 } // namespace Vulkyrie

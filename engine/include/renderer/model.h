@@ -9,80 +9,80 @@
 namespace Vulkyrie {
     /** @brief Represents a 3D model composed of multiple meshes. */
     class Model {
-        public:
-            /** @brief Virtual destructor for the Model class. */
-            virtual ~Model() = default;
+    public:
+        /** @brief Virtual destructor for the Model class. */
+        virtual ~Model() = default;
 
-            /** @brief Creates a model from the specified file path.
-             * @param path The file path to the 3D model.
-             * @param gamma Whether to apply gamma correction. Default is false.
-             * @return A reference to the created Model.
-             */
-            static Ref<Model> Create(const std::filesystem::path &path, bool gamma = false);
+        /** @brief Creates a model from the specified file path.
+         * @param path The file path to the 3D model.
+         * @param gamma Whether to apply gamma correction. Default is false.
+         * @return A reference to the created Model.
+         */
+        static Ref<Model> Create(const std::filesystem::path &path, bool gamma = false);
 
-            /** @brief Gets the number of meshes in the model.
-             * @return The count of meshes.
-             */
-            [[nodiscard]] inline size_t GetMeshCount() const {
-                return _meshes.size();
+        /** @brief Gets the number of meshes in the model.
+         * @return The count of meshes.
+         */
+        [[nodiscard]] inline size_t GetMeshCount() const {
+            return _meshes.size();
+        }
+
+        /** @brief Gets the meshes that make up the model.
+         * @return A constant reference to the vector of meshes.
+         */
+        [[nodiscard]] inline const std::vector<Ref<Mesh>> &GetMeshes() const {
+            return _meshes;
+        }
+
+        /** @brief Gets a reference to the mesh at the specified index.
+         * @param index The index of the mesh to retrieve.
+         * @return A reference to the mesh at the specified index.
+         */
+        [[nodiscard]] Mesh &GetMesh(size_t index) const {
+            VASSERT_EXPR(index < _meshes.size(), "Mesh index out of bounds!");
+            return *_meshes[index];
+        }
+
+        // TODO: Needs to be removed.
+        inline void BindTextures() const {
+            for (const auto &mesh : _meshes) {
+                mesh->BindTextures();
             }
+        }
 
-            /** @brief Gets the meshes that make up the model.
-             * @return A constant reference to the vector of meshes.
-             */
-            [[nodiscard]] inline const std::vector<Ref<Mesh>> &GetMeshes() const {
-                return _meshes;
+        /** @brief Draws the model using the specified shader.
+         * @param shader The shader to use for rendering.
+         */
+        // TODO: Needs to be removed.
+        inline void Draw(Shader &shader) const {
+            for (auto &mesh : _meshes) {
+                mesh->Draw(shader);
             }
+        }
 
-            /** @brief Gets a reference to the mesh at the specified index.
-             * @param index The index of the mesh to retrieve.
-             * @return A reference to the mesh at the specified index.
-             */
-            [[nodiscard]] Mesh &GetMesh(size_t index) const {
-                VASSERT_EXPR(index < _meshes.size(), "Mesh index out of bounds!");
-                return *_meshes[index];
-            }
+    protected:
+        /** @brief Constructs a model with the specified file path and gamma correction setting.
+         * @param path The file path to the 3D model.
+         * @param gammaCorrection Whether to apply gamma correction.
+         */
+        Model(const std::filesystem::path &path, bool gammaCorrection)
+            : _path(path)
+            , _gammaCorrection(gammaCorrection) {
+        }
 
-            // TODO: Needs to be removed.
-            inline void BindTextures() const {
-                for (const auto &mesh : _meshes) {
-                    mesh->BindTextures();
-                }
-            }
+        /** @brief The directory path of the model file. */
+        std::filesystem::path _path;
 
-            /** @brief Draws the model using the specified shader.
-             * @param shader The shader to use for rendering.
-             */
-            // TODO: Needs to be removed.
-            inline void Draw(Shader &shader) const {
-                for (auto &mesh : _meshes) {
-                    mesh->Draw(shader);
-                }
-            }
+        /** @brief Indicates whether gamma correction is applied. */
+        bool _gammaCorrection;
 
-        protected:
-            /** @brief Constructs a model with the specified file path and gamma correction setting.
-             * @param path The file path to the 3D model.
-             * @param gammaCorrection Whether to apply gamma correction.
-             */
-            Model(const std::filesystem::path &path, bool gammaCorrection)
-                : _path(path)
-                , _gammaCorrection(gammaCorrection) {
-            }
+        /** @brief The directory where the model is located. */
+        std::filesystem::path _modelDirectory;
 
-            /** @brief The directory path of the model file. */
-            std::filesystem::path _path;
+        /** @brief A cache of loaded textures to avoid duplicates. */
+        std::unordered_map<std::string, Ref<Texture2D>> _loadedTextures;
 
-            /** @brief Indicates whether gamma correction is applied. */
-            bool _gammaCorrection;
-
-            /** @brief The directory where the model is located. */
-            std::filesystem::path _modelDirectory;
-
-            /** @brief A cache of loaded textures to avoid duplicates. */
-            std::unordered_map<std::string, Ref<Texture2D>> _loadedTextures;
-
-            /** @brief The meshes that make up the model. */
-            std::vector<Ref<Mesh>> _meshes;
+        /** @brief The meshes that make up the model. */
+        std::vector<Ref<Mesh>> _meshes;
     };
 } // namespace Vulkyrie

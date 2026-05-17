@@ -8,15 +8,15 @@
 namespace Vulkyrie {
     /** @brief Renderer statistics structure to hold performance metrics. */
     struct RendererStatistics {
-        public:
-            /** @brief Number of frames rendered during rendering. */
-            u32 FramesRendered = 0;
+    public:
+        /** @brief Number of frames rendered during rendering. */
+        u32 FramesRendered = 0;
 
-            /** @brief Number of draw calls made during rendering. */
-            u32 DrawCalls = 0;
+        /** @brief Number of draw calls made during rendering. */
+        u32 DrawCalls = 0;
 
-            /** @brief Number of triangles rendered during rendering. */
-            u32 TrianglesRendered = 0;
+        /** @brief Number of triangles rendered during rendering. */
+        u32 TrianglesRendered = 0;
     };
 
     /** @brief Initializes the renderer with the specified graphics API.
@@ -36,8 +36,8 @@ namespace Vulkyrie {
     [[nodiscard]] std::string_view GetCurrentGraphicsAPIName();
 
     class Renderer {
-        public:
-            virtual ~Renderer() = default;
+    public:
+        virtual ~Renderer() = default;
     };
 
     // void SetViewport(u32 x, u32 y, u32 width, u32 height);

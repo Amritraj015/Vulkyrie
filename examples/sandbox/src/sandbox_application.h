@@ -6,24 +6,24 @@
 namespace Sandbox {
 
     class SandboxApplication : public Application {
-        public:
-            SandboxApplication(const WindowProps &windowProps)
-                : Application(windowProps) {
-            }
+    public:
+        SandboxApplication(const WindowProps &windowProps)
+            : Application(windowProps) {
+        }
 
-            ~SandboxApplication() override {
-                VTRACE("Destroying application sandbox");
-            }
+        ~SandboxApplication() override {
+            VTRACE("Destroying application sandbox");
+        }
 
-            bool OnInit(WindowCreatedEvent &event) override {
-                // PushLayer<SandboxLayerShadowMapping>();
-                // PushLayer<SandboxLayerFrameBuffer>();
-                // PushLayer<SandboxLayerCubes>();
-                PushLayer<SandboxLayerSphere>();
-                PushOverlay<SandboxVoidLayer>();
+        bool OnInit(WindowCreatedEvent &event) override {
+            // PushLayer<SandboxLayerShadowMapping>();
+            // PushLayer<SandboxLayerFrameBuffer>();
+            // PushLayer<SandboxLayerCubes>();
+            PushLayer<SandboxLayerSphere>();
+            PushOverlay<SandboxVoidLayer>();
 
-                return true;
-            }
+            return true;
+        }
     };
 
 } // namespace Sandbox

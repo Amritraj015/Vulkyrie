@@ -151,7 +151,7 @@ TEST_CASE("SphereShape - GetLocalInertiaTensor is uniform (all components equal)
 
 TEST_CASE("SphereShape - GetLocalInertiaTensor matches (2/5)*mass*r^2", "[physics][sphere]") {
     SphereShape shape(3.0f);
-    const float mass     = 5.0f;
+    const float mass = 5.0f;
     const float expected = 0.4f * mass * 3.0f * 3.0f;
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(mass);
 
@@ -248,7 +248,7 @@ TEST_CASE("SphereShape - ComputeTransformedAABB translation moves center", "[phy
 TEST_CASE("SphereShape - ComputeTransformedAABB is unaffected by rotation", "[physics][sphere]") {
     SphereShape shape(2.0f);
     const glm::quat rot90 = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    const AABB noRotation   = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
+    const AABB noRotation = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
     const AABB withRotation = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f), rot90));
 
     REQUIRE(withRotation.GetMin().x == Catch::Approx(noRotation.GetMin().x));

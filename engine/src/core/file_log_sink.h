@@ -5,12 +5,12 @@
 
 namespace Vulkyrie {
     class FileLogSink final : public LogSink {
-        public:
-            StatusCode Initialize() override;
-            void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) override;
-            ~FileLogSink() override;
+    public:
+        StatusCode Initialize() override;
+        void LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) override;
+        ~FileLogSink() override;
 
-        private:
-            FILE *_logFile;
+    private:
+        FILE *_logFile;
     };
 } // namespace Vulkyrie

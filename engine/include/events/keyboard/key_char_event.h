@@ -5,24 +5,24 @@
 
 namespace Vulkyrie {
     class KeyCharEvent : public KeyEvent {
-        public:
-            KeyCharEvent(const enum KeyCode keycode)
-                : KeyEvent(keycode) {
-            }
+    public:
+        KeyCharEvent(const enum KeyCode keycode)
+            : KeyEvent(keycode) {
+        }
 
-            [[nodiscard]] inline EventType GetEventType() const override {
-                return GetStaticEventType();
-            }
+        [[nodiscard]] inline EventType GetEventType() const override {
+            return GetStaticEventType();
+        }
 
-            [[nodiscard]] inline std::string ToString() const override {
-                return std::format("KeyCharEvent: {}", std::to_underlying(KeyCode));
-            }
+        [[nodiscard]] inline std::string ToString() const override {
+            return std::format("KeyCharEvent: {}", std::to_underlying(KeyCode));
+        }
 
-            /** @brief Gets the static event type for this event class.
-             * @return The static event type.
-             */
-            [[nodiscard]] static inline EventType GetStaticEventType() {
-                return EventType::KeyChar;
-            }
+        /** @brief Gets the static event type for this event class.
+         * @return The static event type.
+         */
+        [[nodiscard]] static inline EventType GetStaticEventType() {
+            return EventType::KeyChar;
+        }
     };
 } // namespace Vulkyrie

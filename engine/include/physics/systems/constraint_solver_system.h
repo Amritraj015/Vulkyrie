@@ -3,8 +3,8 @@
 namespace Vulkyrie {
 
     class ConstraintSolverSystem final {
-        public:
-            ~ConstraintSolverSystem() = default;
+    public:
+        ~ConstraintSolverSystem() = default;
     };
 
 } // namespace Vulkyrie

@@ -5,18 +5,18 @@
 namespace Vulkyrie {
 
     class CapsuleVsCapsuleAlgorithm final {
-        public:
-            CapsuleVsCapsuleAlgorithm() = default;
+    public:
+        CapsuleVsCapsuleAlgorithm() = default;
 
-            CapsuleVsCapsuleAlgorithm(const CapsuleVsCapsuleAlgorithm &) = delete;
-            CapsuleVsCapsuleAlgorithm &operator=(const CapsuleVsCapsuleAlgorithm &) = delete;
+        CapsuleVsCapsuleAlgorithm(const CapsuleVsCapsuleAlgorithm &) = delete;
+        CapsuleVsCapsuleAlgorithm &operator=(const CapsuleVsCapsuleAlgorithm &) = delete;
 
-            CapsuleVsCapsuleAlgorithm(CapsuleVsCapsuleAlgorithm &&) = delete;
-            CapsuleVsCapsuleAlgorithm &operator=(CapsuleVsCapsuleAlgorithm &&) = delete;
+        CapsuleVsCapsuleAlgorithm(CapsuleVsCapsuleAlgorithm &&) = delete;
+        CapsuleVsCapsuleAlgorithm &operator=(CapsuleVsCapsuleAlgorithm &&) = delete;
 
-            ~CapsuleVsCapsuleAlgorithm() = default;
+        ~CapsuleVsCapsuleAlgorithm() = default;
 
-            bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount);
+        bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount);
     };
 
 } // namespace Vulkyrie

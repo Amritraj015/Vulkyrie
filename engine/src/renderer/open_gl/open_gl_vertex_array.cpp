@@ -73,7 +73,8 @@ namespace Vulkyrie {
                 case ShaderDataType::Float3:
                 case ShaderDataType::Float4: {
                     glEnableVertexArrayAttrib(_vaoID, _vertexBufferIndex);
-                    glVertexArrayAttribFormat(_vaoID, _vertexBufferIndex, componentCount, dataType, element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(element.Offset));
+                    glVertexArrayAttribFormat(
+                        _vaoID, _vertexBufferIndex, componentCount, dataType, element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(element.Offset));
                     glVertexArrayAttribBinding(_vaoID, _vertexBufferIndex, bindingIndex);
                     _vertexBufferIndex++;
                     break;

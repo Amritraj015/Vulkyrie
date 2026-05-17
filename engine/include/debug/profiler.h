@@ -12,157 +12,157 @@
 namespace Vulkyrie {
 
     struct ProfileResult {
-        public:
-            const std::string_view Name;
-            const std::chrono::time_point<std::chrono::steady_clock> Start;
-            const double ElapsedTime;
-            const std::thread::id ThreadID;
+    public:
+        const std::string_view Name;
+        const std::chrono::time_point<std::chrono::steady_clock> Start;
+        const double ElapsedTime;
+        const std::thread::id ThreadID;
     };
 
     class Profiler {
-        public:
-            Profiler(const Profiler &) = delete;
-            Profiler(Profiler &&) = delete;
+    public:
+        Profiler(const Profiler &) = delete;
+        Profiler(Profiler &&) = delete;
 
-            void BeginSession(std::string_view name, std::string_view filepath = "results.json") {
-                std::lock_guard lock(_mutex);
+        void BeginSession(std::string_view name, std::string_view filepath = "results.json") {
+            std::lock_guard lock(_mutex);
 
-                if (!_sessionName.empty()) {
-                    // If there is already a current session, then close it before beginning new one.
-                    // Subsequent profiling output meant for the original session will end up in the
-                    // newly opened session instead.  That's better than having badly formatted
-                    // profiling output.
-                    VERROR("Profiler::BeginSession('{}') when session '{}' already open.", name, _sessionName);
+            if (!_sessionName.empty()) {
+                // If there is already a current session, then close it before beginning new one.
+                // Subsequent profiling output meant for the original session will end up in the
+                // newly opened session instead.  That's better than having badly formatted
+                // profiling output.
+                VERROR("Profiler::BeginSession('{}') when session '{}' already open.", name, _sessionName);
 
-                    InternalEndSession();
-                }
-
-                _fileStream.open(filepath.data());
-
-                if (_fileStream.is_open()) {
-                    _sessionName = name;
-                    WriteHeader();
-                } else {
-                    VERROR("Profiler could not open results file '{}'.", filepath);
-                }
-            }
-
-            void EndSession() {
-                std::lock_guard lock(_mutex);
                 InternalEndSession();
             }
 
-            void WriteProfile(const ProfileResult &result) {
-                std::stringstream json;
+            _fileStream.open(filepath.data());
 
-                json << std::setprecision(3) << std::fixed;
-                json << ",{";
-                json << "\"cat\":\"function\",";
-                json << "\"dur\":" << (result.ElapsedTime) << ',';
-                json << "\"name\":\"" << result.Name << "\",";
-                json << "\"ph\":\"X\",";
-                json << "\"pid\":0,";
-                json << "\"tid\":" << result.ThreadID << ",";
-                json << "\"ts\":" << result.Start.time_since_epoch().count();
-                json << "}";
-
-                std::lock_guard lock(_mutex);
-
-                if (!_sessionName.empty()) {
-                    _fileStream << json.str();
-                    _fileStream.flush();
-                }
+            if (_fileStream.is_open()) {
+                _sessionName = name;
+                WriteHeader();
+            } else {
+                VERROR("Profiler could not open results file '{}'.", filepath);
             }
+        }
 
-            static Profiler &GetSingleton() {
-                static Profiler instance;
-                return instance;
-            }
+        void EndSession() {
+            std::lock_guard lock(_mutex);
+            InternalEndSession();
+        }
 
-        private:
-            Profiler() {
-            }
+        void WriteProfile(const ProfileResult &result) {
+            std::stringstream json;
 
-            ~Profiler() {
-                EndSession();
-            }
+            json << std::setprecision(3) << std::fixed;
+            json << ",{";
+            json << "\"cat\":\"function\",";
+            json << "\"dur\":" << (result.ElapsedTime) << ',';
+            json << "\"name\":\"" << result.Name << "\",";
+            json << "\"ph\":\"X\",";
+            json << "\"pid\":0,";
+            json << "\"tid\":" << result.ThreadID << ",";
+            json << "\"ts\":" << result.Start.time_since_epoch().count();
+            json << "}";
 
-            void WriteHeader() {
-                _fileStream << "{\"otherData\": { \"version\": \"1.0\", \"app\": \"Vulkyrie Game Engine\" },\"traceEvents\":[{}";
+            std::lock_guard lock(_mutex);
+
+            if (!_sessionName.empty()) {
+                _fileStream << json.str();
                 _fileStream.flush();
             }
+        }
 
-            void WriteFooter() {
-                _fileStream << "]}";
-                _fileStream.flush();
+        static Profiler &GetSingleton() {
+            static Profiler instance;
+            return instance;
+        }
+
+    private:
+        Profiler() {
+        }
+
+        ~Profiler() {
+            EndSession();
+        }
+
+        void WriteHeader() {
+            _fileStream << "{\"otherData\": { \"version\": \"1.0\", \"app\": \"Vulkyrie Game Engine\" },\"traceEvents\":[{}";
+            _fileStream.flush();
+        }
+
+        void WriteFooter() {
+            _fileStream << "]}";
+            _fileStream.flush();
+        }
+
+        // Note: you must already own lock on _mutex before
+        // calling InternalEndSession()
+        void InternalEndSession() {
+            if (!_sessionName.empty()) {
+                WriteFooter();
+                _fileStream.close();
             }
+        }
 
-            // Note: you must already own lock on _mutex before
-            // calling InternalEndSession()
-            void InternalEndSession() {
-                if (!_sessionName.empty()) {
-                    WriteFooter();
-                    _fileStream.close();
-                }
-            }
-
-        private:
-            std::mutex _mutex;
-            std::string_view _sessionName;
-            std::ofstream _fileStream;
+    private:
+        std::mutex _mutex;
+        std::string_view _sessionName;
+        std::ofstream _fileStream;
     };
 
     /** @brief A simple timer class for measuring elapsed time. */
     class Timer {
-        public:
-            /** @brief Constructs a Timer object and starts timing.
-             * @param name An optional name for the timer.
-             */
-            explicit Timer(std::string_view name = "")
-                : _name(name)
-                , _stopped(false)
-                , _startTime(std::chrono::steady_clock::now()) {
+    public:
+        /** @brief Constructs a Timer object and starts timing.
+         * @param name An optional name for the timer.
+         */
+        explicit Timer(std::string_view name = "")
+            : _name(name)
+            , _stopped(false)
+            , _startTime(std::chrono::steady_clock::now()) {
+        }
+
+        Timer(const Timer &) = delete;
+        Timer &operator=(const Timer &) = delete;
+
+        Timer(Timer &&) = default;
+        Timer &operator=(Timer &&) = default;
+
+        /** @brief Destructor that stops the timer and logs the elapsed time if not already stopped. */
+        ~Timer() noexcept {
+            if (!_stopped) {
+                Stop();
             }
+        }
 
-            Timer(const Timer &) = delete;
-            Timer &operator=(const Timer &) = delete;
+        /** @brief Stops the timer and logs the elapsed time. */
+        void Stop() noexcept {
+            const auto endTime = std::chrono::steady_clock::now();
+            const auto duration = endTime - _startTime;
+            const auto elapsedTime = std::chrono::duration<double, std::micro>(duration).count();
 
-            Timer(Timer &&) = default;
-            Timer &operator=(Timer &&) = default;
+            // if (_name.empty()) {
+            //     VINFO("Timer took {} ms.", elapsedTime);
+            // } else {
+            //     VINFO("Timer '{}' took {} ms.", _name, elapsedTime);
+            // }
 
-            /** @brief Destructor that stops the timer and logs the elapsed time if not already stopped. */
-            ~Timer() noexcept {
-                if (!_stopped) {
-                    Stop();
-                }
-            }
+            Profiler::GetSingleton().WriteProfile({ _name, _startTime, elapsedTime, std::this_thread::get_id() });
 
-            /** @brief Stops the timer and logs the elapsed time. */
-            void Stop() noexcept {
-                const auto endTime = std::chrono::steady_clock::now();
-                const auto duration = endTime - _startTime;
-                const auto elapsedTime = std::chrono::duration<double, std::micro>(duration).count();
+            _stopped = true;
+        }
 
-                // if (_name.empty()) {
-                //     VINFO("Timer took {} ms.", elapsedTime);
-                // } else {
-                //     VINFO("Timer '{}' took {} ms.", _name, elapsedTime);
-                // }
+    private:
+        /** @brief The name of the timer. */
+        std::string_view _name;
 
-                Profiler::GetSingleton().WriteProfile({ _name, _startTime, elapsedTime, std::this_thread::get_id() });
+        /** @brief Indicates whether the timer has been stopped. */
+        bool _stopped;
 
-                _stopped = true;
-            }
-
-        private:
-            /** @brief The name of the timer. */
-            std::string_view _name;
-
-            /** @brief Indicates whether the timer has been stopped. */
-            bool _stopped;
-
-            /** @brief The start time point of the timer. */
-            std::chrono::time_point<std::chrono::steady_clock> _startTime;
+        /** @brief The start time point of the timer. */
+        std::chrono::time_point<std::chrono::steady_clock> _startTime;
     };
 
 } // namespace Vulkyrie

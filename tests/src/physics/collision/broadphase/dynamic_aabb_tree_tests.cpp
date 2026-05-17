@@ -247,7 +247,7 @@ TEST_CASE("DynamicAABBTree - Interleaved add and remove keeps tree consistent", 
 // ===========================================================================================
 
 TEST_CASE("DynamicAABBTree - UpdateObject returns false when new AABB fits inside fat AABB", "[physics][bvh]") {
-    DynamicAABBTree tree(0.2f); // 20% inflation
+    DynamicAABBTree tree(0.2f);                   // 20% inflation
     AABB aabb(glm::vec3(0.0f), glm::vec3(10.0f)); // extents=10, inflation=2 → fat=[−2..12]
 
     i32 idx = tree.AddObject(aabb, 0);
@@ -282,7 +282,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject forceReinsert always returns true", "[
 TEST_CASE("DynamicAABBTree - Updated node is queryable at new position and not at old", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
     AABB original = MakeAABB(0.0f, 0.0f, 0.0f);
-    AABB moved    = MakeAABB(100.0f, 100.0f, 100.0f);
+    AABB moved = MakeAABB(100.0f, 100.0f, 100.0f);
 
     i32 idx = tree.AddObject(original, 7);
     tree.UpdateObject(idx, moved, false);
@@ -357,7 +357,7 @@ TEST_CASE("DynamicAABBTree - QueryOverlaps finds all overlapping nodes", "[physi
     DynamicAABBTree tree(0.0f);
     tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
     tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // overlaps first
-    tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);           // far away
+    tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);          // far away
 
     std::vector<i32> results;
     tree.QueryOverlaps(AABB(glm::vec3(0.0f), glm::vec3(4.0f)), results);
@@ -442,7 +442,7 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs finds one overlapping pair", 
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
 
     REQUIRE(pairs.size() == 2);
-    REQUIRE(pairs[0].first  == std::min(i0, i1));
+    REQUIRE(pairs[0].first == std::min(i0, i1));
     REQUIRE(pairs[0].second == std::max(i0, i1));
 }
 
@@ -495,7 +495,7 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs mixed: one overlapping, one n
     DynamicAABBTree tree(0.0f);
     i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
     i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // overlaps i0
-    i32 i2 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);           // isolated
+    i32 i2 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);          // isolated
 
     std::vector<std::pair<i32, i32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1, i2 }, pairs);
@@ -652,7 +652,7 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: moved node (higher index) fi
     REQUIRE(pairs.size() == 1);
     // Implementation normalizes to canonical order (smaller index first).
     // i0 < i1, so the entry is (i0, i1) even though i1 was the test node.
-    REQUIRE(pairs[0].first  == std::min(i0, i1));
+    REQUIRE(pairs[0].first == std::min(i0, i1));
     REQUIRE(pairs[0].second == std::max(i0, i1));
 }
 
@@ -660,15 +660,15 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: moved node finds static node
     // The moved node overlaps one static node but not another. Single test node → one raw entry.
     DynamicAABBTree tree(0.0f);
     i32 iStatic0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0); // overlaps moved
-    i32 iStatic1 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 1);           // far away
-    i32 iMoved   = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 2);  // overlaps only iStatic0
+    i32 iStatic1 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 1);          // far away
+    i32 iMoved = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 2);   // overlaps only iStatic0
 
     std::vector<std::pair<i32, i32>> pairs;
     tree.QueryOverlappingPairs({ iMoved }, pairs);
 
     REQUIRE(pairs.size() == 1);
     // Implementation normalizes to canonical order (smaller index first).
-    REQUIRE(pairs[0].first  == std::min(iStatic0, iMoved));
+    REQUIRE(pairs[0].first == std::min(iStatic0, iMoved));
     REQUIRE(pairs[0].second == std::max(iStatic0, iMoved));
     (void)iStatic1;
 }
@@ -680,8 +680,8 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: mixed active+static, raw ent
     // Total: 4 raw entries (active-active pair appears twice, each active-static once).
     DynamicAABBTree tree(0.0f);
     i32 iStatic = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(5.0f)), 0); // overlaps everything
-    i32 iA      = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
-    i32 iB      = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
+    i32 iA = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
+    i32 iB = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
 
     std::vector<std::pair<i32, i32>> pairs;
     tree.QueryOverlappingPairs({ iA, iB }, pairs);

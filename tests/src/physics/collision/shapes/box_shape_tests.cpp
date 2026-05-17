@@ -129,12 +129,10 @@ TEST_CASE("BoxShape - GetCentroid is at origin", "[physics][box]") {
 TEST_CASE("BoxShape - All 8 vertices are distinct", "[physics][box]") {
     BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
     std::vector<glm::vec3> verts;
-    for (u32 i = 0; i < shape.GetVerticesCount(); ++i)
-        verts.push_back(shape.GetVertexPosition(i));
+    for (u32 i = 0; i < shape.GetVerticesCount(); ++i) verts.push_back(shape.GetVertexPosition(i));
 
     for (u32 i = 0; i < verts.size(); ++i)
-        for (u32 j = i + 1; j < verts.size(); ++j)
-            REQUIRE(verts[i] != verts[j]);
+        for (u32 j = i + 1; j < verts.size(); ++j) REQUIRE(verts[i] != verts[j]);
 }
 
 TEST_CASE("BoxShape - All vertex absolute coordinates equal the half extents", "[physics][box]") {
@@ -156,7 +154,7 @@ TEST_CASE("BoxShape - All 8 sign combinations of half-extents are covered by ver
     std::set<std::tuple<int, int, int>> signCombinations;
     for (u32 i = 0; i < shape.GetVerticesCount(); ++i) {
         const glm::vec3 v = shape.GetVertexPosition(i);
-        signCombinations.insert({v.x > 0 ? 1 : -1, v.y > 0 ? 1 : -1, v.z > 0 ? 1 : -1});
+        signCombinations.insert({ v.x > 0 ? 1 : -1, v.y > 0 ? 1 : -1, v.z > 0 ? 1 : -1 });
     }
 
     REQUIRE(signCombinations.size() == 8);
@@ -191,7 +189,7 @@ TEST_CASE("BoxShape - All 6 axis directions are represented by face normals", "[
     std::set<std::tuple<float, float, float>> normals;
     for (u32 i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
-        normals.insert({n.x, n.y, n.z});
+        normals.insert({ n.x, n.y, n.z });
     }
 
     REQUIRE(normals.size() == 6);
@@ -400,7 +398,7 @@ TEST_CASE("BoxShape - ComputeTransformedAABB AABB is never smaller than local AA
 TEST_CASE("BoxShape - ComputeTransformedAABB 180-degree rotation produces same AABB as no rotation", "[physics][box]") {
     BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
     const glm::quat rot180 = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    const AABB noRot   = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
+    const AABB noRot = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
     const AABB withRot = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f), rot180));
 
     REQUIRE(withRot.GetMin().x == Catch::Approx(noRot.GetMin().x));

@@ -27,34 +27,30 @@ static Material makeMaterial(float friction = 0.5f, float restitution = 0.3f, fl
 // Constructs a minimal ColliderComponent. The store stores Collider* and CollisionShape*
 // as raw pointers and never dereferences them internally, so nullptr is safe for store tests.
 static ColliderComponent makeComponent(Entity bodyEntity,
-                                       const TransformComponent &localToBody   = makeTransform(0.0f),
-                                       const TransformComponent &localToWorld  = makeTransform(0.0f),
-                                       u16 categoryBits                        = 0x0001,
-                                       u16 maskBits                            = 0xFFFF) {
-    return ColliderComponent(
-        bodyEntity,
-        nullptr,        // Collider* — not dereferenced by the store
-        localToBody,
-        nullptr,        // CollisionShape* — not dereferenced by the store
-        categoryBits,
-        maskBits,
-        localToWorld,
-        makeMaterial()
-    );
+                                       const TransformComponent &localToBody = makeTransform(0.0f),
+                                       const TransformComponent &localToWorld = makeTransform(0.0f),
+                                       u16 categoryBits = 0x0001,
+                                       u16 maskBits = 0xFFFF) {
+    return ColliderComponent(bodyEntity,
+                             nullptr, // Collider* — not dereferenced by the store
+                             localToBody,
+                             nullptr, // CollisionShape* — not dereferenced by the store
+                             categoryBits,
+                             maskBits,
+                             localToWorld,
+                             makeMaterial());
 }
 
 // Verifies the dense packing invariant: active components occupy [0, activeCount)
 // and the span views are aligned with per-entity getters.
-static void requireDensePacking(ColliderComponentStore        &store,
-                                const std::vector<Entity>     &expectedActive,
-                                const std::vector<Entity>     &expectedInactive) {
+static void requireDensePacking(ColliderComponentStore &store, const std::vector<Entity> &expectedActive, const std::vector<Entity> &expectedInactive) {
     REQUIRE(store.GetActiveComponentCount() == expectedActive.size());
-    REQUIRE(store.GetTotalComponentCount()  == expectedActive.size() + expectedInactive.size());
+    REQUIRE(store.GetTotalComponentCount() == expectedActive.size() + expectedInactive.size());
 
-    auto activeEntities  = store.GetActiveEntities();
+    auto activeEntities = store.GetActiveEntities();
     auto activeTransforms = store.GetActiveLocalToWorldTransforms();
 
-    REQUIRE(activeEntities.size()   == expectedActive.size());
+    REQUIRE(activeEntities.size() == expectedActive.size());
     REQUIRE(activeTransforms.size() == expectedActive.size());
 
     std::unordered_set<Entity> activeSet(activeEntities.begin(), activeEntities.end());
@@ -81,7 +77,7 @@ TEST_CASE("ColliderComponentStore - Add single active component", "[ecs][collide
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(1.0f), makeTransform(10.0f)), true);
 
     requireDensePacking(store, { e }, {});
@@ -95,7 +91,7 @@ TEST_CASE("ColliderComponentStore - Add single inactive component", "[ecs][colli
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), false);
 
     requireDensePacking(store, {}, { e });
@@ -140,16 +136,16 @@ TEST_CASE("ColliderComponentStore - Add active after inactive preserves partitio
     EntityManager em;
     ColliderComponentStore store;
 
-    Entity body     = em.CreateEntity();
+    Entity body = em.CreateEntity();
     Entity inactive = em.CreateEntity();
-    Entity active   = em.CreateEntity();
+    Entity active = em.CreateEntity();
 
     store.AddComponent(inactive, makeComponent(body, makeTransform(1.0f), makeTransform(10.0f)), false);
-    store.AddComponent(active,   makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), true);
+    store.AddComponent(active, makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), true);
 
     requireDensePacking(store, { active }, { inactive });
     REQUIRE(store.GetLocalToBodyTransform(inactive).Position.x == 1.0f);
-    REQUIRE(store.GetLocalToBodyTransform(active).Position.x   == 2.0f);
+    REQUIRE(store.GetLocalToBodyTransform(active).Position.x == 2.0f);
 }
 
 TEST_CASE("ColliderComponentStore - Interleaved active and inactive additions", "[ecs][collider]") {
@@ -191,7 +187,7 @@ TEST_CASE("ColliderComponentStore - HasComponent returns true after add", "[ecs]
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     REQUIRE(store.HasComponent(e));
 }
@@ -201,7 +197,7 @@ TEST_CASE("ColliderComponentStore - HasComponent returns false after remove", "[
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.RemoveComponent(e);
     REQUIRE_FALSE(store.HasComponent(e));
@@ -216,7 +212,7 @@ TEST_CASE("ColliderComponentStore - BroadPhaseID initializes to -1", "[ecs][coll
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     REQUIRE(store.GetBroadPhaseID(e) == -1);
@@ -227,7 +223,7 @@ TEST_CASE("ColliderComponentStore - SetBroadPhaseID updates value", "[ecs][colli
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.SetBroadPhaseID(e, 42);
 
@@ -239,7 +235,7 @@ TEST_CASE("ColliderComponentStore - BroadPhaseID persists across SetActiveStatus
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.SetBroadPhaseID(e, 7);
 
@@ -259,11 +255,11 @@ TEST_CASE("ColliderComponentStore - CollisionCategoryBits round-trips", "[ecs][c
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(0.0f), makeTransform(0.0f), 0x0002, 0x0004), true);
 
     REQUIRE(store.GetCollisionCategoryBits(e) == 0x0002);
-    REQUIRE(store.GetCollidesWithMaskBits(e)  == 0x0004);
+    REQUIRE(store.GetCollidesWithMaskBits(e) == 0x0004);
 }
 
 TEST_CASE("ColliderComponentStore - SetCollisionCategoryBits updates value", "[ecs][collider]") {
@@ -271,7 +267,7 @@ TEST_CASE("ColliderComponentStore - SetCollisionCategoryBits updates value", "[e
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.SetCollisionCategoryBits(e, 0x00FF);
 
@@ -283,7 +279,7 @@ TEST_CASE("ColliderComponentStore - SetCollidesWithMaskBits updates value", "[ec
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.SetCollidesWithMaskBits(e, 0xFF00);
 
@@ -299,7 +295,7 @@ TEST_CASE("ColliderComponentStore - SetLocalToBodyTransform updates value", "[ec
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(1.0f)), true);
     store.SetLocalToBodyTransform(e, makeTransform(99.0f));
 
@@ -311,7 +307,7 @@ TEST_CASE("ColliderComponentStore - SetLocalToWorldTransform updates value", "[e
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(0.0f), makeTransform(5.0f)), true);
     store.SetLocalToWorldTransform(e, makeTransform(88.0f));
 
@@ -327,12 +323,12 @@ TEST_CASE("ColliderComponentStore - Material values stored on add", "[ecs][colli
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
 
     ColliderComponent comp(body, nullptr, makeTransform(0.0f), nullptr, 0x0001, 0xFFFF, makeTransform(0.0f), makeMaterial(0.8f, 0.2f, 2.0f));
     store.AddComponent(e, comp, true);
 
-    REQUIRE(store.GetMaterial(e).GetFrictionCoefficient()    == Catch::Approx(0.8f).epsilon(0.001f));
+    REQUIRE(store.GetMaterial(e).GetFrictionCoefficient() == Catch::Approx(0.8f).epsilon(0.001f));
     REQUIRE(store.GetMaterial(e).GetRestitutionCoefficient() == Catch::Approx(0.2f).epsilon(0.001f));
 }
 
@@ -341,11 +337,11 @@ TEST_CASE("ColliderComponentStore - SetMaterial updates values", "[ecs][collider
     ColliderComponentStore store;
 
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.SetMaterial(e, makeMaterial(0.1f, 0.9f, 3.0f));
 
-    REQUIRE(store.GetMaterial(e).GetFrictionCoefficient()    == Catch::Approx(0.1f).epsilon(0.001f));
+    REQUIRE(store.GetMaterial(e).GetFrictionCoefficient() == Catch::Approx(0.1f).epsilon(0.001f));
     REQUIRE(store.GetMaterial(e).GetRestitutionCoefficient() == Catch::Approx(0.9f).epsilon(0.001f));
 }
 
@@ -357,7 +353,7 @@ TEST_CASE("ColliderComponentStore - IsTrigger initializes to false", "[ecs][coll
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     REQUIRE_FALSE(store.IsTrigger(e));
 }
@@ -366,7 +362,7 @@ TEST_CASE("ColliderComponentStore - SetTrigger true/false round-trips", "[ecs][c
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.SetTrigger(e, true);
@@ -379,7 +375,7 @@ TEST_CASE("ColliderComponentStore - IsSimulationCollider initializes to false", 
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     REQUIRE_FALSE(store.IsSimulationCollider(e));
 }
@@ -388,7 +384,7 @@ TEST_CASE("ColliderComponentStore - SetSimulationCollider true/false round-trips
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.SetSimulationCollider(e, true);
@@ -401,7 +397,7 @@ TEST_CASE("ColliderComponentStore - IsQueryCollider initializes to false", "[ecs
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     REQUIRE_FALSE(store.IsQueryCollider(e));
 }
@@ -410,7 +406,7 @@ TEST_CASE("ColliderComponentStore - SetQueryCollider true/false round-trips", "[
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.SetQueryCollider(e, true);
@@ -423,7 +419,7 @@ TEST_CASE("ColliderComponentStore - HasCollisionShapeChangedSize initializes to 
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     REQUIRE_FALSE(store.HasCollisionShapeChangedSize(e));
 }
@@ -432,7 +428,7 @@ TEST_CASE("ColliderComponentStore - SetCollisionShapeChangedSize true/false roun
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.SetCollisionShapeChangedSize(e, true);
@@ -445,8 +441,8 @@ TEST_CASE("ColliderComponentStore - Flags are independent per entity", "[ecs][co
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
     store.AddComponent(e1, makeComponent(body), true);
     store.AddComponent(e2, makeComponent(body), true);
 
@@ -467,7 +463,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs empty on add", "[ecs][collide
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     REQUIRE(store.GetCollisionPairs(e).empty());
@@ -477,7 +473,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs can add and retrieve pairs", 
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.GetCollisionPairs(e).push_back(10);
@@ -494,7 +490,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs swap-erase removes correct pa
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     auto &pairs = store.GetCollisionPairs(e);
@@ -518,8 +514,8 @@ TEST_CASE("ColliderComponentStore - CollisionPairs are independent per entity", 
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
     store.AddComponent(e1, makeComponent(body), true);
     store.AddComponent(e2, makeComponent(body), true);
 
@@ -528,7 +524,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs are independent per entity", 
     store.GetCollisionPairs(e2).push_back(300);
 
     REQUIRE(store.GetCollisionPairs(e1).size() == 1);
-    REQUIRE(store.GetCollisionPairs(e1)[0]      == 100);
+    REQUIRE(store.GetCollisionPairs(e1)[0] == 100);
     REQUIRE(store.GetCollisionPairs(e2).size() == 2);
 }
 
@@ -536,7 +532,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs persist across SetActiveStatu
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
     store.GetCollisionPairs(e).push_back(5);
@@ -557,7 +553,7 @@ TEST_CASE("ColliderComponentStore - Remove only active component", "[ecs][collid
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
     store.RemoveComponent(e);
     requireDensePacking(store, {}, {});
@@ -567,7 +563,7 @@ TEST_CASE("ColliderComponentStore - Remove only inactive component", "[ecs][coll
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), false);
     store.RemoveComponent(e);
     requireDensePacking(store, {}, {});
@@ -577,9 +573,9 @@ TEST_CASE("ColliderComponentStore - Remove active component preserves others", "
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f), makeTransform(10.0f)), true);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), true);
@@ -595,9 +591,9 @@ TEST_CASE("ColliderComponentStore - Remove active component with inactive presen
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity a1   = em.CreateEntity();
-    Entity a2   = em.CreateEntity();
-    Entity i1   = em.CreateEntity();
+    Entity a1 = em.CreateEntity();
+    Entity a2 = em.CreateEntity();
+    Entity i1 = em.CreateEntity();
 
     store.AddComponent(a1, makeComponent(body, makeTransform(1.0f), makeTransform(10.0f)), true);
     store.AddComponent(a2, makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), true);
@@ -613,9 +609,9 @@ TEST_CASE("ColliderComponentStore - Remove inactive component with active presen
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity a1   = em.CreateEntity();
-    Entity i1   = em.CreateEntity();
-    Entity i2   = em.CreateEntity();
+    Entity a1 = em.CreateEntity();
+    Entity i1 = em.CreateEntity();
+    Entity i2 = em.CreateEntity();
 
     store.AddComponent(a1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(i1, makeComponent(body, makeTransform(2.0f)), false);
@@ -631,9 +627,9 @@ TEST_CASE("ColliderComponentStore - Remove all components one by one", "[ecs][co
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f)), true);
@@ -653,7 +649,7 @@ TEST_CASE("ColliderComponentStore - Remove then re-add same entity", "[ecs][coll
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
 
     store.AddComponent(e, makeComponent(body, makeTransform(1.0f)), true);
     store.RemoveComponent(e);
@@ -672,13 +668,13 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus true on inactive component",
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(5.0f), makeTransform(50.0f)), false);
 
     store.SetActiveStatus(e, true);
 
     requireDensePacking(store, { e }, {});
-    REQUIRE(store.GetLocalToBodyTransform(e).Position.x  == 5.0f);
+    REQUIRE(store.GetLocalToBodyTransform(e).Position.x == 5.0f);
     REQUIRE(store.GetLocalToWorldTransform(e).Position.x == 50.0f);
 }
 
@@ -686,7 +682,7 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus true on already active is no
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(5.0f)), true);
 
     store.SetActiveStatus(e, true);
@@ -697,9 +693,9 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus true on one of several inact
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f)), false);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f)), false);
@@ -721,13 +717,13 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus false on active component", 
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(5.0f), makeTransform(50.0f)), true);
 
     store.SetActiveStatus(e, false);
 
     requireDensePacking(store, {}, { e });
-    REQUIRE(store.GetLocalToBodyTransform(e).Position.x  == 5.0f);
+    REQUIRE(store.GetLocalToBodyTransform(e).Position.x == 5.0f);
     REQUIRE(store.GetLocalToWorldTransform(e).Position.x == 50.0f);
 }
 
@@ -735,7 +731,7 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus false on already inactive is
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(5.0f)), false);
 
     store.SetActiveStatus(e, false);
@@ -746,9 +742,9 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus false on one of several acti
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f)), true);
@@ -766,9 +762,9 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus false preserves inactive com
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity a1   = em.CreateEntity();
-    Entity a2   = em.CreateEntity();
-    Entity i1   = em.CreateEntity();
+    Entity a1 = em.CreateEntity();
+    Entity a2 = em.CreateEntity();
+    Entity i1 = em.CreateEntity();
 
     store.AddComponent(a1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(a2, makeComponent(body, makeTransform(2.0f)), true);
@@ -790,8 +786,8 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus true then false returns to i
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity a1   = em.CreateEntity();
-    Entity i1   = em.CreateEntity();
+    Entity a1 = em.CreateEntity();
+    Entity i1 = em.CreateEntity();
 
     store.AddComponent(a1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(i1, makeComponent(body, makeTransform(2.0f)), false);
@@ -808,7 +804,7 @@ TEST_CASE("ColliderComponentStore - SetActiveStatus false then true returns to a
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body, makeTransform(7.0f)), true);
 
     store.SetActiveStatus(e, false);
@@ -827,9 +823,9 @@ TEST_CASE("ColliderComponentStore - Span accessors align with per-entity getters
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f), makeTransform(10.0f)), true);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f), makeTransform(20.0f)), true);
@@ -849,15 +845,15 @@ TEST_CASE("ColliderComponentStore - GetActiveBroadPhaseIDs reflects SetBroadPhas
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body), true);
     store.AddComponent(e2, makeComponent(body), true);
     store.SetBroadPhaseID(e1, 11);
     store.SetBroadPhaseID(e2, 22);
 
-    auto ids     = store.GetActiveBroadPhaseIDs();
+    auto ids = store.GetActiveBroadPhaseIDs();
     auto entities = store.GetActiveEntities();
     REQUIRE(ids.size() == 2);
 
@@ -870,16 +866,16 @@ TEST_CASE("ColliderComponentStore - GetActiveLocalToBodyTransforms align with pe
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e1   = em.CreateEntity();
-    Entity e2   = em.CreateEntity();
-    Entity e3   = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
+    Entity e3 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body, makeTransform(1.0f)), true);
     store.AddComponent(e2, makeComponent(body, makeTransform(2.0f)), false);
     store.AddComponent(e3, makeComponent(body, makeTransform(3.0f)), true);
 
     auto transforms = store.GetActiveLocalToBodyTransforms();
-    auto entities   = store.GetActiveEntities();
+    auto entities = store.GetActiveEntities();
     REQUIRE(transforms.size() == 2);
 
     for (size_t i = 0; i < entities.size(); ++i) {
@@ -896,8 +892,8 @@ TEST_CASE("ColliderComponentStore - GetBodyEntity returns correct body", "[ecs][
     ColliderComponentStore store;
     Entity body1 = em.CreateEntity();
     Entity body2 = em.CreateEntity();
-    Entity e1    = em.CreateEntity();
-    Entity e2    = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body1), true);
     store.AddComponent(e2, makeComponent(body2), true);
@@ -911,8 +907,8 @@ TEST_CASE("ColliderComponentStore - GetBodyEntity preserved after SetActiveStatu
     ColliderComponentStore store;
     Entity body1 = em.CreateEntity();
     Entity body2 = em.CreateEntity();
-    Entity e1    = em.CreateEntity();
-    Entity e2    = em.CreateEntity();
+    Entity e1 = em.CreateEntity();
+    Entity e2 = em.CreateEntity();
 
     store.AddComponent(e1, makeComponent(body1), true);
     store.AddComponent(e2, makeComponent(body2), true);
@@ -931,7 +927,7 @@ TEST_CASE("ColliderComponentStore - GetCollider returns stored pointer", "[ecs][
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
 
     // The store stores and returns the pointer as-is; use a non-null sentinel to verify.
     auto *sentinel = reinterpret_cast<Collider *>(static_cast<uintptr_t>(0xDEADBEEF));
@@ -945,7 +941,7 @@ TEST_CASE("ColliderComponentStore - GetCollisionShape returns stored pointer", "
     EntityManager em;
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
-    Entity e    = em.CreateEntity();
+    Entity e = em.CreateEntity();
 
     auto *sentinel = reinterpret_cast<CollisionShape *>(static_cast<uintptr_t>(0xCAFEBABE));
     ColliderComponent comp(body, nullptr, makeTransform(0.0f), sentinel, 0x0001, 0xFFFF, makeTransform(0.0f), makeMaterial());

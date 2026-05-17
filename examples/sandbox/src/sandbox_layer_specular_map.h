@@ -8,188 +8,188 @@ namespace Sandbox {
     using namespace Vulkyrie;
 
     class SandboxLayerSpecularMap : public Layer {
-        public:
-            SandboxLayerSpecularMap()
-                : app(Application::GetSingleton())
-                , camera(Camera::Create())
-                , lightPos(1.2f, 1.0f, 2.0f) {
+    public:
+        SandboxLayerSpecularMap()
+            : app(Application::GetSingleton())
+            , camera(Camera::Create())
+            , lightPos(1.2f, 1.0f, 2.0f) {
 
-                // load and compile the shader programs.
-                objectShader = Shader::Create("assets/shaders/specular-highlight.glsl");
-                lightShader = Shader::Create("assets/shaders/light-source.glsl");
+            // load and compile the shader programs.
+            objectShader = Shader::Create("assets/shaders/specular-highlight.glsl");
+            lightShader = Shader::Create("assets/shaders/light-source.glsl");
 
-                // load the textures.
-                boxTexture = Texture2D::Create("assets/textures/container2.png");
-                specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
+            // load the textures.
+            boxTexture = Texture2D::Create("assets/textures/container2.png");
+            specularMapTexture = Texture2D::Create("assets/textures/container2_specular.png");
 
-                // Assert that shader and textures are loaded successfully.
-                assert(objectShader->IsValid());
-                assert(lightShader->IsValid());
-                assert(boxTexture->IsLoaded());
-                assert(specularMapTexture->IsLoaded());
+            // Assert that shader and textures are loaded successfully.
+            assert(objectShader->IsValid());
+            assert(lightShader->IsValid());
+            assert(boxTexture->IsLoaded());
+            assert(specularMapTexture->IsLoaded());
 
-                // Create Vertex Array.
-                objectVertexArray = VertexArray::Create();
+            // Create Vertex Array.
+            objectVertexArray = VertexArray::Create();
 
-                // Create Vertex Buffer.
-                auto objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+            // Create Vertex Buffer.
+            auto objectVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
 
-                // Set layout for the vertex buffer.
-                objectVertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                    { ShaderDataType::Float3, "aNormal" },
-                    { ShaderDataType::Float2, "aTexture" },
-                });
+            // Set layout for the vertex buffer.
+            objectVertexBuffer->SetLayout({
+                { ShaderDataType::Float3, "aPos" },
+                { ShaderDataType::Float3, "aNormal" },
+                { ShaderDataType::Float2, "aTexture" },
+            });
 
-                // Add Vertex Buffer to the vertex array.
-                objectVertexArray->AddVertexBuffer(objectVertexBuffer);
+            // Add Vertex Buffer to the vertex array.
+            objectVertexArray->AddVertexBuffer(objectVertexBuffer);
 
-                // Create the vertex array for the light source.
-                lightVertexArray = VertexArray::Create();
+            // Create the vertex array for the light source.
+            lightVertexArray = VertexArray::Create();
 
-                // Reuse the same vertex buffer for the light source.
-                lightVertexArray->AddVertexBuffer(objectVertexBuffer);
+            // Reuse the same vertex buffer for the light source.
+            lightVertexArray->AddVertexBuffer(objectVertexBuffer);
 
-                // This is required to make sure 3D rendering works properly.
-                glEnable(GL_DEPTH_TEST);
-            }
+            // This is required to make sure 3D rendering works properly.
+            glEnable(GL_DEPTH_TEST);
+        }
 
-            ~SandboxLayerSpecularMap() = default;
+        ~SandboxLayerSpecularMap() = default;
 
-            void OnUpdate(Timestep deltaTime) override {
-                VLKY_PROFILE_FUNCTION();
+        void OnUpdate(Timestep deltaTime) override {
+            VLKY_PROFILE_FUNCTION();
 
-                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                // Update Camera position based on input.
-                camera.OnUpdate(deltaTime);
+            // Update Camera position based on input.
+            camera.OnUpdate(deltaTime);
 
-                objectShader->Use();
-                objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
+            objectShader->Use();
+            objectShader->SetVec3Uniform("viewPos", camera.GetPosition());
 
-                // projection transformations.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
-                objectShader->SetMat4Uniform("projection", projection);
+            // projection transformations.
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), (f32)app.GetWindowWidth() / (f32)app.GetWindowHeight(), 0.1f, 1000.0f);
+            objectShader->SetMat4Uniform("projection", projection);
 
-                // view matrix.
-                glm::mat4 view = camera.GetViewMatrix();
-                objectShader->SetMat4Uniform("view", view);
+            // view matrix.
+            glm::mat4 view = camera.GetViewMatrix();
+            objectShader->SetMat4Uniform("view", view);
 
-                // world transformation.
-                glm::mat4 model = glm::mat4(1.0f);
-                objectShader->SetMat4Uniform("model", model);
+            // world transformation.
+            glm::mat4 model = glm::mat4(1.0f);
+            objectShader->SetMat4Uniform("model", model);
 
-                // Set the material properties for the object.
-                objectShader->SetIntUniform("material.diffuse", 0);
-                objectShader->SetIntUniform("material.specular", 1);
-                objectShader->SetFloatUniform("material.shininess", 32.0f);
+            // Set the material properties for the object.
+            objectShader->SetIntUniform("material.diffuse", 0);
+            objectShader->SetIntUniform("material.specular", 1);
+            objectShader->SetFloatUniform("material.shininess", 32.0f);
 
-                // Bind the textures to texture units.
-                boxTexture->Bind(0);
-                specularMapTexture->Bind(1);
+            // Bind the textures to texture units.
+            boxTexture->Bind(0);
+            specularMapTexture->Bind(1);
 
-                // Set the light properties.
-                objectShader->SetVec3Uniform("light.position", lightPos);
-                objectShader->SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
-                objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
-                objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
+            // Set the light properties.
+            objectShader->SetVec3Uniform("light.position", lightPos);
+            objectShader->SetVec3Uniform("light.ambient", 0.2f, 0.2f, 0.2f);
+            objectShader->SetVec3Uniform("light.diffuse", 0.5f, 0.5f, 0.5f);
+            objectShader->SetVec3Uniform("light.specular", 1.0f, 1.0f, 1.0f);
 
-                // Issue a draw call to draw the reflecting object.
-                objectVertexArray->Bind();
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-                objectVertexArray->Unbind();
+            // Issue a draw call to draw the reflecting object.
+            objectVertexArray->Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            objectVertexArray->Unbind();
 
-                // -----------------------------------------------------------------------------------
-                // also draw the lamp object
-                lightShader->Use();
-                lightShader->SetMat4Uniform("projection", projection);
-                lightShader->SetMat4Uniform("view", view);
-                model = glm::translate(model, lightPos);
-                model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-                lightShader->SetMat4Uniform("model", model);
+            // -----------------------------------------------------------------------------------
+            // also draw the lamp object
+            lightShader->Use();
+            lightShader->SetMat4Uniform("projection", projection);
+            lightShader->SetMat4Uniform("view", view);
+            model = glm::translate(model, lightPos);
+            model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+            lightShader->SetMat4Uniform("model", model);
 
-                // Issue a draw call to draw the light source.
-                lightVertexArray->Bind();
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-                lightVertexArray->Unbind();
-            }
+            // Issue a draw call to draw the light source.
+            lightVertexArray->Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            lightVertexArray->Unbind();
+        }
 
-            void OnEvent(Event &event) override {
-                EventDispatcher dispatcher(event);
+        void OnEvent(Event &event) override {
+            EventDispatcher dispatcher(event);
 
-                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
-                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+            dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                camera.ProcessMouseMovement(e.MouseX, e.MouseY);
 
-                    return true;
-                });
-            }
+                return true;
+            });
+        }
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Specular Map");
-            }
+        void OnAttached() override {
+            VDEBUG("Layer Attached: Specular Map");
+        }
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Specular Map");
-            }
+        void OnDetached() override {
+            VDEBUG("Layer Detached: Specular Map");
+        }
 
-        private:
-            Application &app;
-            Camera camera;
-            glm::vec3 lightPos;
+    private:
+        Application &app;
+        Camera camera;
+        glm::vec3 lightPos;
 
-            Ref<VertexArray> objectVertexArray;
-            Ref<Shader> objectShader;
+        Ref<VertexArray> objectVertexArray;
+        Ref<Shader> objectShader;
 
-            Ref<VertexArray> lightVertexArray;
-            Ref<Shader> lightShader;
+        Ref<VertexArray> lightVertexArray;
+        Ref<Shader> lightShader;
 
-            Ref<Texture2D> boxTexture;
-            Ref<Texture2D> specularMapTexture;
+        Ref<Texture2D> boxTexture;
+        Ref<Texture2D> specularMapTexture;
 
-            std::vector<f32> vertices = {
-                // positions         // normals          // texture coords
-                -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
-                0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
-                0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-                0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-                -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
+        std::vector<f32> vertices = {
+            // positions         // normals          // texture coords
+            -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
 
-                -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
-                0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-                0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-                -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
-                -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
 
-                -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
-                -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-                -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-                -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
-                -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
 
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-                0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
 
-                -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
-                0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
-                0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-                0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-                -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
-                -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
+            0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
+            0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+            0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+            -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
+            -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
 
-                -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
-                0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
-                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-                -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
-                -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
-            };
+            -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
+            0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+            -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
+            -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
+        };
     };
 } // namespace Sandbox

@@ -3,18 +3,18 @@
 namespace Vulkyrie {
 
     class SATAlgorithm final {
-        public:
-            SATAlgorithm() = default;
+    public:
+        SATAlgorithm() = default;
 
-            SATAlgorithm(const SATAlgorithm &) = delete;
-            SATAlgorithm &operator=(const SATAlgorithm &) = delete;
+        SATAlgorithm(const SATAlgorithm &) = delete;
+        SATAlgorithm &operator=(const SATAlgorithm &) = delete;
 
-            SATAlgorithm(SATAlgorithm &&) = delete;
-            SATAlgorithm &operator=(SATAlgorithm &&) = delete;
+        SATAlgorithm(SATAlgorithm &&) = delete;
+        SATAlgorithm &operator=(SATAlgorithm &&) = delete;
 
-            ~SATAlgorithm() = default;
+        ~SATAlgorithm() = default;
 
-            bool PerformCollisionCheck();
+        bool PerformCollisionCheck();
     };
 
 } // namespace Vulkyrie

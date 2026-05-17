@@ -5,11 +5,11 @@
 namespace Vulkyrie {
 
     class FrameGraphTexture {
-        public:
-            struct Descriptor : public TextureSpecification {};
+    public:
+        struct Descriptor : public TextureSpecification {};
 
-            void Create(const FrameGraphTexture::Descriptor &descriptor, void *context);
-            void Destroy(const FrameGraphTexture::Descriptor &descriptor, void *context);
+        void Create(const FrameGraphTexture::Descriptor &descriptor, void *context);
+        void Destroy(const FrameGraphTexture::Descriptor &descriptor, void *context);
     };
 
 } // namespace Vulkyrie

@@ -7,203 +7,203 @@ namespace Sandbox {
     using namespace Vulkyrie;
 
     class SandboxLayerSkybox final : public Layer {
-        public:
-            SandboxLayerSkybox()
-                : camera(Camera::Create()) {
+    public:
+        SandboxLayerSkybox()
+            : camera(Camera::Create()) {
 
-                terrainShader = Shader::Create("assets/shaders/triangle.glsl");
-                skyboxShader = Shader::Create("assets/shaders/skybox.glsl");
-                texture = Texture2D::Create("assets/textures/wall.jpg");
-                skyboxTexture = TextureCubeMap::Create({
-                    "assets/cubemaps/skybox/right.jpg",
-                    "assets/cubemaps/skybox/left.jpg",
-                    "assets/cubemaps/skybox/top.jpg",
-                    "assets/cubemaps/skybox/bottom.jpg",
-                    "assets/cubemaps/skybox/front.jpg",
-                    "assets/cubemaps/skybox/back.jpg",
-                });
+            terrainShader = Shader::Create("assets/shaders/triangle.glsl");
+            skyboxShader = Shader::Create("assets/shaders/skybox.glsl");
+            texture = Texture2D::Create("assets/textures/wall.jpg");
+            skyboxTexture = TextureCubeMap::Create({
+                "assets/cubemaps/skybox/right.jpg",
+                "assets/cubemaps/skybox/left.jpg",
+                "assets/cubemaps/skybox/top.jpg",
+                "assets/cubemaps/skybox/bottom.jpg",
+                "assets/cubemaps/skybox/front.jpg",
+                "assets/cubemaps/skybox/back.jpg",
+            });
 
-                assert(skyboxTexture->IsValid());
-                assert(skyboxShader->IsValid());
-                assert(texture->IsLoaded());
-                assert(terrainShader->IsValid());
+            assert(skyboxTexture->IsValid());
+            assert(skyboxShader->IsValid());
+            assert(texture->IsLoaded());
+            assert(terrainShader->IsValid());
 
-                vertexArray = VertexArray::Create();
-                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
-                vertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                    { ShaderDataType::Float2, "aTexCoord" },
-                });
-                vertexArray->AddVertexBuffer(vertexBuffer);
+            vertexArray = VertexArray::Create();
+            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(f32));
+            vertexBuffer->SetLayout({
+                { ShaderDataType::Float3, "aPos" },
+                { ShaderDataType::Float2, "aTexCoord" },
+            });
+            vertexArray->AddVertexBuffer(vertexBuffer);
 
-                Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
-                vertexArray->SetIndexBuffer(indexBuffer);
+            Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+            vertexArray->SetIndexBuffer(indexBuffer);
 
-                skyboxVertexArray = VertexArray::Create();
-                Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices.data(), skyboxVertices.size() * sizeof(f32));
-                skyboxVertexBuffer->SetLayout({
-                    { ShaderDataType::Float3, "aPos" },
-                });
-                skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
+            skyboxVertexArray = VertexArray::Create();
+            Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices.data(), skyboxVertices.size() * sizeof(f32));
+            skyboxVertexBuffer->SetLayout({
+                { ShaderDataType::Float3, "aPos" },
+            });
+            skyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
 
-                // Enable depth testing.
-                glEnable(GL_DEPTH_TEST);
-            }
+            // Enable depth testing.
+            glEnable(GL_DEPTH_TEST);
+        }
 
-            void OnUpdate(Timestep deltaTime) override {
-                VLKY_PROFILE_FUNCTION();
+        void OnUpdate(Timestep deltaTime) override {
+            VLKY_PROFILE_FUNCTION();
 
-                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                camera.OnUpdate(deltaTime);
-                // --------------------------------------------------------------------
-                // Render terrain.
-                terrainShader->Use();
+            camera.OnUpdate(deltaTime);
+            // --------------------------------------------------------------------
+            // Render terrain.
+            terrainShader->Use();
 
-                // Projection Matrix.
-                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                                                        (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
-                                                        0.1f,
-                                                        1000.0f);
-                terrainShader->SetMat4Uniform("projection", projection);
+            // Projection Matrix.
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                                                    (f32)Application::GetSingleton().GetWindowWidth() / (f32)Application::GetSingleton().GetWindowHeight(),
+                                                    0.1f,
+                                                    1000.0f);
+            terrainShader->SetMat4Uniform("projection", projection);
 
-                // View Matrix.
-                glm::mat4 viewTerrain = camera.GetViewMatrix();
-                terrainShader->SetMat4Uniform("view", viewTerrain);
+            // View Matrix.
+            glm::mat4 viewTerrain = camera.GetViewMatrix();
+            terrainShader->SetMat4Uniform("view", viewTerrain);
 
-                texture->Bind(0);
+            texture->Bind(0);
 
-                vertexArray->Bind();
+            vertexArray->Bind();
 
-                for (int i = 0; i < HEIGHT; i++) {
-                    const auto x = i * WIDTH;
+            for (int i = 0; i < HEIGHT; i++) {
+                const auto x = i * WIDTH;
 
-                    for (int j = 0; j < WIDTH; j++) {
-                        glm::mat4 model(1.0f);
+                for (int j = 0; j < WIDTH; j++) {
+                    glm::mat4 model(1.0f);
 
-                        glm::vec3 firstQuadrantPosition = glm::vec3(j * -1.0f, -1.0f, i * -1.0f);
-                        model = glm::translate(model, firstQuadrantPosition);
-                        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                        terrainShader->SetMat4Uniform("model", model);
+                    glm::vec3 firstQuadrantPosition = glm::vec3(j * -1.0f, -1.0f, i * -1.0f);
+                    model = glm::translate(model, firstQuadrantPosition);
+                    model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                    terrainShader->SetMat4Uniform("model", model);
 
-                        glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
-                    }
+                    glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
                 }
-
-                vertexArray->Unbind();
-                // --------------------------------------------------------------------
-
-                // --------------------------------------------------------------------
-                // Sky box.
-                // change depth function so depth test passes when values are equal to depth buffer's content
-                glDepthFunc(GL_LEQUAL);
-                skyboxShader->Use();
-
-                glm::mat4 view = camera.GetViewMatrix();
-                view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-                skyboxShader->SetMat4Uniform("projection", projection);
-                skyboxShader->SetMat4Uniform("view", view);
-
-                skyboxTexture->Bind();
-
-                skyboxVertexArray->Bind();
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-                skyboxVertexArray->Unbind();
-
-                // set depth function back to default
-                glDepthFunc(GL_LESS);
-                // --------------------------------------------------------------------
             }
 
-            void OnEvent(Event &event) override {
-                EventDispatcher dispatcher(event);
+            vertexArray->Unbind();
+            // --------------------------------------------------------------------
 
-                dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
-                    camera.ProcessMouseMovement(e.MouseX, e.MouseY);
+            // --------------------------------------------------------------------
+            // Sky box.
+            // change depth function so depth test passes when values are equal to depth buffer's content
+            glDepthFunc(GL_LEQUAL);
+            skyboxShader->Use();
 
-                    return true;
-                });
-            }
+            glm::mat4 view = camera.GetViewMatrix();
+            view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+            skyboxShader->SetMat4Uniform("projection", projection);
+            skyboxShader->SetMat4Uniform("view", view);
 
-            void OnAttached() override {
-                VDEBUG("Layer Attached: Skybox");
-            }
+            skyboxTexture->Bind();
 
-            void OnDetached() override {
-                VDEBUG("Layer Detached: Skybox");
-            }
+            skyboxVertexArray->Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            skyboxVertexArray->Unbind();
 
-        private:
-            Camera camera;
+            // set depth function back to default
+            glDepthFunc(GL_LESS);
+            // --------------------------------------------------------------------
+        }
 
-            Ref<Shader> terrainShader;
-            Ref<VertexArray> vertexArray;
-            Ref<Texture2D> texture;
+        void OnEvent(Event &event) override {
+            EventDispatcher dispatcher(event);
 
-            Ref<Shader> skyboxShader;
-            Ref<VertexArray> skyboxVertexArray;
-            Ref<TextureCubeMap> skyboxTexture;
+            dispatcher.Dispatch<MouseMovedEvent>([this](const MouseMovedEvent &e) {
+                camera.ProcessMouseMovement(e.MouseX, e.MouseY);
 
-            std::vector<f32> vertices = {
-                // positions        // texture coords
-                0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-                0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-                -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-                -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
-            };
+                return true;
+            });
+        }
 
-            std::vector<u32> indices = {
-                0, 1, 2, // first triangle
-                0, 2, 3  // second triangle
-            };
+        void OnAttached() override {
+            VDEBUG("Layer Attached: Skybox");
+        }
 
-            std::vector<f32> skyboxVertices = {
-                // positions
-                -1.0f, 1.0f,  -1.0f, //
-                -1.0f, -1.0f, -1.0f, //
-                1.0f,  -1.0f, -1.0f, //
-                1.0f,  -1.0f, -1.0f, //
-                1.0f,  1.0f,  -1.0f, //
-                -1.0f, 1.0f,  -1.0f, //
+        void OnDetached() override {
+            VDEBUG("Layer Detached: Skybox");
+        }
 
-                -1.0f, -1.0f, 1.0f,  //
-                -1.0f, -1.0f, -1.0f, //
-                -1.0f, 1.0f,  -1.0f, //
-                -1.0f, 1.0f,  -1.0f, //
-                -1.0f, 1.0f,  1.0f,  //
-                -1.0f, -1.0f, 1.0f,  //
+    private:
+        Camera camera;
 
-                1.0f,  -1.0f, -1.0f, //
-                1.0f,  -1.0f, 1.0f,  //
-                1.0f,  1.0f,  1.0f,  //
-                1.0f,  1.0f,  1.0f,  //
-                1.0f,  1.0f,  -1.0f, //
-                1.0f,  -1.0f, -1.0f, //
+        Ref<Shader> terrainShader;
+        Ref<VertexArray> vertexArray;
+        Ref<Texture2D> texture;
 
-                -1.0f, -1.0f, 1.0f, //
-                -1.0f, 1.0f,  1.0f, //
-                1.0f,  1.0f,  1.0f, //
-                1.0f,  1.0f,  1.0f, //
-                1.0f,  -1.0f, 1.0f, //
-                -1.0f, -1.0f, 1.0f, //
+        Ref<Shader> skyboxShader;
+        Ref<VertexArray> skyboxVertexArray;
+        Ref<TextureCubeMap> skyboxTexture;
 
-                -1.0f, 1.0f,  -1.0f, //
-                1.0f,  1.0f,  -1.0f, //
-                1.0f,  1.0f,  1.0f,  //
-                1.0f,  1.0f,  1.0f,  //
-                -1.0f, 1.0f,  1.0f,  //
-                -1.0f, 1.0f,  -1.0f, //
+        std::vector<f32> vertices = {
+            // positions        // texture coords
+            0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+            0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+            -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
+        };
 
-                -1.0f, -1.0f, -1.0f, //
-                -1.0f, -1.0f, 1.0f,  //
-                1.0f,  -1.0f, -1.0f, //
-                1.0f,  -1.0f, -1.0f, //
-                -1.0f, -1.0f, 1.0f,  //
-                1.0f,  -1.0f, 1.0f,  //
-            };
+        std::vector<u32> indices = {
+            0, 1, 2, // first triangle
+            0, 2, 3  // second triangle
+        };
 
-            static constexpr u16 WIDTH = 100;
-            static constexpr u16 HEIGHT = 100;
+        std::vector<f32> skyboxVertices = {
+            // positions
+            -1.0f, 1.0f,  -1.0f, //
+            -1.0f, -1.0f, -1.0f, //
+            1.0f,  -1.0f, -1.0f, //
+            1.0f,  -1.0f, -1.0f, //
+            1.0f,  1.0f,  -1.0f, //
+            -1.0f, 1.0f,  -1.0f, //
+
+            -1.0f, -1.0f, 1.0f,  //
+            -1.0f, -1.0f, -1.0f, //
+            -1.0f, 1.0f,  -1.0f, //
+            -1.0f, 1.0f,  -1.0f, //
+            -1.0f, 1.0f,  1.0f,  //
+            -1.0f, -1.0f, 1.0f,  //
+
+            1.0f,  -1.0f, -1.0f, //
+            1.0f,  -1.0f, 1.0f,  //
+            1.0f,  1.0f,  1.0f,  //
+            1.0f,  1.0f,  1.0f,  //
+            1.0f,  1.0f,  -1.0f, //
+            1.0f,  -1.0f, -1.0f, //
+
+            -1.0f, -1.0f, 1.0f, //
+            -1.0f, 1.0f,  1.0f, //
+            1.0f,  1.0f,  1.0f, //
+            1.0f,  1.0f,  1.0f, //
+            1.0f,  -1.0f, 1.0f, //
+            -1.0f, -1.0f, 1.0f, //
+
+            -1.0f, 1.0f,  -1.0f, //
+            1.0f,  1.0f,  -1.0f, //
+            1.0f,  1.0f,  1.0f,  //
+            1.0f,  1.0f,  1.0f,  //
+            -1.0f, 1.0f,  1.0f,  //
+            -1.0f, 1.0f,  -1.0f, //
+
+            -1.0f, -1.0f, -1.0f, //
+            -1.0f, -1.0f, 1.0f,  //
+            1.0f,  -1.0f, -1.0f, //
+            1.0f,  -1.0f, -1.0f, //
+            -1.0f, -1.0f, 1.0f,  //
+            1.0f,  -1.0f, 1.0f,  //
+        };
+
+        static constexpr u16 WIDTH = 100;
+        static constexpr u16 HEIGHT = 100;
     };
 } // namespace Sandbox
