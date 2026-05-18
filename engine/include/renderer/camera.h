@@ -182,7 +182,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Calculates and returns the view matrix using the camera's position and orientation.
-         * @return The view matrix as a glm::mat4.
+         * @returns The view matrix as a glm::mat4.
          */
         [[nodiscard]] inline glm::mat4 GetViewMatrix() const {
             return glm::lookAt(_settings.Position, _settings.Position + _settings.Front, _up);
@@ -263,7 +263,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Creates a CameraSettings object with default values.
-         * @return A CameraSettings object initialized with default values.
+         * @returns A CameraSettings object initialized with default values.
          */
         static CameraSettings makeDefaultCameraSettings() {
             return CameraSettings{}; // uses member defaults

@@ -22,7 +22,7 @@ namespace Vulkyrie {
          * @tparam T The type of the value to store. Must not already exist in the blackboard.
          * @tparam Args The types of the arguments to forward to the constructor of T.
          * @param args The arguments to forward to the constructor of T.
-         * @return A reference to the stored value of type T. */
+         * @returns A reference to the stored value of type T. */
         template <typename T, typename... Args> T &Set(Args &&...args) {
             VASSERT_EXPR(!Contains<T>(), "Blackboard already contains an entry for this type.");
 
@@ -31,21 +31,21 @@ namespace Vulkyrie {
 
         /** @brief Retrieves a reference to the value of type T stored in the blackboard.
          * @tparam T The type of the value to retrieve. Must exist in the blackboard.
-         * @return A reference to the stored value of type T. */
+         * @returns A reference to the stored value of type T. */
         template <typename T> [[nodiscard]] T &Get() {
             return const_cast<T &>(const_cast<const FrameGraphBlackboard *>(this)->Get<T>());
         }
 
         /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if it does not exist.
          * @tparam T The type of the value to retrieve.
-         * @return A pointer to the stored value of type T, or nullptr if it does not exist. */
+         * @returns A pointer to the stored value of type T, or nullptr if it does not exist. */
         template <typename T> [[nodiscard]] T *TryGet() {
             return const_cast<T *>(const_cast<const FrameGraphBlackboard *>(this)->TryGet<T>());
         }
 
         /** @brief Retrieves a reference to the value of type T stored in the blackboard.
          * @tparam T The type of the value to retrieve. Must exist in the blackboard.
-         * @return A reference to the stored value of type T. */
+         * @returns A reference to the stored value of type T. */
         template <typename T> [[nodiscard]] const T &Get() const {
             VASSERT_EXPR(Contains<T>(), "Blackboard does not contain an entry for this type.");
 
@@ -54,7 +54,7 @@ namespace Vulkyrie {
 
         /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if it does not exist.
          * @tparam T The type of the value to retrieve.
-         * @return A pointer to the stored value of type T, or nullptr if it does not exist. */
+         * @returns A pointer to the stored value of type T, or nullptr if it does not exist. */
         template <typename T> [[nodiscard]] const T *TryGet() const {
             auto it = _cache.find(typeid(T));
 
@@ -63,7 +63,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the blackboard contains a value of type T.
          * @tparam T The type of the value to check for.
-         * @return true if the blackboard contains a value of type T, false otherwise. */
+         * @returns true if the blackboard contains a value of type T, false otherwise. */
         template <typename T> [[nodiscard]] bool Contains() const {
             return _cache.contains(typeid(T));
         }

@@ -62,7 +62,7 @@ namespace Vulkyrie {
         /** @brief Checks if this node is a leaf node in the AABB tree. A leaf node is defined as a node that has a height of 0, which means it does
          * not have any child nodes and represents an actual object in the world. Internal nodes, on the other hand, have a height greater than 0
          * and are used for spatial partitioning to optimize collision detection.
-         * @return True if this node is a leaf node (height == 0), false otherwise. */
+         * @returns True if this node is a leaf node (height == 0), false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsLeaf() const {
             return Height == 0;
         }
@@ -110,7 +110,7 @@ namespace Vulkyrie {
          * @param data An integer value representing user-defined data associated with the object being added to the tree. This could be an ID, a
          * type identifier, or any other integer value that helps identify or categorize the object. The caller is responsible for ensuring that
          * this data remains valid for the duration of its use in the tree.
-         * @return The index of the newly added node in the tree, which can be used for future updates or removals. */
+         * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
         VE_FORCE_INLINE i32 AddObject(const AABB &aabb, i32 data) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
@@ -145,7 +145,7 @@ namespace Vulkyrie {
          * @param dataPointer A pointer to user-defined data associated with the object being added to the tree. This could point to any type of
          * data structure that helps identify or categorize the object. The caller is responsible for ensuring that this pointer remains valid for
          * the duration of its use in the tree and that it points to a valid memory location containing the intended data.
-         * @return The index of the newly added node in the tree, which can be used for future updates or removals. */
+         * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
         VE_FORCE_INLINE i32 AddObject(const AABB &aabb, void *dataPointer) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
@@ -182,7 +182,7 @@ namespace Vulkyrie {
          * @param forceReinsert If true, forces the node to be removed and reinserted even if the new AABB is still contained within the existing fat
          * AABB. This can be useful if you want to ensure that any changes to the object's position or size are reflected in the tree immediately, even
          * if they don't require an update based on containment checks.
-         * @return True if the tree was updated and may need to be re-queried for collisions, or false if no update was necessary because the new AABB
+         * @returns True if the tree was updated and may need to be re-queried for collisions, or false if no update was necessary because the new AABB
          * is still contained within the existing fat AABB and we're not forcing a reinsert. */
         bool UpdateObject(i32 nodeIndex, const AABB &newAABB, bool forceReinsert);
 
@@ -209,7 +209,7 @@ namespace Vulkyrie {
          * spatial queries. The caller is responsible for ensuring that the node index is valid and that the returned AABB is used safely within its
          * intended context.
          * @param nodeIndex The index of the node to retrieve the AABB from. This must be a valid index into the _nodes vector.
-         * @return The AABB associated with the specified node index. */
+         * @returns The AABB associated with the specified node index. */
         [[nodiscard]] VE_FORCE_INLINE const AABB &GetFatAABB(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
 
@@ -228,7 +228,7 @@ namespace Vulkyrie {
         /** @brief Returns the data associated with the leaf node.
          * @param nodeIndex The index of the leaf node to retrieve the data from. Must be a valid index into the _nodes vector and must correspond
          * to a leaf node.
-         * @return The data associated with the leaf node. */
+         * @returns The data associated with the leaf node. */
         [[nodiscard]] VE_FORCE_INLINE i32 GetNodeData(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
@@ -240,7 +240,7 @@ namespace Vulkyrie {
          * safely and that the data it points to remains valid for the duration of its use.
          * @param nodeIndex The index of the leaf node to retrieve the data pointer from. Must be a valid index into the _nodes vector and must
          * correspond to a leaf node.
-         * @return A pointer to the data associated with the leaf node. */
+         * @returns A pointer to the data associated with the leaf node. */
         [[nodiscard]] VE_FORCE_INLINE void *GetNodeDataPointer(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
@@ -324,7 +324,7 @@ namespace Vulkyrie {
          * root of the balanced subtree, which may be different from the input node index if rotations were performed. The caller is responsible for
          * updating any parent nodes accordingly after balancing.
          * @param nodeIndex The index of the node at the root of the subtree to balance. This should be a valid index into the _nodes vector.
-         * @return The new index of the root of the balanced subtree after performing any necessary rotations. */
+         * @returns The new index of the root of the balanced subtree after performing any necessary rotations. */
         i32 balanceSubtree(i32 nodeIndex);
 
         /** @brief Allocates a new node from the pool of available nodes. This function will check if there are any free nodes in the free list, and if

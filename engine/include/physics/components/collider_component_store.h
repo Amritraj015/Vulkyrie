@@ -94,7 +94,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the body entity associated with the specified collider entity. The body entity represents the parent body to which the collider
          * is attached in the physics simulation. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose body entity is to be retrieved.
-         * @return The body entity associated with the specified collider entity. This entity can be used to access the parent body of the collider in the
+         * @returns The body entity associated with the specified collider entity. This entity can be used to access the parent body of the collider in the
          * physics simulation. */
         [[nodiscard]] VE_FORCE_INLINE Entity GetBodyEntity(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
@@ -105,7 +105,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the entity associated with the body at the specified index in the component vector. The index must be a valid index within
          * the component vector.
          * @param index The index of the component whose associated entity is to be retrieved. Must be a valid index within the component vector.
-         * @return The entity associated with the component at the specified index in the component vector. */
+         * @returns The entity associated with the component at the specified index in the component vector. */
         [[nodiscard]] VE_FORCE_INLINE Entity GetBodyEntityAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -115,7 +115,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Collider associated with the specified collider entity. The Collider represents the collision properties and
          * behavior of the entity in the physics simulation. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose Collider is to be retrieved.
-         * @return A reference to the Collider associated with the specified collider entity. This Collider can be used to access and modify the collision
+         * @returns A reference to the Collider associated with the specified collider entity. This Collider can be used to access and modify the collision
          * properties and behavior of the entity in the physics simulation. */
         [[nodiscard]] VE_FORCE_INLINE Collider &GetCollider(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
@@ -126,7 +126,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Collider associated with the component at the specified index in the component vector. The index must be a
          * valid index within the component vector.
          * @param index The index of the component whose Collider is to be retrieved. Must be a valid index within the component vector.
-         * @return A reference to the Collider associated with the component at the specified index in the component vector. */
+         * @returns A reference to the Collider associated with the component at the specified index in the component vector. */
         [[nodiscard]] VE_FORCE_INLINE Collider &GetColliderAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -137,7 +137,7 @@ namespace Vulkyrie {
          * represents the transformation that converts coordinates from the collider's local space to the body's local space, which is essential for
          * accurate collision detection and response in the physics simulation. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose local-to-body transform is to be retrieved.
-         * @return A reference to the local-to-body transform associated with the specified collider entity. This transform can be used to convert
+         * @returns A reference to the local-to-body transform associated with the specified collider entity. This transform can be used to convert
          * coordinates from the collider's local space to the body's local space for accurate collision detection and response. */
         [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetLocalToBodyTransform(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
@@ -148,7 +148,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the local-to-body transform associated with the component at the specified index in the component vector. The
          * index must be a valid index within the component vector.
          * @param index The index of the component whose local-to-body transform is to be retrieved. Must be a valid index within the component vector.
-         * @return A reference to the local-to-body transform associated with the component at the specified index in the component vector. */
+         * @returns A reference to the local-to-body transform associated with the component at the specified index in the component vector. */
         [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetLocalToBodyTransformAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -170,7 +170,7 @@ namespace Vulkyrie {
          * representation of the collider used for collision detection and response in the physics simulation. The entity must have a ColliderComponent
          * associated with it.
          * @param colliderEntity The entity of the collider whose collision shape is to be retrieved.
-         * @return A reference to the collision shape associated with the specified collider entity. This shape can be used for collision detection and
+         * @returns A reference to the collision shape associated with the specified collider entity. This shape can be used for collision detection and
          * response calculations in the physics simulation. */
         [[nodiscard]] VE_FORCE_INLINE CollisionShape &GetCollisionShape(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
@@ -181,7 +181,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the collision shape associated with the component at the specified index in the component vector. The index must
          * be a valid index within the component vector.
          * @param index The index of the component whose collision shape is to be retrieved. Must be a valid index within the component vector.
-         * @return A reference to the collision shape associated with the component at the specified index in the component vector. */
+         * @returns A reference to the collision shape associated with the component at the specified index in the component vector. */
         [[nodiscard]] VE_FORCE_INLINE CollisionShape &GetCollisionShapeAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -192,7 +192,7 @@ namespace Vulkyrie {
          * detection system to track the collider's bounding volume. A value of -1 indicates the collider has not yet been registered with the broad phase.
          * The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose broad-phase ID is to be retrieved.
-         * @return The broad-phase ID of the collider, or -1 if not yet registered. */
+         * @returns The broad-phase ID of the collider, or -1 if not yet registered. */
         [[nodiscard]] VE_FORCE_INLINE i32 GetBroadPhaseID(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -212,7 +212,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the broad-phase ID assigned to the component at the specified index in the component vector. The index must be a valid index
          * within the component vector.
          * @param index The index of the component whose broad-phase ID is to be retrieved. Must be a valid index within the component vector.
-         * @return The broad-phase ID of the component at the specified index, or -1 if not yet registered. */
+         * @returns The broad-phase ID of the component at the specified index, or -1 if not yet registered. */
         [[nodiscard]] VE_FORCE_INLINE i32 GetBroadPhaseIDAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -223,7 +223,7 @@ namespace Vulkyrie {
          * belongs to. Collision filtering is performed by testing this value against the CollidesWithMaskBits of the other collider. The entity must have
          * a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose collision category bits are to be retrieved.
-         * @return The collision category bitmask assigned to this collider. */
+         * @returns The collision category bitmask assigned to this collider. */
         [[nodiscard]] VE_FORCE_INLINE u16 GetCollisionCategoryBits(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -244,7 +244,7 @@ namespace Vulkyrie {
          * respond to. A collision is only processed when (this->CollisionCategoryBits & other->CollidesWithMaskBits) != 0 and vice versa. The entity must
          * have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose collides-with mask bits are to be retrieved.
-         * @return The collides-with bitmask for the specified collider. */
+         * @returns The collides-with bitmask for the specified collider. */
         [[nodiscard]] VE_FORCE_INLINE u16 GetCollidesWithMaskBits(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -265,7 +265,7 @@ namespace Vulkyrie {
          * represents the transformation that converts coordinates from the collider's local space to world space, which is essential for accurate collision
          * detection and response in the physics simulation. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose local-to-world transform is to be retrieved.
-         * @return A reference to the local-to-world transform associated with the specified collider entity. This transform can be used to convert
+         * @returns A reference to the local-to-world transform associated with the specified collider entity. This transform can be used to convert
          * coordinates from the collider's local space to world space for accurate collision detection and response. */
         [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetLocalToWorldTransform(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
@@ -288,9 +288,9 @@ namespace Vulkyrie {
          * all broad-phase pairs that currently overlap with this collider, which is used during the collision detection process to determine potential
          * collisions. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose overlapping pairs are to be retrieved.
-         * @return A reference to the vector of broad-phase overlapping pair IDs for the specified collider entity. This vector can be used to access and
+         * @returns A reference to the vector of broad-phase overlapping pair IDs for the specified collider entity. This vector can be used to access and
          * manage the broad-phase pairs that overlap with this collider during collision detection. */
-        [[nodiscard]] VE_FORCE_INLINE std::vector<i32> &GetOverlappingPairs(Entity colliderEntity) {
+        [[nodiscard]] VE_FORCE_INLINE std::vector<u64> &GetOverlappingPairs(Entity colliderEntity) {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return _overlappingPairs[_entityToComponentIndex.find(colliderEntity)->second];
@@ -300,9 +300,9 @@ namespace Vulkyrie {
          * This vector contains the IDs of all broad-phase pairs that currently overlap with this collider, which is used during the collision detection process
          * to determine potential collisions. The index must be a valid index within the component vector.
          * @param index The index of the component whose overlapping pairs are to be retrieved. Must be a valid index within the component vector.
-         * @return A reference to the vector of broad-phase overlapping pair IDs for the component at the specified index in the component vector. This
+         * @returns A reference to the vector of broad-phase overlapping pair IDs for the component at the specified index in the component vector. This
          * vector can be used to access and manage the broad-phase pairs that overlap with this collider during collision detection. */
-        [[nodiscard]] VE_FORCE_INLINE std::vector<i32> &GetOverlappingPairsAtIndex(size_t index) {
+        [[nodiscard]] VE_FORCE_INLINE std::vector<u64> &GetOverlappingPairsAtIndex(size_t index) {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
             return _overlappingPairs[index];
@@ -312,7 +312,7 @@ namespace Vulkyrie {
          * shape associated with the collider has undergone a size change, which may require updates to the physics simulation or broad-phase collision
          * detection. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider to be checked for collision shape size change.
-         * @return True if the collision shape of the specified collider entity has changed size, false otherwise. */
+         * @returns True if the collision shape of the specified collider entity has changed size, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool HasCollisionShapeChangedSize(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -321,7 +321,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the collision shape of the component at the specified index in the component vector has changed size.
          * @param index The index of the component to be checked for collision shape size change. Must be a valid index within the component vector.
-         * @return True if the collision shape of the component at the specified index has changed size, false otherwise. */
+         * @returns True if the collision shape of the component at the specified index has changed size, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool HasCollisionShapeChangedSizeAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
@@ -354,7 +354,7 @@ namespace Vulkyrie {
          * simulation or collision response but can be used to detect overlaps and trigger events. The entity must have a ColliderComponent associated with
          * it.
          * @param colliderEntity The entity of the collider to be checked.
-         * @return True if the specified collider entity is a trigger, false otherwise. */
+         * @returns True if the specified collider entity is a trigger, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsTrigger(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -376,7 +376,7 @@ namespace Vulkyrie {
          * response, while a non-simulation collider may be used for other purposes such as triggers or queries. The entity must have a ColliderComponent
          * associated with it.
          * @param colliderEntity The entity of the collider to be checked.
-         * @return True if the specified collider entity is a simulation collider, false otherwise. */
+         * @returns True if the specified collider entity is a simulation collider, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsSimulationCollider(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -397,7 +397,7 @@ namespace Vulkyrie {
         /** @brief Checks if the specified collider entity is a query collider. A query collider is used for collision queries and does not participate in
          * physics simulation. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider to be checked.
-         * @return True if the specified collider entity is a query collider, false otherwise. */
+         * @returns True if the specified collider entity is a query collider, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsQueryCollider(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -417,7 +417,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Material associated with the specified collider entity. The entity must have a ColliderComponent associated
          * with it.
          * @param colliderEntity The entity whose material properties are to be retrieved.
-         * @return A reference to the Material associated with the specified collider entity. */
+         * @returns A reference to the Material associated with the specified collider entity. */
         [[nodiscard]] VE_FORCE_INLINE Material &GetMaterial(Entity colliderEntity) {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
@@ -434,25 +434,25 @@ namespace Vulkyrie {
         }
 
         /** @brief Returns a contiguous view of the active local-to-world transforms.
-         * @return A span over the densely packed active local-to-world TransformComponents at the front of the storage. */
+         * @returns A span over the densely packed active local-to-world TransformComponents at the front of the storage. */
         [[nodiscard]] VE_FORCE_INLINE std::span<const TransformComponent> GetActiveLocalToWorldTransforms() const {
             return { _localToWorldTransforms.data(), _activeCount };
         }
 
         /** @brief Returns a contiguous view of the active local-to-body transforms.
-         * @return A span over the densely packed active local-to-body TransformComponents at the front of the storage. */
+         * @returns A span over the densely packed active local-to-body TransformComponents at the front of the storage. */
         [[nodiscard]] VE_FORCE_INLINE std::span<const TransformComponent> GetActiveLocalToBodyTransforms() const {
             return { _localToBodyTransforms.data(), _activeCount };
         }
 
         /** @brief Returns a contiguous view of the active broad-phase IDs.
-         * @return A span over the densely packed active broad-phase IDs at the front of the storage. */
+         * @returns A span over the densely packed active broad-phase IDs at the front of the storage. */
         [[nodiscard]] VE_FORCE_INLINE std::span<const i32> GetActiveBroadPhaseIDs() const {
             return { _broadPhaseIDs.data(), _activeCount };
         }
 
         /** @brief Returns a contiguous view of the active collision shape pointers.
-         * @return A span over the densely packed active CollisionShape pointers at the front of the storage. */
+         * @returns A span over the densely packed active CollisionShape pointers at the front of the storage. */
         [[nodiscard]] VE_FORCE_INLINE std::span<CollisionShape *const> GetActiveCollisionShapes() const {
             return { _collisionShapes.data(), _activeCount };
         }
@@ -494,7 +494,7 @@ namespace Vulkyrie {
 
         /** @brief Parallel array of overlapping pairs. Entry i holds a vector of indices or identifiers of other colliders that are currently colliding or have
          * recently collided with collider i. This is used to track collision pairs for narrow-phase testing and contact generation. */
-        std::vector<std::vector<i32>> _overlappingPairs;
+        std::vector<std::vector<u64>> _overlappingPairs;
 
         /** @brief Parallel array of collision-shape-changed-size flags stored as u8 to keep the array tightly packed. A non-zero value for entry i
          * indicates the collision shape of collider i has been resized and the broad-phase bounding volume needs updating. */

@@ -85,7 +85,7 @@ namespace Vulkyrie {
          * in the dynamic AABB tree, and it must be valid and currently active in the broad phase system.
          * @param shapeTwoBroadPhaseID The broad phase ID of the second collider to be tested for overlap. This ID corresponds to the entry of the collider
          * in the dynamic AABB tree, and it must be valid and currently active in the broad phase system.
-         * @return True if there is an overlap between the AABBs of the two colliders identified by their broad phase IDs, indicating a potential collision,
+         * @returns True if there is an overlap between the AABBs of the two colliders identified by their broad phase IDs, indicating a potential collision,
          * and false otherwise. */
         bool TestOverlap(i32 shapeOneBroadPhaseID, i32 shapeTwoBroadPhaseID) const;
 
@@ -105,7 +105,7 @@ namespace Vulkyrie {
          * reference to the fat AABB, which can be used for efficient collision checks against other colliders in the broad phase system.
          * @param broadPaseID The broad phase ID of the collider whose fat AABB is to be retrieved. This ID corresponds to the entry of the collider in the
          * dynamic AABB tree, and it must be valid and currently active in the broad phase system.
-         * @return A reference to the fat AABB associated with the specified broad phase ID. This AABB can be used for efficient collision checks against
+         * @returns A reference to the fat AABB associated with the specified broad phase ID. This AABB can be used for efficient collision checks against
          * other colliders in the broad phase system. */
         [[nodiscard]] VE_FORCE_INLINE const AABB &GetFatAABB(i32 broadPaseID) const {
             return _aabbTree.GetFatAABB(broadPaseID);

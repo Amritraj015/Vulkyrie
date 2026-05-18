@@ -80,7 +80,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Body associated with the specified body entity. The entity must have
          * a BodyComponent associated with it.
          * @param bodyEntity The entity whose body is to be retrieved.
-         * @return A reference to the Body associated with the specified entity. */
+         * @returns A reference to the Body associated with the specified entity. */
         [[nodiscard]] VE_FORCE_INLINE Body &GetBody(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
@@ -90,7 +90,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Body associated with the specified body entity. The entity must have
          * a BodyComponent associated with it.
          * @param bodyEntity The entity whose body is to be retrieved.
-         * @return A reference to the Body associated with the specified entity. */
+         * @returns A reference to the Body associated with the specified entity. */
         [[nodiscard]] VE_FORCE_INLINE Body &GetBody(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
@@ -100,7 +100,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the list of collider entities attached to the specified body entity. The entity must
          * have a BodyComponent associated with it.
          * @param bodyEntity The entity whose collider list is to be retrieved.
-         * @return A const reference to the vector of collider entities attached to the specified body. */
+         * @returns A const reference to the vector of collider entities attached to the specified body. */
         [[nodiscard]] VE_FORCE_INLINE const std::vector<Entity> &GetColliders(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
@@ -110,7 +110,7 @@ namespace Vulkyrie {
         /** @brief Checks whether the body associated with the specified entity is active in the physics simulation.
          * The entity must have a BodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if the body is active in the simulation, false otherwise. */
+         * @returns True if the body is active in the simulation, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsBodyActive(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
@@ -131,7 +131,7 @@ namespace Vulkyrie {
          * participates in collision response, as opposed to a query-only collider. The entity must have a
          * BodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if at least one simulation collider is attached, false otherwise. */
+         * @returns True if at least one simulation collider is attached, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool HasSimulationColliders(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 

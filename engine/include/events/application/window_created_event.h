@@ -31,7 +31,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Gets the static event type for this event class.
-         * @return The static event type.
+         * @returns The static event type.
          */
         [[nodiscard]] static inline EventType GetStaticEventType() {
             return EventType::WindowCreated;

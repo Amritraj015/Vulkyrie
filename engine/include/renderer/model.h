@@ -16,19 +16,19 @@ namespace Vulkyrie {
         /** @brief Creates a model from the specified file path.
          * @param path The file path to the 3D model.
          * @param gamma Whether to apply gamma correction. Default is false.
-         * @return A reference to the created Model.
+         * @returns A reference to the created Model.
          */
         static Ref<Model> Create(const std::filesystem::path &path, bool gamma = false);
 
         /** @brief Gets the number of meshes in the model.
-         * @return The count of meshes.
+         * @returns The count of meshes.
          */
         [[nodiscard]] inline size_t GetMeshCount() const {
             return _meshes.size();
         }
 
         /** @brief Gets the meshes that make up the model.
-         * @return A constant reference to the vector of meshes.
+         * @returns A constant reference to the vector of meshes.
          */
         [[nodiscard]] inline const std::vector<Ref<Mesh>> &GetMeshes() const {
             return _meshes;
@@ -36,7 +36,7 @@ namespace Vulkyrie {
 
         /** @brief Gets a reference to the mesh at the specified index.
          * @param index The index of the mesh to retrieve.
-         * @return A reference to the mesh at the specified index.
+         * @returns A reference to the mesh at the specified index.
          */
         [[nodiscard]] Mesh &GetMesh(size_t index) const {
             VASSERT_EXPR(index < _meshes.size(), "Mesh index out of bounds!");

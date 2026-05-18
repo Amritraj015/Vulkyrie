@@ -20,21 +20,21 @@ namespace Vulkyrie {
 
         /** @brief Checks if the event is in a specific category.
          * @param[in] category The category to check against.
-         * @return True if the event is in the specified category, false otherwise.
+         * @returns True if the event is in the specified category, false otherwise.
          */
         [[nodiscard]] inline bool IsInCategory(i32 category) const {
             return GetCategoryFlags() & category;
         }
 
         /** @brief Converts the event to a string representation.
-         * @return A string representation of the event.
+         * @returns A string representation of the event.
          */
         [[nodiscard]] inline virtual std::string ToString() const {
             return "General Event";
         }
 
         /** @brief Gets the static event type for this event class.
-         * @return The static event type.
+         * @returns The static event type.
          */
         [[nodiscard]] static inline EventType GetStaticEventType() {
             return EventType::Unknown;

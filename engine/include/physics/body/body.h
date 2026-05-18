@@ -34,13 +34,13 @@ namespace Vulkyrie {
         virtual ~Body() = default;
 
         /** @brief Retrieves the Entity associated with this Body.
-         * @return The Entity associated with this Body. */
+         * @returns The Entity associated with this Body. */
         [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
             return _entity;
         }
 
         /** @brief Retrieves a reference to the PhysicsWorld that this body belongs to.
-         * @return A reference to the PhysicsWorld that this body belongs to. */
+         * @returns A reference to the PhysicsWorld that this body belongs to. */
         [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
             return _physicsWorld;
         }
@@ -48,7 +48,7 @@ namespace Vulkyrie {
         /** @brief Checks whether this body is active in the physics simulation. An active body participates in collision detection and response, while an
          * inactive body does not. The active state of a body can be used to temporarily disable its physical interactions without removing it from the
          * physics world.
-         * @return True if this body is active in the simulation, false otherwise. */
+         * @returns True if this body is active in the simulation, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsActive() const {
             return _physicsWorld.GetBodyComponentStore().IsBodyActive(_entity);
         }
@@ -62,7 +62,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the current transform of this body, which includes its position and rotation in world space. The transform defines the body's
          * location and orientation in the physics world, and it affects how the body's colliders are positioned and how it interacts with other bodies. The
          * returned transform is a reference to the TransformComponent associated with this body's entity in the physics world.
-         * @return A const reference to the TransformComponent representing this body's transform in world space. */
+         * @returns A const reference to the TransformComponent representing this body's transform in world space. */
         [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetTransform() const {
             return _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
         }
@@ -78,18 +78,18 @@ namespace Vulkyrie {
          * colliders currently attached to this body, as returned by GetColliderCount(). This method allows access to the colliders for manipulation or
          * querying of their properties and collision geometry.
          * @param colliderIndex The index of the collider to retrieve, which must be in the range [0, GetColliderCount()).
-         * @return A reference to the Collider at the specified index in this body's collider list. */
+         * @returns A reference to the Collider at the specified index in this body's collider list. */
         [[nodiscard]] Collider &GetCollider(size_t colliderIndex);
 
         /** @brief Retrieves a const reference to the Collider at the specified index in this body's collider list. The index must be less than the number
          * of colliders currently attached to this body, as returned by GetColliderCount(). This method allows read-only access to the colliders for
          * querying their properties and collision geometry without modifying them.
          * @param colliderIndex The index of the collider to retrieve, which must be in the range [0, GetColliderCount()).
-         * @return A const reference to the Collider at the specified index in this body's collider list. */
+         * @returns A const reference to the Collider at the specified index in this body's collider list. */
         [[nodiscard]] const Collider &GetCollider(size_t colliderIndex) const;
 
         /** @brief Retrieves the number of colliders currently attached to this body.
-         * @return The number of colliders currently attached to this body. */
+         * @returns The number of colliders currently attached to this body. */
         [[nodiscard]] VE_FORCE_INLINE size_t GetColliderCount() const {
             return _physicsWorld.GetBodyComponentStore().GetColliders(_entity).size();
         }
@@ -100,7 +100,7 @@ namespace Vulkyrie {
          * reference to the newly created Collider, which can be used for further manipulation or querying of its properties.
          * @param collisionShape The CollisionShape that defines the geometric representation of the new collider to be added to this body.
          * @param transform The local transform that specifies the position and rotation of the new collider relative to this body's origin.
-         * @return A reference to the newly created Collider that has been added to this body. This collider will be part of the body's collision geometry
+         * @returns A reference to the newly created Collider that has been added to this body. This collider will be part of the body's collision geometry
          * and can be used for further manipulation or querying of its properties. */
         [[nodiscard]] virtual Collider &AddCollider(CollisionShape &collisionShape, const TransformComponent &transform);
 
@@ -119,14 +119,14 @@ namespace Vulkyrie {
         /** @brief Checks if the specified point in world space is contained within any of the colliders attached to this body. This method iterates through
          * all colliders associated with the body and checks if the point lies within any of them, returning true if it does and false otherwise.
          * @param point The point in world space to be checked for containment within the body's colliders.
-         * @return True if the specified point is contained within any of the colliders attached to this body, false otherwise. */
+         * @returns True if the specified point is contained within any of the colliders attached to this body, false otherwise. */
         [[nodiscard]] bool ContainsPoint(const glm::vec3 &point) const;
 
         /** @brief Checks if this body collides with the given axis-aligned bounding box (AABB). This method computes the AABB that encompasses all
          * colliders attached to this body and tests it against the provided AABB for overlap. It returns true if there is any collision (overlap) between
          * the body's AABB and the given AABB, and false otherwise.
          * @param aabb The axis-aligned bounding box to test for collision against this body.
-         * @return True if this body collides with the given AABB, false otherwise. */
+         * @returns True if this body collides with the given AABB, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
             return aabb.CollidesWith(GetAABB());
         }
@@ -134,13 +134,13 @@ namespace Vulkyrie {
         /** @brief Computes and retrieves the axis-aligned bounding box (AABB) that encompasses all colliders attached to this body. This method iterates
          * through all colliders associated with the body, computes their world-space AABBs, and combines them to produce a single AABB that fully contains
          * the body's collision geometry.
-         * @return The AABB that encompasses all colliders attached to this body. */
+         * @returns The AABB that encompasses all colliders attached to this body. */
         [[nodiscard]] AABB GetAABB() const;
 
         /** @brief Transforms a point from the body's local space to world space using the body's current transform. This method applies the body's position
          * and rotation to the given local point to compute its corresponding position in world space.
          * @param localPoint The point in the body's local space to be transformed to world space.
-         * @return The corresponding point in world space after applying the body's transform. */
+         * @returns The corresponding point in world space after applying the body's transform. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const {
             return GetTransform() * localPoint;
         }
@@ -149,7 +149,7 @@ namespace Vulkyrie {
          * to the given local vector to compute its corresponding direction in world space. Note that this transformation does not apply the body's
          * position, as vectors represent directions rather than points.
          * @param localVector The vector in the body's local space to be transformed to world space.
-         * @return The corresponding vector in world space after applying the body's rotation. */
+         * @returns The corresponding vector in world space after applying the body's rotation. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldVector(const glm::vec3 &localVector) const {
             return GetTransform().Rotation * localVector;
         }
@@ -157,14 +157,14 @@ namespace Vulkyrie {
         /** @brief Transforms a point from world space to the body's local space using the inverse of the body's current transform. This method applies the
          * inverse of the body's position and rotation to the given world point to compute its corresponding position in the body's local space.
          * @param worldPoint The point in world space to be transformed to the body's local space.
-         * @return The corresponding point in the body's local space after applying the inverse of the body's transform. */
+         * @returns The corresponding point in the body's local space after applying the inverse of the body's transform. */
         [[nodiscard]] glm::vec3 GetLocalPoint(const glm::vec3 &worldPoint) const;
 
         /** @brief Transforms a vector from world space to the body's local space using the inverse of the body's current rotation. This method applies the
          * inverse of the body's rotation to the given world vector to compute its corresponding direction in the body's local space. Note that this
          * transformation does not apply the body's position, as vectors represent directions rather than points.
          * @param worldVector The vector in world space to be transformed to the body's local space.
-         * @return The corresponding vector in the body's local space after applying the inverse of the body's rotation. */
+         * @returns The corresponding vector in the body's local space after applying the inverse of the body's rotation. */
         [[nodiscard]] glm::vec3 GetLocalVector(const glm::vec3 &worldVector) const;
 
         /** @brief Scans all colliders attached to this body and sets the has-simulation-colliders flag to true on the body's component if at least one

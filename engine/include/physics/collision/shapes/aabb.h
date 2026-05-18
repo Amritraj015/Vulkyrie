@@ -95,7 +95,7 @@ namespace Vulkyrie {
 
         /** @brief Tests whether this AABB overlaps or touches another AABB using the separating axis theorem.
          * @param other The other AABB to test against.
-         * @return True if the two AABBs overlap or touch, false otherwise. */
+         * @returns True if the two AABBs overlap or touch, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &other) const {
             if (_maxCoordinates.x < other._minCoordinates.x || other._maxCoordinates.x < _minCoordinates.x) return false;
             if (_maxCoordinates.y < other._minCoordinates.y || other._maxCoordinates.y < _minCoordinates.y) return false;
@@ -105,7 +105,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Computes the volume of the AABB.
-         * @return The volume of the box. */
+         * @returns The volume of the box. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const {
             glm::vec3 extents = _maxCoordinates - _minCoordinates;
             return extents.x * extents.y * extents.z;
@@ -117,7 +117,7 @@ namespace Vulkyrie {
          * @param epsilon A small tolerance value to allow points that are very close to the surface to be considered inside. Defaults to the smallest
          * representable positive float. This is useful to avoid false negatives due to floating-point inaccuracies when a point is very close to the
          * boundary of the AABB.
-         * @return True if the point is inside or on the surface of the AABB (within the epsilon tolerance), false otherwise. */
+         * @returns True if the point is inside or on the surface of the AABB (within the epsilon tolerance), false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool Contains(const glm::vec3 &point, f32 epsilon = std::numeric_limits<f32>::epsilon()) const {
             return (point.x >= _minCoordinates.x - epsilon && point.x <= _maxCoordinates.x + epsilon) &&
                    (point.y >= _minCoordinates.y - epsilon && point.y <= _maxCoordinates.y + epsilon) &&
@@ -126,7 +126,7 @@ namespace Vulkyrie {
 
         /** @brief Tests whether this AABB completely contains another AABB, meaning that the other box is entirely inside or on the surface of this box.
          * @param other The other AABB to test for containment.
-         * @return True if this AABB contains the other AABB, false otherwise. */
+         * @returns True if this AABB contains the other AABB, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool Contains(const AABB &other) const {
             return (other._minCoordinates.x >= _minCoordinates.x && other._maxCoordinates.x <= _maxCoordinates.x) &&
                    (other._minCoordinates.y >= _minCoordinates.y && other._maxCoordinates.y <= _maxCoordinates.y) &&
@@ -154,7 +154,7 @@ namespace Vulkyrie {
          * an existing AABB but instead creates and returns a new one representing the union of the two input boxes.
          * @param first The first AABB to merge.
          * @param second The second AABB to merge.
-         * @return A new AABB that contains both input AABBs. */
+         * @returns A new AABB that contains both input AABBs. */
         [[nodiscard]] VE_FORCE_INLINE static AABB With(const AABB &first, const AABB &second) {
             return AABB(glm::min(first._minCoordinates, second._minCoordinates), glm::max(first._maxCoordinates, second._maxCoordinates));
         }

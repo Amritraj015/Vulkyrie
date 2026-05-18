@@ -37,7 +37,7 @@ namespace Vulkyrie {
         ~Collider() = default;
 
         /** @brief Retrieves the Entity associated with this Collider.
-         * @return The Entity associated with this Collider. */
+         * @returns The Entity associated with this Collider. */
         [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
             return _entity;
         }
@@ -45,7 +45,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Body to which this Collider is attached. The body represents the parent physical entity that this collider
          * belongs to in the physics simulation. The collider uses the body's transform for movement and transformation, and it participates in collision
          * detection and response as part of the body.
-         * @return A reference to the Body to which this Collider is attached. */
+         * @returns A reference to the Body to which this Collider is attached. */
         [[nodiscard]] VE_FORCE_INLINE const Body &GetBody() const {
             return _body;
         }
@@ -54,7 +54,7 @@ namespace Vulkyrie {
          * collision shape of this collider in world space and tests it against the provided AABB for overlap. It returns true if there is any collision
          * (overlap) between this collider's AABB and the given AABB, and false otherwise.
          * @param aabb The axis-aligned bounding box to test for collision against this collider.
-         * @return True if this collider collides with the given AABB, false otherwise. */
+         * @returns True if this collider collides with the given AABB, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
             return aabb.CollidesWith(GetWorldSpaceAABB());
         }
@@ -69,18 +69,18 @@ namespace Vulkyrie {
 
         /** @brief Retrieves a reference to the CollisionShape associated with this collider. The CollisionShape defines the geometric shape used for
          * collision detection and response in the physics simulation.
-         * @return A reference to the CollisionShape associated with this collider. */
+         * @returns A reference to the CollisionShape associated with this collider. */
         [[nodiscard]] CollisionShape &GetCollisionShape();
 
         /** @brief Retrieves a const reference to the CollisionShape associated with this collider. The CollisionShape defines the geometric shape used for
          * collision detection and response in the physics simulation.
-         * @return A const reference to the CollisionShape associated with this collider. */
+         * @returns A const reference to the CollisionShape associated with this collider. */
         [[nodiscard]] const CollisionShape &GetCollisionShape() const;
 
         /** @brief Retrieves a reference to the local-to-body transform associated with this collider. The local-to-body transform represents the
          * transformation that converts coordinates from the collider's local space to the body's local space, which is essential for accurate collision
          * detection and response in the physics simulation.
-         * @return A reference to the local-to-body transform associated with this collider. This transform can be used to convert coordinates from the
+         * @returns A reference to the local-to-body transform associated with this collider. This transform can be used to convert coordinates from the
          * collider's local space to the body's local space for accurate collision detection and response. */
         [[nodiscard]] const TransformComponent &GetLocalToBodyTransform() const;
 
@@ -95,7 +95,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the local-to-world transform associated with this collider. The local-to-world transform represents the
          * transformation that converts coordinates from the collider's local space to world space, which is essential for accurate collision detection and
          * response in the physics simulation.
-         * @return A const reference to the local-to-world transform associated with this collider. This transform can be used to convert coordinates from
+         * @returns A const reference to the local-to-world transform associated with this collider. This transform can be used to convert coordinates from
          * the collider's local space to world space for accurate collision detection and response. */
         [[nodiscard]] const TransformComponent &GetLocalToWorldTransform() const;
 
@@ -103,19 +103,19 @@ namespace Vulkyrie {
          * simple geometric representation that can be used for broad-phase collision detection and spatial queries in the physics simulation. This method
          * computes the AABB based on the collider's collision shape and its local-to-world transform, providing an efficient way to test for potential
          * collisions with other colliders or spatial structures in the simulation.
-         * @return The axis-aligned bounding box (AABB) that encompasses the collision shape of this collider in world space. */
+         * @returns The axis-aligned bounding box (AABB) that encompasses the collision shape of this collider in world space. */
         [[nodiscard]] const AABB GetWorldSpaceAABB() const;
 
         /** @brief Checks if the specified point in world space is contained within the collision shape of this collider. This method transforms the point
          * from world space to the collider's local space using the inverse of the local-to-world transform, and then checks if the point lies within the
          * collision shape. It returns true if the point is contained within the collider's shape, and false otherwise.
          * @param worldSpacePoint The point in world space to be checked for containment within this collider's collision shape.
-         * @return True if the specified point is contained within the collision shape of this collider, false otherwise. */
+         * @returns True if the specified point is contained within the collision shape of this collider, false otherwise. */
         [[nodiscard]] bool ContainsPoint(const glm::vec3 &worldSpacePoint) const;
 
         /** @brief Retrieves a reference to the Material associated with this collider. The Material defines the physical properties of the collider, such
          * as friction and restitution, which affect how it interacts with other colliders in the physics simulation.
-         * @return A reference to the Material associated with this collider. */
+         * @returns A reference to the Material associated with this collider. */
         [[nodiscard]] Material &GetMaterial() const;
 
         /** @brief Sets the material properties for this collider. The Material defines the physical properties of the collider, such as friction and
@@ -126,7 +126,7 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the collision category bits for this collider. Collision category bits are used for collision filtering in the physics
          * simulation, allowing you to specify which categories of colliders this collider belongs to.
-         * @return The collision category bitmask for this collider. */
+         * @returns The collision category bitmask for this collider. */
         [[nodiscard]] u16 GetCollisionCategoryBits() const;
 
         /** @brief Sets the collision category bits for this collider. Collision category bits are used for collision filtering in the physics simulation,
@@ -138,7 +138,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the collides-with mask bits for this collider. The collides-with mask bits define which collision categories this collider will
          * respond to during collision detection in the physics simulation. A collision is only processed when (this->CollisionCategoryBits &
          * other->CollidesWithMaskBits) != 0 and vice versa.
-         * @return The collides-with bitmask for this collider. */
+         * @returns The collides-with bitmask for this collider. */
         [[nodiscard]] u16 GetCollidesWithMaskBits() const;
 
         /** @brief Sets the collides-with mask bits for this collider. The collides-with mask bits define which collision categories this collider will
@@ -150,12 +150,12 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the broad-phase ID for this collider. The broad-phase ID is an identifier used in the broad-phase collision detection system to
          * efficiently manage and query colliders in the physics simulation.
-         * @return The broad-phase ID for this collider. */
+         * @returns The broad-phase ID for this collider. */
         [[nodiscard]] i32 GetBroadPhaseID() const;
 
         /** @brief Reports if this collider is a trigger. A trigger is a special type of collider that does not participate in physics simulation or
          * collision response but can be used to detect overlaps and trigger events.
-         * @return True if this collider is a trigger, false otherwise. */
+         * @returns True if this collider is a trigger, false otherwise. */
         [[nodiscard]] bool IsTrigger() const;
 
         /** @brief Sets whether this collider is a trigger. A trigger is a special type of collider that does not participate in physics simulation or
@@ -167,7 +167,7 @@ namespace Vulkyrie {
         /** @brief Checks if this collider is a simulation collider. A simulation collider is a regular collider that participates in physics simulation and
          * collision response. If this collider is not a simulation collider, it may be used for other purposes such as queries or triggers, but it will not
          * affect the physics simulation or generate collision responses.
-         * @return True if this collider is a simulation collider, false otherwise. */
+         * @returns True if this collider is a simulation collider, false otherwise. */
         [[nodiscard]] bool IsSimulationCollider() const;
 
         /** @brief Sets whether this collider is a simulation collider. A simulation collider is a regular collider that participates in physics simulation
@@ -179,7 +179,7 @@ namespace Vulkyrie {
         /** @brief Checks if this collider is a query collider. A query collider is used for collision queries and does not participate in physics
          * simulation. If this collider is a query collider, it will be included in scene queries such as raycasts, shape casts, and overlap tests, but it
          * will not generate collision responses or affect the physics simulation.
-         * @return True if this collider is a query collider, false otherwise. */
+         * @returns True if this collider is a query collider, false otherwise. */
         [[nodiscard]] bool IsQueryCollider() const;
 
         /** @brief Sets whether this collider is a query collider. A query collider is used for collision queries and does not participate in physics

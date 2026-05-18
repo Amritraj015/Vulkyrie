@@ -30,7 +30,7 @@ namespace Vulkyrie {
         /** @brief Processes an individual mesh from the ASSIMP scene.
          * @param mesh The ASSIMP mesh to process.
          * @param scene The ASSIMP scene containing the model data.
-         * @return A Mesh object representing the processed mesh.
+         * @returns A Mesh object representing the processed mesh.
          */
         Ref<OpenGLMesh> ProcessMesh(aiMesh *mesh, const aiScene *scene);
 

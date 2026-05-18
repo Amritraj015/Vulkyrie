@@ -27,7 +27,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for sphere-vs-sphere narrow-phase tests.
-         * @return A reference to the sphere-vs-sphere NarrowPhaseDataBatch.
+         * @returns A reference to the sphere-vs-sphere NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetSphereVsSphereBatch() {
             return _sphereVsSphereBatch;
@@ -35,7 +35,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for sphere-vs-capsule narrow-phase tests.
-         * @return A reference to the sphere-vs-capsule NarrowPhaseDataBatch.
+         * @returns A reference to the sphere-vs-capsule NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetSphereVsCapsuleBatch() {
             return _sphereVsCapsuleBatch;
@@ -43,7 +43,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for capsule-vs-capsule narrow-phase tests.
-         * @return A reference to the capsule-vs-capsule NarrowPhaseDataBatch.
+         * @returns A reference to the capsule-vs-capsule NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetCapsuleVsCapsuleBatch() {
             return _capsuleVsCapsuleBatch;
@@ -51,7 +51,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for sphere-vs-convex-polyhedron narrow-phase tests.
-         * @return A reference to the sphere-vs-convex-polyhedron NarrowPhaseDataBatch.
+         * @returns A reference to the sphere-vs-convex-polyhedron NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetSphereVsConvexPolyhedronBatch() {
             return _sphereVsConvexPolyhedronBatch;
@@ -59,7 +59,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for capsule-vs-convex-polyhedron narrow-phase tests.
-         * @return A reference to the capsule-vs-convex-polyhedron NarrowPhaseDataBatch.
+         * @returns A reference to the capsule-vs-convex-polyhedron NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetCapsuleVsConvexPolyhedronBatch() {
             return _capsuleVsConvexPolyhedronBatch;
@@ -67,7 +67,7 @@ namespace Vulkyrie {
 
         /**
          * @brief Returns the batch for convex-polyhedron-vs-convex-polyhedron narrow-phase tests.
-         * @return A reference to the convex-polyhedron-vs-convex-polyhedron NarrowPhaseDataBatch.
+         * @returns A reference to the convex-polyhedron-vs-convex-polyhedron NarrowPhaseDataBatch.
          */
         [[nodiscard]] VE_FORCE_INLINE NarrowPhaseDataBatch &GetConvexPolyhedronVsConvexPolyhedronBatch() {
             return _convexPolyhedronVsConvexPolyhedronBatch;

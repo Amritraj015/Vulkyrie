@@ -28,7 +28,7 @@ namespace Vulkyrie {
         ~CapsuleShape() override = default;
 
         /** @brief Get the radius of the capsule shape.
-         * @return The radius of the capsule shape, which is the radius of the hemispherical end caps and the cylindrical part. */
+         * @returns The radius of the capsule shape, which is the radius of the hemispherical end caps and the cylindrical part. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetRadius() const {
             return _margin;
         }
@@ -47,7 +47,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Get the height of the capsule shape.
-         * @return The height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. */
+         * @returns The height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetHeight() const {
             return _halfHeight + _halfHeight;
         }
@@ -67,14 +67,14 @@ namespace Vulkyrie {
         }
 
         /** @brief Check if the collision shape is polyhedral.
-         * @return True if the collision shape is polyhedral, false otherwise.
+         * @returns True if the collision shape is polyhedral, false otherwise.
          */
         [[nodiscard]] VE_FORCE_INLINE bool IsPolyhedral() const override {
             return false;
         }
 
         /** @brief Get the axis-aligned bounding box (AABB) of the collision shape in local space.
-         * @return The AABB of the collision shape defined in its local coordinate system.
+         * @returns The AABB of the collision shape defined in its local coordinate system.
          */
         [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
             return AABB(glm::vec3(-_margin, -_halfHeight - _margin, -_margin), glm::vec3(_margin, _halfHeight + _margin, _margin));
@@ -82,12 +82,12 @@ namespace Vulkyrie {
 
         /** @brief Get the local inertia tensor of the collision shape for a given mass.
          * @param mass The mass of the object for which to compute the inertia tensor.
-         * @return The local inertia tensor of the collision shape as a 3D vector, where each component represents the inertia around the corresponding
+         * @returns The local inertia tensor of the collision shape as a 3D vector, where each component represents the inertia around the corresponding
          * axis. */
         glm::vec3 GetLocalInertiaTensor(f32 mass) const override;
 
         /** @brief Get the volume of the collision shape.
-         * @return The volume of the collision shape. */
+         * @returns The volume of the collision shape. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
             // The volume of a capsule can be calculated as the volume of the cylindrical part plus the volume of the two hemispherical end caps. The
             // formula is: V = π * r² * h + (4/3) * π * r³, where r is the radius and h is the height of the cylindrical part (which is the total height
@@ -98,7 +98,7 @@ namespace Vulkyrie {
 
         /** @brief Check if the collision shape contains a given point in local space.
          * @param point The point to check, specified in the local coordinate system of the collision shape.
-         * @return True if the point is inside the collision shape, false otherwise. */
+         * @returns True if the point is inside the collision shape, false otherwise. */
         bool ContainsPoint(const glm::vec3 &point) const override;
 
         /** @brief Returns the local support point on the capsule's core (without margin) in the given direction.
@@ -106,7 +106,7 @@ namespace Vulkyrie {
          * that is farthest in the specified direction. This is used in collision detection algorithms (e.g., GJK) to find the extreme point
          * of the capsule's core along a direction, ignoring the margin/radius.
          * @param direction The direction vector in which to search for the support point (does not need to be normalized).
-         * @return The local-space position of the support point on the capsule's spine, without margin. */
+         * @returns The local-space position of the support point on the capsule's spine, without margin. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
             // Support point on the top hemisphere.
             const f32 dotProductTop = _halfHeight * direction.y;

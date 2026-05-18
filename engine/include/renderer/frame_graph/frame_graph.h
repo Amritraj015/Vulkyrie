@@ -46,7 +46,7 @@ namespace Vulkyrie {
              * @param descriptor The descriptor containing the necessary information for creating and managing the resource. The specific fields and
              * requirements of the descriptor will depend on the implementation of the resource backend and the requirements of the resource being
              * created.
-             * @return The ResourceID of the newly created resource, which can be used for referencing this resource in subsequent pass definitions. */
+             * @returns The ResourceID of the newly created resource, which can be used for referencing this resource in subsequent pass definitions. */
             template <FrameGraphResourceBackend T> [[nodiscard]] ResourceID Create(const std::string_view name, const typename T::Descriptor &descriptor) {
                 const auto id = _frameGraph.Create<T>(ResourceEntry::Type::Transient, name, descriptor, T{}, _passNode.GetPassID());
                 return _passNode._creates.emplace_back(id);
@@ -59,7 +59,7 @@ namespace Vulkyrie {
              * certain types of reads. The specific meaning and usage of the flags will depend on the implementation of the resource backend and the
              * requirements of the resource being read. By default, this parameter is set to IGNORED_FLAGS, which indicates that no special handling is
              * required for this read operation.
-             * @return The ResourceID of the resource being read, which can be used for chaining calls or for further processing. */
+             * @returns The ResourceID of the resource being read, which can be used for chaining calls or for further processing. */
             [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
                 VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
                 return _passNode.Read(resourceID, flags);
@@ -72,7 +72,7 @@ namespace Vulkyrie {
              * certain types of writes. The specific meaning and usage of the flags will depend on the implementation of the resource backend and the
              * requirements of the resource being written to. By default, this parameter is set to IGNORED_FLAGS, which indicates that no special
              * handling is required for this write operation.
-             * @return The ResourceID of the resource being written to, which can be used for chaining calls or for further processing. */
+             * @returns The ResourceID of the resource being written to, which can be used for chaining calls or for further processing. */
             [[nodiscard]] ResourceID Write(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
                 VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
 

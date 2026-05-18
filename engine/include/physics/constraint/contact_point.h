@@ -25,25 +25,25 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the contact normal at this contact point, represented in world space. The contact normal is a normalized vector that points
          * from the first body towards the second body at the point of contact, and it is used to determine the direction of the collision response.
-         * @return The contact normal at this contact point, represented in world space. */
+         * @returns The contact normal at this contact point, represented in world space. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldSpaceContactNormal() const {
             return _worldSpaceContactNormal;
         }
 
         /** @brief Retrieves the contact point on the first body, represented in the local space of the first body.
-         * @return The contact point on the first body, represented in the local space of the first body. */
+         * @returns The contact point on the first body, represented in the local space of the first body. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyOne() const {
             return _localSpaceContactPointOnBodyOne;
         }
 
         /** @brief Retrieves the contact point on the second body, represented in the local space of the second body.
-         * @return The contact point on the second body, represented in the local space of the second body. */
+         * @returns The contact point on the second body, represented in the local space of the second body. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyTwo() const {
             return _localSpaceContactPointOnBodyTwo;
         }
 
         /** @brief Retrieves the penetration depth for this contact point.
-         * @return The penetration depth for this contact point. */
+         * @returns The penetration depth for this contact point. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetPenetrationDepth() const {
             return _penetrationDepth;
         }
@@ -67,7 +67,7 @@ namespace Vulkyrie {
          * typically those that occur when two objects are in sustained contact, such as an object resting on the ground or two objects sliding against each
          * other. Identifying resting contacts can help improve the stability of the physics simulation by allowing the engine to apply different response
          * strategies for contacts that are expected to persist over time.
-         * @return True if this contact point is a resting contact, false otherwise. */
+         * @returns True if this contact point is a resting contact, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsRestingContact() const {
             return _isRestingContact;
         }

@@ -17,7 +17,7 @@ namespace Vulkyrie {
         /** @brief Provides access to the settings of the physics world, which include parameters such as gravity, time step, and other global
          * configurations that affect the behavior of the physics simulation. This method allows other parts of the physics system to query the current
          * settings and adjust their behavior accordingly during simulation updates.
-         * @return A reference to the PhysicsWorldSettings that contains the configuration parameters for the physics world. */
+         * @returns A reference to the PhysicsWorldSettings that contains the configuration parameters for the physics world. */
         [[nodiscard]] VE_FORCE_INLINE const PhysicsWorldSettings &GetSettings() const {
             return _settings;
         }
@@ -25,7 +25,7 @@ namespace Vulkyrie {
         /** @brief Provides access to the EntityManager, which manages the creation and destruction of entities in the physics world. The EntityManager is
          * responsible for generating unique entity identifiers, tracking entity lifetimes, and providing an interface for creating and destroying entities.
          * This method allows other parts of the physics system to create new entities or query existing ones as needed during simulation updates.
-         * @return A reference to the EntityManager that manages entities in the physics world. */
+         * @returns A reference to the EntityManager that manages entities in the physics world. */
         [[nodiscard]] VE_FORCE_INLINE EntityManager &GetEntityManager() {
             return _entityManager;
         }
@@ -35,7 +35,7 @@ namespace Vulkyrie {
          * their colliders and active state. This method allows other parts of the physics system to retrieve and modify the body components of entities as
          * needed during simulation updates. The BodyComponentStore also maintains the dense active-zone invariant for efficient iteration over active
          * bodies in the simulation.
-         * @return A reference to the BodyComponentStore that manages the BodyComponents of entities in the physics world. */
+         * @returns A reference to the BodyComponentStore that manages the BodyComponents of entities in the physics world. */
         [[nodiscard]] VE_FORCE_INLINE BodyComponentStore &GetBodyComponentStore() {
             return _bodyComponentStore;
         }
@@ -45,7 +45,7 @@ namespace Vulkyrie {
          * including their mass, inertia, velocity, and sleep state. This method allows other parts of the physics system to retrieve and modify the rigid
          * body components of entities as needed during simulation updates. The RigidBodyComponentStore also maintains the dense active-zone invariant for
          * efficient iteration over active rigid bodies in the simulation.
-         * @return A reference to the RigidBodyComponentStore that manages the RigidBodyComponents of entities in the physics world. */
+         * @returns A reference to the RigidBodyComponentStore that manages the RigidBodyComponents of entities in the physics world. */
         [[nodiscard]] VE_FORCE_INLINE RigidBodyComponentStore &GetRigidBodyComponentStore() {
             return _rigidBodyComponentStore;
         }
@@ -55,7 +55,7 @@ namespace Vulkyrie {
          * including their colliders, collision shapes, and material properties. This method allows other parts of the physics system to retrieve and modify
          * the colliders of entities as needed during simulation updates. The ColliderComponentStore also maintains the dense active-zone invariant for
          * efficient iteration over active colliders in the simulation.
-         * @return A reference to the ColliderComponentStore that manages the ColliderComponents of entities in the physics world. */
+         * @returns A reference to the ColliderComponentStore that manages the ColliderComponents of entities in the physics world. */
         [[nodiscard]] VE_FORCE_INLINE ColliderComponentStore &GetColliderComponentStore() {
             return _colliderComponentStore;
         }
@@ -64,7 +64,7 @@ namespace Vulkyrie {
          * TransformComponentStore is responsible for storing and managing the position and orientation of entities in 3D space, which is essential for
          * accurate collision detection and response in the physics simulation. This method allows other parts of the physics system to retrieve and modify
          * the transforms of entities as needed during simulation updates.
-         * @return A reference to the TransformComponentStore that manages the TransformComponents of entities in the physics world. */
+         * @returns A reference to the TransformComponentStore that manages the TransformComponents of entities in the physics world. */
         [[nodiscard]] VE_FORCE_INLINE TransformComponentStore &GetTransformComponentStore() {
             return _transformComponentStore;
         }

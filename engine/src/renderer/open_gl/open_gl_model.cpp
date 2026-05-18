@@ -88,7 +88,7 @@ namespace Vulkyrie {
      *
      * @param mesh The ASSIMP mesh to process
      * @param scene The ASSIMP scene containing material data
-     * @return A reference to the created OpenGLMesh
+     * @returns A reference to the created OpenGLMesh
      */
     Ref<OpenGLMesh> OpenGLModel::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
         // ========================================

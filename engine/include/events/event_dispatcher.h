@@ -13,7 +13,7 @@ namespace Vulkyrie {
          * @tparam T The type of the event to dispatch.
          * @tparam F The type of the function to call if the event type matches.
          * @param[in] func The function to call if the event type matches.
-         * @return True if the event was dispatched, false otherwise.
+         * @returns True if the event was dispatched, false otherwise.
          */
         template <typename T, typename F>
             requires std::derived_from<T, Event> && std::is_invocable_r_v<bool, F, T &>

@@ -101,7 +101,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the pass creates the specified resource.
          * @param resourceID The ID of the resource to check.
-         * @return `true` if the pass creates the resource; otherwise, `false`.
+         * @returns `true` if the pass creates the resource; otherwise, `false`.
          */
         [[nodiscard]] bool CreatesResource(const ResourceID resourceID) const {
             return std::ranges::find(_creates, resourceID) != _creates.cend();
@@ -109,7 +109,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the pass reads from the specified resource.
          * @param resourceID The ID of the resource to check.
-         * @return `true` if the pass reads from the resource; otherwise, `false`.
+         * @returns `true` if the pass reads from the resource; otherwise, `false`.
          */
         [[nodiscard]] bool ReadsResource(const ResourceID resourceID) const {
             return std::ranges::find_if(_reads, [resourceID](const ResourceAccess &a) { return a.ResourceID == resourceID; }) != _reads.cend();
@@ -117,7 +117,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the pass writes to the specified resource.
          * @param resourceID The ID of the resource to check.
-         * @return `true` if the pass writes to the resource; otherwise, `false`.
+         * @returns `true` if the pass writes to the resource; otherwise, `false`.
          */
         [[nodiscard]] bool WritesToResource(const ResourceID resourceID) const {
             return std::ranges::find_if(_writes, [resourceID](const ResourceAccess &a) { return a.ResourceID == resourceID; }) != _writes.cend();
@@ -173,7 +173,7 @@ namespace Vulkyrie {
          * @param resourceID The ID of the resource being read.
          * @param flags Flags indicating the type of read operation. These flags can be used for optimization or to specify special handling for certain
          * types of reads.
-         * @return The ID of the resource being read, which can be used for chaining calls or for further processing. */
+         * @returns The ID of the resource being read, which can be used for chaining calls or for further processing. */
         [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags) {
             VASSERT_EXPR(!CreatesResource(resourceID) && !WritesToResource(resourceID), "Resource is already being created or written to by this pass.");
 
@@ -191,7 +191,7 @@ namespace Vulkyrie {
          * @param resourceID The ID of the resource being written to.
          * @param flags Flags indicating the type of write operation. These flags can be used for optimization or to specify special handling for certain
          * types of writes.
-         * @return The ID of the resource being written to, which can be used for chaining calls or for further processing. */
+         * @returns The ID of the resource being written to, which can be used for chaining calls or for further processing. */
         [[nodiscard]] ResourceID Write(const ResourceID resourceID, i32 flags) {
             ResourceAccess access{ resourceID, flags };
 

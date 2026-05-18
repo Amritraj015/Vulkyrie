@@ -23,7 +23,7 @@ namespace Vulkyrie {
         std::vector<Ref<Texture2D>> Height;
 
         /** @brief Calculates the total number of textures across all types.
-         * @return The total count of textures.
+         * @returns The total count of textures.
          */
         size_t TotalCount() const {
             return Ambient.size() + Diffuse.size() + Specular.size() + Normal.size() + Height.size();

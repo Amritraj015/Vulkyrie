@@ -71,7 +71,7 @@ namespace Vulkyrie {
          * the runtime physics state and behavior of the entity in the physics simulation. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose RigidBody is to be retrieved.
-         * @return A reference to the RigidBody associated with the specified entity. */
+         * @returns A reference to the RigidBody associated with the specified entity. */
         [[nodiscard]] VE_FORCE_INLINE RigidBody &GetRigidBody(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -81,7 +81,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a const reference to the RigidBody associated with the specified body entity. The entity must have
          * a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose RigidBody is to be retrieved.
-         * @return A const reference to the RigidBody associated with the specified entity. */
+         * @returns A const reference to the RigidBody associated with the specified entity. */
         [[nodiscard]] VE_FORCE_INLINE const RigidBody &GetRigidBody(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -92,7 +92,7 @@ namespace Vulkyrie {
          * that can sleep will be deactivated by the physics engine when they remain at rest for a sufficient period, improving
          * performance. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if the body is allowed to sleep, false otherwise. */
+         * @returns True if the body is allowed to sleep, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool CanSleep(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -113,7 +113,7 @@ namespace Vulkyrie {
          * bodies are temporarily excluded from physics simulation until awakened by external forces or interactions. The
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if the body is currently sleeping, false otherwise. */
+         * @returns True if the body is currently sleeping, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsSleeping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -134,7 +134,7 @@ namespace Vulkyrie {
          * in a resting state below the sleep threshold. The physics engine uses this value to determine when a body has been
          * stationary long enough to transition into a sleeping state. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose sleep time is to be retrieved.
-         * @return The sleep time in seconds. */
+         * @returns The sleep time in seconds. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetSleepTime(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -156,7 +156,7 @@ namespace Vulkyrie {
          * without being affected by forces, and DYNAMIC bodies respond to all forces and constraints. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose body type is to be retrieved.
-         * @return The BodyType (STATIC, KINEMATIC, or DYNAMIC) of the specified entity. */
+         * @returns The BodyType (STATIC, KINEMATIC, or DYNAMIC) of the specified entity. */
         [[nodiscard]] VE_FORCE_INLINE BodyType GetBodyType(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -175,7 +175,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the linear velocity of the body associated with the specified entity in world space. This represents
          * the rate of change of the body's position per second. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear velocity is to be retrieved.
-         * @return A const reference to the linear velocity vector in world space (meters per second). */
+         * @returns A const reference to the linear velocity vector in world space (meters per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -197,7 +197,7 @@ namespace Vulkyrie {
          * the axis of rotation and the magnitude indicates the rotation speed in radians per second. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular velocity is to be retrieved.
-         * @return A const reference to the angular velocity vector in world space (radians per second). */
+         * @returns A const reference to the angular velocity vector in world space (radians per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -218,7 +218,7 @@ namespace Vulkyrie {
          * External forces are typically reset each simulation step after being integrated into the body's velocity. The entity
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose external force is to be retrieved.
-         * @return A const reference to the external force vector (Newtons). */
+         * @returns A const reference to the external force vector (Newtons). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalForce(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -239,7 +239,7 @@ namespace Vulkyrie {
          * External torques are typically reset each simulation step after being integrated into the body's angular velocity. The
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose external torque is to be retrieved.
-         * @return A const reference to the external torque vector (Newton-meters). */
+         * @returns A const reference to the external torque vector (Newton-meters). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalTorque(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -260,7 +260,7 @@ namespace Vulkyrie {
          * simulates drag or air resistance by gradually reducing the body's linear velocity over time. Higher values cause the
          * body to slow down more quickly. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear damping coefficient is to be retrieved.
-         * @return The linear damping coefficient (typically in the range [0, 1]). */
+         * @returns The linear damping coefficient (typically in the range [0, 1]). */
         [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDamping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -281,7 +281,7 @@ namespace Vulkyrie {
          * simulates rotational drag by gradually reducing the body's angular velocity over time. Higher values cause the body to
          * stop spinning more quickly. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular damping coefficient is to be retrieved.
-         * @return The angular damping coefficient (typically in the range [0, 1]). */
+         * @returns The angular damping coefficient (typically in the range [0, 1]). */
         [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDamping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -302,7 +302,7 @@ namespace Vulkyrie {
          * how the body responds to applied forces according to Newton's second law (F = ma). The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose mass is to be retrieved.
-         * @return The mass in kilograms. */
+         * @returns The mass in kilograms. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -323,7 +323,7 @@ namespace Vulkyrie {
          * precomputed for performance and is zero for bodies with infinite mass (immovable bodies). The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse mass is to be retrieved.
-         * @return The inverse mass (1/kilograms), or 0 for immovable bodies. */
+         * @returns The inverse mass (1/kilograms), or 0 for immovable bodies. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetInverseMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -345,7 +345,7 @@ namespace Vulkyrie {
          * as a 3-component vector representing the diagonal elements of the inertia tensor matrix (assuming the tensor has been
          * diagonalized to its principal axes). The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose local inertia tensor is to be retrieved.
-         * @return A const reference to the local inertia tensor (kg·m²) stored as a vec3. */
+         * @returns A const reference to the local inertia tensor (kg·m²) stored as a vec3. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -366,7 +366,7 @@ namespace Vulkyrie {
          * This is precomputed for performance. Components are zero for axes with infinite rotational inertia. The entity must
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse local inertia tensor is to be retrieved.
-         * @return A const reference to the inverse local inertia tensor (1/(kg·m²)) stored as a vec3. */
+         * @returns A const reference to the inverse local inertia tensor (1/(kg·m²)) stored as a vec3. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetInverseLocalInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -377,7 +377,7 @@ namespace Vulkyrie {
          * This is computed by rotating the local inverse inertia tensor into world space using the body's current orientation,
          * and is updated each simulation step. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse world inertia tensor is to be retrieved.
-         * @return A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
+         * @returns A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
         [[nodiscard]] VE_FORCE_INLINE const glm::mat3 &GetInverseWorldInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -408,7 +408,7 @@ namespace Vulkyrie {
          * updated by the constraint solver during physics simulation and may differ from the unconstrained velocity due to
          * contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained linear velocity is to be retrieved.
-         * @return A const reference to the constrained linear velocity vector (meters per second). */
+         * @returns A const reference to the constrained linear velocity vector (meters per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -419,7 +419,7 @@ namespace Vulkyrie {
          * updated by the constraint solver during physics simulation and may differ from the unconstrained velocity due to
          * contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained angular velocity is to be retrieved.
-         * @return A const reference to the constrained angular velocity vector (radians per second). */
+         * @returns A const reference to the constrained angular velocity vector (radians per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -430,7 +430,7 @@ namespace Vulkyrie {
          * used by certain constraint solvers to separate positional correction from velocity-level solving, improving stability
          * and preventing artificial energy gain. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose split linear velocity is to be retrieved.
-         * @return A const reference to the split linear velocity vector (meters per second). */
+         * @returns A const reference to the split linear velocity vector (meters per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -441,7 +441,7 @@ namespace Vulkyrie {
          * used by certain constraint solvers to separate positional correction from velocity-level solving. The entity must have
          * a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose split angular velocity is to be retrieved.
-         * @return A const reference to the split angular velocity vector (radians per second). */
+         * @returns A const reference to the split angular velocity vector (radians per second). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -452,7 +452,7 @@ namespace Vulkyrie {
          * The constrained position may be modified by certain constraint solvers during iterative solving to correct positional
          * drift. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained position is to be retrieved.
-         * @return A mutable reference to the constrained position vector. */
+         * @returns A mutable reference to the constrained position vector. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 &GetConstrainedPosition(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -463,7 +463,7 @@ namespace Vulkyrie {
          * specified entity. The constrained orientation may be modified by certain constraint solvers during iterative solving
          * to correct rotational drift. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained orientation is to be retrieved.
-         * @return A mutable reference to the constrained orientation quaternion. */
+         * @returns A mutable reference to the constrained orientation quaternion. */
         [[nodiscard]] VE_FORCE_INLINE glm::quat &GetConstrainedOrientation(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -474,7 +474,7 @@ namespace Vulkyrie {
          * center of mass is the point at which the body's mass is considered to be concentrated for purposes of linear motion.
          * The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose local center of mass is to be retrieved.
-         * @return A const reference to the local center of mass position vector. */
+         * @returns A const reference to the local center of mass position vector. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalCenterOfMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -485,7 +485,7 @@ namespace Vulkyrie {
          * computed by transforming the local center of mass by the body's current position and orientation, and is updated each
          * simulation step. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose world center of mass is to be retrieved.
-         * @return A const reference to the world center of mass position vector. */
+         * @returns A const reference to the world center of mass position vector. */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldCenterOfMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -496,7 +496,7 @@ namespace Vulkyrie {
          * the physics engine applies the global gravity force to the body each simulation step. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if gravity is enabled for the body, false otherwise. */
+         * @returns True if gravity is enabled for the body, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabled(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -508,7 +508,7 @@ namespace Vulkyrie {
          * improve performance and allow independent sleeping of disconnected body groups. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
-         * @return True if the body is already assigned to an island, false otherwise. */
+         * @returns True if the body is already assigned to an island, false otherwise. */
         [[nodiscard]] VE_FORCE_INLINE bool IsInIsland(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -520,7 +520,7 @@ namespace Vulkyrie {
          * 0.0 completely locks motion. This enables effects like sliding along a rail or movement restricted to a plane. The
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear axis locking factors are to be retrieved.
-         * @return A const reference to the linear axis locking factors (1 = free, 0 = locked). */
+         * @returns A const reference to the linear axis locking factors (1 = free, 0 = locked). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearLockAxisFactor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -532,7 +532,7 @@ namespace Vulkyrie {
          * while 0.0 completely locks rotation. This enables effects like a door hinge (rotation around one axis only). The
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular axis locking factors are to be retrieved.
-         * @return A const reference to the angular axis locking factors (1 = free, 0 = locked). */
+         * @returns A const reference to the angular axis locking factors (1 = free, 0 = locked). */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularLockAxisFactor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
@@ -668,7 +668,7 @@ namespace Vulkyrie {
          * bodies relative to each other, such as hinges, sliders, or fixed connections. The entity must have a RigidBodyComponent
          * associated with it.
          * @param bodyEntity The entity whose joint list is to be retrieved.
-         * @return A const reference to the vector of joint entities attached to the specified body. */
+         * @returns A const reference to the vector of joint entities attached to the specified body. */
         [[nodiscard]] VE_FORCE_INLINE const std::vector<Entity> &GetJoints(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 

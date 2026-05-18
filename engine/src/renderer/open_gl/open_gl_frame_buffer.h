@@ -42,17 +42,17 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the resource ID of the specified color attachment.
          * @param index The index of the color attachment to retrieve. Default is 0.
-         * @return The resource ID of the specified color attachment.
+         * @returns The resource ID of the specified color attachment.
          */
         [[nodiscard]] u32 GetColorAttachmentResourceID(u32 index = 0) const override;
 
         /** @brief Retrieves the resource ID of the depth/stencil attachment.
-         * @return The resource ID of the depth/stencil attachment.
+         * @returns The resource ID of the depth/stencil attachment.
          */
         [[nodiscard]] u32 GetDepthStencilAttachmentResourceID() const override;
 
         /** @brief Retrieves the resource ID of the framebuffer itself (i.e., FBO ID in OpenGL).
-         * @return The resource ID of the framebuffer.
+         * @returns The resource ID of the framebuffer.
          */
         [[nodiscard]] inline u32 GetFrameBufferID() const override {
             return _fboId;

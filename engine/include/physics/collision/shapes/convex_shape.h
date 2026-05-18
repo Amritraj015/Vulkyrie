@@ -31,7 +31,7 @@ namespace Vulkyrie {
         ConvexShape &operator=(ConvexShape &&) = delete;
 
         /** @brief Get the margin of the convex shape.
-         * @return The margin of the convex shape, which is a positive value that provides a buffer around the shape for collision detection purposes. A
+         * @returns The margin of the convex shape, which is a positive value that provides a buffer around the shape for collision detection purposes. A
          * larger margin can help improve collision detection stability by preventing objects from getting too close to each other, but it can also reduce
          * the accuracy of collision responses. The margin is typically used in algorithms like GJK and EPA to ensure that they can handle cases where
          * objects are very close or even penetrating each other without producing unstable results.
@@ -41,7 +41,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Check if the collision shape is convex.
-         * @return True if the collision shape is convex, false otherwise.
+         * @returns True if the collision shape is convex, false otherwise.
          */
         [[nodiscard]] VE_FORCE_INLINE constexpr bool IsConvex() const override {
             return true;
@@ -54,7 +54,7 @@ namespace Vulkyrie {
          * support point in the direction of the input vector to create a buffer around the shape for collision detection purposes.
          * @param direction The direction in which to calculate the support point, represented as a glm::vec3. The direction vector does not need to be
          * normalized.
-         * @return The local support point on the convex shape in the given direction, with the margin applied. This is the point on the shape that is
+         * @returns The local support point on the convex shape in the given direction, with the margin applied. This is the point on the shape that is
          * farthest in the specified direction, and it is used for collision detection purposes. */
         virtual glm::vec3 GetLocalSupportPointWithMargin(const glm::vec3 &direction) const;
 
@@ -64,7 +64,7 @@ namespace Vulkyrie {
          * geometry of the shape.
          * @param direction The direction in which to calculate the support point, represented as a glm::vec3. The direction vector does not need to be
          * normalized.
-         * @return The local support point on the convex shape in the given direction, without applying the margin. This is the point on the shape that is
+         * @returns The local support point on the convex shape in the given direction, without applying the margin. This is the point on the shape that is
          * farthest in the specified direction, and it is used for collision detection purposes. */
         virtual glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const = 0;
 

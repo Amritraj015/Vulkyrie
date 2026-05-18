@@ -22,7 +22,7 @@ namespace Vulkyrie {
          * @param narrowPhaseDataBatch Batch of narrow phase data for collision pairs.
          * @param batchStartIndex Index of the first pair in the batch.
          * @param batchItemsCount Number of pairs to process in the batch.
-         * @return True if any collision is detected in the batch, false otherwise.
+         * @returns True if any collision is detected in the batch, false otherwise.
          */
         bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount);
     };

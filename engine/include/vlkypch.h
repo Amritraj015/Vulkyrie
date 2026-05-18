@@ -124,7 +124,7 @@ template <typename T> inline void CombineHash(std::size_t &seed, const T &v) {
  *
  * @param number1 The first 32-bit unsigned integer. Must be greater than or equal to `number2`.
  * @param number2 The second 32-bit unsigned integer.
- * @return A 64-bit unsigned integer that uniquely represents the pair of input numbers.
+ * @returns A 64-bit unsigned integer that uniquely represents the pair of input numbers.
  */
 VE_FORCE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
     assert(number1 == std::max(number1, number2));

@@ -74,7 +74,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the specified entity is currently disabled in this component store.
          * @param entity The entity to check for being disabled.
-         * @return True if the entity has a component that is currently inactive, false otherwise.
+         * @returns True if the entity has a component that is currently inactive, false otherwise.
          */
         [[nodiscard]] VE_FORCE_INLINE bool IsDisabled(Entity entity) const {
             VASSERT(HasComponent(entity), "Entity does not have a component.");
@@ -84,28 +84,28 @@ namespace Vulkyrie {
 
         /** @brief Checks if the specified entity has a component associated with it in this component store.
          * @param entity The entity to check for having a component.
-         * @return True if the entity has a component associated with it, false otherwise.
+         * @returns True if the entity has a component associated with it, false otherwise.
          */
         [[nodiscard]] VE_FORCE_INLINE bool HasComponent(Entity entity) const {
             return _entityToComponentIndex.contains(entity);
         }
 
         /** @brief Gets the total number of components (active + inactive) currently managed.
-         * @return The total number of entities that have a component associated with them.
+         * @returns The total number of entities that have a component associated with them.
          */
         [[nodiscard]] VE_FORCE_INLINE size_t GetTotalComponentCount() const {
             return _entities.size();
         }
 
         /** @brief Gets the total number of active components currently managed by this component store.
-         * @return The total number of entities that currently have an active component associated with them.
+         * @returns The total number of entities that currently have an active component associated with them.
          */
         [[nodiscard]] VE_FORCE_INLINE size_t GetActiveComponentCount() const {
             return _activeCount;
         }
 
         /** @brief Returns a contiguous view of the entities that have active components.
-         * @return A span over the entities corresponding to the densely packed active components at the front of the storage.
+         * @returns A span over the entities corresponding to the densely packed active components at the front of the storage.
          */
         [[nodiscard]] VE_FORCE_INLINE std::span<const Entity> GetActiveEntities() const {
             return { _entities.data(), _activeCount };
@@ -114,7 +114,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the entity associated with the component at the specified index in the component vector. The index must be a valid index within
          * the component vector.
          * @param index The index of the component whose associated entity is to be retrieved. Must be a valid index within the component vector.
-         * @return The entity associated with the component at the specified index in the component vector. */
+         * @returns The entity associated with the component at the specified index in the component vector. */
         [[nodiscard]] VE_FORCE_INLINE Entity GetEntityAtIndex(size_t index) const {
             VASSERT(index < _entities.size(), "Index out of bounds.");
 
@@ -124,7 +124,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the index of the component in the component vector associated with the specified entity. The entity must have a component
          * associated with it.
          * @param entity The entity whose component index is to be retrieved. The entity must have a component associated with it.
-         * @return The index of the component associated with the specified entity in the component vector.
+         * @returns The index of the component associated with the specified entity in the component vector.
          */
         [[nodiscard]] VE_FORCE_INLINE size_t GetEntityIndex(Entity entity) const {
             VASSERT(HasComponent(entity), "Entity does not have a component.");

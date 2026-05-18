@@ -20,7 +20,7 @@ namespace Vulkyrie {
         EntityManager &operator=(EntityManager &&) = delete;
 
         /** @brief Creates a new entity and returns it.
-         * @return The newly created entity.
+         * @returns The newly created entity.
          */
         [[nodiscard]] Entity CreateEntity();
 
@@ -31,7 +31,7 @@ namespace Vulkyrie {
 
         /** @brief Checks if the specified entity is active (i.e., has been created and not destroyed).
          * @param entity The entity to check for activity.
-         * @return True if the entity is active, false otherwise.
+         * @returns True if the entity is active, false otherwise.
          */
         [[nodiscard]] VE_FORCE_INLINE bool IsActive(const Entity entity) const {
             return _generations[static_cast<size_t>(entity.GetIndex())] == entity.GetGeneration();

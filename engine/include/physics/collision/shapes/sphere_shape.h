@@ -26,7 +26,7 @@ namespace Vulkyrie {
         ~SphereShape() override = default;
 
         /** @brief Get the radius of the sphere.
-         * @return The radius of the sphere. */
+         * @returns The radius of the sphere. */
         [[nodiscard]] VE_FORCE_INLINE f32 GetRadius() const {
             return _margin;
         }
@@ -45,20 +45,20 @@ namespace Vulkyrie {
         }
 
         /** @brief A sphere is not a polyhedral shape.
-         * @return Always false. */
+         * @returns Always false. */
         [[nodiscard]] VE_FORCE_INLINE constexpr bool IsPolyhedral() const override {
             return false;
         }
 
         /** @brief Compute the local-space AABB of the sphere (i.e. before any transform is applied).
-         * @return An AABB centered at the origin with half-extents equal to the radius along every axis. */
+         * @returns An AABB centered at the origin with half-extents equal to the radius along every axis. */
         [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
             return AABB(glm::vec3(-_margin), glm::vec3(_margin));
         }
 
         /** @brief Compute the local-space inertia tensor diagonal for a solid sphere.
          * @param mass The mass of the body this shape belongs to.
-         * @return A vector whose three equal components are `(2/5) * mass * radius²`, giving a uniform diagonal inertia tensor. */
+         * @returns A vector whose three equal components are `(2/5) * mass * radius²`, giving a uniform diagonal inertia tensor. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
             f32 diag = f32(0.4) * mass * _margin * _margin;
 
@@ -66,7 +66,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Get the volume of the sphere shape.
-         * @return The volume of the sphere shape, calculated using the formula V = (4/3) * π * r^3, where r is the radius of the sphere.
+         * @returns The volume of the sphere shape, calculated using the formula V = (4/3) * π * r^3, where r is the radius of the sphere.
          */
         [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
             return f32(4.0) / f32(3.0) * static_cast<f32>(std::numbers::pi) * _margin * _margin * _margin;
@@ -75,7 +75,7 @@ namespace Vulkyrie {
         /** @brief Check if a given point is contained within the sphere shape.
          * @param point The point to check for containment, specified as a glm::vec3 in the local coordinate space of the sphere shape. The local coordinate
          * space is defined such that the center of the sphere is at the origin (0, 0, 0).
-         * @return True if the point is contained within the sphere shape, false otherwise. A point is considered to be contained within the sphere if
+         * @returns True if the point is contained within the sphere shape, false otherwise. A point is considered to be contained within the sphere if
          * its distance from the center of the sphere (the origin) is less than the radius of the sphere.
          */
         [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
@@ -85,7 +85,7 @@ namespace Vulkyrie {
         /** @brief Compute the axis-aligned bounding box (AABB) of the sphere shape after applying the given transformation.
          * @param transform The transformation to apply to the sphere shape, which includes translation, rotation, and scaling. The AABB will be computed
          * based on the transformed position and size of the sphere.
-         * @return The AABB of the transformed sphere shape, defined by its minimum and maximum coordinates in world space. Since a sphere is rotationally
+         * @returns The AABB of the transformed sphere shape, defined by its minimum and maximum coordinates in world space. Since a sphere is rotationally
          * symmetric, the AABB will always be a cube that encompasses the entire sphere regardless of its orientation. The effective radius used for the
          * AABB calculation includes the collision margin to ensure that the broadphase collision detection does not miss contacts when objects are close to
          * each other.
@@ -106,7 +106,7 @@ namespace Vulkyrie {
          * is (0, 0, 0) in local space.
          * @param direction The direction in which to calculate the support point, represented as a glm::vec3. The direction vector does not need to be
          * normalized.
-         * @return The local support point on the sphere shape in the given direction, without applying the margin. This is the point on the shape that is
+         * @returns The local support point on the sphere shape in the given direction, without applying the margin. This is the point on the shape that is
          * farthest in the specified direction, and it is used for collision detection purposes. For a sphere, this will always be (0, 0, 0) in local space,
          * since we are not applying any margin and the sphere's center is at the origin. */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin([[maybe_unused]] const glm::vec3 &direction) const override {

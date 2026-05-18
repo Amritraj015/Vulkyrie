@@ -34,7 +34,7 @@ namespace Vulkyrie {
 
     /** @brief Generates a Perlin noise map based on the provided specification.
      * @param specification The specifications for generating the noise map.
-     * @return A vector containing the generated Perlin noise values.
+     * @returns A vector containing the generated Perlin noise values.
      */
     std::vector<f32> GeneratePerlinNoiseMap(const NoiseMapSpecification &specification);
 } // namespace Vulkyrie

@@ -18,7 +18,7 @@ namespace Vulkyrie {
         virtual void Draw(Shader &shader) const = 0;
 
         /** @brief Gets the number of vertices in the mesh.
-         * @return The count of vertices.
+         * @returns The count of vertices.
          */
         // [[nodiscard]] inline size_t GetVertexCount() const {
         //     return _vertexArray->GetVertexBuffer()->GetCount();
@@ -42,7 +42,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Gets the number of indices in the mesh.
-         * @return The count of indices.
+         * @returns The count of indices.
          */
         [[nodiscard]] inline size_t GetIndexCount() const {
             return _vertexArray->GetIndexBuffer()->GetCount();
@@ -62,7 +62,7 @@ namespace Vulkyrie {
          * @param vertices The vertices that make up the mesh.
          * @param indices The indices defining the mesh's faces.
          * @param textures The textures associated with the mesh.
-         * @return A reference to the created Mesh.
+         * @returns A reference to the created Mesh.
          */
         static Ref<Mesh> Create(std::vector<Vertex> &&vertices, std::vector<u32> &&indices, MeshTextures &&textures);
 

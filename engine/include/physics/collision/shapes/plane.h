@@ -28,7 +28,7 @@ namespace Vulkyrie {
 
         /** @brief Gets the signed distance from a point to the plane.
          * @param point The point for which to calculate the signed distance to the plane.
-         * @return The signed distance from the point to the plane. A positive value indicates that the point is in front of the plane, a negative value
+         * @returns The signed distance from the point to the plane. A positive value indicates that the point is in front of the plane, a negative value
          * indicates that it is behind the plane, and zero indicates that it is on the plane.
          */
         [[nodiscard]] f32 GetSignedDistance(const glm::vec3 &point) const noexcept {
@@ -36,7 +36,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Gets the normal vector of the plane.
-         * @return The normal vector of the plane, normalized to have a length of 1.
+         * @returns The normal vector of the plane, normalized to have a length of 1.
          */
         [[nodiscard]] const glm::vec3 &GetNormal() const noexcept {
             return _normal;

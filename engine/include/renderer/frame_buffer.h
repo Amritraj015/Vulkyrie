@@ -171,22 +171,22 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the resource ID of the specified color attachment.
          * @param index The index of the color attachment to retrieve. Default is 0.
-         * @return The resource ID of the specified color attachment.
+         * @returns The resource ID of the specified color attachment.
          */
         [[nodiscard]] virtual u32 GetColorAttachmentResourceID(u32 index = 0) const = 0;
 
         /** @brief Retrieves the resource ID of the depth/stencil attachment.
-         * @return The resource ID of the depth/stencil attachment.
+         * @returns The resource ID of the depth/stencil attachment.
          */
         [[nodiscard]] virtual u32 GetDepthStencilAttachmentResourceID() const = 0;
 
         /** @brief Retrieves the resource ID of the framebuffer itself (e.g., FBO ID in OpenGL).
-         * @return The resource ID of the framebuffer.
+         * @returns The resource ID of the framebuffer.
          */
         [[nodiscard]] virtual inline u32 GetFrameBufferID() const = 0;
 
         /** @brief Checks if the framebuffer is complete and ready for rendering.
-         * @return `true` if the framebuffer is complete; otherwise, `false`.
+         * @returns `true` if the framebuffer is complete; otherwise, `false`.
          */
         [[nodiscard]] virtual inline bool IsComplete() const {
             return _isComplete;
@@ -194,7 +194,7 @@ namespace Vulkyrie {
 
         /** @brief Factory method to create a FrameBuffer instance based on the current graphics API.
          * @param specification The specification for the framebuffer to be created.
-         * @return A reference-counted pointer to the created FrameBuffer instance.
+         * @returns A reference-counted pointer to the created FrameBuffer instance.
          */
         static Ref<FrameBuffer> Create(const FrameBufferSpecification &specification);
 

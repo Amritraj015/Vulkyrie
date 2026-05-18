@@ -30,7 +30,7 @@ namespace Vulkyrie {
         BoxShape &operator=(BoxShape &&) = delete;
 
         /** @brief Get the half extents of the box shape.
-         * @return The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis.
+         * @returns The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis.
          */
         [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetHalfExtents() const {
             return _halfExtents;
@@ -49,21 +49,21 @@ namespace Vulkyrie {
         }
 
         /** @brief Get the number of faces of the box shape.
-         * @return The number of faces of the box shape, which is always 6 for a box.
+         * @returns The number of faces of the box shape, which is always 6 for a box.
          */
         [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetFacesCount() const override {
             return 6;
         }
 
         /** @brief Get the number of vertices of the box shape.
-         * @return The number of vertices of the box shape, which is always 8 for a box.
+         * @returns The number of vertices of the box shape, which is always 8 for a box.
          */
         [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetVerticesCount() const override {
             return 8;
         }
 
         /** @brief Get the number of half edges of the box shape.
-         * @return The number of half edges of the box shape, which is always 24 for a box (each of the 12 edges has 2 half edges).
+         * @returns The number of half edges of the box shape, which is always 24 for a box (each of the 12 edges has 2 half edges).
          */
         [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetHafEdgesCount() const override {
             return 24;
@@ -72,7 +72,7 @@ namespace Vulkyrie {
         /** @brief Get the position of a specific vertex of the box shape.
          * @param vertexIndex The index of the vertex for which to retrieve the position. The valid range for this index is from 0 to 7, since a box has 8
          * vertices.
-         * @return The position of the specified vertex as a glm::vec3. The position is given in the local coordinate space of the shape, where the origin
+         * @returns The position of the specified vertex as a glm::vec3. The position is given in the local coordinate space of the shape, where the origin
          * is typically at the centroid of the shape. The vertices are ordered in a consistent manner, such as starting from one corner and proceeding in a
          * specific order around the box.
          */
@@ -106,7 +106,7 @@ namespace Vulkyrie {
         /** @brief Get the normal vector of a specific face of the box shape.
          * @param faceIndex The index of the face for which to retrieve the normal vector. The valid range for this index is from 0 to 5, since a box has 6
          * faces.
-         * @return The normal vector of the specified face as a glm::vec3. The normal vector is a unit vector that is perpendicular to the face and points
+         * @returns The normal vector of the specified face as a glm::vec3. The normal vector is a unit vector that is perpendicular to the face and points
          * outward from the surface of the shape. The faces are ordered in a consistent manner, such as starting from one face and proceeding in a specific
          * order around the box.
          */
@@ -134,7 +134,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Get the centroid of the box shape.
-         * @return The centroid of the box shape as a glm::vec3. For a box defined in local space with its center at the origin, the centroid is simply (0,
+         * @returns The centroid of the box shape as a glm::vec3. For a box defined in local space with its center at the origin, the centroid is simply (0,
          * 0, 0).
          */
         [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetCentroid() const override {
@@ -142,7 +142,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Compute the local-space AABB of the box shape (i.e. before any transform is applied).
-         * @return An AABB centered at the origin with min corner at (-halfExtents) and max corner at (halfExtents), where halfExtents is the half extents
+         * @returns An AABB centered at the origin with min corner at (-halfExtents) and max corner at (halfExtents), where halfExtents is the half extents
          * of the box shape. This represents the axis-aligned bounding box of the box shape in its local coordinate space.
          */
         [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
@@ -151,7 +151,7 @@ namespace Vulkyrie {
 
         /** @brief Compute the local-space inertia tensor diagonal for a solid box.
          * @param mass The mass of the body this shape belongs to.
-         * @return A vector whose components are given by the formula:
+         * @returns A vector whose components are given by the formula:
          * (1/3) * mass * (halfExtents.y² + halfExtents.z²) for the x component,
          * (1/3) * mass * (halfExtents.x² + halfExtents.z²) for the y component,
          * (1/3) * mass * (halfExtents.x² + halfExtents.y²) for the z component.
@@ -168,7 +168,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Get the volume of the box shape.
-         * @return The volume of the box shape, calculated using the formula V = 8 * halfExtents.x * halfExtents.y * halfExtents.z, where halfExtents is
+         * @returns The volume of the box shape, calculated using the formula V = 8 * halfExtents.x * halfExtents.y * halfExtents.z, where halfExtents is
          * the half extents of the box shape. This formula accounts for the fact that the full extents of the box are twice the half extents along each
          * axis.
          */
@@ -179,7 +179,7 @@ namespace Vulkyrie {
         /** @brief Check if a given point is contained within the box shape.
          * @param point The point to check for containment, specified as a glm::vec3 in the local coordinate space of the box shape. The local coordinate
          * space is defined such that the center of the box is at the origin (0, 0, 0).
-         * @return True if the point is contained within the box shape, false otherwise. A point is considered to be contained within the box if its
+         * @returns True if the point is contained within the box shape, false otherwise. A point is considered to be contained within the box if its
          * coordinates along each axis are between -halfExtents and halfExtents, where halfExtents is the half extents of the box shape.
          */
         [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
@@ -189,7 +189,7 @@ namespace Vulkyrie {
 
         /** @brief Compute the local support point of the box shape in a given direction, without considering the margin.
          * @param direction The direction in which to compute the support point, specified as a glm::vec3. This vector does not need to be normalized.
-         * @return The local support point of the box shape in the given direction, calculated by taking the sign of each component of the direction vector
+         * @returns The local support point of the box shape in the given direction, calculated by taking the sign of each component of the direction vector
          * and multiplying it by the corresponding half extent of the box shape. This gives the vertex of the box that is furthest in the specified
          * direction, without accounting for any margin that may be applied to the shape for collision detection purposes.
          */

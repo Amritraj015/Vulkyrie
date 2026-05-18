@@ -10,7 +10,7 @@ namespace Vulkyrie {
 
         /** @brief Creates a cube map texture from the specified file paths.
          * @param faces The file paths for the cube map faces.
-         * @return A reference to the created TextureCubeMap.
+         * @returns A reference to the created TextureCubeMap.
          */
         static Ref<TextureCubeMap> Create(std::array<std::filesystem::path, 6> faces);
 

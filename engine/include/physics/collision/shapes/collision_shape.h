@@ -30,14 +30,14 @@ namespace Vulkyrie {
         CollisionShape &operator=(CollisionShape &&) = delete;
 
         /** @brief Get the type of the collision shape.
-         * @return The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave).
+         * @returns The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave).
          */
         [[nodiscard]] VE_FORCE_INLINE CollisionShapeType GetType() const {
             return _type;
         }
 
         /** @brief Get the specific name of the collision shape.
-         * @return The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield).
+         * @returns The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield).
          */
         [[nodiscard]] VE_FORCE_INLINE CollisionShapeName GetName() const {
             return _name;
@@ -61,41 +61,41 @@ namespace Vulkyrie {
         void NotifyCollidersOfShapeChange() const;
 
         /** @brief Check if the collision shape is convex.
-         * @return True if the collision shape is convex, false otherwise.
+         * @returns True if the collision shape is convex, false otherwise.
          */
         virtual bool IsConvex() const = 0;
 
         /** @brief Check if the collision shape is polyhedral.
-         * @return True if the collision shape is polyhedral, false otherwise.
+         * @returns True if the collision shape is polyhedral, false otherwise.
          */
         virtual bool IsPolyhedral() const = 0;
 
         /** @brief Get the axis-aligned bounding box (AABB) of the collision shape in local space.
-         * @return The AABB of the collision shape defined in its local coordinate system.
+         * @returns The AABB of the collision shape defined in its local coordinate system.
          */
         virtual AABB GetLocalAABB() const = 0;
 
         /** @brief Get the local inertia tensor of the collision shape for a given mass.
          * @param mass The mass of the object for which to compute the inertia tensor.
-         * @return The local inertia tensor of the collision shape as a 3D vector, where each component represents the inertia around the corresponding
+         * @returns The local inertia tensor of the collision shape as a 3D vector, where each component represents the inertia around the corresponding
          * axis.
          */
         virtual glm::vec3 GetLocalInertiaTensor(f32 mass) const = 0;
 
         /** @brief Get the volume of the collision shape.
-         * @return The volume of the collision shape.
+         * @returns The volume of the collision shape.
          */
         virtual f32 GetVolume() const = 0;
 
         /** @brief Check if the collision shape contains a given point in local space.
          * @param point The point to check, specified in the local coordinate system of the collision shape.
-         * @return True if the point is inside the collision shape, false otherwise.
+         * @returns True if the point is inside the collision shape, false otherwise.
          */
         virtual bool ContainsPoint(const glm::vec3 &point) const = 0;
 
         /** @brief Compute the axis-aligned bounding box (AABB) of the collision shape after applying the given transformation.
          * @param transform The transformation to apply to the collision shape.
-         * @return The computed AABB that encompasses the transformed collision shape.
+         * @returns The computed AABB that encompasses the transformed collision shape.
          */
         virtual AABB ComputeTransformedAABB(const TransformComponent &transform) const;
 
