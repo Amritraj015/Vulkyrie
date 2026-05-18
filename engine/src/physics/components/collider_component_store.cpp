@@ -11,7 +11,7 @@ namespace Vulkyrie {
         _collisionCategoryBits.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _collidesWithMaskBits.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _localToWorldTransforms.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
-        _OverlappingPairs.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
+        _overlappingPairs.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _collisionShapeChangedSizeFlags.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _isTriggerFlags.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _isSimulationColliderFlags.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
@@ -34,7 +34,7 @@ namespace Vulkyrie {
         _collidesWithMaskBits.push_back(component.CollidesWithMaskBits);
         _localToWorldTransforms.push_back(component.LocalToWorldTransform);
 
-        _OverlappingPairs.emplace_back();
+        _overlappingPairs.emplace_back();
 
         _collisionShapeChangedSizeFlags.push_back(false);
         _isTriggerFlags.push_back(false);
@@ -72,7 +72,7 @@ namespace Vulkyrie {
         std::swap(_collisionCategoryBits[indexA], _collisionCategoryBits[indexB]);
         std::swap(_collidesWithMaskBits[indexA], _collidesWithMaskBits[indexB]);
         std::swap(_localToWorldTransforms[indexA], _localToWorldTransforms[indexB]);
-        std::swap(_OverlappingPairs[indexA], _OverlappingPairs[indexB]);
+        std::swap(_overlappingPairs[indexA], _overlappingPairs[indexB]);
         std::swap(_collisionShapeChangedSizeFlags[indexA], _collisionShapeChangedSizeFlags[indexB]);
         std::swap(_isTriggerFlags[indexA], _isTriggerFlags[indexB]);
         std::swap(_isSimulationColliderFlags[indexA], _isSimulationColliderFlags[indexB]);
@@ -95,7 +95,7 @@ namespace Vulkyrie {
         _collisionCategoryBits.pop_back();
         _collidesWithMaskBits.pop_back();
         _localToWorldTransforms.pop_back();
-        _OverlappingPairs.pop_back();
+        _overlappingPairs.pop_back();
         _collisionShapeChangedSizeFlags.pop_back();
         _isTriggerFlags.pop_back();
         _isSimulationColliderFlags.pop_back();
