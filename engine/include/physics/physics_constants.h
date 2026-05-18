@@ -16,6 +16,7 @@ namespace Vulkyrie {
     constexpr size_t MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE = 16;
     constexpr size_t MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD = 255;
     constexpr i32 MAX_CONTACT_POINTS_IN_MANIFOLD = 4;
+    constexpr u8 MAX_POTENTIAL_CONTACT_MANIFOLDS = 64;
 
     /** The type of the collision shape, used to categorize shapes into broad types for efficient processing. */
     enum class CollisionShapeType : u32 { Sphere, Capsule, ConvexPolyhedron, Concave };

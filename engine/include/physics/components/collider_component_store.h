@@ -284,16 +284,28 @@ namespace Vulkyrie {
             _localToWorldTransforms[_entityToComponentIndex.find(colliderEntity)->second] = transform;
         }
 
-        /** @brief Retrieves a reference to the vector of collision pairs associated with the specified collider entity. Collision pairs represent the pairs
-         * of colliders that are currently colliding or have recently collided with the specified collider. The entity must have a ColliderComponent
-         * associated with it.
-         * @param colliderEntity The entity of the collider whose collision pairs are to be retrieved.
-         * @return A reference to the vector of collision pairs associated with the specified collider entity. Each element in the vector represents an
-         * index or identifier of another collider that is currently colliding or has recently collided with the specified collider. */
-        [[nodiscard]] VE_FORCE_INLINE std::vector<i32> &GetCollisionPairs(Entity colliderEntity) {
+        /** @brief Retrieves a reference to the vector of broad-phase overlapping pair IDs for the specified collider entity. This vector contains the IDs of
+         * all broad-phase pairs that currently overlap with this collider, which is used during the collision detection process to determine potential
+         * collisions. The entity must have a ColliderComponent associated with it.
+         * @param colliderEntity The entity of the collider whose overlapping pairs are to be retrieved.
+         * @return A reference to the vector of broad-phase overlapping pair IDs for the specified collider entity. This vector can be used to access and
+         * manage the broad-phase pairs that overlap with this collider during collision detection. */
+        [[nodiscard]] VE_FORCE_INLINE std::vector<i32> &GetOverlappingPairs(Entity colliderEntity) {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
-            return _collisionPairs[_entityToComponentIndex.find(colliderEntity)->second];
+            return _overlappingPairs[_entityToComponentIndex.find(colliderEntity)->second];
+        }
+
+        /** @brief Retrieves a reference to the vector of broad-phase overlapping pair IDs for the component at the specified index in the component vector.
+         * This vector contains the IDs of all broad-phase pairs that currently overlap with this collider, which is used during the collision detection process
+         * to determine potential collisions. The index must be a valid index within the component vector.
+         * @param index The index of the component whose overlapping pairs are to be retrieved. Must be a valid index within the component vector.
+         * @return A reference to the vector of broad-phase overlapping pair IDs for the component at the specified index in the component vector. This
+         * vector can be used to access and manage the broad-phase pairs that overlap with this collider during collision detection. */
+        [[nodiscard]] VE_FORCE_INLINE std::vector<i32> &GetOverlappingPairsAtIndex(size_t index) {
+            VASSERT(index < _activeCount, "Index out of bounds.");
+
+            return _overlappingPairs[index];
         }
 
         /** @brief Checks if the collision shape of the specified collider entity has changed size. This flag can be used to indicate that the collision
@@ -480,9 +492,9 @@ namespace Vulkyrie {
          * step by the physics system. */
         std::vector<TransformComponent> _localToWorldTransforms;
 
-        /** @brief Parallel array of active collision pair lists. Entry i holds the broad-phase IDs of all colliders currently overlapping with collider i.
-         * Pairs are added incrementally when overlap begins and removed when overlap ends; they are not rebuilt each frame. */
-        std::vector<std::vector<i32>> _collisionPairs;
+        /** @brief Parallel array of overlapping pairs. Entry i holds a vector of indices or identifiers of other colliders that are currently colliding or have
+         * recently collided with collider i. This is used to track collision pairs for narrow-phase testing and contact generation. */
+        std::vector<std::vector<i32>> _overlappingPairs;
 
         /** @brief Parallel array of collision-shape-changed-size flags stored as u8 to keep the array tightly packed. A non-zero value for entry i
          * indicates the collision shape of collider i has been resized and the broad-phase bounding volume needs updating. */

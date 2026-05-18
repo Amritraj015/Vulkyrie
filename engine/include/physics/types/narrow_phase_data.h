@@ -5,16 +5,15 @@
 #include "physics/collision/shapes/collision_shape.h"
 #include "physics/components/transform_component_store.h"
 #include "physics/types/contact_point_data.h"
-#include "physics/types/last_frame_collision_info.h"
+#include "physics/types/last_frame_collision_data.h"
 
 namespace Vulkyrie {
 
     struct NarrowPhaseData final {
-    public:
         NarrowPhaseData(u64 pairID,
                         Entity colliderOneEntity,
                         Entity colliderTwoEntity,
-                        LastFrameCollisionInfo &lastFrameCollisionInfo,
+                        LastFrameCollisionData &lastFrameCollisionInfo,
                         CollisionShape &shapeOne,
                         CollisionShape &shapeTwo,
                         const TransformComponent &shapeOneWorldTransform,
@@ -38,7 +37,7 @@ namespace Vulkyrie {
         ContactPointData ContactPoints[MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE];
         TransformComponent ShapeOneWorldTransform;
         TransformComponent ShapeTwoWorldTransform;
-        LastFrameCollisionInfo &LastFrameCollisionInfo;
+        LastFrameCollisionData &LastFrameCollisionInfo;
         Entity ColliderOneEntity;
         Entity ColliderTwoEntity;
         CollisionShape &ShapeOne;

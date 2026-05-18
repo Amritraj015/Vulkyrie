@@ -7,33 +7,32 @@ namespace Vulkyrie {
         : _physicsWorld(physicsWorld)
         , _colliderComponentStore(_physicsWorld.GetColliderComponentStore())
         , _rigidBodyComponentStore(_physicsWorld.GetRigidBodyComponentStore())
-        , _overlappingPairs(physicsWorld, _nonCollidablePairs)
-        , _broadPhaseSystem(physicsWorld) {
-
-        _capsuleVsCapsuleAlgorithm = new CapsuleVsCapsuleAlgorithm();
-        _capsuleVsConvexPolyhedronAlgorithm = new CapsuleVsConvexPolyhedronAlgorithm();
-        _convexPolyhedronVsConvexPolyhedronAlgorithm = new ConvexPolyhedronVsConvexPolyhedronAlgorithm();
-        _sphereVsCapsuleAlgorithm = new SphereVsCapsuleAlgorithm();
-        _sphereVsConvexPolyhedronAlgorithm = new SphereVsConvexPolyhedronAlgorithm();
-        _sphereVsSphereAlgorithm = new SphereVsSphereAlgorithm();
-
-        for (i32 i = 0; i < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; i++) {
-            for (i32 j = 0; j < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT; j++) {
-                _collisionMatrix[i][j] = selectAlgorithm(i, j);
-            }
-        }
-    }
-
-    CollisionSystem::~CollisionSystem() {
-        delete _capsuleVsCapsuleAlgorithm;
-        delete _capsuleVsConvexPolyhedronAlgorithm;
-        delete _convexPolyhedronVsConvexPolyhedronAlgorithm;
-        delete _sphereVsCapsuleAlgorithm;
-        delete _sphereVsConvexPolyhedronAlgorithm;
-        delete _sphereVsSphereAlgorithm;
+        , _collisionDispatch()
+        , _overlappingPairs(physicsWorld, _nonCollidablePairs, _collisionDispatch)
+        , _broadPhaseSystem(physicsWorld)
+        , _narrowPhaseInput(_overlappingPairs) {
     }
 
     void CollisionSystem::RemoveCollider(Collider &collider) {
+        const i32 broadPhaseID = collider.GetBroadPhaseID();
+
+        VASSERT(broadPhaseID != -1, "Collider does not have a valid broad-phase ID when trying to remove it from the collision system.");
+        VASSERT(_broadPhaseIDToColliderEntityMap.contains(broadPhaseID), "Broad-phase ID does not exist in the map when trying to remove a collider.");
+
+        const std::vector<u64> &overlappingPairs = _colliderComponentStore.GetOverlappingPairs();
+
+        while (overlappingPairs.size() > 0) {
+            removeOverlappingPair(overlappingPairs[0], false);
+        }
+
+        _broadPhaseIDToColliderEntityMap.erase(broadPhaseID);
+        _broadPhaseSystem.RemoveCollider(collider);
+    }
+
+    void CollisionSystem::AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
+    }
+
+    void CollisionSystem::RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
     }
 
     void CollisionSystem::NotifyOverlappingPairsToTestOverlap(Collider &collider) {
@@ -43,54 +42,6 @@ namespace Vulkyrie {
         //     // Notify that the overlapping pair needs to be testbed for overlap
         //     _overlappingPairs.SetNeedToTestOverlap(overlappingPair, true);
         // }
-    }
-
-    NarrowPhaseAlgorithm CollisionSystem::SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const {
-        u32 shapeOneIndex = static_cast<u32>(shapeOne);
-        u32 shapeTwoIndex = static_cast<u32>(shapeTwo);
-
-        VASSERT(shapeOneIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT && shapeTwoIndex < SUPPORTED_COLLISION_SHAPE_TYPE_COUNT, "Shape type(s) out of bounds.");
-
-        if (shapeOneIndex > shapeTwoIndex) {
-            return _collisionMatrix[shapeTwoIndex][shapeOneIndex];
-        }
-
-        return _collisionMatrix[shapeOneIndex][shapeTwoIndex];
-    }
-
-    NarrowPhaseAlgorithm CollisionSystem::selectAlgorithm(i32 shapeOne, i32 shapeTwo) {
-        CollisionShapeType shapeOneType = static_cast<CollisionShapeType>(shapeOne);
-        CollisionShapeType shapeTwoType = static_cast<CollisionShapeType>(shapeTwo);
-
-        if (shapeOne > shapeTwo) {
-            return NarrowPhaseAlgorithm::NoCollisionCheck;
-        }
-
-        if (shapeOneType == CollisionShapeType::Sphere && shapeTwoType == CollisionShapeType::Sphere) {
-            return NarrowPhaseAlgorithm::SphereVsSphere;
-        }
-
-        if (shapeOneType == CollisionShapeType::Sphere && shapeTwoType == CollisionShapeType::Capsule) {
-            return NarrowPhaseAlgorithm::SphereVsCapsule;
-        }
-
-        if (shapeOneType == CollisionShapeType::Capsule && shapeTwoType == CollisionShapeType::Capsule) {
-            return NarrowPhaseAlgorithm::CapsuleVsCapsule;
-        }
-
-        if (shapeOneType == CollisionShapeType::Sphere && shapeTwoType == CollisionShapeType::ConvexPolyhedron) {
-            return NarrowPhaseAlgorithm::SphereVsConvexPolyhedron;
-        }
-
-        if (shapeOneType == CollisionShapeType::Capsule && shapeTwoType == CollisionShapeType::ConvexPolyhedron) {
-            return NarrowPhaseAlgorithm::CapsuleVsConvexPolyhedron;
-        }
-
-        if (shapeOneType == CollisionShapeType::ConvexPolyhedron && shapeTwoType == CollisionShapeType::ConvexPolyhedron) {
-            return NarrowPhaseAlgorithm::ConvexPolyhedronVsConvexPolyhedron;
-        }
-
-        return NarrowPhaseAlgorithm::NoCollisionCheck;
     }
 
 } // namespace Vulkyrie

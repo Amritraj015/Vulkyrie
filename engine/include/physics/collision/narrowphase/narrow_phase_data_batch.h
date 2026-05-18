@@ -1,9 +1,10 @@
 #pragma once
 
 #include "physics/types/narrow_phase_data.h"
-#include "physics/types/overlapping_pairs.h"
 
 namespace Vulkyrie {
+
+    class OverlappingPairs;
 
     class NarrowPhaseDataBatch final {
     public:
@@ -20,7 +21,7 @@ namespace Vulkyrie {
                                                 const TransformComponent &shapeOneTransform,
                                                 const TransformComponent &shapeTwoTransform,
                                                 bool reportContacts,
-                                                LastFrameCollisionInfo &lastFrameInfo) {
+                                                LastFrameCollisionData &lastFrameInfo) {
             Data.emplace_back(pairID, colliderOne, colliderTwo, lastFrameInfo, shapeOne, shapeTwo, shapeOneTransform, shapeTwoTransform, reportContacts);
         }
 

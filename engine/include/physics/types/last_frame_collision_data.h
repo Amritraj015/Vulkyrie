@@ -2,8 +2,7 @@
 
 namespace Vulkyrie {
 
-    struct LastFrameCollisionInfo final {
-    public:
+    struct LastFrameCollisionData final {
         bool IsValid;
         bool IsObsolete;
         bool WasColliding;
@@ -12,7 +11,7 @@ namespace Vulkyrie {
 
         glm::vec3 GJKSeparatingAxis;
 
-        LastFrameCollisionInfo()
+        LastFrameCollisionData()
             : IsValid(false)
             , IsObsolete(false)
             , WasColliding(false)

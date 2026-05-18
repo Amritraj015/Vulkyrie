@@ -4,6 +4,14 @@
 
 namespace Vulkyrie {
 
+    /**
+     * @brief Represents a resolved contact between two colliders after narrow-phase detection.
+     *
+     * Contains all data required for constraint-based collision response, including
+     * the involved rigid body and collider entities, contact point references, accumulated
+     * friction impulses, and friction direction vectors. Used by the constraint solver
+     * during island-based sequential impulse resolution.
+     */
     struct ContactManifold {
         /**
          * @brief The first friction direction vector at the contact point, used for friction constraint resolution.

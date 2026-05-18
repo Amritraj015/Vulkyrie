@@ -466,7 +466,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs empty on add", "[ecs][collide
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
-    REQUIRE(store.GetCollisionPairs(e).empty());
+    REQUIRE(store.GetOverlappingPairs(e).empty());
 }
 
 TEST_CASE("ColliderComponentStore - CollisionPairs can add and retrieve pairs", "[ecs][collider]") {
@@ -476,14 +476,14 @@ TEST_CASE("ColliderComponentStore - CollisionPairs can add and retrieve pairs", 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
-    store.GetCollisionPairs(e).push_back(10);
-    store.GetCollisionPairs(e).push_back(20);
-    store.GetCollisionPairs(e).push_back(30);
+    store.GetOverlappingPairs(e).push_back(10);
+    store.GetOverlappingPairs(e).push_back(20);
+    store.GetOverlappingPairs(e).push_back(30);
 
-    REQUIRE(store.GetCollisionPairs(e).size() == 3);
-    REQUIRE(store.GetCollisionPairs(e)[0] == 10);
-    REQUIRE(store.GetCollisionPairs(e)[1] == 20);
-    REQUIRE(store.GetCollisionPairs(e)[2] == 30);
+    REQUIRE(store.GetOverlappingPairs(e).size() == 3);
+    REQUIRE(store.GetOverlappingPairs(e)[0] == 10);
+    REQUIRE(store.GetOverlappingPairs(e)[1] == 20);
+    REQUIRE(store.GetOverlappingPairs(e)[2] == 30);
 }
 
 TEST_CASE("ColliderComponentStore - CollisionPairs swap-erase removes correct pair", "[ecs][collider]") {
@@ -493,7 +493,7 @@ TEST_CASE("ColliderComponentStore - CollisionPairs swap-erase removes correct pa
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
-    auto &pairs = store.GetCollisionPairs(e);
+    auto &pairs = store.GetOverlappingPairs(e);
     pairs.push_back(10);
     pairs.push_back(20);
     pairs.push_back(30);
@@ -519,13 +519,13 @@ TEST_CASE("ColliderComponentStore - CollisionPairs are independent per entity", 
     store.AddComponent(e1, makeComponent(body), true);
     store.AddComponent(e2, makeComponent(body), true);
 
-    store.GetCollisionPairs(e1).push_back(100);
-    store.GetCollisionPairs(e2).push_back(200);
-    store.GetCollisionPairs(e2).push_back(300);
+    store.GetOverlappingPairs(e1).push_back(100);
+    store.GetOverlappingPairs(e2).push_back(200);
+    store.GetOverlappingPairs(e2).push_back(300);
 
-    REQUIRE(store.GetCollisionPairs(e1).size() == 1);
-    REQUIRE(store.GetCollisionPairs(e1)[0] == 100);
-    REQUIRE(store.GetCollisionPairs(e2).size() == 2);
+    REQUIRE(store.GetOverlappingPairs(e1).size() == 1);
+    REQUIRE(store.GetOverlappingPairs(e1)[0] == 100);
+    REQUIRE(store.GetOverlappingPairs(e2).size() == 2);
 }
 
 TEST_CASE("ColliderComponentStore - CollisionPairs persist across SetActiveStatus", "[ecs][collider]") {
@@ -535,14 +535,14 @@ TEST_CASE("ColliderComponentStore - CollisionPairs persist across SetActiveStatu
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
-    store.GetCollisionPairs(e).push_back(5);
-    store.GetCollisionPairs(e).push_back(6);
+    store.GetOverlappingPairs(e).push_back(5);
+    store.GetOverlappingPairs(e).push_back(6);
 
     store.SetActiveStatus(e, false);
-    REQUIRE(store.GetCollisionPairs(e).size() == 2);
+    REQUIRE(store.GetOverlappingPairs(e).size() == 2);
 
     store.SetActiveStatus(e, true);
-    REQUIRE(store.GetCollisionPairs(e).size() == 2);
+    REQUIRE(store.GetOverlappingPairs(e).size() == 2);
 }
 
 // ===========================================================================================

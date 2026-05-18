@@ -5,6 +5,15 @@
 
 namespace Vulkyrie {
 
+    /**
+     * @brief Stores intermediate collision data for an overlapping pair after narrow-phase detection.
+     *
+     * Holds a set of potential contact point indices into the narrow-phase contact point buffer,
+     * generated during narrow-phase detection for a given pair. These are candidates for manifold
+     * reduction, which selects up to MAX_CONTACT_POINTS_IN_MANIFOLD representative points to build
+     * the final ContactManifold used for constraint solving. Associated with a specific overlapping
+     * pair via its PairID.
+     */
     struct ContactManifoldData {
         /**
          * @brief The unique identifier for the overlapping pair to which this contact manifold data belongs.
@@ -20,7 +29,7 @@ namespace Vulkyrie {
         u32 PotentialContactPointsIndices[MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD];
 
         /**
-         * @brief The number of potential contact points identified during broad-phase collision detection for this pair.
+         * @brief The number of potential contact points identified during narrow-phase collision detection for this pair.
          * Indicates how many entries in PotentialContactPointsIndices are valid.
          */
         u8 TotalPotentialContactPoints;
