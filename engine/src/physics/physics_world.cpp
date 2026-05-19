@@ -3,13 +3,15 @@
 namespace Vulkyrie {
 
     PhysicsWorld::PhysicsWorld(const PhysicsWorldSettings &settings)
-        : _settings(settings)
+        : _gravityEnabled(true)
+        , _settings(settings)
         , _entityManager()
         , _bodyComponentStore()
         , _rigidBodyComponentStore()
         , _colliderComponentStore()
         , _transformComponentStore()
-        , _collisionSystem(*this) {
+        , _collisionSystem(*this)
+        , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity) {
     }
 
     void PhysicsWorld::Update() {

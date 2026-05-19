@@ -284,6 +284,17 @@ namespace Vulkyrie {
             _localToWorldTransforms[_entityToComponentIndex.find(colliderEntity)->second] = transform;
         }
 
+        /** @brief Sets the local-to-world transform for the specified collider entity by index. This is an alternative to SetLocalToWorldTransform that allows
+         * setting the transform directly by component index, which can be more efficient when iterating over components. The index must be valid and correspond
+         * to a component in the store.
+         * @param index The index of the collider component whose local-to-world transform is to be set.
+         * @param transform The new local-to-world transform to be set for the specified collider component. */
+        VE_FORCE_INLINE void SetLocalToWorldTransformAtIndex(size_t index, const TransformComponent &transform) {
+            VASSERT(index < _localToWorldTransforms.size(), "Index out of bounds.");
+
+            _localToWorldTransforms[index] = transform;
+        }
+
         /** @brief Retrieves a reference to the vector of broad-phase overlapping pair IDs for the specified collider entity. This vector contains the IDs of
          * all broad-phase pairs that currently overlap with this collider, which is used during the collision detection process to determine potential
          * collisions. The entity must have a ColliderComponent associated with it.

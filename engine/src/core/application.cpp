@@ -115,4 +115,5 @@ namespace Vulkyrie {
     bool Application::OnInit([[maybe_unused]] WindowCreatedEvent &event) {
         return false;
     }
+
 } // namespace Vulkyrie

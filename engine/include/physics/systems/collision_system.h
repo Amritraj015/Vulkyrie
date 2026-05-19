@@ -2,17 +2,17 @@
 
 #include "core/pair.h"
 #include "physics/constraint/contact_point.h"
-#include "physics/physics_constants.h"
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
 #include "physics/systems/broad_phase_system.h"
+#include "physics/types/collision_callback.h"
 #include "physics/types/collision_dispatch.h"
 #include "physics/types/contact_manifold.h"
 #include "physics/types/contact_manifold_data.h"
 #include "physics/types/contact_pair.h"
-#include "physics/types/narrow_phase_algorithm.h"
 #include "physics/types/narrow_phase_input.h"
+#include "physics/types/overlap_callback.h"
 #include "physics/types/overlapping_pairs.h"
 
 namespace Vulkyrie {
@@ -64,7 +64,16 @@ namespace Vulkyrie {
         }
 
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);
-        NarrowPhaseAlgorithm SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const;
+        void ReportContactsAndTriggers();
+        void ComputeCollisions();
+
+        void TestOverlap(Body &bodyOne, Body &bodyTwo);
+        void TestOverlap(Body &body, OverlapCallback &callback);
+        void TestOverlap(OverlapCallback &callback);
+
+        void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
+        void TestCollision(Body &body, CollisionCallback &callback);
+        void TestCollision(CollisionCallback &callback);
 
     private:
         PhysicsWorld &_physicsWorld;
@@ -101,6 +110,71 @@ namespace Vulkyrie {
 
         u32 _previousPotentialContactManifoldsCount;
         u32 _previousPotentialContactPointsCount;
+
+        void computeBroadPhase();
+        void computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery);
+        void computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs, std::vector<u64> &concavePairs, NarrowPhaseInput &batches, bool reportContacts);
+        void computeNarrowPhase();
+        bool computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback &callback);
+        bool computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback);
+        void computeOverlapSnapshotContactPair(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair);
+        void computeOverlapSnapshotContactPair(NarrowPhaseDataBatch &batch,
+                                               std::vector<ContactPair> &contactPairs,
+                                               std::unordered_set<u64> overlappingContactPairIDs) const;
+        void updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes);
+        void removeNonOverlappingPairs();
+        void disableOverlappingPair(u64 pairID);
+        void removeOverlappingPair(u64 pairID, bool notifyLostContact);
+        void removeConvexOverlappingPairWithIndex(u64 pairIndex);
+        void removeConcaveOverlappingPairWithIndex(u64 pairIndex);
+        void addLostContactPair(OverlappingPair &pair);
+        bool testNarrowPhaseCollision(NarrowPhaseInput &batches, bool clipWithPreviousAxisIfStillColliding);
+        void computeConvexVsConcaveMiddlePhase(ConcaveOverlappingPair &overlappingPair, NarrowPhaseInput &batches, bool reportContacts);
+        void swapPreviousAndCurrentContacts();
+        void processPotentialContacts(NarrowPhaseDataBatch &batch,
+                                      bool updateLastFrameInfo,
+                                      std::vector<ContactPointData> &potentialContactPoints,
+                                      std::vector<ContactManifoldData> &potentialContactManifolds,
+                                      std::unordered_map<u64, u32> &mapPairIdToContactPairIndex,
+                                      std::vector<ContactPair> &contactPairs);
+        void processAllPotentialContacts(NarrowPhaseInput &batches,
+                                         bool updateLastFrameInfo,
+                                         std::vector<ContactPointData> &potentialContactPoints,
+                                         std::vector<ContactManifoldData> &potentialContactManifolds,
+                                         std::vector<ContactPair> *contactPairs);
+        void reducePotentialContactManifolds(std::vector<ContactPair> *contactPairs,
+                                             std::vector<ContactManifoldData> &potentialContactManifolds,
+                                             const std::vector<ContactPointData> &potentialContactPoints) const;
+        void createContacts();
+        void addContactPairsToBodies();
+        void computeMapPreviousContactPairs();
+        void computeLostContactPairs();
+        void createSnapshotContacts(std::vector<ContactPair> &contactPairs,
+                                    std::vector<ContactManifold> &contactManifolds,
+                                    std::vector<ContactPoint> &contactPoints,
+                                    std::vector<ContactManifoldData> &potentialContactManifolds,
+                                    std::vector<ContactPointData> &potentialContactPoints);
+        void initContactsWithPreviousOnes();
+        void reduceContactPoints(ContactManifoldData &manifold,
+                                 const TransformComponent &shape1ToWorldTransform,
+                                 const std::vector<ContactPointData> &potentialContactPoints) const;
+        void reportContacts(CollisionCallback &callback,
+                            std::vector<ContactPair> &contactPairs,
+                            std::vector<ContactManifold> &manifolds,
+                            std::vector<ContactPoint> &contactPoints,
+                            std::vector<ContactPair> &lostContactPairs);
+
+        // void reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs);
+        void reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
+                                          std::vector<ContactManifold> *manifolds,
+                                          std::vector<ContactPoint> *contactPoints,
+                                          std::vector<ContactPair> &lostContactPairs);
+        f32 computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
+        void processSmoothMeshContacts(OverlappingPair *pair);
+        void filterOverlappingPairs(Entity bodyEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
+        void filterOverlappingPairs(Entity body1Entity, Entity body2Entity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
+        void removeItemAtInArray(u32 array[], u8 index, u8 &arraySize) const;
+        void removeDuplicatedContactPointsInManifold(ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
     };
 
 } // namespace Vulkyrie

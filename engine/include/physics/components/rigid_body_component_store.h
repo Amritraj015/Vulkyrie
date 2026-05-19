@@ -182,6 +182,17 @@ namespace Vulkyrie {
             return _linearVelocities[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the linear velocity of the body at the specified component index in world space. This is a lower-level method that operates
+         * directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose linear velocity is to be retrieved. Must be less than the current size of the store.
+         * @returns A const reference to the linear velocity vector in world space (meters per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _linearVelocities[componentIndex];
+        }
+
         /** @brief Sets the linear velocity of the body associated with the specified entity. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -190,6 +201,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _linearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = linearVelocity;
+        }
+
+        /** @brief Sets the linear velocity of the body at the specified component index. This is a lower-level method that operates directly on the
+         * internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
+         * @param linearVelocity The new linear velocity vector in world space (meters per second). */
+        VE_FORCE_INLINE void SetLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &linearVelocity) {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            _linearVelocities[componentIndex] = linearVelocity;
         }
 
         /** @brief Retrieves the angular velocity of the body associated with the specified entity in world space. This represents
@@ -204,6 +226,17 @@ namespace Vulkyrie {
             return _angularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the angular velocity of the body at the specified component index in world space. This is a lower-level method that operates
+         * directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose angular velocity is to be retrieved. Must be less than the current size of the store.
+         * @returns A const reference to the angular velocity vector in world space (radians per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _angularVelocities[componentIndex];
+        }
+
         /** @brief Sets the angular velocity of the body associated with the specified entity. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -212,6 +245,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _angularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = angularVelocity;
+        }
+
+        /** @brief Sets the angular velocity of the body at the specified component index. This is a lower-level method that operates directly on the
+         * internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
+         * @param angularVelocity The new angular velocity vector in world space (radians per second). */
+        VE_FORCE_INLINE void SetAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &angularVelocity) {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            _angularVelocities[componentIndex] = angularVelocity;
         }
 
         /** @brief Retrieves the accumulated external force currently applied to the body associated with the specified entity.
@@ -225,6 +269,17 @@ namespace Vulkyrie {
             return _externalForces[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the accumulated external force currently applied to the body at the specified component index. This is a lower-level method that
+         * operates directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be
+         * valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose external force is to be retrieved. Must be less than the current size of the store.
+         * @returns A const reference to the external force vector (Newtons). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalForceAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _externalForces[componentIndex];
+        }
+
         /** @brief Sets the accumulated external force applied to the body associated with the specified entity. The entity must
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -233,6 +288,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _externalForces[_entityToComponentIndex.find(bodyEntity)->second] = externalForce;
+        }
+
+        /** @brief Sets the accumulated external force applied to the body at the specified component index. This is a lower-level method that
+         * operates directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The
+         * component index must be valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
+         * @param externalForce The external force vector to apply (Newtons). */
+        VE_FORCE_INLINE void SetExternalForceAtIndex(size_t componentIndex, const glm::vec3 &externalForce) {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            _externalForces[componentIndex] = externalForce;
         }
 
         /** @brief Retrieves the accumulated external torque currently applied to the body associated with the specified entity.
@@ -246,6 +312,17 @@ namespace Vulkyrie {
             return _externalTorques[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the accumulated external torque currently applied to the body at the specified component index. This is a lower-level method that
+         * operates directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be
+         * valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose external torque is to be retrieved. Must be less than the current size of the store.
+         * @returns A const reference to the external torque vector (Newton-meters). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalTorqueAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _externalTorques[componentIndex];
+        }
+
         /** @brief Sets the accumulated external torque applied to the body associated with the specified entity. The entity must
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -254,6 +331,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _externalTorques[_entityToComponentIndex.find(bodyEntity)->second] = externalTorque;
+        }
+
+        /** @brief Sets the accumulated external torque applied to the body at the specified component index. This is a lower-level method that
+         * operates directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The
+         * component index must be valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
+         * @param externalTorque The external torque vector to apply (Newton-meters). */
+        VE_FORCE_INLINE void SetExternalTorqueAtIndex(size_t componentIndex, const glm::vec3 &externalTorque) {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            _externalTorques[componentIndex] = externalTorque;
         }
 
         /** @brief Retrieves the linear damping coefficient of the body associated with the specified entity. Linear damping
@@ -265,6 +353,18 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _linearDampings[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves the linear damping coefficient of the body at the specified component index. This is a lower-level method that operates directly
+         * on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and correspond
+         * to an active component in the store.
+         * @param componentIndex The index of the component whose linear damping coefficient is to be retrieved. Must be less than the current size of the
+         * store.
+         * @returns The linear damping coefficient (typically in the range [0, 1]). */
+        [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDampingAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _linearDampings[componentIndex];
         }
 
         /** @brief Sets the linear damping coefficient of the body associated with the specified entity. The entity must have a
@@ -288,6 +388,18 @@ namespace Vulkyrie {
             return _angularDampings[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the angular damping coefficient of the body at the specified component index. This is a lower-level method that operates directly
+         * on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and correspond
+         * to an active component in the store.
+         * @param componentIndex The index of the component whose angular damping coefficient is to be retrieved. Must be less than the current size of the
+         * store.
+         * @returns The angular damping coefficient (typically in the range [0, 1]). */
+        [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDampingAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _angularDampings[componentIndex];
+        }
+
         /** @brief Sets the angular damping coefficient of the body associated with the specified entity. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -309,6 +421,17 @@ namespace Vulkyrie {
             return _masses[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the mass of the body at the specified component index, measured in kilograms. This is a lower-level method that operates directly
+         * on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and correspond
+         * to an active component in the store.
+         * @param componentIndex The index of the component whose mass is to be retrieved. Must be less than the current size of the store.
+         * @returns The mass in kilograms. */
+        [[nodiscard]] VE_FORCE_INLINE f32 GetMassAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _masses[componentIndex];
+        }
+
         /** @brief Sets the mass of the body associated with the specified entity. The entity must have a RigidBodyComponent
          * associated with it.
          * @param bodyEntity The entity to be updated.
@@ -328,6 +451,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _inverseMasses[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves the inverse mass of the body at the specified component index. This is a lower-level method that operates directly on the internal
+         * arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be valid and correspond to an active
+         * component in the store.
+         * @param componentIndex The index of the component whose inverse mass is to be retrieved. Must be less than the current size of the store.
+         * @returns The inverse mass (1/kilograms), or 0 for immovable bodies. */
+        [[nodiscard]] VE_FORCE_INLINE f32 GetInverseMassAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _inverseMasses[componentIndex];
         }
 
         /** @brief Sets the inverse mass of the body associated with the specified entity. The entity must have a
@@ -384,6 +518,19 @@ namespace Vulkyrie {
             return _inverseWorldInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the inverse of the world-space inertia tensor of the body at the specified component index. This is computed by rotating the local
+         * inverse inertia tensor into world space using the body's current orientation, and is updated each simulation step. This is a lower-level method that
+         * operates directly on the internal arrays and should be used with caution, as it bypasses entity-based safety checks. The component index must be
+         * valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose inverse world inertia tensor is to be retrieved. Must be less than the current size of the
+         * store.
+         * @returns A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
+        [[nodiscard]] VE_FORCE_INLINE const glm::mat3 &GetInverseWorldInertiaTensorAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
+
+            return _inverseWorldInertiaTensors[componentIndex];
+        }
+
         /** @brief Sets the inverse of the world-space inertia tensor of the body associated with the specified entity. The
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -416,6 +563,17 @@ namespace Vulkyrie {
         }
 
         /** @brief Retrieves the constrained angular velocity of the body associated with the specified entity. This velocity is
+         * updated by the constraint solver during physics simulation and may differ from the unconstrained angular velocity due
+         * to contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
+         * @param bodyEntity The entity whose constrained angular velocity is to be retrieved.
+         * @returns A const reference to the constrained angular velocity vector (radians per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedLinearVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _constrainedLinearVelocities.size(), "Component index out of bounds.");
+
+            return _constrainedLinearVelocities[componentIndex];
+        }
+
+        /** @brief Retrieves the constrained angular velocity of the body associated with the specified entity. This velocity is
          * updated by the constraint solver during physics simulation and may differ from the unconstrained velocity due to
          * contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained angular velocity is to be retrieved.
@@ -424,6 +582,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves the constrained angular velocity of the body at the specified component index. This is used internally by
+         * the constraint solver to access velocities without needing to reference the entity. The component index must be valid
+         * and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose constrained angular velocity is to be retrieved.
+         * @returns A const reference to the constrained angular velocity vector (radians per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedAngularVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _constrainedAngularVelocities.size(), "Component index out of bounds.");
+
+            return _constrainedAngularVelocities[componentIndex];
         }
 
         /** @brief Retrieves the split linear velocity of the body associated with the specified entity. Split velocities are
@@ -437,6 +606,17 @@ namespace Vulkyrie {
             return _splitLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the split linear velocity of the body at the specified component index. This is used internally by the
+         * constraint solver to access velocities without needing to reference the entity. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose split linear velocity is to be retrieved.
+         * @returns A const reference to the split linear velocity vector (meters per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitLinearVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _splitLinearVelocities.size(), "Component index out of bounds.");
+
+            return _splitLinearVelocities[componentIndex];
+        }
+
         /** @brief Retrieves the split angular velocity of the body associated with the specified entity. Split velocities are
          * used by certain constraint solvers to separate positional correction from velocity-level solving. The entity must have
          * a RigidBodyComponent associated with it.
@@ -446,6 +626,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _splitAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves the split angular velocity of the body at the specified component index. This is used internally by the
+         * constraint solver to access velocities without needing to reference the entity. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose split angular velocity is to be retrieved.
+         * @returns A const reference to the split angular velocity vector (radians per second). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitAngularVelocityAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _splitAngularVelocities.size(), "Component index out of bounds.");
+
+            return _splitAngularVelocities[componentIndex];
         }
 
         /** @brief Retrieves a mutable reference to the constrained position of the body associated with the specified entity.
@@ -459,6 +650,17 @@ namespace Vulkyrie {
             return _constrainedPositions[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves a mutable reference to the constrained position of the body at the specified component index. This is used internally by the
+         * constraint solver to access positions without needing to reference the entity. The component index must be valid and correspond to an
+         * active component in the store.
+         * @param componentIndex The index of the component whose constrained position is to be retrieved.
+         * @returns A mutable reference to the constrained position vector. */
+        [[nodiscard]] VE_FORCE_INLINE glm::vec3 &GetConstrainedPositionAtIndex(size_t componentIndex) {
+            VASSERT(componentIndex < _constrainedPositions.size(), "Component index out of bounds.");
+
+            return _constrainedPositions[componentIndex];
+        }
+
         /** @brief Retrieves a mutable reference to the constrained orientation quaternion of the body associated with the
          * specified entity. The constrained orientation may be modified by certain constraint solvers during iterative solving
          * to correct rotational drift. The entity must have a RigidBodyComponent associated with it.
@@ -468,6 +670,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedOrientations[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves a mutable reference to the constrained orientation quaternion of the body at the specified component index. This is used internally
+         * by the constraint solver to access orientations without needing to reference the entity. The component index must be valid and correspond to an
+         * active component in the store.
+         * @param componentIndex The index of the component whose constrained orientation is to be retrieved.
+         * @returns A mutable reference to the constrained orientation quaternion. */
+        [[nodiscard]] VE_FORCE_INLINE glm::quat &GetConstrainedOrientationAtIndex(size_t componentIndex) {
+            VASSERT(componentIndex < _constrainedOrientations.size(), "Component index out of bounds.");
+
+            return _constrainedOrientations[componentIndex];
         }
 
         /** @brief Retrieves the center of mass of the body associated with the specified entity in local (body) space. The
@@ -481,6 +694,17 @@ namespace Vulkyrie {
             return _localCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the center of mass of the body at the specified component index. This is used internally by the physics engine to
+         * access center of mass data without needing to reference the entity. The component index must be valid and correspond to an
+         * active component in the store.
+         * @param componentIndex The index of the component whose local center of mass is to be retrieved.
+         * @returns A const reference to the local center of mass position vector. */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalCenterOfMassAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _localCenterOfMasses.size(), "Component index out of bounds.");
+
+            return _localCenterOfMasses[componentIndex];
+        }
+
         /** @brief Retrieves the center of mass of the body associated with the specified entity in world space. This is
          * computed by transforming the local center of mass by the body's current position and orientation, and is updated each
          * simulation step. The entity must have a RigidBodyComponent associated with it.
@@ -492,6 +716,17 @@ namespace Vulkyrie {
             return _worldCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the center of mass of the body at the specified component index. This is used internally by the physics engine to
+         * access center of mass data without needing to reference the entity. The component index must be valid and correspond to an
+         * active component in the store.
+         * @param componentIndex The index of the component whose world center of mass is to be retrieved.
+         * @returns A const reference to the world center of mass position vector. */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldCenterOfMassAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _worldCenterOfMasses.size(), "Component index out of bounds.");
+
+            return _worldCenterOfMasses[componentIndex];
+        }
+
         /** @brief Checks whether gravity is enabled for the body associated with the specified entity. When gravity is enabled,
          * the physics engine applies the global gravity force to the body each simulation step. The entity must have a
          * RigidBodyComponent associated with it.
@@ -501,6 +736,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return static_cast<bool>(_gravityEnabledFlags[_entityToComponentIndex.find(bodyEntity)->second]);
+        }
+
+        /** @brief Checks whether gravity is enabled for the body at the specified component index. This is used internally by the physics engine to
+         * access gravity settings without needing to reference the entity. The component index must be valid and correspond to an active component in the
+         * store.
+         * @param componentIndex The index of the component to be checked. Must be less than the current size of the store.
+         * @returns True if gravity is enabled for the body, false otherwise. */
+        [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabledAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _gravityEnabledFlags.size(), "Component index out of bounds.");
+
+            return static_cast<bool>(_gravityEnabledFlags[componentIndex]);
         }
 
         /** @brief Checks whether the body associated with the specified entity has already been assigned to a simulation island
@@ -527,6 +773,16 @@ namespace Vulkyrie {
             return _linearLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the linear axis locking factors for the body at the specified component index. This is used internally by the physics engine to
+         * access locking factors without needing to reference the entity. The component index must be valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose linear axis locking factors are to be retrieved.
+         * @returns A const reference to the linear axis locking factors (1 = free, 0 = locked). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearLockAxisFactorAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _linearLockAxisFactors.size(), "Component index out of bounds.");
+
+            return _linearLockAxisFactors[componentIndex];
+        }
+
         /** @brief Retrieves the angular axis locking factors for the body associated with the specified entity. These factors
          * allow selective constraint of rotational motion around individual axes: 1.0 indicates free rotation around that axis,
          * while 0.0 completely locks rotation. This enables effects like a door hinge (rotation around one axis only). The
@@ -539,6 +795,16 @@ namespace Vulkyrie {
             return _angularLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the angular axis locking factors for the body at the specified component index. This is used internally by the physics engine to
+         * access locking factors without needing to reference the entity. The component index must be valid and correspond to an active component in the store.
+         * @param componentIndex The index of the component whose angular axis locking factors are to be retrieved.
+         * @returns A const reference to the angular axis locking factors (1 = free, 0 = locked). */
+        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularLockAxisFactorAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _angularLockAxisFactors.size(), "Component index out of bounds.");
+
+            return _angularLockAxisFactors[componentIndex];
+        }
+
         /** @brief Sets the constrained linear velocity of the body associated with the specified entity. This is typically
          * called by the constraint solver during physics simulation. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -549,6 +815,17 @@ namespace Vulkyrie {
             _constrainedLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = constrainedLinearVelocity;
         }
 
+        /** @brief Sets the constrained linear velocity of the body at the specified component index. This is used internally by the constraint
+         * solver to access velocities without needing to reference the entity. The component index must be valid and correspond to
+         * an active component in the store.
+         * @param componentIndex The index of the component whose constrained linear velocity is to be set.
+         * @param constrainedLinearVelocity The new constrained linear velocity vector (meters per second). */
+        VE_FORCE_INLINE void SetConstrainedLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedLinearVelocity) {
+            VASSERT(componentIndex < _constrainedLinearVelocities.size(), "Component index out of bounds.");
+
+            _constrainedLinearVelocities[componentIndex] = constrainedLinearVelocity;
+        }
+
         /** @brief Sets the constrained angular velocity of the body associated with the specified entity. This is typically
          * called by the constraint solver during physics simulation. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -557,6 +834,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = constrainedAngularVelocity;
+        }
+
+        /** @brief Sets the constrained angular velocity of the body at the specified component index. This is used internally by the constraint
+         * solver to access velocities without needing to reference the entity. The component index must be valid and correspond to
+         * an active component in the store.
+         * @param componentIndex The index of the component whose constrained angular velocity is to be set.
+         * @param constrainedAngularVelocity The new constrained angular velocity vector (radians per second). */
+        VE_FORCE_INLINE void SetConstrainedAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedAngularVelocity) {
+            VASSERT(componentIndex < _constrainedAngularVelocities.size(), "Component index out of bounds.");
+
+            _constrainedAngularVelocities[componentIndex] = constrainedAngularVelocity;
         }
 
         /** @brief Sets the split linear velocity of the body associated with the specified entity. This is typically called by
@@ -570,6 +858,17 @@ namespace Vulkyrie {
             _splitLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = splitLinearVelocity;
         }
 
+        /** @brief Sets the split linear velocity of the body at the specified component index. This is used internally by the constraint
+         * solver to access velocities without needing to reference the entity. The component index must be valid and correspond to
+         * an active component in the store.
+         * @param componentIndex The index of the component whose split linear velocity is to be set.
+         * @param splitLinearVelocity The new split linear velocity vector (meters per second). */
+        VE_FORCE_INLINE void SetSplitLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitLinearVelocity) {
+            VASSERT(componentIndex < _splitLinearVelocities.size(), "Component index out of bounds.");
+
+            _splitLinearVelocities[componentIndex] = splitLinearVelocity;
+        }
+
         /** @brief Sets the split angular velocity of the body associated with the specified entity. This is typically called by
          * constraint solvers that use velocity splitting for positional correction. The entity must have a RigidBodyComponent
          * associated with it.
@@ -579,6 +878,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _splitAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = splitAngularVelocity;
+        }
+
+        /** @brief Sets the split angular velocity of the body at the specified component index. This is used internally by the constraint
+         * solver to access velocities without needing to reference the entity. The component index must be valid and correspond to
+         * an active component in the store.
+         * @param componentIndex The index of the component whose split angular velocity is to be set.
+         * @param splitAngularVelocity The new split angular velocity vector (radians per second). */
+        VE_FORCE_INLINE void SetSplitAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitAngularVelocity) {
+            VASSERT(componentIndex < _splitAngularVelocities.size(), "Component index out of bounds.");
+
+            _splitAngularVelocities[componentIndex] = splitAngularVelocity;
         }
 
         /** @brief Sets the constrained position of the body associated with the specified entity. This is typically modified by
@@ -592,6 +902,17 @@ namespace Vulkyrie {
             _constrainedPositions[_entityToComponentIndex.find(bodyEntity)->second] = constrainedPosition;
         }
 
+        /** @brief Sets the constrained position of the body at the specified component index. This is used internally by the
+         * constraint solver to access positions without needing to reference the entity. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose constrained position is to be set.
+         * @param constrainedPosition The new constrained position vector. */
+        VE_FORCE_INLINE void SetConstrainedPositionAtIndex(size_t componentIndex, const glm::vec3 &constrainedPosition) {
+            VASSERT(componentIndex < _constrainedPositions.size(), "Component index out of bounds.");
+
+            _constrainedPositions[componentIndex] = constrainedPosition;
+        }
+
         /** @brief Sets the constrained orientation of the body associated with the specified entity. This is typically modified
          * by constraint solvers during iterative solving to correct rotational drift. The entity must have a RigidBodyComponent
          * associated with it.
@@ -601,6 +922,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedOrientations[_entityToComponentIndex.find(bodyEntity)->second] = constrainedOrientation;
+        }
+
+        /** @brief Sets the constrained orientation of the body at the specified component index. This is used internally by the
+         * constraint solver to access orientations without needing to reference the entity. The component index must be valid and
+         * correspond to an active component in the store.
+         * @param componentIndex The index of the component whose constrained orientation is to be set.
+         * @param constrainedOrientation The new constrained orientation quaternion. */
+        VE_FORCE_INLINE void SetConstrainedOrientationAtIndex(size_t componentIndex, const glm::quat &constrainedOrientation) {
+            VASSERT(componentIndex < _constrainedOrientations.size(), "Component index out of bounds.");
+
+            _constrainedOrientations[componentIndex] = constrainedOrientation;
         }
 
         /** @brief Sets the center of mass of the body associated with the specified entity in local (body) space. The entity
@@ -622,6 +954,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _worldCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second] = centerOfMassWorld;
+        }
+
+        /** @brief Sets the center of mass of the body at the specified component index. This is used internally by the physics engine to
+         * access center of mass data without needing to reference the entity. The component index must be valid and correspond to an
+         * active component in the store.
+         * @param componentIndex The index of the component whose world center of mass is to be set.
+         * @param centerOfMassWorld The new world center of mass position vector. */
+        VE_FORCE_INLINE void SetWorldCenterOfMassAtIndex(size_t componentIndex, const glm::vec3 &centerOfMassWorld) {
+            VASSERT(componentIndex < _worldCenterOfMasses.size(), "Component index out of bounds.");
+
+            _worldCenterOfMasses[componentIndex] = centerOfMassWorld;
         }
 
         /** @brief Sets whether gravity is enabled for the body associated with the specified entity. The entity must have a

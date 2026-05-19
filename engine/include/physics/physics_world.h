@@ -7,6 +7,7 @@
 #include "physics/components/rigid_body_component_store.h"
 #include "physics/components/transform_component_store.h"
 #include "physics/systems/collision_system.h"
+#include "physics/systems/dynamics_system.h"
 
 namespace Vulkyrie {
 
@@ -73,11 +74,20 @@ namespace Vulkyrie {
             return _collisionSystem;
         }
 
+        [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabled() const {
+            return _gravityEnabled;
+        }
+
+        VE_FORCE_INLINE void SetGravityEnabled(bool enabled) {
+            _gravityEnabled = enabled;
+        }
+
         void Update();
 
         void SetActiveStatusForBody(Entity entity, bool disabled);
 
     private:
+        bool _gravityEnabled;
         PhysicsWorldSettings _settings;
         EntityManager _entityManager;
         BodyComponentStore _bodyComponentStore;
@@ -86,6 +96,7 @@ namespace Vulkyrie {
         TransformComponentStore _transformComponentStore;
 
         CollisionSystem _collisionSystem;
+        DynamicsSystem _dynamicsSystem;
     };
 
 } // namespace Vulkyrie
