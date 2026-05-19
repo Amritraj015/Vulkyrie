@@ -6,6 +6,10 @@ namespace Vulkyrie {
                                              size_t batchStartIndex,
                                              size_t batchNbItems,
                                              std::vector<GJKResult> &gjkResults) {
+        (void)narrowPhaseInfoBatch;
+        (void)batchStartIndex;
+        (void)batchNbItems;
+        (void)gjkResults;
         // glm::vec3 supportPointOnShapeOne;
         // glm::vec3 supportPointOnShapeTwo;
         // glm::vec3 supportPointOnMinkowskiDifference;

@@ -2,13 +2,13 @@
 
 namespace Vulkyrie {
 
-    NarrowPhaseInput::NarrowPhaseInput(OverlappingPairs &overlappingPairs)
-        : _sphereVsSphereBatch(overlappingPairs)
-        , _sphereVsCapsuleBatch(overlappingPairs)
-        , _capsuleVsCapsuleBatch(overlappingPairs)
-        , _sphereVsConvexPolyhedronBatch(overlappingPairs)
-        , _capsuleVsConvexPolyhedronBatch(overlappingPairs)
-        , _convexPolyhedronVsConvexPolyhedronBatch(overlappingPairs) {
+    NarrowPhaseInput::NarrowPhaseInput()
+        : _sphereVsSphereBatch()
+        , _sphereVsCapsuleBatch()
+        , _capsuleVsCapsuleBatch()
+        , _sphereVsConvexPolyhedronBatch()
+        , _capsuleVsConvexPolyhedronBatch()
+        , _convexPolyhedronVsConvexPolyhedronBatch() {
     }
 
 } // namespace Vulkyrie

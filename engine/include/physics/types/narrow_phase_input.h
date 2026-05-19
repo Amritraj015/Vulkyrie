@@ -23,7 +23,7 @@ namespace Vulkyrie {
          * @brief Constructs a NarrowPhaseInput, forwarding the overlapping pairs reference to each batch.
          * @param overlappingPairs The set of overlapping pairs managed by the broad phase.
          */
-        explicit NarrowPhaseInput(OverlappingPairs &overlappingPairs);
+        explicit NarrowPhaseInput();
 
         /**
          * @brief Returns the batch for sphere-vs-sphere narrow-phase tests.

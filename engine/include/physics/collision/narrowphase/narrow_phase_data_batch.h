@@ -8,8 +8,8 @@ namespace Vulkyrie {
 
     class NarrowPhaseDataBatch final {
     public:
-        NarrowPhaseDataBatch(OverlappingPairs &overlappingPairs);
-        ~NarrowPhaseDataBatch();
+        NarrowPhaseDataBatch() = default;
+        ~NarrowPhaseDataBatch() = default;
 
         std::vector<NarrowPhaseData> Data;
 
@@ -45,11 +45,6 @@ namespace Vulkyrie {
 
         // void ReserveMemory();
         // void Clear();
-
-    private:
-        OverlappingPairs &_overlappingPairs;
-        size_t _cachedCapacity;
-        // static constexpr size_t TRIANGLE_SHAPE_ALLOCATED_SIZE;
     };
 
 } // namespace Vulkyrie

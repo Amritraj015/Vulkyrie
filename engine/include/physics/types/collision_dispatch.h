@@ -49,25 +49,25 @@ namespace Vulkyrie {
         NarrowPhaseAlgorithm _collisionMatrix[SUPPORTED_COLLISION_SHAPE_TYPE_COUNT][SUPPORTED_COLLISION_SHAPE_TYPE_COUNT];
 
         /** @brief Instance of the capsule-vs-capsule narrow-phase algorithm, used for collision checks between pairs of capsule shapes. */
-        CapsuleVsCapsuleAlgorithm _capsuleVsCapsuleAlgorithm;
+        [[maybe_unused]] CapsuleVsCapsuleAlgorithm _capsuleVsCapsuleAlgorithm;
 
         /** @brief Instance of the capsule-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of capsule and convex polyhedron
          * shapes. */
-        CapsuleVsConvexPolyhedronAlgorithm _capsuleVsConvexPolyhedronAlgorithm;
+        [[maybe_unused]] CapsuleVsConvexPolyhedronAlgorithm _capsuleVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the convex-polyhedron-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of convex polyhedron
          * shapes. */
-        ConvexPolyhedronVsConvexPolyhedronAlgorithm _convexPolyhedronVsConvexPolyhedronAlgorithm;
+        [[maybe_unused]] ConvexPolyhedronVsConvexPolyhedronAlgorithm _convexPolyhedronVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the sphere-vs-capsule narrow-phase algorithm, used for collision checks between pairs of sphere and capsule shapes. */
-        SphereVsCapsuleAlgorithm _sphereVsCapsuleAlgorithm;
+        [[maybe_unused]] SphereVsCapsuleAlgorithm _sphereVsCapsuleAlgorithm;
 
         /** @brief Instance of the sphere-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of sphere and convex polyhedron
          * shapes. */
-        SphereVsConvexPolyhedronAlgorithm _sphereVsConvexPolyhedronAlgorithm;
+        [[maybe_unused]] SphereVsConvexPolyhedronAlgorithm _sphereVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the sphere-vs-sphere narrow-phase algorithm, used for collision checks between pairs of sphere shapes. */
-        SphereVsSphereAlgorithm _sphereVsSphereAlgorithm;
+        [[maybe_unused]] SphereVsSphereAlgorithm _sphereVsSphereAlgorithm;
 
         /** @brief Helper function to determine the narrow-phase algorithm for a given pair of shape type indices.
          *

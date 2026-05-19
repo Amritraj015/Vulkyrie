@@ -6,6 +6,10 @@ namespace Vulkyrie {
                                                                   size_t batchStartIndex,
                                                                   size_t batchItemsCount,
                                                                   bool clipWithPreviousAxisIfStillColliding) {
+        (void)narrowPhaseDataBatch;
+        (void)batchStartIndex;
+        (void)batchItemsCount;
+        (void)clipWithPreviousAxisIfStillColliding;
         bool collisionDetected = false;
         return collisionDetected;
     }

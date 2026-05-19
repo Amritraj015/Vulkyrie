@@ -41,7 +41,7 @@ namespace Vulkyrie {
 
             VASSERT(!_broadPhaseIDToColliderEntityMap.contains(broadPhaseID), "Broad-phase ID already exists in the map when trying to add a collider.");
 
-            _broadPhaseIDToColliderEntityMap[broadPhaseID] = collider.GetEntity();
+            _broadPhaseIDToColliderEntityMap.emplace(broadPhaseID, collider.GetEntity());
         }
 
         void RemoveCollider(Collider &collider);

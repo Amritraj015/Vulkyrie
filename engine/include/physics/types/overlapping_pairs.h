@@ -437,7 +437,7 @@ namespace Vulkyrie {
         ColliderComponentStore &_colliderComponentStore;
         RigidBodyComponentStore &_rigidBodyComponentStore;
         CollisionDispatch &_collisionDispatch;
-        std::unordered_set<Pair<Entity, Entity>> &_pairsThatCannotCollide;
+        [[maybe_unused]] std::unordered_set<Pair<Entity, Entity>> &_pairsThatCannotCollide;
 
         void removeDisabledConvexPairWithIndex(size_t pairIndex, bool removeFromColliders);
         void removeDisabledConcavePairWithIndex(size_t pairIndex, bool removeFromColliders);
