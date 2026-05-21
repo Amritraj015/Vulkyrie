@@ -372,6 +372,17 @@ namespace Vulkyrie {
             return static_cast<bool>(_isTriggerFlags[_entityToComponentIndex.find(colliderEntity)->second]);
         }
 
+        /** @brief Checks if the component at the specified index in the component vector is a trigger. A trigger is a special type of collider that does not
+         * participate in physics simulation or collision response but can be used to detect overlaps and trigger events. The index must be a valid index
+         * within the component vector.
+         * @param index The index of the component to be checked. Must be a valid index within the component vector.
+         * @returns True if the component at the specified index is a trigger, false otherwise. */
+        [[nodiscard]] VE_FORCE_INLINE bool IsTriggerAtIndex(size_t index) const {
+            VASSERT(index < _isTriggerFlags.size(), "Index out of bounds.");
+
+            return static_cast<bool>(_isTriggerFlags[index]);
+        }
+
         /** @brief Sets whether the specified collider entity is a trigger. A trigger is a special type of collider that does not participate in physics
          * simulation or collision response but can be used to detect overlaps and trigger events. The entity must have a ColliderComponent associated with
          * it.

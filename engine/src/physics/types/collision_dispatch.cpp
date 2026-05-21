@@ -17,7 +17,7 @@ namespace Vulkyrie {
         }
     }
 
-    NarrowPhaseAlgorithm CollisionDispatch::SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const {
+    NarrowPhaseAlgorithm CollisionDispatch::SelectNarrowPhaseAlgorithm(CollisionShapeType shapeOne, CollisionShapeType shapeTwo) const {
         u32 shapeOneIndex = static_cast<u32>(shapeOne);
         u32 shapeTwoIndex = static_cast<u32>(shapeTwo);
 
@@ -31,8 +31,8 @@ namespace Vulkyrie {
     }
 
     NarrowPhaseAlgorithm CollisionDispatch::selectAlgorithm(i32 shapeOne, i32 shapeTwo) {
-        CollisionShapeType shapeOneType = static_cast<CollisionShapeType>(shapeOne);
-        CollisionShapeType shapeTwoType = static_cast<CollisionShapeType>(shapeTwo);
+        auto shapeOneType = static_cast<CollisionShapeType>(shapeOne);
+        auto shapeTwoType = static_cast<CollisionShapeType>(shapeTwo);
 
         if (shapeOne > shapeTwo) {
             return NarrowPhaseAlgorithm::NoCollisionCheck;

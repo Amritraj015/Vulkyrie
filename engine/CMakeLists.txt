@@ -72,6 +72,8 @@ else()
         PRIVATE
             -Wall
             -Wextra
+            -Wconversion 
+            -Wsign-conversion 
             -Wpedantic
             -Werror
     )

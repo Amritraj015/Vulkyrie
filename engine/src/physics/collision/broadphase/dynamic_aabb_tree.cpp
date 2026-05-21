@@ -105,7 +105,7 @@ namespace Vulkyrie {
         }
     }
 
-    void DynamicAABBTree::QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<std::pair<i32, i32>> &outOverlappingPairs) {
+    void DynamicAABBTree::QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<Pair<i32, i32>> &outOverlappingPairs) {
 
         // If the tree is empty, there are no overlapping pairs to find, so we can return early.
         if (_rootNodeIndex == AABB_TREE_NULL_NODE) {

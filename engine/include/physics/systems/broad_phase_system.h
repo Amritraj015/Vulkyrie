@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/pair.h"
 #include "physics/collision/broadphase/dynamic_aabb_tree.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/transform_component_store.h"
@@ -97,7 +98,7 @@ namespace Vulkyrie {
          * @param outOverlappingPairs A reference to a vector that will be populated with pairs of broad phase IDs corresponding to potentially overlapping
          * colliders. Each pair in the vector represents two colliders that have overlapping AABBs and should be further tested for collision detection and
          * response in the narrow phase. */
-        void ComputeOverlappingPairs(std::vector<std::pair<i32, i32>> &outOverlappingPairs);
+        void ComputeOverlappingPairs(std::vector<Pair<i32, i32>> &outOverlappingPairs);
 
         /** @brief Retrieves the fat AABB associated with a specified broad phase ID from the dynamic AABB tree. The fat AABB is an expanded version of the
          * collider's original AABB that accounts for potential movement and changes in shape during the simulation. It is used in the broad phase collision

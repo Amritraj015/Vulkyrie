@@ -23,7 +23,7 @@ namespace Vulkyrie {
      */
     struct OverlappingPair {
         /** @brief Unique pair identifier computed as PairNumbers(max(bp1, bp2), min(bp1, bp2)). */
-        size_t PairID;
+        u64 PairID;
 
         /** @brief Broad-phase AABB tree ID of the first collider. */
         i32 ColliderOneBroadPhaseID;
@@ -63,7 +63,7 @@ namespace Vulkyrie {
          * @param narrowPhaseAlgorithmToUse Algorithm chosen by the collision dispatcher.
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
-        explicit OverlappingPair(size_t pairID,
+        explicit OverlappingPair(u64 pairID,
                                  i32 colliderOneBroadPhaseID,
                                  i32 colliderTwoBroadPhaseID,
                                  Entity colliderOneEntity,
@@ -108,7 +108,7 @@ namespace Vulkyrie {
          * @param narrowPhaseAlgorithmToUse Algorithm chosen by the collision dispatcher.
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
-        explicit ConvexOverlappingPair(size_t pairID,
+        explicit ConvexOverlappingPair(u64 pairID,
                                        i32 colliderOneBroadPhaseID,
                                        i32 colliderTwoBroadPhaseID,
                                        Entity colliderOneEntity,
@@ -149,7 +149,7 @@ namespace Vulkyrie {
          * @param isFirstShapeConvex        True if collider one is the convex shape.
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
-        explicit ConcaveOverlappingPair(size_t pairID,
+        explicit ConcaveOverlappingPair(u64 pairID,
                                         i32 colliderOneBroadPhaseID,
                                         i32 colliderTwoBroadPhaseID,
                                         Entity colliderOneEntity,
@@ -159,8 +159,7 @@ namespace Vulkyrie {
                                         bool isEnabled)
             : OverlappingPair(
                   pairID, colliderOneBroadPhaseID, colliderTwoBroadPhaseID, colliderOneEntity, colliderTwoEntity, narrowPhaseAlgorithmToUse, isEnabled)
-            , IsFirstShapeConvex(isFirstShapeConvex)
-            , LastFrameCollisionDataMap() {
+            , IsFirstShapeConvex(isFirstShapeConvex) {
         }
 
         /** @brief Frees all LastFrameCollisionData entries owned by this pair and clears the map. */
@@ -237,6 +236,8 @@ namespace Vulkyrie {
      * lookup, insertion, and removal.
      */
     class OverlappingPairs final {
+        friend class CollisionSystem;
+
     public:
         /**
          * @brief Constructs the OverlappingPairs manager.
@@ -264,13 +265,13 @@ namespace Vulkyrie {
          * @brief Moves the pair with the given ID from the disabled pool to the active pool.
          * @param pairID The unique identifier of the pair to enable.
          */
-        void EnablePair(size_t pairID);
+        void EnablePair(u64 pairID);
 
         /**
          * @brief Moves the pair with the given ID from the active pool to the disabled pool.
          * @param pairID The unique identifier of the pair to disable.
          */
-        void DisablePair(size_t pairID);
+        void DisablePair(u64 pairID);
 
         /**
          * @brief Moves the convex pair at the given index from the disabled pool to the active convex pool.
@@ -317,7 +318,7 @@ namespace Vulkyrie {
          *
          * @param pairID The pair ID to remove.
          */
-        void RemovePair(size_t pairID);
+        void RemovePair(u64 pairID);
 
         /**
          * @brief Removes the active convex pair at the given pool index.
@@ -350,7 +351,7 @@ namespace Vulkyrie {
          * @param pairID The unique identifier of the pair to query.
          * @returns True if the pair is in the disabled convex or disabled concave pool.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool IsPairDisabled(size_t pairID) const {
+        [[nodiscard]] VE_FORCE_INLINE bool IsPairDisabled(u64 pairID) const {
             return _disabledConvexPairIDToPairIndexMap.contains(pairID) || _disabledConcavePairIDToPairIndexMap.contains(pairID);
         }
 
@@ -359,7 +360,7 @@ namespace Vulkyrie {
          * @param pairID                 The pair ID to update.
          * @param requiresCollisionCheck True to schedule a narrow-phase check; false to skip it.
          */
-        VE_FORCE_INLINE void SetRequiresCollisionCheck(size_t pairID, bool requiresCollisionCheck) {
+        VE_FORCE_INLINE void SetRequiresCollisionCheck(u64 pairID, bool requiresCollisionCheck) {
             VASSERT(_convexPairIDToPairIndexMap.contains(pairID) || _concavePairIDToPairIndexMap.contains(pairID),
                     "Trying to set requires collision check for a pair ID that does not exist.");
 
@@ -380,7 +381,7 @@ namespace Vulkyrie {
          * @param pairID The unique identifier of the pair to look up.
          * @returns Pointer to the matching OverlappingPair, or nullptr if the ID is not found in any pool.
          */
-        [[nodiscard]] VE_FORCE_INLINE OverlappingPair *GetOverlappingPair(size_t pairID) {
+        [[nodiscard]] VE_FORCE_INLINE OverlappingPair *GetOverlappingPair(u64 pairID) {
             auto it = _convexPairIDToPairIndexMap.find(pairID);
             if (it != _convexPairIDToPairIndexMap.end()) {
                 return &_convexPairs[it->second];

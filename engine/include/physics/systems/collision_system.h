@@ -83,7 +83,7 @@ namespace Vulkyrie {
 
         std::unordered_set<Pair<Entity, Entity>> _nonCollidablePairs;
         OverlappingPairs _overlappingPairs;
-        std::vector<std::pair<i32, i32>> _broadphaseOverlappingPairsToTest;
+        std::vector<Pair<i32, i32>> _broadphaseOverlappingPairs;
         BroadPhaseSystem _broadPhaseSystem;
         std::unordered_map<i32, Entity> _broadPhaseIDToColliderEntityMap;
 
@@ -96,7 +96,7 @@ namespace Vulkyrie {
         std::vector<ContactPair> *_previousContactPairs;
         std::vector<ContactPair> *_currentContactPairs;
         std::vector<ContactPair> _lostContactPairs;
-        std::unordered_map<u64, u32> _previousMapPairIDToContactPairIndex;
+        std::unordered_map<u64, u32> _previousPairIDToContactPairIndexMap;
 
         std::vector<ContactManifold> _contactManifoldsOne;
         std::vector<ContactManifold> _contactManifoldsTwo;
@@ -141,8 +141,8 @@ namespace Vulkyrie {
                                          bool updateLastFrameInfo,
                                          std::vector<ContactPointData> &potentialContactPoints,
                                          std::vector<ContactManifoldData> &potentialContactManifolds,
-                                         std::vector<ContactPair> *contactPairs);
-        void reducePotentialContactManifolds(std::vector<ContactPair> *contactPairs,
+                                         std::vector<ContactPair> &contactPairs);
+        void reducePotentialContactManifolds(std::vector<ContactPair> &contactPairs,
                                              std::vector<ContactManifoldData> &potentialContactManifolds,
                                              const std::vector<ContactPointData> &potentialContactPoints) const;
         void createContacts();

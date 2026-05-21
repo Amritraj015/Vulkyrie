@@ -39,7 +39,31 @@ namespace Vulkyrie {
          * @param shapeTwo The type of the second collision shape in the pair.
          * @returns The narrow-phase algorithm to use for this pair of shape types, as determined by the collision matrix.
          */
-        NarrowPhaseAlgorithm SelectNarrowPhaseAlgorithm(const CollisionShapeType shapeOne, const CollisionShapeType shapeTwo) const;
+        NarrowPhaseAlgorithm SelectNarrowPhaseAlgorithm(CollisionShapeType shapeOne, CollisionShapeType shapeTwo) const;
+
+        [[nodiscard]] VE_FORCE_INLINE CapsuleVsCapsuleAlgorithm &GetCapsuleVsCapsuleAlgorithm() {
+            return _capsuleVsCapsuleAlgorithm;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE CapsuleVsConvexPolyhedronAlgorithm &GetCapsuleVsConvexPolyhedronAlgorithm() {
+            return _capsuleVsConvexPolyhedronAlgorithm;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE ConvexPolyhedronVsConvexPolyhedronAlgorithm &GetConvexPolyhedronVsConvexPolyhedronAlgorithm() {
+            return _convexPolyhedronVsConvexPolyhedronAlgorithm;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE SphereVsCapsuleAlgorithm &GetSphereVsCapsuleAlgorithm() {
+            return _sphereVsCapsuleAlgorithm;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE SphereVsConvexPolyhedronAlgorithm &GetSphereVsConvexPolyhedronAlgorithm() {
+            return _sphereVsConvexPolyhedronAlgorithm;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE SphereVsSphereAlgorithm &GetSphereVsSphereAlgorithm() {
+            return _sphereVsSphereAlgorithm;
+        }
 
     private:
         /** @brief A 2D array mapping pairs of CollisionShapeType indices to their corresponding NarrowPhaseAlgorithm. This matrix is initialized in the
@@ -49,32 +73,32 @@ namespace Vulkyrie {
         NarrowPhaseAlgorithm _collisionMatrix[SUPPORTED_COLLISION_SHAPE_TYPE_COUNT][SUPPORTED_COLLISION_SHAPE_TYPE_COUNT];
 
         /** @brief Instance of the capsule-vs-capsule narrow-phase algorithm, used for collision checks between pairs of capsule shapes. */
-        [[maybe_unused]] CapsuleVsCapsuleAlgorithm _capsuleVsCapsuleAlgorithm;
+        CapsuleVsCapsuleAlgorithm _capsuleVsCapsuleAlgorithm;
 
         /** @brief Instance of the capsule-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of capsule and convex polyhedron
          * shapes. */
-        [[maybe_unused]] CapsuleVsConvexPolyhedronAlgorithm _capsuleVsConvexPolyhedronAlgorithm;
+        CapsuleVsConvexPolyhedronAlgorithm _capsuleVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the convex-polyhedron-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of convex polyhedron
          * shapes. */
-        [[maybe_unused]] ConvexPolyhedronVsConvexPolyhedronAlgorithm _convexPolyhedronVsConvexPolyhedronAlgorithm;
+        ConvexPolyhedronVsConvexPolyhedronAlgorithm _convexPolyhedronVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the sphere-vs-capsule narrow-phase algorithm, used for collision checks between pairs of sphere and capsule shapes. */
-        [[maybe_unused]] SphereVsCapsuleAlgorithm _sphereVsCapsuleAlgorithm;
+        SphereVsCapsuleAlgorithm _sphereVsCapsuleAlgorithm;
 
         /** @brief Instance of the sphere-vs-convex-polyhedron narrow-phase algorithm, used for collision checks between pairs of sphere and convex polyhedron
          * shapes. */
-        [[maybe_unused]] SphereVsConvexPolyhedronAlgorithm _sphereVsConvexPolyhedronAlgorithm;
+        SphereVsConvexPolyhedronAlgorithm _sphereVsConvexPolyhedronAlgorithm;
 
         /** @brief Instance of the sphere-vs-sphere narrow-phase algorithm, used for collision checks between pairs of sphere shapes. */
-        [[maybe_unused]] SphereVsSphereAlgorithm _sphereVsSphereAlgorithm;
+        SphereVsSphereAlgorithm _sphereVsSphereAlgorithm;
 
         /** @brief Helper function to determine the narrow-phase algorithm for a given pair of shape type indices.
          *
          * @param shapeOne The index of the first shape type (corresponding to CollisionShapeType enum values).
          * @param shapeTwo The index of the second shape type (corresponding to CollisionShapeType enum values).
          * @returns The narrow-phase algorithm to use for this pair of shape type indices, used to populate the collision matrix during initialization. */
-        NarrowPhaseAlgorithm selectAlgorithm(i32 shapeOne, i32 shapeTwo);
+        static NarrowPhaseAlgorithm selectAlgorithm(i32 shapeOne, i32 shapeTwo);
     };
 
 } // namespace Vulkyrie

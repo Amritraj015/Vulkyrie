@@ -31,7 +31,7 @@ namespace Vulkyrie {
         }
     }
 
-    void OverlappingPairs::EnablePair(size_t pairID) {
+    void OverlappingPairs::EnablePair(u64 pairID) {
         VASSERT(IsPairDisabled(pairID), "Trying to enable a pair that is not disabled.");
         VASSERT(!_convexPairIDToPairIndexMap.contains(pairID) && !_concavePairIDToPairIndexMap.contains(pairID),
                 "Trying to enable a pair ID that already exists in the convex pairs or concave pairs.");
@@ -47,7 +47,7 @@ namespace Vulkyrie {
         }
     }
 
-    void OverlappingPairs::DisablePair(size_t pairID) {
+    void OverlappingPairs::DisablePair(u64 pairID) {
         VASSERT(!IsPairDisabled(pairID), "Trying to disable a pair that is already disabled.");
         VASSERT(_convexPairIDToPairIndexMap.contains(pairID) || _concavePairIDToPairIndexMap.contains(pairID),
                 "Trying to disable a pair ID that does not exist in the convex pairs or concave pairs.");
@@ -202,7 +202,7 @@ namespace Vulkyrie {
         return pairID;
     }
 
-    void OverlappingPairs::RemovePair(size_t pairID) {
+    void OverlappingPairs::RemovePair(u64 pairID) {
         VASSERT(
             _convexPairIDToPairIndexMap.contains(pairID) || _concavePairIDToPairIndexMap.contains(pairID) ||
                 _disabledConvexPairIDToPairIndexMap.contains(pairID) || _disabledConcavePairIDToPairIndexMap.contains(pairID),
@@ -254,8 +254,8 @@ namespace Vulkyrie {
             std::vector<u64> &collisionPairTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 
             // Remove the pair ID from the collision pairs of both colliders
-            collisionPairOne.erase(std::remove(collisionPairOne.begin(), collisionPairOne.end(), pairToRemove.PairID), collisionPairOne.end());
-            collisionPairTwo.erase(std::remove(collisionPairTwo.begin(), collisionPairTwo.end(), pairToRemove.PairID), collisionPairTwo.end());
+            std::erase(collisionPairOne, pairToRemove.PairID);
+            std::erase(collisionPairTwo, pairToRemove.PairID);
         }
 
         VASSERT(_convexPairIDToPairIndexMap[_convexPairs[pairIndex].PairID] == pairIndex,
@@ -294,8 +294,8 @@ namespace Vulkyrie {
             std::vector<u64> &collisionPairTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 
             // Remove the pair ID from the collision pairs of both colliders
-            collisionPairOne.erase(std::remove(collisionPairOne.begin(), collisionPairOne.end(), pairToRemove.PairID), collisionPairOne.end());
-            collisionPairTwo.erase(std::remove(collisionPairTwo.begin(), collisionPairTwo.end(), pairToRemove.PairID), collisionPairTwo.end());
+            std::erase(collisionPairOne, pairToRemove.PairID);
+            std::erase(collisionPairTwo, pairToRemove.PairID);
         }
 
         VASSERT(_concavePairIDToPairIndexMap[_concavePairs[pairIndex].PairID] == pairIndex,
@@ -352,8 +352,8 @@ namespace Vulkyrie {
             std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 
             // Remove the pair ID from the collision pairs of both colliders
-            overlappingPairsOne.erase(std::remove(overlappingPairsOne.begin(), overlappingPairsOne.end(), pairToRemove.PairID), overlappingPairsOne.end());
-            overlappingPairsTwo.erase(std::remove(overlappingPairsTwo.begin(), overlappingPairsTwo.end(), pairToRemove.PairID), overlappingPairsTwo.end());
+            std::erase(overlappingPairsOne, pairToRemove.PairID);
+            std::erase(overlappingPairsTwo, pairToRemove.PairID);
         }
 
         VASSERT(_disabledConvexPairIDToPairIndexMap[pairToRemove.PairID] == pairIndex,
@@ -392,8 +392,8 @@ namespace Vulkyrie {
             std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 
             // Remove the pair ID from the collision pairs of both colliders
-            overlappingPairsOne.erase(std::remove(overlappingPairsOne.begin(), overlappingPairsOne.end(), pairToRemove.PairID), overlappingPairsOne.end());
-            overlappingPairsTwo.erase(std::remove(overlappingPairsTwo.begin(), overlappingPairsTwo.end(), pairToRemove.PairID), overlappingPairsTwo.end());
+            std::erase(overlappingPairsOne, pairToRemove.PairID);
+            std::erase(overlappingPairsTwo, pairToRemove.PairID);
         }
 
         VASSERT(_disabledConcavePairIDToPairIndexMap[pairToRemove.PairID] == pairIndex,

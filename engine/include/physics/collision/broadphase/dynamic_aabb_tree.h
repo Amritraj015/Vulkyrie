@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/asserts.h"
+#include "core/pair.h"
 #include "physics/physics_constants.h"
 #include "physics/collision/shapes/aabb.h"
 
@@ -265,7 +266,7 @@ namespace Vulkyrie {
          * correspond to a leaf node.
          * @param outOverlappingPairs A vector that will be populated with pairs of indices representing overlapping nodes. The caller is
          * responsible for clearing this vector before calling the function if they want to avoid appending to existing results. */
-        void QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<std::pair<i32, i32>> &outOverlappingPairs);
+        void QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<Pair<i32, i32>> &outOverlappingPairs);
 
     private:
         /** @brief The vector of nodes in the dynamic AABB tree. Each node represents either a leaf (which corresponds to an actual object in the

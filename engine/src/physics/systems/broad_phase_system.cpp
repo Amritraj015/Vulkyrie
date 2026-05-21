@@ -44,7 +44,7 @@ namespace Vulkyrie {
         // Remove this collider from the set of moved colliders.
         // WARN: This is an O(n) operation, but it should be rare for colliders to be removed
         // from the broad phase system, so it should not cause significant performance issues.
-        _movedShapes.erase(std::remove(_movedShapes.begin(), _movedShapes.end(), broadPhaseID), _movedShapes.end());
+        std::erase(_movedShapes, broadPhaseID);
     }
 
     void BroadPhaseSystem::UpdateCollider(Entity entity) {
@@ -88,7 +88,7 @@ namespace Vulkyrie {
         return aabbOne.CollidesWith(aabbTwo);
     }
 
-    void BroadPhaseSystem::ComputeOverlappingPairs(std::vector<std::pair<i32, i32>> &outOverlappingPairs) {
+    void BroadPhaseSystem::ComputeOverlappingPairs(std::vector<Pair<i32, i32>> &outOverlappingPairs) {
         // Query the AABB tree for overlapping pairs involving the moved shapes and populate the provided vector with the results.
         _aabbTree.QueryOverlappingPairs(_movedShapes, outOverlappingPairs);
 

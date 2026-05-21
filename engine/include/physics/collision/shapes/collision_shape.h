@@ -52,7 +52,7 @@ namespace Vulkyrie {
         /** @brief Remove a collider from the list of colliders using this collision shape.
          * @param collider The collider to be removed from the list of colliders using this collision shape. */
         VE_FORCE_INLINE void RemoveCollider(Collider &collider) {
-            _colliders.erase(std::remove(_colliders.begin(), _colliders.end(), &collider), _colliders.end());
+            std::erase(_colliders, &collider);
         }
 
         /** @brief Notify all colliders that are using this collision shape that the shape has changed. This is important for ensuring that any changes to

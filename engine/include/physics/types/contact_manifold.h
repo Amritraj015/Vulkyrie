@@ -97,6 +97,14 @@ namespace Vulkyrie {
             , ContactPointCount(nbContactPoints)
             , IsAlreadyInIsland(false) {
         }
+
+        ContactManifold(const ContactManifold &) = delete;
+        ContactManifold &operator=(const ContactManifold &) = delete;
+
+        ContactManifold(ContactManifold &&) = delete;
+        ContactManifold &operator=(ContactManifold &&) = delete;
+
+        ~ContactManifold() = default;
     };
 
 } // namespace Vulkyrie

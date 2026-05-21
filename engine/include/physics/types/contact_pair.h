@@ -104,6 +104,12 @@ namespace Vulkyrie {
             , PotentialContactManifoldIndices{ 0 } {
         }
 
+        ContactPair(const ContactPair &) = delete;
+        ContactPair &operator=(const ContactPair &) = delete;
+
+        ContactPair(ContactPair &&) = default;
+        ContactPair &operator=(ContactPair &&) = delete;
+
         /**
          * @brief Removes the potential manifold index at the given position using a swap-with-last strategy.
          *
