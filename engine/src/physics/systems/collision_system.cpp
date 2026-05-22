@@ -1,5 +1,7 @@
 #include "physics/systems/collision_system.h"
 #include "physics/physics_world.h"
+#include "physics/body/body.h"
+#include "vlkypch.h"
 
 namespace Vulkyrie {
 
@@ -21,22 +23,53 @@ namespace Vulkyrie {
 
         const std::vector<u64> &overlappingPairs = _colliderComponentStore.GetOverlappingPairs(collider.GetEntity());
 
+        // Remove all overlapping pairs that involve this collider.
+        // This is necessary to ensure that any pairs involving this collider
+        // are removed from the overlapping pair list and will not generate
+        // collision callbacks after the collider is removed from the broad phase system.
         while (overlappingPairs.size() > 0) {
             removeOverlappingPair(overlappingPairs[0], false);
         }
 
+        // Remove the broad-phase ID to collider entity mapping for this collider.
         _broadPhaseIDToColliderEntityMap.erase(broadPhaseID);
+
+        // Remove the collider from the broad-phase system,
+        // which will also remove it from the AABB tree and the set of moved colliders.
         _broadPhaseSystem.RemoveCollider(collider);
     }
 
     void CollisionSystem::AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
-        (void)bodyOneEntity;
-        (void)bodyTwoEntity;
-    }
+        _nonCollidablePairs.emplace(OverlappingPairs::ComputeBodiesIndexPair(bodyOneEntity, bodyTwoEntity));
 
-    void CollisionSystem::RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
-        (void)bodyOneEntity;
-        (void)bodyTwoEntity;
+        std::vector<u64> toBeRemoved;
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(bodyOneEntity);
+
+        // Iterate through the colliders of the first body and check their
+        // overlapping pairs to find any pairs that involve the second body.
+        // If any such pairs are found, they should be removed from the overlapping pairs list,
+        // else they will continue to generate collision callbacks even though the bodies are now non-collidable.
+        for (const Entity colliderEntity : colliderEntities) {
+            const std::vector<u64> &overlappingPairs = _colliderComponentStore.GetOverlappingPairs(colliderEntity);
+
+            for (const u64 pairID : overlappingPairs) {
+                const OverlappingPair *pair = _overlappingPairs.GetOverlappingPair(pairID);
+
+                VASSERT(nullptr != pair, "Overlapping pair ID in the overlapping pairs of a collider does not exist in the overlapping pairs manager.");
+
+                const Entity overlappingBodyOneEntity = _colliderComponentStore.GetBodyEntity(pair->ColliderOneEntity);
+                const Entity overlappingBodyTwoEntity = _colliderComponentStore.GetBodyEntity(pair->ColliderTwoEntity);
+
+                if (overlappingBodyOneEntity == bodyTwoEntity || overlappingBodyTwoEntity == bodyTwoEntity) {
+                    toBeRemoved.push_back(pairID);
+                }
+            }
+        }
+
+        // Remove the overlapping pairs that needs to be removed.
+        for (const u64 pairID : toBeRemoved) {
+            removeOverlappingPair(pairID, true);
+        }
     }
 
     void CollisionSystem::NotifyOverlappingPairsToTestOverlap(Collider &collider) {
@@ -46,6 +79,9 @@ namespace Vulkyrie {
             // Notify that the overlapping pair needs to be testbed for overlap
             _overlappingPairs.SetRequiresCollisionCheck(overlappingPair, true);
         }
+    }
+
+    void CollisionSystem::ReportContactsAndTriggers() {
     }
 
     void CollisionSystem::ComputeCollisions() {
@@ -60,6 +96,42 @@ namespace Vulkyrie {
         // and to update the overlapping pair state for the current step.
         computeNarrowPhase();
     }
+
+    // void CollisionSystem::TestOverlap(Body &bodyOne, Body &bodyTwo) {
+    //     // Compute broad-phase collision detection to generate potential collision pairs.
+    //     computeBroadPhase();
+    //
+    //     std::vector<u64> concavePairs;
+    //     std::vector<u64> convexPairs;
+    //
+    //     // Filter the overlapping pairs to only get the ones that involve the specified bodies,
+    //     // and separate them into convex and concave pairs for more efficient processing in the middle phase.
+    //     filterOverlappingPairs(bodyOne.GetEntity(), bodyTwo.GetEntity(), convexPairs, concavePairs);
+    //
+    //     if (convexPairs.size() > 0 || concavePairs.size() > 0) {
+    //         // Compute middle-phase collision detection.
+    //         computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, _narrowPhaseInput, false);
+    //
+    //         // Compute narrow-phase collision detection.
+    //         computeNarrowPhaseOverlapSnapshot(_narrowPhaseInput, nullptr);
+    //     }
+    // }
+    //
+    // void CollisionSystem::TestOverlap(Body &body, OverlapCallback &callback) {
+    // }
+    //
+    // void CollisionSystem::TestOverlap(OverlapCallback &callback) {
+    //     NarrowPhaseInput batches(_);
+    // }
+    //
+    // void CollisionSystem::TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback) {
+    // }
+    //
+    // void CollisionSystem::TestCollision(Body &body, CollisionCallback &callback) {
+    // }
+    //
+    // void CollisionSystem::TestCollision(CollisionCallback &callback) {
+    // }
 
     void CollisionSystem::computeBroadPhase() {
         VASSERT(_broadphaseOverlappingPairs.size() == 0, "Broad-phase overlapping pair list should be empty at the start of broad-phase computation.");
@@ -81,14 +153,14 @@ namespace Vulkyrie {
         _broadphaseOverlappingPairs.clear();
     }
 
-    // void CollisionSystem::computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery) {
-    // }
-    //
-    // void CollisionSystem::computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs,
-    //                                                           std::vector<u64> &concavePairs,
-    //                                                           NarrowPhaseInput &batches,
-    //                                                           bool reportContacts) {
-    // }
+    void CollisionSystem::computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery) {
+    }
+
+    void CollisionSystem::computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs,
+                                                              std::vector<u64> &concavePairs,
+                                                              NarrowPhaseInput &batches,
+                                                              bool reportContacts) {
+    }
 
     void CollisionSystem::computeNarrowPhase() {
         // Swap the previous and current contact buffers to prepare for the new narrow-phase collision detection results.
@@ -117,26 +189,97 @@ namespace Vulkyrie {
         VASSERT(_currentContactPoints->size() == 0, "Current contact points should be empty at the end of narrow-phase collision detection.");
     }
 
-    // bool CollisionSystem::computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback &callback) {
-    //     return false;
-    // }
-    //
-    // bool CollisionSystem::computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback) {
-    //     return false;
-    // }
-    //
-    // void CollisionSystem::computeOverlapSnapshotContactPair(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair) {
-    // }
-    //
-    // void CollisionSystem::computeOverlapSnapshotContactPair(NarrowPhaseDataBatch &batch,
-    //                                                         std::vector<ContactPair> &contactPairs,
-    //                                                         std::unordered_set<u64> overlappingContactPairIDs) const {
-    // }
-    //
-    // void CollisionSystem::updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes) {
-    // }
+    bool CollisionSystem::computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback *callback) {
+        return false;
+    }
+
+    bool CollisionSystem::computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback) {
+        return false;
+    }
+
+    void CollisionSystem::computeOverlapSnapshotContactPairs(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair) {
+        std::unordered_set<u64> overlappingContactPairIDs;
+
+        // Get the narrow phase data batches to test for collision.
+        NarrowPhaseDataBatch &sphereVsSphereBatch = batches.GetSphereVsSphereBatch();
+        NarrowPhaseDataBatch &sphereVsCapsuleBatch = batches.GetSphereVsCapsuleBatch();
+        NarrowPhaseDataBatch &sphereVsConvexPolyhedronBatch = batches.GetSphereVsConvexPolyhedronBatch();
+        NarrowPhaseDataBatch &capsuleVsCapsuleBatch = batches.GetCapsuleVsCapsuleBatch();
+        NarrowPhaseDataBatch &capsuleVsConvexPolyhedronBatch = batches.GetCapsuleVsConvexPolyhedronBatch();
+        NarrowPhaseDataBatch &convexPolyhedronVsConvexPolyhedronBatch = batches.GetConvexPolyhedronVsConvexPolyhedronBatch();
+
+        // Process each narrow-phase data batch to compute contact pairs for the current overlap snapshot.
+        // This will involve testing each pair of colliders in the batch for overlap,
+        computeOverlapSnapshotContactPairs(sphereVsSphereBatch, contactPair, overlappingContactPairIDs);
+        computeOverlapSnapshotContactPairs(sphereVsCapsuleBatch, contactPair, overlappingContactPairIDs);
+        computeOverlapSnapshotContactPairs(sphereVsConvexPolyhedronBatch, contactPair, overlappingContactPairIDs);
+        computeOverlapSnapshotContactPairs(capsuleVsCapsuleBatch, contactPair, overlappingContactPairIDs);
+        computeOverlapSnapshotContactPairs(capsuleVsConvexPolyhedronBatch, contactPair, overlappingContactPairIDs);
+        computeOverlapSnapshotContactPairs(convexPolyhedronVsConvexPolyhedronBatch, contactPair, overlappingContactPairIDs);
+    }
+
+    void CollisionSystem::computeOverlapSnapshotContactPairs(NarrowPhaseDataBatch &batch,
+                                                             std::vector<ContactPair> &contactPairs,
+                                                             std::unordered_set<u64> overlappingContactPairIDs) const {
+        // For each narrow-phase data entry in the batch, check if the colliders are overlapping and if so,
+        // create a ContactPair for this overlapping pair if it hasn't already been created for this pair ID.
+        for (size_t i = 0; i < batch.Data.size(); i++) {
+            const NarrowPhaseData &data = batch.Data[i];
+
+            if (data.IsColliding && !overlappingContactPairIDs.contains(data.OverlappingPairID)) {
+                const Entity colliderOneEntity = data.ColliderOneEntity;
+                const Entity colliderTwoEntity = data.ColliderTwoEntity;
+
+                const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+                const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+                const Entity bodyOneEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderOneIndex);
+                const Entity bodyTwoEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderTwoIndex);
+
+                const bool isTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex) || _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+                const u32 contactPairIndex = static_cast<u32>(contactPairs.size());
+
+                contactPairs.emplace_back(
+                    data.OverlappingPairID, bodyOneEntity, bodyTwoEntity, colliderOneEntity, colliderTwoEntity, contactPairIndex, false, isTrigger);
+
+                overlappingContactPairIDs.insert(data.OverlappingPairID);
+            }
+
+            batch.ResetContactPoints(i);
+        }
+    }
+
+    void CollisionSystem::updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes) {
+    }
 
     void CollisionSystem::removeNonOverlappingPairs() {
+        // Iterate through the active convex overlapping pairs and remove any pairs that no longer overlap according to the broad-phase system.
+        for (size_t i = 0; i < _overlappingPairs._convexPairs.size(); ++i) {
+            ConvexOverlappingPair &pair = _overlappingPairs._convexPairs[i];
+
+            if (pair.RequiresCollisionCheck) {
+                if (_broadPhaseSystem.TestOverlap(pair.ColliderOneBroadPhaseID, pair.ColliderTwoBroadPhaseID)) {
+                    pair.RequiresCollisionCheck = false;
+                } else {
+                    removeConvexOverlappingPairWithIndex(i);
+                    --i; // Decrement index to account for the removed pair and the shifted elements in the vector.
+                }
+            }
+        }
+
+        // Iterate through the active concave overlapping pairs and remove any pairs that no longer overlap according to the broad-phase system.
+        for (size_t i = 0; i < _overlappingPairs._concavePairs.size(); ++i) {
+            ConcaveOverlappingPair &pair = _overlappingPairs._concavePairs[i];
+
+            if (pair.RequiresCollisionCheck) {
+                if (_broadPhaseSystem.TestOverlap(pair.ColliderOneBroadPhaseID, pair.ColliderTwoBroadPhaseID)) {
+                    pair.RequiresCollisionCheck = false;
+                } else {
+                    removeConcaveOverlappingPairWithIndex(i);
+                    --i; // Decrement index to account for the removed pair and the shifted elements in the vector.
+                }
+            }
+        }
     }
 
     void CollisionSystem::disableOverlappingPair(u64 pairID) {
@@ -214,6 +357,7 @@ namespace Vulkyrie {
     bool CollisionSystem::testNarrowPhaseCollision(NarrowPhaseInput &batches, bool clipWithPreviousAxisIfStillColliding) {
         bool isColliding = false;
 
+        // Get references to the narrow-phase algorithms from the collision dispatcher for each pair of shape types.
         SphereVsSphereAlgorithm &sphereVsSphereAlgorithm = _collisionDispatch.GetSphereVsSphereAlgorithm();
         SphereVsCapsuleAlgorithm &sphereVsCapsuleAlgorithm = _collisionDispatch.GetSphereVsCapsuleAlgorithm();
         SphereVsConvexPolyhedronAlgorithm &sphereVsConvexPolyhedronAlgorithm = _collisionDispatch.GetSphereVsConvexPolyhedronAlgorithm();
@@ -222,6 +366,7 @@ namespace Vulkyrie {
         ConvexPolyhedronVsConvexPolyhedronAlgorithm &convexPolyhedronVsConvexPolyhedronAlgorithm =
             _collisionDispatch.GetConvexPolyhedronVsConvexPolyhedronAlgorithm();
 
+        // Get the narrow phase data batches to test for collision.
         NarrowPhaseDataBatch &sphereVsSphereBatch = batches.GetSphereVsSphereBatch();
         NarrowPhaseDataBatch &sphereVsCapsuleBatch = batches.GetSphereVsCapsuleBatch();
         NarrowPhaseDataBatch &sphereVsConvexPolyhedronBatch = batches.GetSphereVsConvexPolyhedronBatch();
@@ -229,6 +374,8 @@ namespace Vulkyrie {
         NarrowPhaseDataBatch &capsuleVsConvexPolyhedronBatch = batches.GetCapsuleVsConvexPolyhedronBatch();
         NarrowPhaseDataBatch &convexPolyhedronVsConvexPolyhedronBatch = batches.GetConvexPolyhedronVsConvexPolyhedronBatch();
 
+        // For each narrow-phase data batch, if there are any pairs to test in the batch,
+        // perform the collision check using the corresponding narrow-phase algorithm.
         size_t batchSize = sphereVsSphereBatch.Data.size();
         if (batchSize > 0) {
             isColliding |= sphereVsSphereAlgorithm.PerformCollisionCheck(sphereVsSphereBatch, 0, batchSize);
@@ -339,21 +486,135 @@ namespace Vulkyrie {
                                  contactPairs);
     }
 
-    void CollisionSystem::reducePotentialContactManifolds(std::vector<ContactPair> *contactPairs,
+    void CollisionSystem::reducePotentialContactManifolds(std::vector<ContactPair> &contactPairs,
                                                           std::vector<ContactManifoldData> &potentialContactManifolds,
                                                           const std::vector<ContactPointData> &potentialContactPoints) const {
+        // For each contact pair, if the number of potential contact manifolds exceeds the maximum allowed, we can perform a reduction step to remove some of
+        // the manifolds based on their depth, which can help to improve the performance of the constraint solver while still maintaining good collision
+        // response quality. The depth of a contact manifold can be computed as the largest penetration depth among its contact points, which gives us an
+        // indication of how significant the collision is for that manifold. By removing the manifolds with the smallest depth, we can focus the constraint
+        // solver on the most significant collisions while still maintaining good overall collision response quality.
+        for (ContactPair &pair : contactPairs) {
+            while (pair.PotentialContactManifoldsCount > MAX_CONTACT_MANIFOLDS) {
+                f32 minDepth = std::numeric_limits<f32>::max();
+                u32 minDepthManifoldIndex = -1;
+
+                // Iterate through the potential contact manifolds for this pair to find the one
+                // with the smallest depth, which will be the candidate for removal in this reduction step.
+                for (u32 j = 0; j < pair.PotentialContactManifoldsCount; ++j) {
+                    ContactManifoldData &manifoldData = potentialContactManifolds[pair.PotentialContactManifoldIndices[j]];
+
+                    VASSERT(manifoldData.TotalPotentialContactPoints > 0,
+                            "Contact manifold data should have at least one potential contact point when trying to reduce potential contact manifolds.");
+
+                    // Compute the depth of this contact manifold as the largest penetration depth among its contact points.
+                    const f32 depth = computePotentialManifoldLargestContactDepth(manifoldData, potentialContactPoints);
+
+                    // If this manifold has a smaller depth than the current minimum, update
+                    // the minimum depth and the index of the manifold with the minimum depth.
+                    if (depth < minDepth) {
+                        minDepth = depth;
+                        minDepthManifoldIndex = j;
+                    }
+                }
+
+                VASSERT(minDepthManifoldIndex >= 0, "Minimum depth manifold index should be valid when trying to reduce potential contact manifolds.");
+
+                // Remove the potential contact manifold with the smallest depth from this contact pair.
+                pair.RemovePotentialManifoldAtIndex(minDepthManifoldIndex);
+            }
+        }
+
+        // After reducing the number of potential contact manifolds for each contact pair,
+        // we can also perform an additional step to remove any duplicated contact points
+        // in the remaining manifolds, which can further improve the performance
+        // of the constraint solver without sacrificing collision response quality.
+        for (ContactPair &pair : contactPairs) {
+            for (u32 i = 0; i < pair.PotentialContactManifoldsCount; ++i) {
+                ContactManifoldData &manifoldData = potentialContactManifolds[pair.PotentialContactManifoldIndices[i]];
+
+                VASSERT(manifoldData.TotalPotentialContactPoints > 0,
+                        "Contact manifold data should have at least one potential contact point when trying to reduce potential contact manifolds.");
+
+                // If the number of potential contact points in this manifold exceeds the maximum allowed,
+                // we can perform a reduction step to remove duplicated contact points based on their positions,
+                // which can help to further improve the performance of the constraint solver while still maintaining good collision response quality.
+                if (manifoldData.TotalPotentialContactPoints > MAX_CONTACT_POINTS_IN_MANIFOLD) {
+                    TransformComponent shapeOneLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransform(pair.ColliderOneEntity);
+
+                    reduceContactPoints(manifoldData, shapeOneLocalToWorldTransform, potentialContactPoints);
+                }
+
+                VASSERT(manifoldData.TotalPotentialContactPoints <= MAX_CONTACT_POINTS_IN_MANIFOLD,
+                        "Contact manifold data should have less than or equal to the maximum contact points in manifold after trying to reduce potential "
+                        "contact manifolds.");
+
+                // Remove the duplicated contact points in the manifold (if any)
+                removeDuplicatedContactPointsInManifold(manifoldData, potentialContactPoints);
+            }
+        }
     }
 
     void CollisionSystem::createContacts() {
     }
 
     void CollisionSystem::addContactPairsToBodies() {
+        // TODO: See if we can use size_t instead of u32.
+        for (u32 i = 0; i < static_cast<u32>(_currentContactPairs->size()); ++i) {
+            const ContactPair &pair = (*_currentContactPairs)[i];
+
+            // Add the contact pair index to the contact pair list of both bodies involved in this contact pair.
+            // This allows us to quickly access all contact pairs associated with a body during constraint solving.
+            _rigidBodyComponentStore.AddContactPair(pair.BodyOneEntity, i);
+            _rigidBodyComponentStore.AddContactPair(pair.BodyTwoEntity, i);
+        }
     }
 
     void CollisionSystem::computeMapPreviousContactPairs() {
+        // Clear the map from the previous frame's contact pair IDs to their indices in the previous contact pairs list,
+        // as we will rebuild this map based on the current contact pairs after narrow-phase collision detection.
+        _previousPairIDToContactPairIndexMap.clear();
+
+        // Build a map from contact pair ID to its index in the previous contact pairs list for quick lookup during narrow-phase collision detection.
+        for (u32 i = 0; i < static_cast<u32>(_currentContactPairs->size()); ++i) {
+            _previousPairIDToContactPairIndexMap.emplace((*_currentContactPairs)[i].PairID, i);
+        }
     }
 
     void CollisionSystem::computeLostContactPairs() {
+        // For each convex overlapping pair,
+        // check if they were colliding in the last frame but are no longer colliding in the current frame.
+        // If so, add them to the list of lost contact pairs.
+        for (size_t i = 0; i < _overlappingPairs._convexPairs.size(); ++i) {
+            const ConvexOverlappingPair &pair = _overlappingPairs._convexPairs[i];
+
+            if (pair.WereCollidingLastFrame && !pair.AreCollidingThisFrame) {
+
+                VASSERT(_colliderComponentStore.HasComponent(pair.ColliderOneEntity),
+                        "Collider one entity in convex pair should exist in the collider component store when computing lost contact pairs.");
+                VASSERT(_colliderComponentStore.HasComponent(pair.ColliderTwoEntity),
+                        "Collider two entity in convex pair should exist in the collider component store when computing lost contact pairs.");
+
+                addLostContactPair(const_cast<ConvexOverlappingPair &>(pair));
+            }
+        }
+
+        // For each concave overlapping pair,
+        // check if they were colliding in the last frame but are no longer colliding in the current frame.
+        // If so, add them to the list of lost contact pairs.
+        for (size_t i = 0; i < _overlappingPairs._concavePairs.size(); ++i) {
+            const ConcaveOverlappingPair &pair = _overlappingPairs._concavePairs[i];
+
+            if (pair.WereCollidingLastFrame && !pair.AreCollidingThisFrame) {
+
+                VASSERT(_colliderComponentStore.HasComponent(pair.ColliderOneEntity),
+                        "Collider one entity in concave pair should exist in the collider component store when computing lost contact pairs.");
+                VASSERT(_colliderComponentStore.HasComponent(pair.ColliderTwoEntity),
+                        "Collider two entity in concave pair should exist in the collider component store when computing lost contact pairs.");
+
+                addLostContactPair(const_cast<ConcaveOverlappingPair &>(pair));
+            }
+        }
     }
 
     void CollisionSystem::createSnapshotContacts(std::vector<ContactPair> &contactPairs,
@@ -361,6 +622,45 @@ namespace Vulkyrie {
                                                  std::vector<ContactPoint> &contactPoints,
                                                  std::vector<ContactManifoldData> &potentialContactManifolds,
                                                  std::vector<ContactPointData> &potentialContactPoints) {
+        contactManifolds.reserve(contactPairs.size());
+        contactPoints.reserve(contactManifolds.size());
+
+        // Iterate through the contact pairs and create contact manifolds and contact points for each pair
+        // based on the potential contact manifolds and points generated during narrow-phase collision detection.
+        for (ContactPair &pair : contactPairs) {
+            VASSERT(pair.ContactManifoldCount > 0, "Contact pair should have at least one contact manifold when trying to create snapshot contacts.");
+
+            pair.ContactManifoldIndex = static_cast<u32>(contactManifolds.size());
+            pair.ContactManifoldCount = pair.PotentialContactManifoldsCount;
+            pair.ContactPointIndex = static_cast<u32>(contactPoints.size());
+
+            // Iterate through the potential contact manifolds for this pair and create contact manifolds and contact points for each one.
+            for (u32 i = 0; i < pair.PotentialContactManifoldsCount; ++i) {
+                ContactManifoldData &manifoldData = potentialContactManifolds[pair.PotentialContactManifoldIndices[i]];
+
+                VASSERT(manifoldData.TotalPotentialContactPoints > 0,
+                        "Contact manifold data should have at least one potential contact point when trying to create snapshot contacts.");
+
+                const u32 contactPointIndex = static_cast<u32>(contactPoints.size());
+                const u8 contactPointCount = static_cast<u8>(manifoldData.TotalPotentialContactPoints);
+
+                pair.ContactPointCount += contactPointCount;
+
+                contactManifolds.emplace_back(
+                    pair.BodyOneEntity, pair.BodyTwoEntity, pair.ColliderOneEntity, pair.ColliderTwoEntity, contactPointIndex, contactPointCount);
+
+                VASSERT(manifoldData.TotalPotentialContactPoints > 0,
+                        "Contact manifold data should have at least one potential contact point when trying to create snapshot contacts.");
+
+                // Iterate through the potential contact points for this manifold and create contact points for each one.
+                for (u32 j = 0; j < manifoldData.TotalPotentialContactPoints; ++j) {
+                    const ContactPointData &pointData = potentialContactPoints[manifoldData.PotentialContactPointsIndices[j]];
+
+                    // Add the contact point to the list.
+                    contactPoints.emplace_back(pointData);
+                }
+            }
+        }
     }
 
     void CollisionSystem::initContactsWithPreviousOnes() {
@@ -386,22 +686,107 @@ namespace Vulkyrie {
 
     f32 CollisionSystem::computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold,
                                                                      const std::vector<ContactPointData> &potentialContactPoints) const {
-    }
+        f32 largestDepth = 0.0f;
 
-    void CollisionSystem::processSmoothMeshContacts(OverlappingPair *pair) {
+        VASSERT(
+            manifold.TotalPotentialContactPoints > 0,
+            "Manifold should have at least one potential contact point when trying to compute the largest contact depth among the potential contact points.");
+
+        // Iterate through the potential contact points in the manifold and find the largest penetration depth among them.
+        // This can be used as a heuristic for determining the quality of the contact manifold
+        // and for deciding whether to keep or discard it during manifold reduction.
+        for (u32 i = 0; i < manifold.TotalPotentialContactPoints; ++i) {
+            const ContactPointData &point = potentialContactPoints[manifold.PotentialContactPointsIndices[i]];
+
+            if (point.PenetrationDepth > largestDepth) {
+                largestDepth = point.PenetrationDepth;
+            }
+        }
+
+        return largestDepth;
     }
 
     void CollisionSystem::filterOverlappingPairs(Entity bodyEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const {
+        // Iterate through the active convex overlapping pairs and add the pair IDs
+        // of any pairs that involve the specified body entity to the convexPairs list.
+        for (const auto &pair : _overlappingPairs._convexPairs) {
+            if (_colliderComponentStore.GetBodyEntity(pair.ColliderOneEntity) == bodyEntity ||
+                _colliderComponentStore.GetBodyEntity(pair.ColliderTwoEntity) == bodyEntity) {
+                convexPairs.push_back(pair.PairID);
+            }
+        }
+
+        // Iterate through the active concave overlapping pairs and add the pair IDs
+        // of any pairs that involve the specified body entity to the concavePairs list.
+        for (const auto &pair : _overlappingPairs._concavePairs) {
+            if (_colliderComponentStore.GetBodyEntity(pair.ColliderOneEntity) == bodyEntity ||
+                _colliderComponentStore.GetBodyEntity(pair.ColliderTwoEntity) == bodyEntity) {
+                concavePairs.push_back(pair.PairID);
+            }
+        }
     }
 
-    void CollisionSystem::filterOverlappingPairs(Entity body1Entity, Entity body2Entity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const {
+    void
+    CollisionSystem::filterOverlappingPairs(Entity bodyOneEntity, Entity bodyTwoEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const {
+        // Iterate through the active convex overlapping pairs and add the pair IDs
+        // of any pairs that involve both specified body entities to the convexPairs list.
+        for (const auto &pair : _overlappingPairs._convexPairs) {
+            const Entity colliderOneBodyEntity = _colliderComponentStore.GetBodyEntity(pair.ColliderOneEntity);
+            const Entity colliderTwoBodyEntity = _colliderComponentStore.GetBodyEntity(pair.ColliderTwoEntity);
+
+            if ((colliderOneBodyEntity == bodyOneEntity && colliderTwoBodyEntity == bodyTwoEntity) ||
+                (colliderOneBodyEntity == bodyTwoEntity && colliderTwoBodyEntity == bodyOneEntity)) {
+                convexPairs.push_back(pair.PairID);
+            }
+        }
+
+        // Iterate through the active concave overlapping pairs and add the pair IDs
+        // of any pairs that involve both specified body entities to the concavePairs list.
+        for (const auto &pair : _overlappingPairs._concavePairs) {
+            const Entity colliderOneBodyEntity = _colliderComponentStore.GetBodyEntity(pair.ColliderOneEntity);
+            const Entity colliderTwoBodyEntity = _colliderComponentStore.GetBodyEntity(pair.ColliderTwoEntity);
+
+            if ((colliderOneBodyEntity == bodyOneEntity && colliderTwoBodyEntity == bodyTwoEntity) ||
+                (colliderOneBodyEntity == bodyTwoEntity && colliderTwoBodyEntity == bodyOneEntity)) {
+                concavePairs.push_back(pair.PairID);
+            }
+        }
     }
 
     void CollisionSystem::removeItemAtInArray(u32 array[], u8 index, u8 &arraySize) const {
+        VASSERT(index < arraySize, "Index to remove should be within the bounds of the array size.");
+        VASSERT(arraySize > 0, "Array size should be greater than zero when trying to remove an item from the array.");
+
+        array[index] = array[arraySize - 1];
+        arraySize--;
     }
 
     void CollisionSystem::removeDuplicatedContactPointsInManifold(ContactManifoldData &manifold,
                                                                   const std::vector<ContactPointData> &potentialContactPoints) const {
+        VASSERT(manifold.TotalPotentialContactPoints > 0,
+                "Manifold should have at least one potential contact point when trying to remove duplicated contact points.");
+
+        constexpr f32 distanceThresholdSquared = SAME_CONTACT_POINT_DISTANCE_THRESHOLD * SAME_CONTACT_POINT_DISTANCE_THRESHOLD;
+
+        // Iterate through the potential contact points in the manifold
+        // and remove any points that are too close to each other,
+        // as they are likely duplicates that can cause instability in the constraint solver.
+        for (size_t i = 0; i < manifold.TotalPotentialContactPoints; ++i) {
+            const ContactPointData &pointA = potentialContactPoints[manifold.PotentialContactPointsIndices[i]];
+
+            for (size_t j = i + 1; j < manifold.TotalPotentialContactPoints; ++j) {
+                const ContactPointData &pointB = potentialContactPoints[manifold.PotentialContactPointsIndices[j]];
+                const f32 distanceSquared = glm::length2(pointA.LocalSpaceContactPointOnBodyOne - pointB.LocalSpaceContactPointOnBodyOne);
+
+                if (distanceSquared < distanceThresholdSquared) {
+                    manifold.PotentialContactPointsIndices[j] = manifold.PotentialContactPointsIndices[manifold.TotalPotentialContactPoints - 1];
+                    --manifold.TotalPotentialContactPoints;
+                    --j; // Decrement j to check the new point that was swapped into index j after removing the duplicate.
+                }
+            }
+        }
+
+        VASSERT(manifold.TotalPotentialContactPoints > 0, "Manifold should still have at least one potential contact point after removing duplicates.");
     }
 
 } // namespace Vulkyrie

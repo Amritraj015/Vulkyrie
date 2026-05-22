@@ -33,28 +33,26 @@ namespace Vulkyrie {
         /** @brief The entity representing the second collider involved in this contact. */
         Entity ColliderTwoEntity;
 
-        // 4-byte fields (offset 40..59, no padding)
-
         /** @brief The index of this contact pair in the global contact pair buffer. */
         u32 ContactPairIndex;
 
         /** @brief The index into the global contact manifold buffer where this pair's manifolds begin. */
-        u32 ContactManifoldIndex;
+        u32 ContactManifoldIndex{};
 
         /** @brief The number of contact manifolds currently active for this pair. */
-        u32 ContactManifoldCount;
+        u32 ContactManifoldCount{};
 
         /** @brief The index into the global contact point buffer where this pair's contact points begin. */
-        u32 ContactPointIndex;
+        u32 ContactPointIndex{};
 
         /** @brief The total number of contact points across all manifolds for this pair. */
-        u32 ContactPointCount;
+        u32 ContactPointCount{};
 
         /** @brief The number of valid entries in PotentialContactManifoldIndices. */
-        u8 PotentialContactManifoldsCount;
+        u8 PotentialContactManifoldsCount{};
 
         /** @brief Whether this contact pair has already been added to a simulation island during constraint solving. */
-        bool IsAlreadyInIsland;
+        bool IsAlreadyInIsland{};
 
         /** @brief Whether the two colliders were colliding during the previous simulation frame.
          * Used to dispatch collision enter/stay/exit events. */
@@ -66,7 +64,7 @@ namespace Vulkyrie {
 
         /** @brief Indices into the global contact manifold buffer for all potential manifolds accumulated during the
          * collision pipeline for this pair. Valid entries are in the range [0, PotentialContactManifoldsCount). */
-        u32 PotentialContactManifoldIndices[MAX_POTENTIAL_CONTACT_MANIFOLDS];
+        u32 PotentialContactManifoldIndices[MAX_POTENTIAL_CONTACT_MANIFOLDS]{};
 
         /**
          * @brief Constructs a ContactPair for the given overlapping pair and collider entities.
@@ -93,15 +91,8 @@ namespace Vulkyrie {
             , ColliderOneEntity(colliderOneEntity)
             , ColliderTwoEntity(colliderTwoEntity)
             , ContactPairIndex(contactPairIndex)
-            , ContactManifoldIndex(0)
-            , ContactManifoldCount(0)
-            , ContactPointIndex(0)
-            , ContactPointCount(0)
-            , PotentialContactManifoldsCount(0)
-            , IsAlreadyInIsland(false)
             , CollidingInPreviousFrame(collidingInPreviousFrame)
-            , IsTrigger(isTrigger)
-            , PotentialContactManifoldIndices{ 0 } {
+            , IsTrigger(isTrigger) {
         }
 
         ContactPair(const ContactPair &) = delete;

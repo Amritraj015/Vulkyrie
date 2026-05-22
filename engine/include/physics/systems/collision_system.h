@@ -55,7 +55,10 @@ namespace Vulkyrie {
         }
 
         void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
-        void RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
+
+        VE_FORCE_INLINE void RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
+            _nonCollidablePairs.erase(OverlappingPairs::ComputeBodiesIndexPair(bodyOneEntity, bodyTwoEntity));
+        }
 
         VE_FORCE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
             if (collider.GetBroadPhaseID() != -1) {
@@ -67,13 +70,12 @@ namespace Vulkyrie {
         void ReportContactsAndTriggers();
         void ComputeCollisions();
 
-        void TestOverlap(Body &bodyOne, Body &bodyTwo);
-        void TestOverlap(Body &body, OverlapCallback &callback);
-        void TestOverlap(OverlapCallback &callback);
-
-        void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
-        void TestCollision(Body &body, CollisionCallback &callback);
-        void TestCollision(CollisionCallback &callback);
+        // void TestOverlap(Body &bodyOne, Body &bodyTwo);
+        // void TestOverlap(Body &body, OverlapCallback &callback);
+        // void TestOverlap(OverlapCallback &callback);
+        // void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
+        // void TestCollision(Body &body, CollisionCallback &callback);
+        // void TestCollision(CollisionCallback &callback);
 
     private:
         PhysicsWorld &_physicsWorld;
@@ -115,12 +117,12 @@ namespace Vulkyrie {
         void computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery);
         void computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs, std::vector<u64> &concavePairs, NarrowPhaseInput &batches, bool reportContacts);
         void computeNarrowPhase();
-        bool computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback &callback);
+        bool computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback *callback);
         bool computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback);
-        void computeOverlapSnapshotContactPair(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair);
-        void computeOverlapSnapshotContactPair(NarrowPhaseDataBatch &batch,
-                                               std::vector<ContactPair> &contactPairs,
-                                               std::unordered_set<u64> overlappingContactPairIDs) const;
+        void computeOverlapSnapshotContactPairs(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair);
+        void computeOverlapSnapshotContactPairs(NarrowPhaseDataBatch &batch,
+                                                std::vector<ContactPair> &contactPairs,
+                                                std::unordered_set<u64> overlappingContactPairIDs) const;
         void updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes);
         void removeNonOverlappingPairs();
         void disableOverlappingPair(u64 pairID);
@@ -170,7 +172,6 @@ namespace Vulkyrie {
                                           std::vector<ContactPoint> *contactPoints,
                                           std::vector<ContactPair> &lostContactPairs);
         f32 computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
-        void processSmoothMeshContacts(OverlappingPair *pair);
         void filterOverlappingPairs(Entity bodyEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
         void filterOverlappingPairs(Entity body1Entity, Entity body2Entity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
         void removeItemAtInArray(u32 array[], u8 index, u8 &arraySize) const;

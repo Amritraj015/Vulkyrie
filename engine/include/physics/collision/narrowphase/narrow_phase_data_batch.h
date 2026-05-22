@@ -43,6 +43,10 @@ namespace Vulkyrie {
             }
         }
 
+        VE_FORCE_INLINE void ResetContactPoints(size_t index) {
+            Data[index].ContactPointCount = 0;
+        }
+
         // void ReserveMemory();
         // void Clear();
     };

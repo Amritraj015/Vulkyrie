@@ -101,7 +101,7 @@ namespace Vulkyrie {
         ContactManifold(const ContactManifold &) = delete;
         ContactManifold &operator=(const ContactManifold &) = delete;
 
-        ContactManifold(ContactManifold &&) = delete;
+        ContactManifold(ContactManifold &&) = default;
         ContactManifold &operator=(ContactManifold &&) = delete;
 
         ~ContactManifold() = default;

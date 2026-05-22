@@ -5,8 +5,7 @@
 namespace Vulkyrie {
 
     BroadPhaseSystem::BroadPhaseSystem(PhysicsWorld &physicsWorld)
-        : _aabbTree()
-        , _rigidBodyComponentStore(physicsWorld.GetRigidBodyComponentStore())
+        : _rigidBodyComponentStore(physicsWorld.GetRigidBodyComponentStore())
         , _colliderComponentStore(physicsWorld.GetColliderComponentStore())
         , _transformComponentStore(physicsWorld.GetTransformComponentStore())
         , _collisionSystem(physicsWorld.GetCollisionSystem()) {

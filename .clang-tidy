@@ -4,15 +4,25 @@
 
 Checks: >
   -*,
+
+  # High-value correctness and bug detection
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
   -bugprone-assignment-in-if-condition,
-  cert-*,
-  -cert-err58-cpp,
-  -cert-dcl21-cpp,
+
+  # Selected CERT checks with good signal/noise ratio
+  cert-dcl58-cpp,
+  cert-err34-c,
+  cert-oop54-cpp,
+
+  # Static analyzer
   clang-analyzer-*,
+
+  # Concurrency
   concurrency-*,
+
+  # C++ Core Guidelines
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-avoid-c-arrays,
@@ -27,19 +37,31 @@ Checks: >
   -cppcoreguidelines-non-private-member-variables-in-classes,
   -cppcoreguidelines-special-member-functions,
   -cppcoreguidelines-avoid-non-const-global-variables,
-  google-*,
-  -google-runtime-references,
-  -google-readability-todo,
-  -google-readability-braces-around-statements,
+
+  # Selected HICPP checks
+  hicpp-exception-baseclass,
+  hicpp-invalid-access-moved,
+  hicpp-move-const-arg,
+  hicpp-use-auto,
+
+  # Miscellaneous
   misc-*,
   -misc-non-private-member-variables-in-classes,
   -misc-no-recursion,
+
+  # Modernization
   modernize-*,
   -modernize-use-trailing-return-type,
   -modernize-avoid-c-arrays,
   -modernize-use-nodiscard,
+
+  # Performance
   performance-*,
+
+  # Portability
   portability-*,
+
+  # Readability
   readability-*,
   -readability-braces-around-statements,
   -readability-else-after-return,
@@ -82,7 +104,7 @@ CheckOptions:
   - key: readability-identifier-naming.ProtectedMemberPrefix
     value: '_'
   - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
+    value: camelBack
   - key: readability-identifier-naming.ConstexprVariableCase
     value: UPPER_CASE
   - key: readability-identifier-naming.GlobalConstantCase
@@ -124,6 +146,14 @@ CheckOptions:
   - key: modernize-loop-convert.MinConfidence
     value: 'reasonable'
   
+  # Narrowing conversions
+  - key: bugprone-narrowing-conversions.WarnOnIntegerNarrowingConversion
+    value: 'true'
+  - key: bugprone-narrowing-conversions.WarnOnFloatingPointNarrowingConversion
+    value: 'true'
+  - key: bugprone-narrowing-conversions.WarnWithinTemplateInstantiation
+    value: 'true'
+
   # Misc
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: 'true'

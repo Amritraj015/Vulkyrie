@@ -1159,6 +1159,7 @@ namespace Vulkyrie {
         /** @brief Parallel array of joint entity lists, one per body. */
         std::vector<std::vector<Entity>> _joints;
 
+        // TODO: See if we can store std::vector<size_t> instead.
         /** @brief Parallel array of contact pair index lists, one per body. */
         std::vector<std::vector<u32>> _contactPairs;
 

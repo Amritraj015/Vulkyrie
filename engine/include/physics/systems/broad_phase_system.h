@@ -25,7 +25,7 @@ namespace Vulkyrie {
          * BroadPhaseSystem relies on these component stores to access and update collider information, and it interacts with the collision system to notify
          * it of potential overlaps that need to be tested for collisions.
          * @param physicsWorld The physics world that this broad phase system belongs to. */
-        BroadPhaseSystem(PhysicsWorld &physicsWorld);
+        explicit BroadPhaseSystem(PhysicsWorld &physicsWorld);
 
         // Delete the copy constructor and copy assignment operator.
         BroadPhaseSystem(const BroadPhaseSystem &) = delete;

@@ -17,7 +17,7 @@ namespace Vulkyrie {
         ContactPoint &operator=(const ContactPoint &) = delete;
 
         // Delete the move constructor and move assignment operator to prevent moving of ContactPoint instances,
-        ContactPoint(ContactPoint &&) = delete;
+        ContactPoint(ContactPoint &&) = default;
         ContactPoint &operator=(ContactPoint &&) = delete;
 
         /** @brief Default destructor for ContactPoint. */
