@@ -11,6 +11,7 @@
 #include "physics/types/contact_manifold.h"
 #include "physics/types/contact_manifold_data.h"
 #include "physics/types/contact_pair.h"
+#include "physics/types/event_listener.h"
 #include "physics/types/narrow_phase_input.h"
 #include "physics/types/overlap_callback.h"
 #include "physics/types/overlapping_pairs.h"
@@ -18,6 +19,7 @@
 namespace Vulkyrie {
 
     class PhysicsWorld;
+    class Body;
 
     class CollisionSystem final {
     public:
@@ -44,8 +46,6 @@ namespace Vulkyrie {
             _broadPhaseIDToColliderEntityMap.emplace(broadPhaseID, collider.GetEntity());
         }
 
-        void RemoveCollider(Collider &collider);
-
         VE_FORCE_INLINE void UpdateCollider(Entity entity) {
             _broadPhaseSystem.UpdateCollider(entity);
         }
@@ -53,8 +53,6 @@ namespace Vulkyrie {
         VE_FORCE_INLINE void UpdateColliders() {
             _broadPhaseSystem.UpdateColliders();
         }
-
-        void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
 
         VE_FORCE_INLINE void RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
             _nonCollidablePairs.erase(OverlappingPairs::ComputeBodiesIndexPair(bodyOneEntity, bodyTwoEntity));
@@ -66,6 +64,8 @@ namespace Vulkyrie {
             }
         }
 
+        void RemoveCollider(Collider &collider);
+        void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);
         void ReportContactsAndTriggers();
         void ComputeCollisions();
@@ -73,9 +73,10 @@ namespace Vulkyrie {
         // void TestOverlap(Body &bodyOne, Body &bodyTwo);
         // void TestOverlap(Body &body, OverlapCallback &callback);
         // void TestOverlap(OverlapCallback &callback);
-        // void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
-        // void TestCollision(Body &body, CollisionCallback &callback);
-        // void TestCollision(CollisionCallback &callback);
+
+        void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
+        void TestCollision(Body &body, CollisionCallback &callback);
+        void TestCollision(CollisionCallback &callback);
 
     private:
         PhysicsWorld &_physicsWorld;
@@ -118,7 +119,9 @@ namespace Vulkyrie {
         void computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs, std::vector<u64> &concavePairs, NarrowPhaseInput &batches, bool reportContacts);
         void computeNarrowPhase();
         bool computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback *callback);
+
         bool computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback);
+
         void computeOverlapSnapshotContactPairs(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair);
         void computeOverlapSnapshotContactPairs(NarrowPhaseDataBatch &batch,
                                                 std::vector<ContactPair> &contactPairs,
@@ -160,13 +163,14 @@ namespace Vulkyrie {
         void reduceContactPoints(ContactManifoldData &manifold,
                                  const TransformComponent &shape1ToWorldTransform,
                                  const std::vector<ContactPointData> &potentialContactPoints) const;
+
         void reportContacts(CollisionCallback &callback,
                             std::vector<ContactPair> &contactPairs,
                             std::vector<ContactManifold> &manifolds,
                             std::vector<ContactPoint> &contactPoints,
                             std::vector<ContactPair> &lostContactPairs);
 
-        // void reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs);
+        void reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs);
         void reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
                                           std::vector<ContactManifold> *manifolds,
                                           std::vector<ContactPoint> *contactPoints,

@@ -82,6 +82,21 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::ReportContactsAndTriggers() {
+        // Report contacts and triggers to the user.
+        EventListener *eventListener = _physicsWorld.GetEventListener();
+
+        if (nullptr != eventListener) {
+            reportContacts(*(eventListener), _currentContactPairs, _currentContactManifolds, _currentContactPoints, _lostContactPairs);
+            reportTriggers(*(eventListener), _currentContactPairs, _lostContactPairs);
+        }
+
+        // Report contacts for debug rendering (if enabled)
+        if (_physicsWorld.IsDebugRenderingEnabled()) {
+            reportDebugRenderingContacts(_currentContactPairs, _currentContactManifolds, _currentContactPoints, _lostContactPairs);
+        }
+
+        _overlappingPairs.UpdateCollidingInLastFrame();
+        _lostContactPairs.clear();
     }
 
     void CollisionSystem::ComputeCollisions() {
@@ -123,15 +138,61 @@ namespace Vulkyrie {
     // void CollisionSystem::TestOverlap(OverlapCallback &callback) {
     //     NarrowPhaseInput batches(_);
     // }
-    //
-    // void CollisionSystem::TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback) {
-    // }
-    //
-    // void CollisionSystem::TestCollision(Body &body, CollisionCallback &callback) {
-    // }
-    //
-    // void CollisionSystem::TestCollision(CollisionCallback &callback) {
-    // }
+
+    void CollisionSystem::TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback) {
+        NarrowPhaseInput narrowPhaseInput;
+
+        // Compute broad-phase collision detection.
+        computeBroadPhase();
+
+        // Filter overlapping pairs to get only the ones with the selected bodies involved.
+        std::vector<u64> convexPairs;
+        std::vector<u64> concavePairs;
+
+        filterOverlappingPairs(bodyOne.GetEntity(), bodyTwo.GetEntity(), convexPairs, concavePairs);
+
+        if (convexPairs.size() > 0 || concavePairs.size() > 0) {
+            // Compute middle-phase collision detection.
+            computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, narrowPhaseInput, true);
+
+            // Compute narrow-phase collision detection and report contacts.
+            computeNarrowPhaseCollisionSnapshot(narrowPhaseInput, callback);
+        }
+    }
+
+    void CollisionSystem::TestCollision(Body &body, CollisionCallback &callback) {
+        NarrowPhaseInput narrowPhaseInput;
+
+        // Compute the broad-phase collision detection.
+        computeBroadPhase();
+
+        // Filter the overlapping pairs to get only the ones with the selected body involved.
+        std::vector<u64> convexPairs;
+        std::vector<u64> concavePairs;
+
+        filterOverlappingPairs(body.GetEntity(), convexPairs, concavePairs);
+
+        if (convexPairs.size() > 0 || concavePairs.size() > 0) {
+            // Compute the middle-phase collision detection.
+            computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, narrowPhaseInput, true);
+
+            // Compute the narrow-phase collision detection and report contacts.
+            computeNarrowPhaseCollisionSnapshot(narrowPhaseInput, callback);
+        }
+    }
+
+    void CollisionSystem::TestCollision(CollisionCallback &callback) {
+        NarrowPhaseInput narrowPhaseInput;
+
+        // Compute the broad-phase collision detection.
+        computeBroadPhase();
+
+        // Compute the middle-phase collision detection.
+        computeMiddlePhase(narrowPhaseInput, true, true);
+
+        // Compute the narrow-phase collision detection and report contacts.
+        computeNarrowPhaseCollisionSnapshot(narrowPhaseInput, callback);
+    }
 
     void CollisionSystem::computeBroadPhase() {
         VASSERT(_broadphaseOverlappingPairs.size() == 0, "Broad-phase overlapping pair list should be empty at the start of broad-phase computation.");
@@ -190,11 +251,50 @@ namespace Vulkyrie {
     }
 
     bool CollisionSystem::computeNarrowPhaseOverlapSnapshot(NarrowPhaseInput &batches, OverlapCallback *callback) {
-        return false;
+        // Perform narrow-phase collision detection to determine if the colliders
+        // in the batches are overlapping, without generating contact points or manifolds.
+        bool isColliding = testNarrowPhaseCollision(batches, false);
+
+        if (isColliding && nullptr != callback) {
+            std::vector<ContactPair> contactPairs;
+            std::vector<ContactPair> lostContactPairs;
+
+            // Compute the overlapping colliders
+            computeOverlapSnapshotContactPairs(batches, contactPairs);
+
+            // Report overlapping colliders
+            OverlapCallback::Data callbackData(contactPairs, lostContactPairs, false);
+            (*callback).OnOverlap(callbackData);
+        }
+
+        return isColliding;
     }
 
     bool CollisionSystem::computeNarrowPhaseCollisionSnapshot(NarrowPhaseInput &batches, CollisionCallback &callback) {
-        return false;
+        bool isColliding = testNarrowPhaseCollision(batches, false);
+
+        if (isColliding) {
+            std::vector<ContactPointData> potentialContactPoints;
+            std::vector<ContactManifoldData> potentialContactManifolds;
+            std::vector<ContactPair> contactPairs;
+            std::vector<ContactPair> lostContactPairs;
+            std::vector<ContactManifold> contactManifolds;
+            std::vector<ContactPoint> contactPoints;
+
+            // Process all the potential contacts after narrow-phase collision.
+            processAllPotentialContacts(batches, true, potentialContactPoints, potentialContactManifolds, contactPairs);
+
+            // Reduce the number of contact points in the manifolds.
+            reducePotentialContactManifolds(contactPairs, potentialContactManifolds, potentialContactPoints);
+
+            // Create the actual contact manifolds and contact points.
+            createSnapshotContacts(contactPairs, contactManifolds, contactPoints, potentialContactManifolds, potentialContactPoints);
+
+            // Report the contacts to the client through the callback concept.
+            reportContacts(callback, contactPairs, contactManifolds, contactPoints, lostContactPairs);
+        }
+
+        return isColliding;
     }
 
     void CollisionSystem::computeOverlapSnapshotContactPairs(NarrowPhaseInput &batches, std::vector<ContactPair> &contactPair) {
@@ -676,12 +776,31 @@ namespace Vulkyrie {
                                          std::vector<ContactManifold> &manifolds,
                                          std::vector<ContactPoint> &contactPoints,
                                          std::vector<ContactPair> &lostContactPairs) {
+        // Report contacts if there are any contact pairs or lost contact pairs to report.
+        if (contactPairs.size() + lostContactPairs.size() > 0) {
+            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs);
+
+            callback.OnCollision(callbackData);
+        }
+    }
+
+    void CollisionSystem::reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs) {
+        // Report trigger events if there are any contact pairs or lost contact pairs to report.
+        if (contactPairs->size() + lostContactPairs.size() > 0) {
+            OverlapCallback::Data callbackData(*contactPairs, lostContactPairs, true, *mWorld);
+            eventListener.OnTrigger(callbackData);
+        }
     }
 
     void CollisionSystem::reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
                                                        std::vector<ContactManifold> *manifolds,
                                                        std::vector<ContactPoint> *contactPoints,
                                                        std::vector<ContactPair> &lostContactPairs) {
+        // Report contacts for debug rendering if there are any contact pairs or lost contact pairs to report.
+        if (contactPairs->size() + lostContactPairs.size() > 0) {
+            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, *mWorld);
+            mWorld->mDebugRenderer.onContact(callbackData);
+        }
     }
 
     f32 CollisionSystem::computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold,

@@ -82,6 +82,14 @@ namespace Vulkyrie {
             _gravityEnabled = enabled;
         }
 
+        [[nodiscard]] VE_FORCE_INLINE bool IsDebugRenderingEnabled() const {
+            return _enableDebugRendering;
+        }
+
+        [[nodiscard]] VE_FORCE_INLINE EventListener *GetEventListener() const {
+            return _eventListener;
+        }
+
         void Update();
 
         void SetActiveStatusForBody(Entity entity, bool disabled);
@@ -97,6 +105,9 @@ namespace Vulkyrie {
 
         CollisionSystem _collisionSystem;
         DynamicsSystem _dynamicsSystem;
+
+        EventListener *_eventListener;
+        bool _enableDebugRendering;
     };
 
 } // namespace Vulkyrie
