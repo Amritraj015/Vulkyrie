@@ -70,9 +70,9 @@ namespace Vulkyrie {
         void ReportContactsAndTriggers();
         void ComputeCollisions();
 
-        // void TestOverlap(Body &bodyOne, Body &bodyTwo);
-        // void TestOverlap(Body &body, OverlapCallback &callback);
-        // void TestOverlap(OverlapCallback &callback);
+        void TestOverlap(Body &bodyOne, Body &bodyTwo);
+        void TestOverlap(Body &body, OverlapCallback &callback);
+        void TestOverlap(OverlapCallback &callback);
 
         void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback);
         void TestCollision(Body &body, CollisionCallback &callback);

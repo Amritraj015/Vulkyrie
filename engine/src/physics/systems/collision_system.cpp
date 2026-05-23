@@ -1,7 +1,6 @@
 #include "physics/systems/collision_system.h"
 #include "physics/physics_world.h"
 #include "physics/body/body.h"
-#include "vlkypch.h"
 
 namespace Vulkyrie {
 
@@ -86,7 +85,7 @@ namespace Vulkyrie {
         EventListener *eventListener = _physicsWorld.GetEventListener();
 
         if (nullptr != eventListener) {
-            reportContacts(*(eventListener), _currentContactPairs, _currentContactManifolds, _currentContactPoints, _lostContactPairs);
+            reportContacts(*(eventListener), *_currentContactPairs, *_currentContactManifolds, *_currentContactPoints, _lostContactPairs);
             reportTriggers(*(eventListener), _currentContactPairs, _lostContactPairs);
         }
 
@@ -112,32 +111,63 @@ namespace Vulkyrie {
         computeNarrowPhase();
     }
 
-    // void CollisionSystem::TestOverlap(Body &bodyOne, Body &bodyTwo) {
-    //     // Compute broad-phase collision detection to generate potential collision pairs.
-    //     computeBroadPhase();
-    //
-    //     std::vector<u64> concavePairs;
-    //     std::vector<u64> convexPairs;
-    //
-    //     // Filter the overlapping pairs to only get the ones that involve the specified bodies,
-    //     // and separate them into convex and concave pairs for more efficient processing in the middle phase.
-    //     filterOverlappingPairs(bodyOne.GetEntity(), bodyTwo.GetEntity(), convexPairs, concavePairs);
-    //
-    //     if (convexPairs.size() > 0 || concavePairs.size() > 0) {
-    //         // Compute middle-phase collision detection.
-    //         computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, _narrowPhaseInput, false);
-    //
-    //         // Compute narrow-phase collision detection.
-    //         computeNarrowPhaseOverlapSnapshot(_narrowPhaseInput, nullptr);
-    //     }
-    // }
-    //
-    // void CollisionSystem::TestOverlap(Body &body, OverlapCallback &callback) {
-    // }
-    //
-    // void CollisionSystem::TestOverlap(OverlapCallback &callback) {
-    //     NarrowPhaseInput batches(_);
-    // }
+    void CollisionSystem::TestOverlap(Body &bodyOne, Body &bodyTwo) {
+        // Compute broad-phase collision detection to generate potential collision pairs.
+        computeBroadPhase();
+
+        std::vector<u64> concavePairs;
+        std::vector<u64> convexPairs;
+
+        // Filter the overlapping pairs to only get the ones that involve the specified bodies,
+        // and separate them into convex and concave pairs for more efficient processing in the middle phase.
+        filterOverlappingPairs(bodyOne.GetEntity(), bodyTwo.GetEntity(), convexPairs, concavePairs);
+
+        if (convexPairs.size() > 0 || concavePairs.size() > 0) {
+            // Compute middle-phase collision detection.
+            computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, _narrowPhaseInput, false);
+
+            // Compute narrow-phase collision detection.
+            computeNarrowPhaseOverlapSnapshot(_narrowPhaseInput, nullptr);
+        }
+    }
+
+    void CollisionSystem::TestOverlap(Body &body, OverlapCallback &callback) {
+        NarrowPhaseInput narrowPhaseInput;
+
+        // Compute broad-phase collision detection.
+        computeBroadPhase();
+
+        std::vector<u64> convexPairs;
+        std::vector<u64> concavePairs;
+
+        // Filter the overlapping pairs to get only the ones with the selected body involved.
+        filterOverlappingPairs(body.GetEntity(), convexPairs, concavePairs);
+
+        // If there are any overlapping pairs involving the specified body,
+        // we need to perform middle-phase and narrow-phase collision detection to determine if
+        // they are actually overlapping, and to report the overlapping pairs through the callback.
+        if (convexPairs.size() > 0 || concavePairs.size() > 0) {
+
+            // Compute the middle-phase collision detection
+            computeMiddlePhaseCollisionSnapshot(convexPairs, concavePairs, narrowPhaseInput, false);
+
+            // Compute the narrow-phase collision detection
+            computeNarrowPhaseOverlapSnapshot(narrowPhaseInput, &callback);
+        }
+    }
+
+    void CollisionSystem::TestOverlap(OverlapCallback &callback) {
+        NarrowPhaseInput narrowPhaseInput;
+
+        // Compute broad-phase collision detection.
+        computeBroadPhase();
+
+        // Compute middle-phase collision detection.
+        computeMiddlePhase(narrowPhaseInput, false, true);
+
+        // Compute narrow-phase collision detection and report overlapping shapes.
+        computeNarrowPhaseOverlapSnapshot(narrowPhaseInput, &callback);
+    }
 
     void CollisionSystem::TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback) {
         NarrowPhaseInput narrowPhaseInput;
