@@ -14,11 +14,11 @@ namespace Vulkyrie {
         /** @brief The mouse button associated with the event. */
         const Vulkyrie::MouseButton MouseButton;
 
-        [[nodiscard]] inline i32 GetCategoryFlags() const override {
+        [[nodiscard]] VE_INLINE i32 GetCategoryFlags() const override {
             return _categoryFlags;
         }
 
-        [[nodiscard]] inline std::string ToString() const override {
+        [[nodiscard]] VE_INLINE std::string ToString() const override {
             return std::format("MouseButtonEvent: {}", std::to_underlying(MouseButton));
         }
 

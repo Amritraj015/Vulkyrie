@@ -19,22 +19,22 @@ namespace Vulkyrie {
         /** @brief The new height of the window. */
         const u32 Height;
 
-        [[nodiscard]] inline i32 GetCategoryFlags() const override {
+        [[nodiscard]] VE_INLINE i32 GetCategoryFlags() const override {
             return _categoryFlags;
         }
 
-        [[nodiscard]] inline EventType GetEventType() const override {
+        [[nodiscard]] VE_INLINE EventType GetEventType() const override {
             return GetStaticEventType();
         }
 
-        [[nodiscard]] inline std::string ToString() const override {
+        [[nodiscard]] VE_INLINE std::string ToString() const override {
             return std::format("WindowResizeEvent: {}x{}", Width, Height);
         }
 
         /** @brief Gets the static event type for this event class.
          * @returns The static event type.
          */
-        [[nodiscard]] static inline EventType GetStaticEventType() {
+        [[nodiscard]] static VE_INLINE EventType GetStaticEventType() {
             return EventType::WindowResized;
         }
 

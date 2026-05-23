@@ -72,7 +72,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose RigidBody is to be retrieved.
          * @returns A reference to the RigidBody associated with the specified entity. */
-        [[nodiscard]] VE_FORCE_INLINE RigidBody &GetRigidBody(Entity bodyEntity) {
+        [[nodiscard]] VE_INLINE RigidBody &GetRigidBody(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return *_rigidBodies[_entityToComponentIndex.find(bodyEntity)->second];
@@ -82,7 +82,7 @@ namespace Vulkyrie {
          * a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose RigidBody is to be retrieved.
          * @returns A const reference to the RigidBody associated with the specified entity. */
-        [[nodiscard]] VE_FORCE_INLINE const RigidBody &GetRigidBody(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const RigidBody &GetRigidBody(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return *_rigidBodies[_entityToComponentIndex.find(bodyEntity)->second];
@@ -93,7 +93,7 @@ namespace Vulkyrie {
          * performance. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if the body is allowed to sleep, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool CanSleep(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool CanSleep(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return static_cast<bool>(_canSleepFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -103,7 +103,7 @@ namespace Vulkyrie {
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param canSleep True to allow the body to sleep, false to prevent sleeping. */
-        VE_FORCE_INLINE void SetCanSleep(Entity bodyEntity, bool canSleep) {
+        VE_INLINE void SetCanSleep(Entity bodyEntity, bool canSleep) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _canSleepFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(canSleep);
@@ -114,7 +114,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if the body is currently sleeping, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsSleeping(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool IsSleeping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return static_cast<bool>(_isSleepingFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -124,7 +124,7 @@ namespace Vulkyrie {
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param isSleeping True to mark the body as sleeping, false to mark it as awake. */
-        VE_FORCE_INLINE void SetIsSleeping(Entity bodyEntity, bool isSleeping) {
+        VE_INLINE void SetIsSleeping(Entity bodyEntity, bool isSleeping) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _isSleepingFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(isSleeping);
@@ -135,7 +135,7 @@ namespace Vulkyrie {
          * stationary long enough to transition into a sleeping state. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose sleep time is to be retrieved.
          * @returns The sleep time in seconds. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetSleepTime(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE f32 GetSleepTime(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _sleepTimes[_entityToComponentIndex.find(bodyEntity)->second];
@@ -145,7 +145,7 @@ namespace Vulkyrie {
          * resting state. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param sleepTime The sleep time in seconds. */
-        VE_FORCE_INLINE void SetSleepTime(Entity bodyEntity, f32 sleepTime) {
+        VE_INLINE void SetSleepTime(Entity bodyEntity, f32 sleepTime) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _sleepTimes[_entityToComponentIndex.find(bodyEntity)->second] = sleepTime;
@@ -157,7 +157,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose body type is to be retrieved.
          * @returns The BodyType (STATIC, KINEMATIC, or DYNAMIC) of the specified entity. */
-        [[nodiscard]] VE_FORCE_INLINE BodyType GetBodyType(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE BodyType GetBodyType(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _bodyTypes[_entityToComponentIndex.find(bodyEntity)->second];
@@ -166,7 +166,7 @@ namespace Vulkyrie {
         /** @brief Sets the body type of the specified entity. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param bodyType The new BodyType (STATIC, KINEMATIC, or DYNAMIC) for the entity. */
-        VE_FORCE_INLINE void SetBodyType(Entity bodyEntity, BodyType bodyType) {
+        VE_INLINE void SetBodyType(Entity bodyEntity, BodyType bodyType) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _bodyTypes[_entityToComponentIndex.find(bodyEntity)->second] = bodyType;
@@ -176,7 +176,7 @@ namespace Vulkyrie {
          * the rate of change of the body's position per second. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear velocity is to be retrieved.
          * @returns A const reference to the linear velocity vector in world space (meters per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _linearVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -187,7 +187,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose linear velocity is to be retrieved. Must be less than the current size of the store.
          * @returns A const reference to the linear velocity vector in world space (meters per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLinearVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _linearVelocities[componentIndex];
@@ -197,7 +197,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param linearVelocity The new linear velocity vector in world space (meters per second). */
-        VE_FORCE_INLINE void SetLinearVelocity(Entity bodyEntity, const glm::vec3 &linearVelocity) {
+        VE_INLINE void SetLinearVelocity(Entity bodyEntity, const glm::vec3 &linearVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _linearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = linearVelocity;
@@ -208,7 +208,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
          * @param linearVelocity The new linear velocity vector in world space (meters per second). */
-        VE_FORCE_INLINE void SetLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &linearVelocity) {
+        VE_INLINE void SetLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &linearVelocity) {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             _linearVelocities[componentIndex] = linearVelocity;
@@ -220,7 +220,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular velocity is to be retrieved.
          * @returns A const reference to the angular velocity vector in world space (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _angularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -231,7 +231,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose angular velocity is to be retrieved. Must be less than the current size of the store.
          * @returns A const reference to the angular velocity vector in world space (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAngularVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _angularVelocities[componentIndex];
@@ -241,7 +241,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param angularVelocity The new angular velocity vector in world space (radians per second). */
-        VE_FORCE_INLINE void SetAngularVelocity(Entity bodyEntity, const glm::vec3 &angularVelocity) {
+        VE_INLINE void SetAngularVelocity(Entity bodyEntity, const glm::vec3 &angularVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _angularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = angularVelocity;
@@ -252,7 +252,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
          * @param angularVelocity The new angular velocity vector in world space (radians per second). */
-        VE_FORCE_INLINE void SetAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &angularVelocity) {
+        VE_INLINE void SetAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &angularVelocity) {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             _angularVelocities[componentIndex] = angularVelocity;
@@ -263,7 +263,7 @@ namespace Vulkyrie {
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose external force is to be retrieved.
          * @returns A const reference to the external force vector (Newtons). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalForce(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetExternalForce(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _externalForces[_entityToComponentIndex.find(bodyEntity)->second];
@@ -274,7 +274,7 @@ namespace Vulkyrie {
          * valid and correspond to an active component in the store.
          * @param componentIndex The index of the component whose external force is to be retrieved. Must be less than the current size of the store.
          * @returns A const reference to the external force vector (Newtons). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalForceAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetExternalForceAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _externalForces[componentIndex];
@@ -284,7 +284,7 @@ namespace Vulkyrie {
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param externalForce The external force vector to apply (Newtons). */
-        VE_FORCE_INLINE void SetExternalForce(Entity bodyEntity, const glm::vec3 &externalForce) {
+        VE_INLINE void SetExternalForce(Entity bodyEntity, const glm::vec3 &externalForce) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _externalForces[_entityToComponentIndex.find(bodyEntity)->second] = externalForce;
@@ -295,7 +295,7 @@ namespace Vulkyrie {
          * component index must be valid and correspond to an active component in the store.
          * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
          * @param externalForce The external force vector to apply (Newtons). */
-        VE_FORCE_INLINE void SetExternalForceAtIndex(size_t componentIndex, const glm::vec3 &externalForce) {
+        VE_INLINE void SetExternalForceAtIndex(size_t componentIndex, const glm::vec3 &externalForce) {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             _externalForces[componentIndex] = externalForce;
@@ -306,7 +306,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose external torque is to be retrieved.
          * @returns A const reference to the external torque vector (Newton-meters). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalTorque(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetExternalTorque(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _externalTorques[_entityToComponentIndex.find(bodyEntity)->second];
@@ -317,7 +317,7 @@ namespace Vulkyrie {
          * valid and correspond to an active component in the store.
          * @param componentIndex The index of the component whose external torque is to be retrieved. Must be less than the current size of the store.
          * @returns A const reference to the external torque vector (Newton-meters). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetExternalTorqueAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetExternalTorqueAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _externalTorques[componentIndex];
@@ -327,7 +327,7 @@ namespace Vulkyrie {
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param externalTorque The external torque vector to apply (Newton-meters). */
-        VE_FORCE_INLINE void SetExternalTorque(Entity bodyEntity, const glm::vec3 &externalTorque) {
+        VE_INLINE void SetExternalTorque(Entity bodyEntity, const glm::vec3 &externalTorque) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _externalTorques[_entityToComponentIndex.find(bodyEntity)->second] = externalTorque;
@@ -338,7 +338,7 @@ namespace Vulkyrie {
          * component index must be valid and correspond to an active component in the store.
          * @param componentIndex The index of the component to be updated. Must be less than the current size of the store.
          * @param externalTorque The external torque vector to apply (Newton-meters). */
-        VE_FORCE_INLINE void SetExternalTorqueAtIndex(size_t componentIndex, const glm::vec3 &externalTorque) {
+        VE_INLINE void SetExternalTorqueAtIndex(size_t componentIndex, const glm::vec3 &externalTorque) {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             _externalTorques[componentIndex] = externalTorque;
@@ -349,7 +349,7 @@ namespace Vulkyrie {
          * body to slow down more quickly. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear damping coefficient is to be retrieved.
          * @returns The linear damping coefficient (typically in the range [0, 1]). */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDamping(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE f32 GetLinearDamping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _linearDampings[_entityToComponentIndex.find(bodyEntity)->second];
@@ -361,7 +361,7 @@ namespace Vulkyrie {
          * @param componentIndex The index of the component whose linear damping coefficient is to be retrieved. Must be less than the current size of the
          * store.
          * @returns The linear damping coefficient (typically in the range [0, 1]). */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDampingAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE f32 GetLinearDampingAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _linearDampings[componentIndex];
@@ -371,7 +371,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param linearDamping The new linear damping coefficient (typically in the range [0, 1]). */
-        VE_FORCE_INLINE void SetLinearDamping(Entity bodyEntity, f32 linearDamping) {
+        VE_INLINE void SetLinearDamping(Entity bodyEntity, f32 linearDamping) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _linearDampings[_entityToComponentIndex.find(bodyEntity)->second] = linearDamping;
@@ -382,7 +382,7 @@ namespace Vulkyrie {
          * stop spinning more quickly. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular damping coefficient is to be retrieved.
          * @returns The angular damping coefficient (typically in the range [0, 1]). */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDamping(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE f32 GetAngularDamping(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _angularDampings[_entityToComponentIndex.find(bodyEntity)->second];
@@ -394,7 +394,7 @@ namespace Vulkyrie {
          * @param componentIndex The index of the component whose angular damping coefficient is to be retrieved. Must be less than the current size of the
          * store.
          * @returns The angular damping coefficient (typically in the range [0, 1]). */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDampingAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE f32 GetAngularDampingAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _angularDampings[componentIndex];
@@ -404,7 +404,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param angularDamping The new angular damping coefficient (typically in the range [0, 1]). */
-        VE_FORCE_INLINE void SetAngularDamping(Entity bodyEntity, f32 angularDamping) {
+        VE_INLINE void SetAngularDamping(Entity bodyEntity, f32 angularDamping) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _angularDampings[_entityToComponentIndex.find(bodyEntity)->second] = angularDamping;
@@ -415,7 +415,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose mass is to be retrieved.
          * @returns The mass in kilograms. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetMass(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE f32 GetMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _masses[_entityToComponentIndex.find(bodyEntity)->second];
@@ -426,7 +426,7 @@ namespace Vulkyrie {
          * to an active component in the store.
          * @param componentIndex The index of the component whose mass is to be retrieved. Must be less than the current size of the store.
          * @returns The mass in kilograms. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetMassAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE f32 GetMassAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _masses[componentIndex];
@@ -436,7 +436,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param mass The new mass in kilograms. */
-        VE_FORCE_INLINE void SetMass(Entity bodyEntity, f32 mass) {
+        VE_INLINE void SetMass(Entity bodyEntity, f32 mass) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _masses[_entityToComponentIndex.find(bodyEntity)->second] = mass;
@@ -447,7 +447,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse mass is to be retrieved.
          * @returns The inverse mass (1/kilograms), or 0 for immovable bodies. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetInverseMass(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE f32 GetInverseMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _inverseMasses[_entityToComponentIndex.find(bodyEntity)->second];
@@ -458,7 +458,7 @@ namespace Vulkyrie {
          * component in the store.
          * @param componentIndex The index of the component whose inverse mass is to be retrieved. Must be less than the current size of the store.
          * @returns The inverse mass (1/kilograms), or 0 for immovable bodies. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetInverseMassAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE f32 GetInverseMassAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _inverseMasses[componentIndex];
@@ -468,7 +468,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param inverseMass The new inverse mass (1/kilograms). Set to 0 for immovable bodies. */
-        VE_FORCE_INLINE void SetInverseMass(Entity bodyEntity, f32 inverseMass) {
+        VE_INLINE void SetInverseMass(Entity bodyEntity, f32 inverseMass) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _inverseMasses[_entityToComponentIndex.find(bodyEntity)->second] = inverseMass;
@@ -480,7 +480,7 @@ namespace Vulkyrie {
          * diagonalized to its principal axes). The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose local inertia tensor is to be retrieved.
          * @returns A const reference to the local inertia tensor (kg·m²) stored as a vec3. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalInertiaTensor(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _localInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
@@ -490,7 +490,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param inertiaTensorLocal The new local inertia tensor (kg·m²) stored as a vec3. */
-        VE_FORCE_INLINE void SetLocalInertiaTensor(Entity bodyEntity, const glm::vec3 &inertiaTensorLocal) {
+        VE_INLINE void SetLocalInertiaTensor(Entity bodyEntity, const glm::vec3 &inertiaTensorLocal) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _localInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second] = inertiaTensorLocal;
@@ -501,7 +501,7 @@ namespace Vulkyrie {
          * have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse local inertia tensor is to be retrieved.
          * @returns A const reference to the inverse local inertia tensor (1/(kg·m²)) stored as a vec3. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetInverseLocalInertiaTensor(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetInverseLocalInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _inverseLocalInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
@@ -512,7 +512,7 @@ namespace Vulkyrie {
          * and is updated each simulation step. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose inverse world inertia tensor is to be retrieved.
          * @returns A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::mat3 &GetInverseWorldInertiaTensor(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::mat3 &GetInverseWorldInertiaTensor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _inverseWorldInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
@@ -525,7 +525,7 @@ namespace Vulkyrie {
          * @param componentIndex The index of the component whose inverse world inertia tensor is to be retrieved. Must be less than the current size of the
          * store.
          * @returns A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::mat3 &GetInverseWorldInertiaTensorAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::mat3 &GetInverseWorldInertiaTensorAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _inverseWorldInertiaTensors[componentIndex];
@@ -535,7 +535,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param inertiaTensor The new inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
-        VE_FORCE_INLINE void SetInverseWorldInertiaTensor(Entity bodyEntity, const glm::mat3 &inertiaTensor) {
+        VE_INLINE void SetInverseWorldInertiaTensor(Entity bodyEntity, const glm::mat3 &inertiaTensor) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _inverseWorldInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second] = inertiaTensor;
@@ -545,7 +545,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param inertiaTensorLocalInverse The new inverse local inertia tensor (1/(kg·m²)) stored as a vec3. */
-        VE_FORCE_INLINE void SetInverseLocalInertiaTensor(Entity bodyEntity, const glm::vec3 &inertiaTensorLocalInverse) {
+        VE_INLINE void SetInverseLocalInertiaTensor(Entity bodyEntity, const glm::vec3 &inertiaTensorLocalInverse) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _inverseLocalInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second] = inertiaTensorLocalInverse;
@@ -556,7 +556,7 @@ namespace Vulkyrie {
          * contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained linear velocity is to be retrieved.
          * @returns A const reference to the constrained linear velocity vector (meters per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedLinearVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConstrainedLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -567,7 +567,7 @@ namespace Vulkyrie {
          * to contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained angular velocity is to be retrieved.
          * @returns A const reference to the constrained angular velocity vector (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedLinearVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConstrainedLinearVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _constrainedLinearVelocities.size(), "Component index out of bounds.");
 
             return _constrainedLinearVelocities[componentIndex];
@@ -578,7 +578,7 @@ namespace Vulkyrie {
          * contact, joint, and other constraint forces. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained angular velocity is to be retrieved.
          * @returns A const reference to the constrained angular velocity vector (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedAngularVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConstrainedAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -589,7 +589,7 @@ namespace Vulkyrie {
          * and correspond to an active component in the store.
          * @param componentIndex The index of the component whose constrained angular velocity is to be retrieved.
          * @returns A const reference to the constrained angular velocity vector (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetConstrainedAngularVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConstrainedAngularVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _constrainedAngularVelocities.size(), "Component index out of bounds.");
 
             return _constrainedAngularVelocities[componentIndex];
@@ -600,7 +600,7 @@ namespace Vulkyrie {
          * and preventing artificial energy gain. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose split linear velocity is to be retrieved.
          * @returns A const reference to the split linear velocity vector (meters per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitLinearVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetSplitLinearVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _splitLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -611,7 +611,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose split linear velocity is to be retrieved.
          * @returns A const reference to the split linear velocity vector (meters per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitLinearVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetSplitLinearVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _splitLinearVelocities.size(), "Component index out of bounds.");
 
             return _splitLinearVelocities[componentIndex];
@@ -622,7 +622,7 @@ namespace Vulkyrie {
          * a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose split angular velocity is to be retrieved.
          * @returns A const reference to the split angular velocity vector (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitAngularVelocity(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetSplitAngularVelocity(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _splitAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second];
@@ -633,7 +633,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose split angular velocity is to be retrieved.
          * @returns A const reference to the split angular velocity vector (radians per second). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetSplitAngularVelocityAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetSplitAngularVelocityAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _splitAngularVelocities.size(), "Component index out of bounds.");
 
             return _splitAngularVelocities[componentIndex];
@@ -644,7 +644,7 @@ namespace Vulkyrie {
          * drift. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained position is to be retrieved.
          * @returns A mutable reference to the constrained position vector. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 &GetConstrainedPosition(Entity bodyEntity) {
+        [[nodiscard]] VE_INLINE glm::vec3 &GetConstrainedPosition(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedPositions[_entityToComponentIndex.find(bodyEntity)->second];
@@ -655,7 +655,7 @@ namespace Vulkyrie {
          * active component in the store.
          * @param componentIndex The index of the component whose constrained position is to be retrieved.
          * @returns A mutable reference to the constrained position vector. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 &GetConstrainedPositionAtIndex(size_t componentIndex) {
+        [[nodiscard]] VE_INLINE glm::vec3 &GetConstrainedPositionAtIndex(size_t componentIndex) {
             VASSERT(componentIndex < _constrainedPositions.size(), "Component index out of bounds.");
 
             return _constrainedPositions[componentIndex];
@@ -666,7 +666,7 @@ namespace Vulkyrie {
          * to correct rotational drift. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose constrained orientation is to be retrieved.
          * @returns A mutable reference to the constrained orientation quaternion. */
-        [[nodiscard]] VE_FORCE_INLINE glm::quat &GetConstrainedOrientation(Entity bodyEntity) {
+        [[nodiscard]] VE_INLINE glm::quat &GetConstrainedOrientation(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _constrainedOrientations[_entityToComponentIndex.find(bodyEntity)->second];
@@ -677,7 +677,7 @@ namespace Vulkyrie {
          * active component in the store.
          * @param componentIndex The index of the component whose constrained orientation is to be retrieved.
          * @returns A mutable reference to the constrained orientation quaternion. */
-        [[nodiscard]] VE_FORCE_INLINE glm::quat &GetConstrainedOrientationAtIndex(size_t componentIndex) {
+        [[nodiscard]] VE_INLINE glm::quat &GetConstrainedOrientationAtIndex(size_t componentIndex) {
             VASSERT(componentIndex < _constrainedOrientations.size(), "Component index out of bounds.");
 
             return _constrainedOrientations[componentIndex];
@@ -688,7 +688,7 @@ namespace Vulkyrie {
          * The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose local center of mass is to be retrieved.
          * @returns A const reference to the local center of mass position vector. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalCenterOfMass(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalCenterOfMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _localCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second];
@@ -699,7 +699,7 @@ namespace Vulkyrie {
          * active component in the store.
          * @param componentIndex The index of the component whose local center of mass is to be retrieved.
          * @returns A const reference to the local center of mass position vector. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalCenterOfMassAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalCenterOfMassAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _localCenterOfMasses.size(), "Component index out of bounds.");
 
             return _localCenterOfMasses[componentIndex];
@@ -710,7 +710,7 @@ namespace Vulkyrie {
          * simulation step. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose world center of mass is to be retrieved.
          * @returns A const reference to the world center of mass position vector. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldCenterOfMass(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetWorldCenterOfMass(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _worldCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second];
@@ -721,7 +721,7 @@ namespace Vulkyrie {
          * active component in the store.
          * @param componentIndex The index of the component whose world center of mass is to be retrieved.
          * @returns A const reference to the world center of mass position vector. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldCenterOfMassAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetWorldCenterOfMassAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _worldCenterOfMasses.size(), "Component index out of bounds.");
 
             return _worldCenterOfMasses[componentIndex];
@@ -732,7 +732,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if gravity is enabled for the body, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabled(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool IsGravityEnabled(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return static_cast<bool>(_gravityEnabledFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -743,7 +743,7 @@ namespace Vulkyrie {
          * store.
          * @param componentIndex The index of the component to be checked. Must be less than the current size of the store.
          * @returns True if gravity is enabled for the body, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabledAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE bool IsGravityEnabledAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _gravityEnabledFlags.size(), "Component index out of bounds.");
 
             return static_cast<bool>(_gravityEnabledFlags[componentIndex]);
@@ -755,7 +755,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if the body is already assigned to an island, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsInIsland(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool IsInIsland(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return static_cast<bool>(_isInIslandFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -767,7 +767,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose linear axis locking factors are to be retrieved.
          * @returns A const reference to the linear axis locking factors (1 = free, 0 = locked). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearLockAxisFactor(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLinearLockAxisFactor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _linearLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second];
@@ -777,7 +777,7 @@ namespace Vulkyrie {
          * access locking factors without needing to reference the entity. The component index must be valid and correspond to an active component in the store.
          * @param componentIndex The index of the component whose linear axis locking factors are to be retrieved.
          * @returns A const reference to the linear axis locking factors (1 = free, 0 = locked). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLinearLockAxisFactorAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLinearLockAxisFactorAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _linearLockAxisFactors.size(), "Component index out of bounds.");
 
             return _linearLockAxisFactors[componentIndex];
@@ -789,7 +789,7 @@ namespace Vulkyrie {
          * entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity whose angular axis locking factors are to be retrieved.
          * @returns A const reference to the angular axis locking factors (1 = free, 0 = locked). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularLockAxisFactor(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAngularLockAxisFactor(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _angularLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second];
@@ -799,7 +799,7 @@ namespace Vulkyrie {
          * access locking factors without needing to reference the entity. The component index must be valid and correspond to an active component in the store.
          * @param componentIndex The index of the component whose angular axis locking factors are to be retrieved.
          * @returns A const reference to the angular axis locking factors (1 = free, 0 = locked). */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAngularLockAxisFactorAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAngularLockAxisFactorAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _angularLockAxisFactors.size(), "Component index out of bounds.");
 
             return _angularLockAxisFactors[componentIndex];
@@ -809,7 +809,7 @@ namespace Vulkyrie {
          * called by the constraint solver during physics simulation. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param constrainedLinearVelocity The new constrained linear velocity vector (meters per second). */
-        VE_FORCE_INLINE void SetConstrainedLinearVelocity(Entity bodyEntity, const glm::vec3 &constrainedLinearVelocity) {
+        VE_INLINE void SetConstrainedLinearVelocity(Entity bodyEntity, const glm::vec3 &constrainedLinearVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = constrainedLinearVelocity;
@@ -820,7 +820,7 @@ namespace Vulkyrie {
          * an active component in the store.
          * @param componentIndex The index of the component whose constrained linear velocity is to be set.
          * @param constrainedLinearVelocity The new constrained linear velocity vector (meters per second). */
-        VE_FORCE_INLINE void SetConstrainedLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedLinearVelocity) {
+        VE_INLINE void SetConstrainedLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedLinearVelocity) {
             VASSERT(componentIndex < _constrainedLinearVelocities.size(), "Component index out of bounds.");
 
             _constrainedLinearVelocities[componentIndex] = constrainedLinearVelocity;
@@ -830,7 +830,7 @@ namespace Vulkyrie {
          * called by the constraint solver during physics simulation. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param constrainedAngularVelocity The new constrained angular velocity vector (radians per second). */
-        VE_FORCE_INLINE void SetConstrainedAngularVelocity(Entity bodyEntity, const glm::vec3 &constrainedAngularVelocity) {
+        VE_INLINE void SetConstrainedAngularVelocity(Entity bodyEntity, const glm::vec3 &constrainedAngularVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = constrainedAngularVelocity;
@@ -841,7 +841,7 @@ namespace Vulkyrie {
          * an active component in the store.
          * @param componentIndex The index of the component whose constrained angular velocity is to be set.
          * @param constrainedAngularVelocity The new constrained angular velocity vector (radians per second). */
-        VE_FORCE_INLINE void SetConstrainedAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedAngularVelocity) {
+        VE_INLINE void SetConstrainedAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &constrainedAngularVelocity) {
             VASSERT(componentIndex < _constrainedAngularVelocities.size(), "Component index out of bounds.");
 
             _constrainedAngularVelocities[componentIndex] = constrainedAngularVelocity;
@@ -852,7 +852,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param splitLinearVelocity The new split linear velocity vector (meters per second). */
-        VE_FORCE_INLINE void SetSplitLinearVelocity(Entity bodyEntity, const glm::vec3 &splitLinearVelocity) {
+        VE_INLINE void SetSplitLinearVelocity(Entity bodyEntity, const glm::vec3 &splitLinearVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _splitLinearVelocities[_entityToComponentIndex.find(bodyEntity)->second] = splitLinearVelocity;
@@ -863,7 +863,7 @@ namespace Vulkyrie {
          * an active component in the store.
          * @param componentIndex The index of the component whose split linear velocity is to be set.
          * @param splitLinearVelocity The new split linear velocity vector (meters per second). */
-        VE_FORCE_INLINE void SetSplitLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitLinearVelocity) {
+        VE_INLINE void SetSplitLinearVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitLinearVelocity) {
             VASSERT(componentIndex < _splitLinearVelocities.size(), "Component index out of bounds.");
 
             _splitLinearVelocities[componentIndex] = splitLinearVelocity;
@@ -874,7 +874,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param splitAngularVelocity The new split angular velocity vector (radians per second). */
-        VE_FORCE_INLINE void SetSplitAngularVelocity(Entity bodyEntity, const glm::vec3 &splitAngularVelocity) {
+        VE_INLINE void SetSplitAngularVelocity(Entity bodyEntity, const glm::vec3 &splitAngularVelocity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _splitAngularVelocities[_entityToComponentIndex.find(bodyEntity)->second] = splitAngularVelocity;
@@ -885,7 +885,7 @@ namespace Vulkyrie {
          * an active component in the store.
          * @param componentIndex The index of the component whose split angular velocity is to be set.
          * @param splitAngularVelocity The new split angular velocity vector (radians per second). */
-        VE_FORCE_INLINE void SetSplitAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitAngularVelocity) {
+        VE_INLINE void SetSplitAngularVelocityAtIndex(size_t componentIndex, const glm::vec3 &splitAngularVelocity) {
             VASSERT(componentIndex < _splitAngularVelocities.size(), "Component index out of bounds.");
 
             _splitAngularVelocities[componentIndex] = splitAngularVelocity;
@@ -896,7 +896,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param constrainedPosition The new constrained position vector. */
-        VE_FORCE_INLINE void SetConstrainedPosition(Entity bodyEntity, const glm::vec3 &constrainedPosition) {
+        VE_INLINE void SetConstrainedPosition(Entity bodyEntity, const glm::vec3 &constrainedPosition) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedPositions[_entityToComponentIndex.find(bodyEntity)->second] = constrainedPosition;
@@ -907,7 +907,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose constrained position is to be set.
          * @param constrainedPosition The new constrained position vector. */
-        VE_FORCE_INLINE void SetConstrainedPositionAtIndex(size_t componentIndex, const glm::vec3 &constrainedPosition) {
+        VE_INLINE void SetConstrainedPositionAtIndex(size_t componentIndex, const glm::vec3 &constrainedPosition) {
             VASSERT(componentIndex < _constrainedPositions.size(), "Component index out of bounds.");
 
             _constrainedPositions[componentIndex] = constrainedPosition;
@@ -918,7 +918,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param constrainedOrientation The new constrained orientation quaternion. */
-        VE_FORCE_INLINE void SetConstrainedOrientation(Entity bodyEntity, const glm::quat &constrainedOrientation) {
+        VE_INLINE void SetConstrainedOrientation(Entity bodyEntity, const glm::quat &constrainedOrientation) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _constrainedOrientations[_entityToComponentIndex.find(bodyEntity)->second] = constrainedOrientation;
@@ -929,7 +929,7 @@ namespace Vulkyrie {
          * correspond to an active component in the store.
          * @param componentIndex The index of the component whose constrained orientation is to be set.
          * @param constrainedOrientation The new constrained orientation quaternion. */
-        VE_FORCE_INLINE void SetConstrainedOrientationAtIndex(size_t componentIndex, const glm::quat &constrainedOrientation) {
+        VE_INLINE void SetConstrainedOrientationAtIndex(size_t componentIndex, const glm::quat &constrainedOrientation) {
             VASSERT(componentIndex < _constrainedOrientations.size(), "Component index out of bounds.");
 
             _constrainedOrientations[componentIndex] = constrainedOrientation;
@@ -939,7 +939,7 @@ namespace Vulkyrie {
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param centerOfMassLocal The new local center of mass position vector. */
-        VE_FORCE_INLINE void SetLocalCenterOfMass(Entity bodyEntity, const glm::vec3 &centerOfMassLocal) {
+        VE_INLINE void SetLocalCenterOfMass(Entity bodyEntity, const glm::vec3 &centerOfMassLocal) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _localCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second] = centerOfMassLocal;
@@ -950,7 +950,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity to be updated.
          * @param centerOfMassWorld The new world center of mass position vector. */
-        VE_FORCE_INLINE void SetWorldCenterOfMass(Entity bodyEntity, const glm::vec3 &centerOfMassWorld) {
+        VE_INLINE void SetWorldCenterOfMass(Entity bodyEntity, const glm::vec3 &centerOfMassWorld) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _worldCenterOfMasses[_entityToComponentIndex.find(bodyEntity)->second] = centerOfMassWorld;
@@ -961,7 +961,7 @@ namespace Vulkyrie {
          * active component in the store.
          * @param componentIndex The index of the component whose world center of mass is to be set.
          * @param centerOfMassWorld The new world center of mass position vector. */
-        VE_FORCE_INLINE void SetWorldCenterOfMassAtIndex(size_t componentIndex, const glm::vec3 &centerOfMassWorld) {
+        VE_INLINE void SetWorldCenterOfMassAtIndex(size_t componentIndex, const glm::vec3 &centerOfMassWorld) {
             VASSERT(componentIndex < _worldCenterOfMasses.size(), "Component index out of bounds.");
 
             _worldCenterOfMasses[componentIndex] = centerOfMassWorld;
@@ -971,7 +971,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param isGravityEnabled True to enable gravity for the body, false to disable it. */
-        VE_FORCE_INLINE void SetGravityEnabled(Entity bodyEntity, bool isGravityEnabled) {
+        VE_INLINE void SetGravityEnabled(Entity bodyEntity, bool isGravityEnabled) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _gravityEnabledFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(isGravityEnabled);
@@ -981,7 +981,7 @@ namespace Vulkyrie {
          * typically updated during the constraint solving phase. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param isInIsland True to mark the body as assigned to an island, false otherwise. */
-        VE_FORCE_INLINE void SetInIsland(Entity bodyEntity, bool isInIsland) {
+        VE_INLINE void SetInIsland(Entity bodyEntity, bool isInIsland) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _isInIslandFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(isInIsland);
@@ -991,7 +991,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param linearLockAxisFactor The new linear axis locking factors (1 = free, 0 = locked). */
-        VE_FORCE_INLINE void SetLinearLockAxisFactor(Entity bodyEntity, const glm::vec3 &linearLockAxisFactor) {
+        VE_INLINE void SetLinearLockAxisFactor(Entity bodyEntity, const glm::vec3 &linearLockAxisFactor) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _linearLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second] = linearLockAxisFactor;
@@ -1001,7 +1001,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param rotationTranslationFactor The new angular axis locking factors (1 = free, 0 = locked). */
-        VE_FORCE_INLINE void SetAngularLockAxisFactor(Entity bodyEntity, const glm::vec3 &rotationTranslationFactor) {
+        VE_INLINE void SetAngularLockAxisFactor(Entity bodyEntity, const glm::vec3 &rotationTranslationFactor) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _angularLockAxisFactors[_entityToComponentIndex.find(bodyEntity)->second] = rotationTranslationFactor;
@@ -1012,7 +1012,7 @@ namespace Vulkyrie {
          * associated with it.
          * @param bodyEntity The entity whose joint list is to be retrieved.
          * @returns A const reference to the vector of joint entities attached to the specified body. */
-        [[nodiscard]] VE_FORCE_INLINE const std::vector<Entity> &GetJoints(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const std::vector<Entity> &GetJoints(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _joints[_entityToComponentIndex.find(bodyEntity)->second];
@@ -1022,7 +1022,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity that owns the body.
          * @param jointEntity The joint entity to associate with this body. */
-        VE_FORCE_INLINE void AddJointToBody(Entity bodyEntity, Entity jointEntity) {
+        VE_INLINE void AddJointToBody(Entity bodyEntity, Entity jointEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _joints[_entityToComponentIndex.find(bodyEntity)->second].push_back(jointEntity);
@@ -1033,7 +1033,7 @@ namespace Vulkyrie {
          * joint entity must exist in the body's joint list.
          * @param bodyEntity The entity that owns the body.
          * @param jointEntity The joint entity to remove. */
-        VE_FORCE_INLINE void RemoveJointFromBody(Entity bodyEntity, Entity jointEntity) {
+        VE_INLINE void RemoveJointFromBody(Entity bodyEntity, Entity jointEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             std::vector<Entity> &joints = _joints[_entityToComponentIndex.find(bodyEntity)->second];
@@ -1052,7 +1052,7 @@ namespace Vulkyrie {
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity that owns the body.
          * @param contactPairIndex The index of the contact pair to add. */
-        VE_FORCE_INLINE void AddContactPair(Entity bodyEntity, u32 contactPairIndex) {
+        VE_INLINE void AddContactPair(Entity bodyEntity, u32 contactPairIndex) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _contactPairs[_entityToComponentIndex.find(bodyEntity)->second].push_back(contactPairIndex);
@@ -1062,7 +1062,7 @@ namespace Vulkyrie {
          * at the beginning of each simulation step to clear stale contact information before collision detection. The body entity
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity that owns the body. */
-        VE_FORCE_INLINE void RemoveAllContactPairs(Entity bodyEntity) {
+        VE_INLINE void RemoveAllContactPairs(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _contactPairs[_entityToComponentIndex.find(bodyEntity)->second].clear();

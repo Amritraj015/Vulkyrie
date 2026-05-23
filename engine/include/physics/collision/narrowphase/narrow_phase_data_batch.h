@@ -13,7 +13,7 @@ namespace Vulkyrie {
 
         std::vector<NarrowPhaseData> Data;
 
-        VE_FORCE_INLINE void AddNarrowPhaseData(u64 pairID,
+        VE_INLINE void AddNarrowPhaseData(u64 pairID,
                                                 Entity colliderOne,
                                                 Entity colliderTwo,
                                                 CollisionShape &shapeOne,
@@ -25,7 +25,7 @@ namespace Vulkyrie {
             Data.emplace_back(pairID, colliderOne, colliderTwo, lastFrameInfo, shapeOne, shapeTwo, shapeOneTransform, shapeTwoTransform, reportContacts);
         }
 
-        VE_FORCE_INLINE void AddContactPoint(size_t index,
+        VE_INLINE void AddContactPoint(size_t index,
                                              const glm::vec3 &contactNormal,
                                              f32 penetrationDepth,
                                              const glm::vec3 &localSpaceContactPointOnBodyOne,
@@ -43,7 +43,7 @@ namespace Vulkyrie {
             }
         }
 
-        VE_FORCE_INLINE void ResetContactPoints(size_t index) {
+        VE_INLINE void ResetContactPoints(size_t index) {
             Data[index].ContactPointCount = 0;
         }
 

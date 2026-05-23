@@ -10,27 +10,27 @@ namespace Vulkyrie {
         OpenGLTexture2D(const std::filesystem::path &path);
         ~OpenGLTexture2D();
 
-        [[nodiscard]] inline const TextureSpecification &GetSpecification() const override {
+        [[nodiscard]] VE_INLINE const TextureSpecification &GetSpecification() const override {
             return _specification;
         }
 
-        [[nodiscard]] inline u32 GetWidth() const override {
+        [[nodiscard]] VE_INLINE u32 GetWidth() const override {
             return _width;
         }
 
-        [[nodiscard]] inline u32 GetHeight() const override {
+        [[nodiscard]] VE_INLINE u32 GetHeight() const override {
             return _height;
         }
 
-        [[nodiscard]] inline u32 GetTextureID() const override {
+        [[nodiscard]] VE_INLINE u32 GetTextureID() const override {
             return _textureId;
         }
 
-        [[nodiscard]] inline const std::filesystem::path &GetPath() const override {
+        [[nodiscard]] VE_INLINE const std::filesystem::path &GetPath() const override {
             return _path;
         }
 
-        [[nodiscard]] inline std::string_view GetTextureFileName() const override {
+        [[nodiscard]] VE_INLINE std::string_view GetTextureFileName() const override {
             return _fileName;
         }
 
@@ -38,7 +38,7 @@ namespace Vulkyrie {
 
         void Bind(u32 slot = 0) const override;
 
-        [[nodiscard]] inline bool IsLoaded() const override {
+        [[nodiscard]] VE_INLINE bool IsLoaded() const override {
             return _loaded;
         }
 

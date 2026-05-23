@@ -23,14 +23,14 @@ namespace Vulkyrie {
         /** @brief Gets the number of meshes in the model.
          * @returns The count of meshes.
          */
-        [[nodiscard]] inline size_t GetMeshCount() const {
+        [[nodiscard]] VE_INLINE size_t GetMeshCount() const {
             return _meshes.size();
         }
 
         /** @brief Gets the meshes that make up the model.
          * @returns A constant reference to the vector of meshes.
          */
-        [[nodiscard]] inline const std::vector<Ref<Mesh>> &GetMeshes() const {
+        [[nodiscard]] VE_INLINE const std::vector<Ref<Mesh>> &GetMeshes() const {
             return _meshes;
         }
 
@@ -44,7 +44,7 @@ namespace Vulkyrie {
         }
 
         // TODO: Needs to be removed.
-        inline void BindTextures() const {
+        VE_INLINE void BindTextures() const {
             for (const auto &mesh : _meshes) {
                 mesh->BindTextures();
             }
@@ -54,7 +54,7 @@ namespace Vulkyrie {
          * @param shader The shader to use for rendering.
          */
         // TODO: Needs to be removed.
-        inline void Draw(Shader &shader) const {
+        VE_INLINE void Draw(Shader &shader) const {
             for (auto &mesh : _meshes) {
                 mesh->Draw(shader);
             }

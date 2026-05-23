@@ -19,7 +19,7 @@ namespace Vulkyrie {
          * configurations that affect the behavior of the physics simulation. This method allows other parts of the physics system to query the current
          * settings and adjust their behavior accordingly during simulation updates.
          * @returns A reference to the PhysicsWorldSettings that contains the configuration parameters for the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE const PhysicsWorldSettings &GetSettings() const {
+        [[nodiscard]] VE_INLINE const PhysicsWorldSettings &GetSettings() const {
             return _settings;
         }
 
@@ -27,7 +27,7 @@ namespace Vulkyrie {
          * responsible for generating unique entity identifiers, tracking entity lifetimes, and providing an interface for creating and destroying entities.
          * This method allows other parts of the physics system to create new entities or query existing ones as needed during simulation updates.
          * @returns A reference to the EntityManager that manages entities in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE EntityManager &GetEntityManager() {
+        [[nodiscard]] VE_INLINE EntityManager &GetEntityManager() {
             return _entityManager;
         }
 
@@ -37,7 +37,7 @@ namespace Vulkyrie {
          * needed during simulation updates. The BodyComponentStore also maintains the dense active-zone invariant for efficient iteration over active
          * bodies in the simulation.
          * @returns A reference to the BodyComponentStore that manages the BodyComponents of entities in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE BodyComponentStore &GetBodyComponentStore() {
+        [[nodiscard]] VE_INLINE BodyComponentStore &GetBodyComponentStore() {
             return _bodyComponentStore;
         }
 
@@ -47,7 +47,7 @@ namespace Vulkyrie {
          * body components of entities as needed during simulation updates. The RigidBodyComponentStore also maintains the dense active-zone invariant for
          * efficient iteration over active rigid bodies in the simulation.
          * @returns A reference to the RigidBodyComponentStore that manages the RigidBodyComponents of entities in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE RigidBodyComponentStore &GetRigidBodyComponentStore() {
+        [[nodiscard]] VE_INLINE RigidBodyComponentStore &GetRigidBodyComponentStore() {
             return _rigidBodyComponentStore;
         }
 
@@ -57,7 +57,7 @@ namespace Vulkyrie {
          * the colliders of entities as needed during simulation updates. The ColliderComponentStore also maintains the dense active-zone invariant for
          * efficient iteration over active colliders in the simulation.
          * @returns A reference to the ColliderComponentStore that manages the ColliderComponents of entities in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE ColliderComponentStore &GetColliderComponentStore() {
+        [[nodiscard]] VE_INLINE ColliderComponentStore &GetColliderComponentStore() {
             return _colliderComponentStore;
         }
 
@@ -66,27 +66,27 @@ namespace Vulkyrie {
          * accurate collision detection and response in the physics simulation. This method allows other parts of the physics system to retrieve and modify
          * the transforms of entities as needed during simulation updates.
          * @returns A reference to the TransformComponentStore that manages the TransformComponents of entities in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE TransformComponentStore &GetTransformComponentStore() {
+        [[nodiscard]] VE_INLINE TransformComponentStore &GetTransformComponentStore() {
             return _transformComponentStore;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE CollisionSystem &GetCollisionSystem() {
+        [[nodiscard]] VE_INLINE CollisionSystem &GetCollisionSystem() {
             return _collisionSystem;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE bool IsGravityEnabled() const {
+        [[nodiscard]] VE_INLINE bool IsGravityEnabled() const {
             return _gravityEnabled;
         }
 
-        VE_FORCE_INLINE void SetGravityEnabled(bool enabled) {
+        VE_INLINE void SetGravityEnabled(bool enabled) {
             _gravityEnabled = enabled;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE bool IsDebugRenderingEnabled() const {
+        [[nodiscard]] VE_INLINE bool IsDebugRenderingEnabled() const {
             return _enableDebugRendering;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE EventListener *GetEventListener() const {
+        [[nodiscard]] VE_INLINE EventListener *GetEventListener() const {
             return _eventListener;
         }
 

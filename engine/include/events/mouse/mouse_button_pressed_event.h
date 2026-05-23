@@ -13,18 +13,18 @@ namespace Vulkyrie {
 
         const KeyModifier Modifiers;
 
-        [[nodiscard]] inline EventType GetEventType() const override {
+        [[nodiscard]] VE_INLINE EventType GetEventType() const override {
             return GetStaticEventType();
         }
 
-        [[nodiscard]] inline std::string ToString() const override {
+        [[nodiscard]] VE_INLINE std::string ToString() const override {
             return std::format("MouseButtonPressedEvent: {} (modifiers: {})", std::to_underlying(MouseButton), std::to_underlying(Modifiers));
         }
 
         /** @brief Gets the static event type for this event class.
          * @returns The static event type.
          */
-        [[nodiscard]] static inline EventType GetStaticEventType() {
+        [[nodiscard]] static VE_INLINE EventType GetStaticEventType() {
             return EventType::MouseButtonPressed;
         }
     };

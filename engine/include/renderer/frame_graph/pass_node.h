@@ -85,17 +85,17 @@ namespace Vulkyrie {
         };
 
         /** @brief Retrieves the name of the pass, which is a human-readable identifier for the pass. */
-        [[nodiscard]] inline std::string_view GetName() const {
+        [[nodiscard]] VE_INLINE std::string_view GetName() const {
             return _name;
         }
 
         /** @brief Increments the reference count of the pass, indicating that it is being used by another pass or resource. */
-        [[nodiscard]] inline PassID GetPassID() const {
+        [[nodiscard]] VE_INLINE PassID GetPassID() const {
             return _passID;
         }
 
         /** @brief Checks if the pass can be executed, which is true if it has a positive reference count or if it has side effects. */
-        [[nodiscard]] inline bool CanExecute() const {
+        [[nodiscard]] VE_INLINE bool CanExecute() const {
             return _liveOutputCount > 0 || _hasSideEffects;
         }
 

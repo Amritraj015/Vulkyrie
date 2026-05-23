@@ -36,14 +36,14 @@ namespace Vulkyrie {
          * the accuracy of collision responses. The margin is typically used in algorithms like GJK and EPA to ensure that they can handle cases where
          * objects are very close or even penetrating each other without producing unstable results.
          */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetMargin() const {
+        [[nodiscard]] VE_INLINE f32 GetMargin() const {
             return _margin;
         }
 
         /** @brief Check if the collision shape is convex.
          * @returns True if the collision shape is convex, false otherwise.
          */
-        [[nodiscard]] VE_FORCE_INLINE constexpr bool IsConvex() const override {
+        [[nodiscard]] VE_INLINE constexpr bool IsConvex() const override {
             return true;
         }
 

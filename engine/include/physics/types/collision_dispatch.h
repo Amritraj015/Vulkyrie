@@ -41,27 +41,27 @@ namespace Vulkyrie {
          */
         NarrowPhaseAlgorithm SelectNarrowPhaseAlgorithm(CollisionShapeType shapeOne, CollisionShapeType shapeTwo) const;
 
-        [[nodiscard]] VE_FORCE_INLINE CapsuleVsCapsuleAlgorithm &GetCapsuleVsCapsuleAlgorithm() {
+        [[nodiscard]] VE_INLINE CapsuleVsCapsuleAlgorithm &GetCapsuleVsCapsuleAlgorithm() {
             return _capsuleVsCapsuleAlgorithm;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE CapsuleVsConvexPolyhedronAlgorithm &GetCapsuleVsConvexPolyhedronAlgorithm() {
+        [[nodiscard]] VE_INLINE CapsuleVsConvexPolyhedronAlgorithm &GetCapsuleVsConvexPolyhedronAlgorithm() {
             return _capsuleVsConvexPolyhedronAlgorithm;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE ConvexPolyhedronVsConvexPolyhedronAlgorithm &GetConvexPolyhedronVsConvexPolyhedronAlgorithm() {
+        [[nodiscard]] VE_INLINE ConvexPolyhedronVsConvexPolyhedronAlgorithm &GetConvexPolyhedronVsConvexPolyhedronAlgorithm() {
             return _convexPolyhedronVsConvexPolyhedronAlgorithm;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE SphereVsCapsuleAlgorithm &GetSphereVsCapsuleAlgorithm() {
+        [[nodiscard]] VE_INLINE SphereVsCapsuleAlgorithm &GetSphereVsCapsuleAlgorithm() {
             return _sphereVsCapsuleAlgorithm;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE SphereVsConvexPolyhedronAlgorithm &GetSphereVsConvexPolyhedronAlgorithm() {
+        [[nodiscard]] VE_INLINE SphereVsConvexPolyhedronAlgorithm &GetSphereVsConvexPolyhedronAlgorithm() {
             return _sphereVsConvexPolyhedronAlgorithm;
         }
 
-        [[nodiscard]] VE_FORCE_INLINE SphereVsSphereAlgorithm &GetSphereVsSphereAlgorithm() {
+        [[nodiscard]] VE_INLINE SphereVsSphereAlgorithm &GetSphereVsSphereAlgorithm() {
             return _sphereVsSphereAlgorithm;
         }
 

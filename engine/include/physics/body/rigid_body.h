@@ -35,19 +35,19 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the mass of this rigid body.
          * @returns The mass of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetMass() const {
+        [[nodiscard]] VE_INLINE f32 GetMass() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetMass(_entity);
         }
 
         /** @brief Retrieves the linear velocity of this rigid body.
          * @returns The linear velocity of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLinearVelocity() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLinearVelocity() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetLinearVelocity(_entity);
         }
 
         /** @brief Retrieves the angular velocity of this rigid body.
          * @returns The angular velocity of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetAngularVelocity() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetAngularVelocity() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetAngularVelocity(_entity);
         }
 
@@ -55,7 +55,7 @@ namespace Vulkyrie {
          * axes. The local inertia tensor is typically defined in the body's local space and is used to compute the body's response to torques and angular
          * forces.
          * @returns The local inertia tensor of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalInertiaTensor() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetLocalInertiaTensor(_entity);
         }
 
@@ -63,7 +63,7 @@ namespace Vulkyrie {
          * concentrated. The local center of mass is used to compute the body's response to forces and torques, and it affects how the body moves and
          * rotates in the physics simulation.
          * @returns The local center of mass of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalCenterOfMass() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalCenterOfMass() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetLocalCenterOfMass(_entity);
         }
 
@@ -72,7 +72,7 @@ namespace Vulkyrie {
          * its velocity for longer. Linear damping is typically used to simulate effects such as air resistance or friction that act against the motion of
          * the body.
          * @returns The linear damping factor of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetLinearDamping() const {
+        [[nodiscard]] VE_INLINE f32 GetLinearDamping() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetLinearDamping(_entity);
         }
 
@@ -81,7 +81,7 @@ namespace Vulkyrie {
          * velocity for longer. Linear damping is typically used to simulate effects such as air resistance or friction that act against the motion of the
          * body.
          * @param linearDamping The linear damping factor to set for this rigid body. Must be greater than or equal to zero. */
-        VE_FORCE_INLINE void SetLinearDamping(f32 linearDamping) {
+        VE_INLINE void SetLinearDamping(f32 linearDamping) {
             VASSERT(linearDamping >= 0.0f, "Linear damping must be greater than or equal to zero.");
 
             _physicsWorld.GetRigidBodyComponentStore().SetLinearDamping(_entity, linearDamping);
@@ -92,7 +92,7 @@ namespace Vulkyrie {
          * allow it to maintain its angular velocity for longer. Angular damping is typically used to simulate effects such as air resistance or friction
          * that act against the rotation of the body.
          * @returns The angular damping factor of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetAngularDamping() const {
+        [[nodiscard]] VE_INLINE f32 GetAngularDamping() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetAngularDamping(_entity);
         }
 
@@ -101,7 +101,7 @@ namespace Vulkyrie {
          * to maintain its angular velocity for longer. Angular damping is typically used to simulate effects such as air resistance or friction that act
          * against the rotation of the body.
          * @param angularDamping The angular damping factor to set for this rigid body. Must be greater than or equal to zero. */
-        VE_FORCE_INLINE void SetAngularDamping(f32 angularDamping) {
+        VE_INLINE void SetAngularDamping(f32 angularDamping) {
             VASSERT(angularDamping >= 0.0f, "Angular damping must be greater than or equal to zero.");
 
             _physicsWorld.GetRigidBodyComponentStore().SetAngularDamping(_entity, angularDamping);
@@ -113,7 +113,7 @@ namespace Vulkyrie {
          * motion along that axis is free (i.e., the body can move along that axis without constraint). Intermediate values between 0.0f and 1.0f can be
          * used to represent partial locking or damping along specific axes.
          * @returns The linear lock axis factor of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLinearLockAxisFactor() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLinearLockAxisFactor() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetLinearLockAxisFactor(_entity);
         }
 
@@ -123,7 +123,7 @@ namespace Vulkyrie {
          * motion along that axis is free (i.e., the body can move along that axis without constraint). Intermediate values between 0.0f and 1.0f can be
          * used to represent partial locking or damping along specific axes.
          * @param lockAxisFactor The linear lock axis factor to set for this rigid body. Each component should be in the range [0.0f, 1.0f]. */
-        VE_FORCE_INLINE void SetLinearLockAxisFactor(const glm::vec3 &lockAxisFactor) {
+        VE_INLINE void SetLinearLockAxisFactor(const glm::vec3 &lockAxisFactor) {
             _physicsWorld.GetRigidBodyComponentStore().SetLinearLockAxisFactor(_entity, lockAxisFactor);
         }
 
@@ -133,7 +133,7 @@ namespace Vulkyrie {
          * that angular motion around that axis is free (i.e., the body can rotate around that axis without constraint). Intermediate values between 0.0f
          * and 1.0f can be used to represent partial locking or damping around specific axes.
          * @returns The angular lock axis factor of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetAngularLockAxisFactor() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetAngularLockAxisFactor() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetAngularLockAxisFactor(_entity);
         }
 
@@ -143,7 +143,7 @@ namespace Vulkyrie {
          * that angular motion around that axis is free (i.e., the body can rotate around that axis without constraint). Intermediate values between 0.0f
          * and 1.0f can be used to represent partial locking or damping around specific axes.
          * @param lockAxisFactor The angular lock axis factor to set for this rigid body. Each component should be in the range [0.0f, 1.0f]. */
-        VE_FORCE_INLINE void SetAngularLockAxisFactor(const glm::vec3 &lockAxisFactor) {
+        VE_INLINE void SetAngularLockAxisFactor(const glm::vec3 &lockAxisFactor) {
             _physicsWorld.GetRigidBodyComponentStore().SetAngularLockAxisFactor(_entity, lockAxisFactor);
         }
 
@@ -152,7 +152,7 @@ namespace Vulkyrie {
          * do not respond to forces, dynamic bodies are fully simulated and respond to forces and collisions, and kinematic bodies are moved by setting
          * their velocity or transform directly and do not respond to forces but can affect dynamic bodies through collisions.
          * @returns The body type of this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE BodyType GetBodyType() const {
+        [[nodiscard]] VE_INLINE BodyType GetBodyType() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetBodyType(_entity);
         }
 
@@ -160,7 +160,7 @@ namespace Vulkyrie {
          * the physics simulation, which will cause it to accelerate downwards over time. If gravity is disabled, the body will not be affected by gravity
          * and will only respond to other forces and collisions.
          * @returns True if gravity is enabled for this rigid body, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool GravityEnabled() const {
+        [[nodiscard]] VE_INLINE bool GravityEnabled() const {
             return _physicsWorld.GetRigidBodyComponentStore().IsGravityEnabled(_entity);
         }
 
@@ -168,7 +168,7 @@ namespace Vulkyrie {
          * physics simulation, which will cause it to accelerate downwards over time. If gravity is disabled, the body will not be affected by gravity and
          * will only respond to other forces and collisions.
          * @param gravityEnabled True to enable gravity for this rigid body, false to disable it. */
-        VE_FORCE_INLINE void SetGravityEnabled(bool gravityEnabled) {
+        VE_INLINE void SetGravityEnabled(bool gravityEnabled) {
             _physicsWorld.GetRigidBodyComponentStore().SetGravityEnabled(_entity, gravityEnabled);
         }
 
@@ -176,7 +176,7 @@ namespace Vulkyrie {
          * applied to the body from external sources (e.g., forces applied through the ApplyForce methods) during the current simulation step. The
          * accumulated force is used by the physics simulation to compute the body's acceleration and update its velocity and position accordingly.
          * @returns The accumulated external force currently applied to this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAccumulatedForce() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAccumulatedForce() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetExternalForce(_entity);
         }
 
@@ -185,7 +185,7 @@ namespace Vulkyrie {
          * accumulated torque is used by the physics simulation to compute the body's angular acceleration and update its angular velocity and rotation
          * accordingly.
          * @returns The accumulated external torque currently applied to this rigid body. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetAccumulatedTorque() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetAccumulatedTorque() const {
             return _physicsWorld.GetRigidBodyComponentStore().GetExternalTorque(_entity);
         }
 
@@ -194,7 +194,7 @@ namespace Vulkyrie {
          * dynamic and kinematic bodies can sleep, so this method will return false for static bodies. If this method returns true, it means that the body
          * is allowed to sleep when it comes to rest, but it does not necessarily mean that the body is currently sleeping.
          * @returns True if this rigid body is allowed to sleep, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool CanSleep() const {
+        [[nodiscard]] VE_INLINE bool CanSleep() const {
             return _physicsWorld.GetRigidBodyComponentStore().CanSleep(_entity);
         }
 
@@ -202,7 +202,7 @@ namespace Vulkyrie {
          * the physics engine to save computational resources. A sleeping body will not respond to forces or collisions until it is woken up by an external
          * force or collision. Only dynamic and kinematic bodies can sleep, so this method will return false for static bodies. If this method returns true,
          * it means that the body is currently sleeping and not being actively simulated in the physics world. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsSleeping() const {
+        [[nodiscard]] VE_INLINE bool IsSleeping() const {
             return _physicsWorld.GetRigidBodyComponentStore().IsSleeping(_entity);
         }
 

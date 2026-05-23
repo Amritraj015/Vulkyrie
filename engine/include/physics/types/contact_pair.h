@@ -108,7 +108,7 @@ namespace Vulkyrie {
          * PotentialContactManifoldsCount, avoiding any shifts. Order is not preserved.
          * @param index The position in PotentialContactManifoldIndices to remove. Must be less than PotentialContactManifoldsCount.
          */
-        VE_FORCE_INLINE void RemovePotentialManifoldAtIndex(u32 index) {
+        VE_INLINE void RemovePotentialManifoldAtIndex(u32 index) {
             VASSERT(index < PotentialContactManifoldsCount, "Index out of bounds when trying to remove potential manifold index.");
 
             PotentialContactManifoldIndices[index] = PotentialContactManifoldIndices[PotentialContactManifoldsCount - 1];

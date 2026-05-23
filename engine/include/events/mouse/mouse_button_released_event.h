@@ -9,18 +9,18 @@ namespace Vulkyrie {
             : MouseButtonEvent(mouseButton) {
         }
 
-        [[nodiscard]] inline EventType GetEventType() const override {
+        [[nodiscard]] VE_INLINE EventType GetEventType() const override {
             return GetStaticEventType();
         }
 
-        [[nodiscard]] inline std::string ToString() const override {
+        [[nodiscard]] VE_INLINE std::string ToString() const override {
             return std::format("MouseButtonReleasedEvent: {}", std::to_underlying(MouseButton));
         }
 
         /** @brief Gets the static event type for this event class.
          * @returns The static event type.
          */
-        [[nodiscard]] static inline EventType GetStaticEventType() {
+        [[nodiscard]] static VE_INLINE EventType GetStaticEventType() {
             return EventType::MouseButtonReleased;
         }
     };

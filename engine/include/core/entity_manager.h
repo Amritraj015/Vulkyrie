@@ -33,7 +33,7 @@ namespace Vulkyrie {
          * @param entity The entity to check for activity.
          * @returns True if the entity is active, false otherwise.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool IsActive(const Entity entity) const {
+        [[nodiscard]] VE_INLINE bool IsActive(const Entity entity) const {
             return _generations[static_cast<size_t>(entity.GetIndex())] == entity.GetGeneration();
         }
 

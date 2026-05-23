@@ -83,11 +83,11 @@ typedef double f64;
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-#define VE_FORCE_INLINE __attribute__((always_inline)) inline
+#define VE_INLINE __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
-#define VE_FORCE_INLINE __forceinline
+#define VE_INLINE __forceinline
 #else
-#define VE_FORCE_INLINE inline
+#define VE_INLINE inline
 #endif
 
 /** @brief A scoped pointer type alias using std::unique_ptr.
@@ -111,7 +111,7 @@ template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...arg
  * @param seed The existing hash seed to combine with.
  * @param v The value to hash and combine with the seed.
  */
-template <typename T> inline void CombineHash(std::size_t &seed, const T &v) {
+template <typename T> VE_INLINE void CombineHash(std::size_t &seed, const T &v) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -126,7 +126,7 @@ template <typename T> inline void CombineHash(std::size_t &seed, const T &v) {
  * @param number2 The second 32-bit unsigned integer.
  * @returns A 64-bit unsigned integer that uniquely represents the pair of input numbers.
  */
-VE_FORCE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
+VE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
     assert(number1 == std::max(number1, number2));
 
     u64 nb1 = number1;

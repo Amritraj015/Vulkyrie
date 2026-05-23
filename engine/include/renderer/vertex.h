@@ -43,7 +43,7 @@ namespace Vulkyrie {
         /** @brief Gets the buffer layout for the vertex structure.
          * @returns The buffer layout.
          */
-        [[nodiscard]] inline static const BufferLayout &GetLayout() {
+        [[nodiscard]] VE_INLINE static const BufferLayout &GetLayout() {
             return VERTEX_LAYOUT;
         }
     };
@@ -60,7 +60,7 @@ namespace Vulkyrie {
         /** @brief Gets the buffer layout for the weighted vertex structure.
          * @returns The buffer layout.
          */
-        [[nodiscard]] inline static const BufferLayout &GetLayout() {
+        [[nodiscard]] VE_INLINE static const BufferLayout &GetLayout() {
             return WEIGHTED_VERTEX_LAYOUT;
         }
     };

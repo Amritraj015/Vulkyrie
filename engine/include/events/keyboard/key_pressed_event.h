@@ -18,11 +18,11 @@ namespace Vulkyrie {
         /** @brief The key modifiers active during the key press. */
         const KeyModifier Modifiers;
 
-        [[nodiscard]] inline EventType GetEventType() const override {
+        [[nodiscard]] VE_INLINE EventType GetEventType() const override {
             return GetStaticEventType();
         }
 
-        [[nodiscard]] inline std::string ToString() const override {
+        [[nodiscard]] VE_INLINE std::string ToString() const override {
             return std::format(
                 "KeyPressedEvent: {} (repeats: {}, modifiers: {})", std::to_underlying(KeyCode), IsRepeat ? "true" : "false", std::to_underlying(Modifiers));
         }
@@ -30,7 +30,7 @@ namespace Vulkyrie {
         /** @brief Gets the static event type for this event class.
          * @returns The static event type.
          */
-        [[nodiscard]] static inline EventType GetStaticEventType() {
+        [[nodiscard]] static VE_INLINE EventType GetStaticEventType() {
             return EventType::KeyPressed;
         }
     };

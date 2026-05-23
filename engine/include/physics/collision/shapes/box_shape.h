@@ -32,7 +32,7 @@ namespace Vulkyrie {
         /** @brief Get the half extents of the box shape.
          * @returns The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis.
          */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetHalfExtents() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetHalfExtents() const {
             return _halfExtents;
         }
 
@@ -51,21 +51,21 @@ namespace Vulkyrie {
         /** @brief Get the number of faces of the box shape.
          * @returns The number of faces of the box shape, which is always 6 for a box.
          */
-        [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetFacesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr u32 GetFacesCount() const override {
             return 6;
         }
 
         /** @brief Get the number of vertices of the box shape.
          * @returns The number of vertices of the box shape, which is always 8 for a box.
          */
-        [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetVerticesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr u32 GetVerticesCount() const override {
             return 8;
         }
 
         /** @brief Get the number of half edges of the box shape.
          * @returns The number of half edges of the box shape, which is always 24 for a box (each of the 12 edges has 2 half edges).
          */
-        [[nodiscard]] VE_FORCE_INLINE constexpr u32 GetHafEdgesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr u32 GetHafEdgesCount() const override {
             return 24;
         }
 
@@ -76,7 +76,7 @@ namespace Vulkyrie {
          * is typically at the centroid of the shape. The vertices are ordered in a consistent manner, such as starting from one corner and proceeding in a
          * specific order around the box.
          */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
             VASSERT(vertexIndex < GetVerticesCount(), "Vertex index out of bounds for box shape.");
 
             switch (vertexIndex) {
@@ -110,7 +110,7 @@ namespace Vulkyrie {
          * outward from the surface of the shape. The faces are ordered in a consistent manner, such as starting from one face and proceeding in a specific
          * order around the box.
          */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetFaceNormal(u32 faceIndex) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetFaceNormal(u32 faceIndex) const override {
             VASSERT(faceIndex < GetFacesCount(), "Face index out of bounds for box shape.");
 
             switch (faceIndex) {
@@ -137,7 +137,7 @@ namespace Vulkyrie {
          * @returns The centroid of the box shape as a glm::vec3. For a box defined in local space with its center at the origin, the centroid is simply (0,
          * 0, 0).
          */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetCentroid() const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetCentroid() const override {
             return glm::vec3(0.0f);
         }
 
@@ -145,7 +145,7 @@ namespace Vulkyrie {
          * @returns An AABB centered at the origin with min corner at (-halfExtents) and max corner at (halfExtents), where halfExtents is the half extents
          * of the box shape. This represents the axis-aligned bounding box of the box shape in its local coordinate space.
          */
-        [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
+        [[nodiscard]] VE_INLINE AABB GetLocalAABB() const override {
             return AABB(-_halfExtents, _halfExtents);
         }
 
@@ -157,7 +157,7 @@ namespace Vulkyrie {
          * (1/3) * mass * (halfExtents.x² + halfExtents.y²) for the z component.
          * This gives a diagonal inertia tensor for a solid box, where halfExtents is the half extents of the box shape.
          */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
             constexpr f32 oneThird = f32(1.0) / f32(3.0);
             const f32 factor = oneThird * mass;
             const f32 xSquare = _halfExtents.x * _halfExtents.x;
@@ -172,7 +172,7 @@ namespace Vulkyrie {
          * the half extents of the box shape. This formula accounts for the fact that the full extents of the box are twice the half extents along each
          * axis.
          */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
+        [[nodiscard]] VE_INLINE f32 GetVolume() const override {
             return 8.0f * _halfExtents.x * _halfExtents.y * _halfExtents.z;
         }
 
@@ -182,7 +182,7 @@ namespace Vulkyrie {
          * @returns True if the point is contained within the box shape, false otherwise. A point is considered to be contained within the box if its
          * coordinates along each axis are between -halfExtents and halfExtents, where halfExtents is the half extents of the box shape.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
+        [[nodiscard]] VE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
             return (point.x < _halfExtents.x && point.x > -_halfExtents.x && point.y < _halfExtents.y && point.y > -_halfExtents.y &&
                     point.z < _halfExtents.z && point.z > -_halfExtents.z);
         }
@@ -193,7 +193,7 @@ namespace Vulkyrie {
          * and multiplying it by the corresponding half extent of the box shape. This gives the vertex of the box that is furthest in the specified
          * direction, without accounting for any margin that may be applied to the shape for collision detection purposes.
          */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
             return glm::vec3(direction.x < f32(0.0) ? -_halfExtents.x : _halfExtents.x,
                              direction.y < f32(0.0) ? -_halfExtents.y : _halfExtents.y,
                              direction.z < f32(0.0) ? -_halfExtents.z : _halfExtents.z);

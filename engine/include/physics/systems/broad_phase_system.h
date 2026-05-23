@@ -108,7 +108,7 @@ namespace Vulkyrie {
          * dynamic AABB tree, and it must be valid and currently active in the broad phase system.
          * @returns A reference to the fat AABB associated with the specified broad phase ID. This AABB can be used for efficient collision checks against
          * other colliders in the broad phase system. */
-        [[nodiscard]] VE_FORCE_INLINE const AABB &GetFatAABB(i32 broadPaseID) const {
+        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(i32 broadPaseID) const {
             return _aabbTree.GetFatAABB(broadPaseID);
         }
 

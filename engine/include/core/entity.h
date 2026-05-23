@@ -23,21 +23,21 @@ namespace Vulkyrie {
         /** @brief Gets the unique identifier of the entity.
          * @returns The unique identifier of the entity.
          */
-        [[nodiscard]] VE_FORCE_INLINE u64 GetID() const {
+        [[nodiscard]] VE_INLINE u64 GetID() const {
             return _id;
         }
 
         /** @brief Gets the index of the entity.
          * @returns The index of the entity.
          */
-        [[nodiscard]] VE_FORCE_INLINE u64 GetIndex() const {
+        [[nodiscard]] VE_INLINE u64 GetIndex() const {
             return _id & ENTITY_INDEX_MASK;
         }
 
         /** @brief Gets the generation of the entity.
          * @returns The generation of the entity.
          */
-        [[nodiscard]] VE_FORCE_INLINE u64 GetGeneration() const {
+        [[nodiscard]] VE_INLINE u64 GetGeneration() const {
             return (_id >> ENTITY_INDEX_BITS) & ENTITY_GENERATION_MASK;
         }
 
@@ -45,7 +45,7 @@ namespace Vulkyrie {
          * @param other The other entity to compare with.
          * @returns True if the entities are equal, false otherwise.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool operator==(const Entity &other) const {
+        [[nodiscard]] VE_INLINE bool operator==(const Entity &other) const {
             return _id == other._id;
         }
 
@@ -53,7 +53,7 @@ namespace Vulkyrie {
          * @param other The other entity to compare with.
          * @returns True if the entities are not equal, false otherwise.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool operator!=(const Entity &other) const {
+        [[nodiscard]] VE_INLINE bool operator!=(const Entity &other) const {
             return _id != other._id;
         }
 

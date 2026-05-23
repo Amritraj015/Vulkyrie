@@ -9,12 +9,12 @@ namespace Vulkyrie {
         virtual ~Shader() = default;
 
         /** @brief Returns whether the shader is valid (compiled and linked successfully). */
-        [[nodiscard]] inline bool IsValid() const {
+        [[nodiscard]] VE_INLINE bool IsValid() const {
             return _isValid;
         }
 
         /** @brief Returns the shader program ID. */
-        [[nodiscard]] inline u32 GetProgramID() const {
+        [[nodiscard]] VE_INLINE u32 GetProgramID() const {
             return _shaderProgramID;
         }
 

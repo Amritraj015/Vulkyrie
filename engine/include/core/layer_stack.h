@@ -200,7 +200,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Processes queued operations on the layer stack. */
-        inline void ProcessQueuedOperations() {
+        VE_INLINE void ProcessQueuedOperations() {
             if (_layerOperations.empty()) {
                 return;
             }

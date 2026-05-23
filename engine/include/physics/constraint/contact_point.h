@@ -26,39 +26,39 @@ namespace Vulkyrie {
         /** @brief Retrieves the contact normal at this contact point, represented in world space. The contact normal is a normalized vector that points
          * from the first body towards the second body at the point of contact, and it is used to determine the direction of the collision response.
          * @returns The contact normal at this contact point, represented in world space. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetWorldSpaceContactNormal() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetWorldSpaceContactNormal() const {
             return _worldSpaceContactNormal;
         }
 
         /** @brief Retrieves the contact point on the first body, represented in the local space of the first body.
          * @returns The contact point on the first body, represented in the local space of the first body. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyOne() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyOne() const {
             return _localSpaceContactPointOnBodyOne;
         }
 
         /** @brief Retrieves the contact point on the second body, represented in the local space of the second body.
          * @returns The contact point on the second body, represented in the local space of the second body. */
-        [[nodiscard]] VE_FORCE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyTwo() const {
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalSpaceContactPointOnBodyTwo() const {
             return _localSpaceContactPointOnBodyTwo;
         }
 
         /** @brief Retrieves the penetration depth for this contact point.
          * @returns The penetration depth for this contact point. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetPenetrationDepth() const {
+        [[nodiscard]] VE_INLINE f32 GetPenetrationDepth() const {
             return _penetrationDepth;
         }
 
         /** @brief Sets the penetration impulse for this contact point. The penetration impulse represents the corrective impulse that should be applied to
          * resolve the interpenetration between the two colliding bodies at this contact point.
          * @param penetrationDepth The penetration depth to set for this contact point. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetPenetrationImpulse() const {
+        [[nodiscard]] VE_INLINE f32 GetPenetrationImpulse() const {
             return _penetrationImpulse;
         }
 
         /** @brief Sets the penetration impulse for this contact point. The penetration impulse represents the corrective impulse that should be applied to
          * resolve the interpenetration between the two colliding bodies at this contact point.
          * @param penetrationImpulse The penetration impulse to set for this contact point. */
-        VE_FORCE_INLINE void setPenetrationImpulse(f32 penetrationImpulse) {
+        VE_INLINE void setPenetrationImpulse(f32 penetrationImpulse) {
             _penetrationImpulse = penetrationImpulse;
         }
 
@@ -68,7 +68,7 @@ namespace Vulkyrie {
          * other. Identifying resting contacts can help improve the stability of the physics simulation by allowing the engine to apply different response
          * strategies for contacts that are expected to persist over time.
          * @returns True if this contact point is a resting contact, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsRestingContact() const {
+        [[nodiscard]] VE_INLINE bool IsRestingContact() const {
             return _isRestingContact;
         }
 
@@ -77,7 +77,7 @@ namespace Vulkyrie {
          * point as a resting contact can help improve the stability of the physics simulation by allowing the engine to apply different response strategies
          * for contacts that are expected to persist over time.
          * @param isRestingContact True to set this contact point as a resting contact, false otherwise. */
-        VE_FORCE_INLINE void setIsRestingContact(bool isRestingContact) {
+        VE_INLINE void setIsRestingContact(bool isRestingContact) {
             _isRestingContact = isRestingContact;
         }
 

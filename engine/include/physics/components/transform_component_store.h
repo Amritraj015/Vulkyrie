@@ -16,11 +16,11 @@ namespace Vulkyrie {
         /** Rotation of the entity represented as a quaternion. */
         glm::quat Rotation;
 
-        VE_FORCE_INLINE TransformComponent operator*(const TransformComponent &other) const {
+        VE_INLINE TransformComponent operator*(const TransformComponent &other) const {
             return { Position + Rotation * other.Position, Rotation * other.Rotation };
         }
 
-        VE_FORCE_INLINE glm::vec3 operator*(const glm::vec3 &point) const {
+        VE_INLINE glm::vec3 operator*(const glm::vec3 &point) const {
             return Position + Rotation * point;
         }
     };
@@ -57,7 +57,7 @@ namespace Vulkyrie {
          * @param entity The entity whose TransformComponent is to be updated. The entity must have a TransformComponent.
          * @param transformComponent The new TransformComponent values to be set for the specified entity.
          */
-        VE_FORCE_INLINE void SetTransform(const Entity entity, const TransformComponent &transformComponent) {
+        VE_INLINE void SetTransform(const Entity entity, const TransformComponent &transformComponent) {
             VASSERT(HasComponent(entity), "Entity does not have a TransformComponent.");
 
             _transforms[_entityToComponentIndex.find(entity)->second] = transformComponent;
@@ -67,7 +67,7 @@ namespace Vulkyrie {
          * @param entity The entity whose TransformComponent is to be retrieved. The entity must have a TransformComponent.
          * @returns A reference to the TransformComponent associated with the specified entity.
          */
-        [[nodiscard]] VE_FORCE_INLINE TransformComponent &GetTransform(const Entity entity) {
+        [[nodiscard]] VE_INLINE TransformComponent &GetTransform(const Entity entity) {
             VASSERT(HasComponent(entity), "Entity does not have a TransformComponent.");
 
             return _transforms[_entityToComponentIndex.find(entity)->second];
@@ -76,7 +76,7 @@ namespace Vulkyrie {
         /** @brief Returns a contiguous view of the active TransformComponents.
          * @returns A span over the densely packed active TransformComponents at the front of the storage.
          */
-        [[nodiscard]] VE_FORCE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
+        [[nodiscard]] VE_INLINE std::span<const TransformComponent> GetActiveTransforms() const {
             return { _transforms.data(), _activeCount };
         }
 

@@ -9,7 +9,7 @@ namespace Vulkyrie {
         UUID(u64 uuid);
         UUID(const UUID &) = default;
 
-        [[nodiscard]] VE_FORCE_INLINE u64 GetUUID() const {
+        [[nodiscard]] VE_INLINE u64 GetUUID() const {
             return _uuid;
         }
 

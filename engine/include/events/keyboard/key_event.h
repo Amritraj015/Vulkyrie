@@ -15,7 +15,7 @@ namespace Vulkyrie {
         /** @brief The key code associated with the event. */
         const Vulkyrie::KeyCode KeyCode;
 
-        [[nodiscard]] inline i32 GetCategoryFlags() const override {
+        [[nodiscard]] VE_INLINE i32 GetCategoryFlags() const override {
             return _categoryFlags;
         }
 

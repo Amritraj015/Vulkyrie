@@ -33,7 +33,7 @@ namespace Vulkyrie {
      *
      * @param shader The shader program to use for rendering
      */
-    inline void OpenGLMesh::Draw(Shader &shader) const {
+    VE_INLINE void OpenGLMesh::Draw(Shader &shader) const {
         // Texture unit counter - increments as we bind each texture
         u32 unit = 0;
 

@@ -33,7 +33,7 @@ namespace Vulkyrie {
 
             ~Data() = default;
 
-            [[nodiscard]] VE_FORCE_INLINE size_t GetContactPairCount() const {
+            [[nodiscard]] VE_INLINE size_t GetContactPairCount() const {
                 return _contactPairIndices.size() + _lostContactPairIndices.size();
             }
 

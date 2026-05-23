@@ -20,17 +20,17 @@ namespace Vulkyrie {
         ResourceNode &operator=(ResourceNode &&) = delete;
 
         /** @brief Retrieves the name of the resource, which is a human-readable identifier for the resource. */
-        [[nodiscard]] inline std::string_view GetName() const {
+        [[nodiscard]] VE_INLINE std::string_view GetName() const {
             return _name;
         }
 
         /** @brief Retrieves the identifier associated with this resource node. */
-        [[nodiscard]] inline ResourceID GetResourceID() const {
+        [[nodiscard]] VE_INLINE ResourceID GetResourceID() const {
             return _resourceID;
         }
 
         /** @brief Retrieves the identifier of the resource entry associated with this resource node. */
-        [[nodiscard]] inline ResourceEntryID GetResourceEntryID() const {
+        [[nodiscard]] VE_INLINE ResourceEntryID GetResourceEntryID() const {
             return _resourceEntryID;
         }
 

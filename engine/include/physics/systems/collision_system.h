@@ -36,7 +36,7 @@ namespace Vulkyrie {
         /** @brief Default destructor for CollisionSystem. */
         ~CollisionSystem() = default;
 
-        VE_FORCE_INLINE void AddCollider(Collider &collider, const AABB &aabb) {
+        VE_INLINE void AddCollider(Collider &collider, const AABB &aabb) {
             _broadPhaseSystem.AddCollider(collider, aabb);
 
             const i32 broadPhaseID = _colliderComponentStore.GetBroadPhaseID(collider.GetEntity());
@@ -46,19 +46,19 @@ namespace Vulkyrie {
             _broadPhaseIDToColliderEntityMap.emplace(broadPhaseID, collider.GetEntity());
         }
 
-        VE_FORCE_INLINE void UpdateCollider(Entity entity) {
+        VE_INLINE void UpdateCollider(Entity entity) {
             _broadPhaseSystem.UpdateCollider(entity);
         }
 
-        VE_FORCE_INLINE void UpdateColliders() {
+        VE_INLINE void UpdateColliders() {
             _broadPhaseSystem.UpdateColliders();
         }
 
-        VE_FORCE_INLINE void RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
+        VE_INLINE void RemoveNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity) {
             _nonCollidablePairs.erase(OverlappingPairs::ComputeBodiesIndexPair(bodyOneEntity, bodyTwoEntity));
         }
 
-        VE_FORCE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
+        VE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
             if (collider.GetBroadPhaseID() != -1) {
                 _broadPhaseSystem.AddMovedCollider(collider.GetBroadPhaseID(), collider);
             }

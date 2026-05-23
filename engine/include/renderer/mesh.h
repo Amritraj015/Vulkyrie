@@ -20,12 +20,12 @@ namespace Vulkyrie {
         /** @brief Gets the number of vertices in the mesh.
          * @returns The count of vertices.
          */
-        // [[nodiscard]] inline size_t GetVertexCount() const {
+        // [[nodiscard]] VE_INLINE size_t GetVertexCount() const {
         //     return _vertexArray->GetVertexBuffer()->GetCount();
         // }
 
         // TODO: Needs to be removed.
-        inline void BindTextures() const {
+        VE_INLINE void BindTextures() const {
             std::array<const std::vector<Ref<Texture2D>> *, 5> availableTextures = {
                 &_textures.Ambient, &_textures.Diffuse, &_textures.Specular, &_textures.Normal, &_textures.Height
             };
@@ -44,17 +44,17 @@ namespace Vulkyrie {
         /** @brief Gets the number of indices in the mesh.
          * @returns The count of indices.
          */
-        [[nodiscard]] inline size_t GetIndexCount() const {
+        [[nodiscard]] VE_INLINE size_t GetIndexCount() const {
             return _vertexArray->GetIndexBuffer()->GetCount();
         }
 
         /** @brief Binds the mesh's vertex array. */
-        inline void Bind() const {
+        VE_INLINE void Bind() const {
             _vertexArray->Bind();
         }
 
         /** @brief Unbinds the mesh's vertex array. */
-        inline void Unbind() const {
+        VE_INLINE void Unbind() const {
             _vertexArray->Unbind();
         }
 

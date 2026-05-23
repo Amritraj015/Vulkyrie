@@ -71,7 +71,7 @@ namespace Vulkyrie {
         /** @brief Check if the collision shape is polyhedral.
          * @returns True if the collision shape is polyhedral, false otherwise.
          */
-        VE_FORCE_INLINE constexpr bool IsPolyhedral() const override {
+        VE_INLINE constexpr bool IsPolyhedral() const override {
             return true;
         }
     };

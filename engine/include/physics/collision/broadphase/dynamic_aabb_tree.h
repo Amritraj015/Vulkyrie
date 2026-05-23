@@ -64,7 +64,7 @@ namespace Vulkyrie {
          * not have any child nodes and represents an actual object in the world. Internal nodes, on the other hand, have a height greater than 0
          * and are used for spatial partitioning to optimize collision detection.
          * @returns True if this node is a leaf node (height == 0), false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsLeaf() const {
+        [[nodiscard]] VE_INLINE bool IsLeaf() const {
             return Height == 0;
         }
     };
@@ -112,7 +112,7 @@ namespace Vulkyrie {
          * type identifier, or any other integer value that helps identify or categorize the object. The caller is responsible for ensuring that
          * this data remains valid for the duration of its use in the tree.
          * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
-        VE_FORCE_INLINE i32 AddObject(const AABB &aabb, i32 data) {
+        VE_INLINE i32 AddObject(const AABB &aabb, i32 data) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
             const i32 nodeIndex = allocateNode();
@@ -147,7 +147,7 @@ namespace Vulkyrie {
          * data structure that helps identify or categorize the object. The caller is responsible for ensuring that this pointer remains valid for
          * the duration of its use in the tree and that it points to a valid memory location containing the intended data.
          * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
-        VE_FORCE_INLINE i32 AddObject(const AABB &aabb, void *dataPointer) {
+        VE_INLINE i32 AddObject(const AABB &aabb, void *dataPointer) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
             const i32 nodeIndex = allocateNode();
@@ -193,7 +193,7 @@ namespace Vulkyrie {
          * any references to it after removal.
          * @param nodeIndex The index of the node to remove from the tree. This must be a valid index into the _nodes vector and must correspond to
          * a leaf node. */
-        VE_FORCE_INLINE void RemoveObject(i32 nodeIndex) {
+        VE_INLINE void RemoveObject(i32 nodeIndex) {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only remove leaf nodes.");
 
@@ -211,7 +211,7 @@ namespace Vulkyrie {
          * intended context.
          * @param nodeIndex The index of the node to retrieve the AABB from. This must be a valid index into the _nodes vector.
          * @returns The AABB associated with the specified node index. */
-        [[nodiscard]] VE_FORCE_INLINE const AABB &GetFatAABB(i32 nodeIndex) const {
+        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
 
             return _nodes[nodeIndex].AABB;
@@ -220,7 +220,7 @@ namespace Vulkyrie {
         /** @brief Returns the AABB of the root node, which encompasses all objects in the tree. This is useful for quickly determining the overall
          * bounds of the scene or for broad-phase culling before performing more detailed collision checks. If the tree is empty, this will assert
          * since there is no valid root node. */
-        [[nodiscard]] VE_FORCE_INLINE const AABB &GetRootNodeAABB() const {
+        [[nodiscard]] VE_INLINE const AABB &GetRootNodeAABB() const {
             VASSERT(_rootNodeIndex != AABB_TREE_NULL_NODE, "Tree is empty.");
 
             return _nodes[_rootNodeIndex].AABB;
@@ -230,7 +230,7 @@ namespace Vulkyrie {
          * @param nodeIndex The index of the leaf node to retrieve the data from. Must be a valid index into the _nodes vector and must correspond
          * to a leaf node.
          * @returns The data associated with the leaf node. */
-        [[nodiscard]] VE_FORCE_INLINE i32 GetNodeData(i32 nodeIndex) const {
+        [[nodiscard]] VE_INLINE i32 GetNodeData(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
 
@@ -242,7 +242,7 @@ namespace Vulkyrie {
          * @param nodeIndex The index of the leaf node to retrieve the data pointer from. Must be a valid index into the _nodes vector and must
          * correspond to a leaf node.
          * @returns A pointer to the data associated with the leaf node. */
-        [[nodiscard]] VE_FORCE_INLINE void *GetNodeDataPointer(i32 nodeIndex) const {
+        [[nodiscard]] VE_INLINE void *GetNodeDataPointer(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
 

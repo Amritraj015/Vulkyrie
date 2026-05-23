@@ -35,13 +35,13 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the Entity associated with this Body.
          * @returns The Entity associated with this Body. */
-        [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
+        [[nodiscard]] VE_INLINE Entity GetEntity() const {
             return _entity;
         }
 
         /** @brief Retrieves a reference to the PhysicsWorld that this body belongs to.
          * @returns A reference to the PhysicsWorld that this body belongs to. */
-        [[nodiscard]] VE_FORCE_INLINE PhysicsWorld &GetPhysicsWorld() const {
+        [[nodiscard]] VE_INLINE PhysicsWorld &GetPhysicsWorld() const {
             return _physicsWorld;
         }
 
@@ -49,7 +49,7 @@ namespace Vulkyrie {
          * inactive body does not. The active state of a body can be used to temporarily disable its physical interactions without removing it from the
          * physics world.
          * @returns True if this body is active in the simulation, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsActive() const {
+        [[nodiscard]] VE_INLINE bool IsActive() const {
             return _physicsWorld.GetBodyComponentStore().IsBodyActive(_entity);
         }
 
@@ -63,7 +63,7 @@ namespace Vulkyrie {
          * location and orientation in the physics world, and it affects how the body's colliders are positioned and how it interacts with other bodies. The
          * returned transform is a reference to the TransformComponent associated with this body's entity in the physics world.
          * @returns A const reference to the TransformComponent representing this body's transform in world space. */
-        [[nodiscard]] VE_FORCE_INLINE const TransformComponent &GetTransform() const {
+        [[nodiscard]] VE_INLINE const TransformComponent &GetTransform() const {
             return _physicsWorld.GetTransformComponentStore().GetTransform(_entity);
         }
 
@@ -90,7 +90,7 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the number of colliders currently attached to this body.
          * @returns The number of colliders currently attached to this body. */
-        [[nodiscard]] VE_FORCE_INLINE size_t GetColliderCount() const {
+        [[nodiscard]] VE_INLINE size_t GetColliderCount() const {
             return _physicsWorld.GetBodyComponentStore().GetColliders(_entity).size();
         }
 
@@ -127,7 +127,7 @@ namespace Vulkyrie {
          * the body's AABB and the given AABB, and false otherwise.
          * @param aabb The axis-aligned bounding box to test for collision against this body.
          * @returns True if this body collides with the given AABB, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
+        [[nodiscard]] VE_INLINE bool CollidesWith(const AABB &aabb) const {
             return aabb.CollidesWith(GetAABB());
         }
 
@@ -141,7 +141,7 @@ namespace Vulkyrie {
          * and rotation to the given local point to compute its corresponding position in world space.
          * @param localPoint The point in the body's local space to be transformed to world space.
          * @returns The corresponding point in world space after applying the body's transform. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetWorldPoint(const glm::vec3 &localPoint) const {
             return GetTransform() * localPoint;
         }
 
@@ -150,7 +150,7 @@ namespace Vulkyrie {
          * position, as vectors represent directions rather than points.
          * @param localVector The vector in the body's local space to be transformed to world space.
          * @returns The corresponding vector in world space after applying the body's rotation. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetWorldVector(const glm::vec3 &localVector) const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetWorldVector(const glm::vec3 &localVector) const {
             return GetTransform().Rotation * localVector;
         }
 

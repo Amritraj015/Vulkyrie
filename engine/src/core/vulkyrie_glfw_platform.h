@@ -16,18 +16,18 @@ namespace Vulkyrie {
 
         void SetVSync(bool enable) override;
 
-        inline void OnUpdate() const override {
+        VE_INLINE void OnUpdate() const override {
             glfwSwapBuffers(_window);
             glfwPollEvents();
         }
 
         void CaptureMouseOnFocus(bool enable) override;
 
-        [[nodiscard]] inline f32 GetTime() const override {
+        [[nodiscard]] VE_INLINE f32 GetTime() const override {
             return static_cast<f32>(glfwGetTime());
         }
 
-        [[nodiscard]] inline void *GetWindowHandle() const override {
+        [[nodiscard]] VE_INLINE void *GetWindowHandle() const override {
             return _window;
         }
 

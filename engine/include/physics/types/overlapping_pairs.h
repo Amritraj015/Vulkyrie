@@ -351,7 +351,7 @@ namespace Vulkyrie {
          * @param pairID The unique identifier of the pair to query.
          * @returns True if the pair is in the disabled convex or disabled concave pool.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool IsPairDisabled(u64 pairID) const {
+        [[nodiscard]] VE_INLINE bool IsPairDisabled(u64 pairID) const {
             return _disabledConvexPairIDToPairIndexMap.contains(pairID) || _disabledConcavePairIDToPairIndexMap.contains(pairID);
         }
 
@@ -360,7 +360,7 @@ namespace Vulkyrie {
          * @param pairID                 The pair ID to update.
          * @param requiresCollisionCheck True to schedule a narrow-phase check; false to skip it.
          */
-        VE_FORCE_INLINE void SetRequiresCollisionCheck(u64 pairID, bool requiresCollisionCheck) {
+        VE_INLINE void SetRequiresCollisionCheck(u64 pairID, bool requiresCollisionCheck) {
             VASSERT(_convexPairIDToPairIndexMap.contains(pairID) || _concavePairIDToPairIndexMap.contains(pairID),
                     "Trying to set requires collision check for a pair ID that does not exist.");
 
@@ -381,7 +381,7 @@ namespace Vulkyrie {
          * @param pairID The unique identifier of the pair to look up.
          * @returns Pointer to the matching OverlappingPair, or nullptr if the ID is not found in any pool.
          */
-        [[nodiscard]] VE_FORCE_INLINE OverlappingPair *GetOverlappingPair(u64 pairID) {
+        [[nodiscard]] VE_INLINE OverlappingPair *GetOverlappingPair(u64 pairID) {
             auto it = _convexPairIDToPairIndexMap.find(pairID);
             if (it != _convexPairIDToPairIndexMap.end()) {
                 return &_convexPairs[it->second];
@@ -415,7 +415,7 @@ namespace Vulkyrie {
          * @param bodyTwoEntity Second body entity.
          * @returns Ordered pair with the lower-ID entity first.
          */
-        VE_FORCE_INLINE static Pair<Entity, Entity> ComputeBodiesIndexPair(Entity bodyOneEntity, Entity bodyTwoEntity) {
+        VE_INLINE static Pair<Entity, Entity> ComputeBodiesIndexPair(Entity bodyOneEntity, Entity bodyTwoEntity) {
             VASSERT(bodyOneEntity != bodyTwoEntity, "Cannot compute bodies index pair for the same entity.");
 
             if (bodyOneEntity.GetID() < bodyTwoEntity.GetID()) {

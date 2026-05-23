@@ -17,7 +17,7 @@ namespace Vulkyrie {
         /** @brief Gets the renderer-specific texture ID.
          * @returns The texture ID.
          */
-        [[nodiscard]] inline u32 GetTextureID() const {
+        [[nodiscard]] VE_INLINE u32 GetTextureID() const {
             return _textureId;
         }
 

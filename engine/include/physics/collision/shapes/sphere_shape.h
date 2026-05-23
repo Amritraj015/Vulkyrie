@@ -27,7 +27,7 @@ namespace Vulkyrie {
 
         /** @brief Get the radius of the sphere.
          * @returns The radius of the sphere. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetRadius() const {
+        [[nodiscard]] VE_INLINE f32 GetRadius() const {
             return _margin;
         }
 
@@ -46,20 +46,20 @@ namespace Vulkyrie {
 
         /** @brief A sphere is not a polyhedral shape.
          * @returns Always false. */
-        [[nodiscard]] VE_FORCE_INLINE constexpr bool IsPolyhedral() const override {
+        [[nodiscard]] VE_INLINE constexpr bool IsPolyhedral() const override {
             return false;
         }
 
         /** @brief Compute the local-space AABB of the sphere (i.e. before any transform is applied).
          * @returns An AABB centered at the origin with half-extents equal to the radius along every axis. */
-        [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
+        [[nodiscard]] VE_INLINE AABB GetLocalAABB() const override {
             return AABB(glm::vec3(-_margin), glm::vec3(_margin));
         }
 
         /** @brief Compute the local-space inertia tensor diagonal for a solid sphere.
          * @param mass The mass of the body this shape belongs to.
          * @returns A vector whose three equal components are `(2/5) * mass * radius²`, giving a uniform diagonal inertia tensor. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass) const override {
             f32 diag = f32(0.4) * mass * _margin * _margin;
 
             return glm::vec3(diag, diag, diag);
@@ -68,7 +68,7 @@ namespace Vulkyrie {
         /** @brief Get the volume of the sphere shape.
          * @returns The volume of the sphere shape, calculated using the formula V = (4/3) * π * r^3, where r is the radius of the sphere.
          */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
+        [[nodiscard]] VE_INLINE f32 GetVolume() const override {
             return f32(4.0) / f32(3.0) * static_cast<f32>(std::numbers::pi) * _margin * _margin * _margin;
         }
 
@@ -78,7 +78,7 @@ namespace Vulkyrie {
          * @returns True if the point is contained within the sphere shape, false otherwise. A point is considered to be contained within the sphere if
          * its distance from the center of the sphere (the origin) is less than the radius of the sphere.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
+        [[nodiscard]] VE_INLINE bool ContainsPoint(const glm::vec3 &point) const override {
             return (glm::length2(point) < _margin * _margin);
         }
 
@@ -90,7 +90,7 @@ namespace Vulkyrie {
          * AABB calculation includes the collision margin to ensure that the broadphase collision detection does not miss contacts when objects are close to
          * each other.
          */
-        [[nodiscard]] VE_FORCE_INLINE AABB ComputeTransformedAABB(const TransformComponent &transform) const override {
+        [[nodiscard]] VE_INLINE AABB ComputeTransformedAABB(const TransformComponent &transform) const override {
             // A sphere is rotationally symmetric, so its AABB is always a cube regardless of orientation.
             // The effective radius includes the collision margin so the broadphase doesn't miss contacts.
             const glm::vec3 halfExtents(_margin + _margin);
@@ -109,7 +109,7 @@ namespace Vulkyrie {
          * @returns The local support point on the sphere shape in the given direction, without applying the margin. This is the point on the shape that is
          * farthest in the specified direction, and it is used for collision detection purposes. For a sphere, this will always be (0, 0, 0) in local space,
          * since we are not applying any margin and the sphere's center is at the origin. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin([[maybe_unused]] const glm::vec3 &direction) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin([[maybe_unused]] const glm::vec3 &direction) const override {
             // For a sphere, the support point in any direction is simply the center of the sphere (the origin) plus the radius in the direction of the
             // input vector. Since this function is supposed to return the support point without margin, we will return the center of the sphere, which is
             // (0, 0, 0) in local space.

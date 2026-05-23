@@ -29,13 +29,13 @@ namespace Vulkyrie {
 
         /** @brief Get the radius of the capsule shape.
          * @returns The radius of the capsule shape, which is the radius of the hemispherical end caps and the cylindrical part. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetRadius() const {
+        [[nodiscard]] VE_INLINE f32 GetRadius() const {
             return _margin;
         }
 
         /** @brief Set the radius of the capsule shape.
          * @param radius The new radius of the capsule shape. Must be a positive value. */
-        VE_FORCE_INLINE void SetRadius(f32 radius) {
+        VE_INLINE void SetRadius(f32 radius) {
             VASSERT(radius > 0.0f, "Radius must be positive for capsule shape.");
 
             // Set the new radius for the capsule shape.
@@ -48,14 +48,14 @@ namespace Vulkyrie {
 
         /** @brief Get the height of the capsule shape.
          * @returns The height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetHeight() const {
+        [[nodiscard]] VE_INLINE f32 GetHeight() const {
             return _halfHeight + _halfHeight;
         }
 
         /** @brief Set the height of the capsule shape.
          * @param height The new height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. Must be a
          * positive value. */
-        VE_FORCE_INLINE void SetHeight(f32 height) {
+        VE_INLINE void SetHeight(f32 height) {
             VASSERT(height > 0.0f, "Height must be positive for capsule shape.");
 
             // Set the half-height of the capsule.
@@ -69,14 +69,14 @@ namespace Vulkyrie {
         /** @brief Check if the collision shape is polyhedral.
          * @returns True if the collision shape is polyhedral, false otherwise.
          */
-        [[nodiscard]] VE_FORCE_INLINE bool IsPolyhedral() const override {
+        [[nodiscard]] VE_INLINE bool IsPolyhedral() const override {
             return false;
         }
 
         /** @brief Get the axis-aligned bounding box (AABB) of the collision shape in local space.
          * @returns The AABB of the collision shape defined in its local coordinate system.
          */
-        [[nodiscard]] VE_FORCE_INLINE AABB GetLocalAABB() const override {
+        [[nodiscard]] VE_INLINE AABB GetLocalAABB() const override {
             return AABB(glm::vec3(-_margin, -_halfHeight - _margin, -_margin), glm::vec3(_margin, _halfHeight + _margin, _margin));
         }
 
@@ -88,7 +88,7 @@ namespace Vulkyrie {
 
         /** @brief Get the volume of the collision shape.
          * @returns The volume of the collision shape. */
-        [[nodiscard]] VE_FORCE_INLINE f32 GetVolume() const override {
+        [[nodiscard]] VE_INLINE f32 GetVolume() const override {
             // The volume of a capsule can be calculated as the volume of the cylindrical part plus the volume of the two hemispherical end caps. The
             // formula is: V = π * r² * h + (4/3) * π * r³, where r is the radius and h is the height of the cylindrical part (which is the total height
             // minus the diameter of the end caps).
@@ -107,7 +107,7 @@ namespace Vulkyrie {
          * of the capsule's core along a direction, ignoring the margin/radius.
          * @param direction The direction vector in which to search for the support point (does not need to be normalized).
          * @returns The local-space position of the support point on the capsule's spine, without margin. */
-        [[nodiscard]] VE_FORCE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {
             // Support point on the top hemisphere.
             const f32 dotProductTop = _halfHeight * direction.y;
 

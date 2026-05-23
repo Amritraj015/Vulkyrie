@@ -52,7 +52,7 @@ namespace Vulkyrie {
          * must have a BodyComponent associated with it.
          * @param bodyEntity The entity that owns the body.
          * @param colliderEntity The collider entity to associate with this body. */
-        VE_FORCE_INLINE void AddColliderToBody(Entity bodyEntity, Entity colliderEntity) {
+        VE_INLINE void AddColliderToBody(Entity bodyEntity, Entity colliderEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             _colliders[_entityToComponentIndex.find(bodyEntity)->second].push_back(colliderEntity);
@@ -63,7 +63,7 @@ namespace Vulkyrie {
          * associated with it, and the collider entity must exist in the body's collider list.
          * @param bodyEntity The entity that owns the body.
          * @param colliderEntity The collider entity to remove. */
-        VE_FORCE_INLINE void RemoveColliderFromBody(Entity bodyEntity, Entity colliderEntity) {
+        VE_INLINE void RemoveColliderFromBody(Entity bodyEntity, Entity colliderEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             auto &colliders = _colliders[_entityToComponentIndex.find(bodyEntity)->second];
@@ -81,7 +81,7 @@ namespace Vulkyrie {
          * a BodyComponent associated with it.
          * @param bodyEntity The entity whose body is to be retrieved.
          * @returns A reference to the Body associated with the specified entity. */
-        [[nodiscard]] VE_FORCE_INLINE Body &GetBody(Entity bodyEntity) {
+        [[nodiscard]] VE_INLINE Body &GetBody(Entity bodyEntity) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             return *_bodies[_entityToComponentIndex.find(bodyEntity)->second];
@@ -91,7 +91,7 @@ namespace Vulkyrie {
          * a BodyComponent associated with it.
          * @param bodyEntity The entity whose body is to be retrieved.
          * @returns A reference to the Body associated with the specified entity. */
-        [[nodiscard]] VE_FORCE_INLINE Body &GetBody(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE Body &GetBody(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             return *_bodies[_entityToComponentIndex.find(bodyEntity)->second];
@@ -101,7 +101,7 @@ namespace Vulkyrie {
          * have a BodyComponent associated with it.
          * @param bodyEntity The entity whose collider list is to be retrieved.
          * @returns A const reference to the vector of collider entities attached to the specified body. */
-        [[nodiscard]] VE_FORCE_INLINE const std::vector<Entity> &GetColliders(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE const std::vector<Entity> &GetColliders(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             return _colliders[_entityToComponentIndex.find(bodyEntity)->second];
@@ -111,7 +111,7 @@ namespace Vulkyrie {
          * The entity must have a BodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if the body is active in the simulation, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool IsBodyActive(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool IsBodyActive(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             return static_cast<bool>(_bodyActiveFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -121,7 +121,7 @@ namespace Vulkyrie {
          * The entity must have a BodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param active True to mark the body as active in the simulation, false to deactivate it. */
-        VE_FORCE_INLINE void SetBodyActive(Entity bodyEntity, bool active) {
+        VE_INLINE void SetBodyActive(Entity bodyEntity, bool active) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             _bodyActiveFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(active);
@@ -132,7 +132,7 @@ namespace Vulkyrie {
          * BodyComponent associated with it.
          * @param bodyEntity The entity to be checked.
          * @returns True if at least one simulation collider is attached, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool HasSimulationColliders(Entity bodyEntity) const {
+        [[nodiscard]] VE_INLINE bool HasSimulationColliders(Entity bodyEntity) const {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             return static_cast<bool>(_simulationColliderFlags[_entityToComponentIndex.find(bodyEntity)->second]);
@@ -142,7 +142,7 @@ namespace Vulkyrie {
          * BodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
          * @param hasSimulationColliders True if the body has at least one simulation collider, false otherwise. */
-        VE_FORCE_INLINE void SetHasSimulationColliders(Entity bodyEntity, bool hasSimulationColliders) {
+        VE_INLINE void SetHasSimulationColliders(Entity bodyEntity, bool hasSimulationColliders) {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a BodyComponent.");
 
             _simulationColliderFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(hasSimulationColliders);

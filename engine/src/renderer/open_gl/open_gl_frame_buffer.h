@@ -54,7 +54,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the resource ID of the framebuffer itself (i.e., FBO ID in OpenGL).
          * @returns The resource ID of the framebuffer.
          */
-        [[nodiscard]] inline u32 GetFrameBufferID() const override {
+        [[nodiscard]] VE_INLINE u32 GetFrameBufferID() const override {
             return _fboId;
         }
 

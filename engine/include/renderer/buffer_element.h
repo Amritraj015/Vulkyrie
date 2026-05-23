@@ -42,7 +42,7 @@ namespace Vulkyrie {
         /** @brief Gets the number of components in the buffer element based on its shader data type.
          * @returns The number of components.
          */
-        [[nodiscard]] inline constexpr i32 GetComponentCount() const {
+        [[nodiscard]] VE_INLINE constexpr i32 GetComponentCount() const {
             switch (Type) {
                 case ShaderDataType::Float:
                 case ShaderDataType::Int:

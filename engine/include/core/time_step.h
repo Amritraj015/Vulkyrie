@@ -23,14 +23,14 @@ namespace Vulkyrie {
         /** @brief Gets the time duration in seconds.
          * @returns The time duration in seconds.
          */
-        [[nodiscard]] constexpr VE_FORCE_INLINE f32 GetSeconds() const {
+        [[nodiscard]] constexpr VE_INLINE f32 GetSeconds() const {
             return _seconds;
         }
 
         /** @brief Gets the time duration in milliseconds.
          * @returns The time duration in milliseconds.
          */
-        [[nodiscard]] constexpr VE_FORCE_INLINE f32 GetMilliseconds() const {
+        [[nodiscard]] constexpr VE_INLINE f32 GetMilliseconds() const {
             return _seconds * 1000.0f;
         }
 

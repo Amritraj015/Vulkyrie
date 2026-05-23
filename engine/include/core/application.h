@@ -23,7 +23,7 @@ namespace Vulkyrie {
         /** @brief Gets the singleton instance of the application.
          * @returns A reference to the application instance.
          */
-        [[nodiscard]] inline static Application &GetSingleton() {
+        [[nodiscard]] VE_INLINE static Application &GetSingleton() {
             return *_instance;
         }
 
@@ -116,21 +116,21 @@ namespace Vulkyrie {
         /** @brief Gets the native window handle.
          * @returns A pointer to the native window.
          */
-        [[nodiscard]] inline void *GetWindowHandle() const {
+        [[nodiscard]] VE_INLINE void *GetWindowHandle() const {
             return _platform->GetWindowHandle();
         }
 
         /** @brief Gets the width of the application window.
          * @returns The width of the window in pixels.
          */
-        [[nodiscard]] inline u32 GetWindowWidth() const {
+        [[nodiscard]] VE_INLINE u32 GetWindowWidth() const {
             return _windowProps.Width;
         }
 
         /** @brief Gets the height of the application window.
          * @returns The height of the window in pixels.
          */
-        [[nodiscard]] inline u32 GetWindowHeight() const {
+        [[nodiscard]] VE_INLINE u32 GetWindowHeight() const {
             return _windowProps.Height;
         }
 

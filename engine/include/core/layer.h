@@ -44,7 +44,7 @@ namespace Vulkyrie {
         /** @brief Gets the unique identifier of the layer.
          * @returns The UUID of the layer.
          */
-        [[nodiscard]] inline const UUID &GetLayerID() const {
+        [[nodiscard]] VE_INLINE const UUID &GetLayerID() const {
             return _id;
         }
 

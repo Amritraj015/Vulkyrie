@@ -117,7 +117,7 @@ namespace Vulkyrie {
          * @param deltaTime The time elapsed since the last frame. Used to ensure consistent movement speed regardless of frame rate.
          * @param movementSpeed The speed at which the camera moves. Default is 2.5 units per second.
          */
-        inline void ProcessKeyboardMovement(CameraMovement direction, f32 deltaTime, f32 movementSpeed = 2.5f) {
+        VE_INLINE void ProcessKeyboardMovement(CameraMovement direction, f32 deltaTime, f32 movementSpeed = 2.5f) {
             f32 velocity = movementSpeed * deltaTime;
 
             switch (direction) {
@@ -139,7 +139,7 @@ namespace Vulkyrie {
         /** @brief Updates the camera's position and orientation based on input. Should be called every frame.
          * @param deltaTime The time elapsed since the last frame.
          */
-        inline void OnUpdate(Timestep deltaTime) {
+        VE_INLINE void OnUpdate(Timestep deltaTime) {
             f32 dt = static_cast<f32>(deltaTime);
             f32 cameraSpeed = _settings.RegularMovementSpeed;
 
@@ -159,7 +159,7 @@ namespace Vulkyrie {
          * @param scrollOffset The offset value of the scroll in the y direction. Positive values indicate scrolling up, negative values indicate scrolling
          * down.
          */
-        inline void ProcessMouseScroll(f32 scrollOffset) {
+        VE_INLINE void ProcessMouseScroll(f32 scrollOffset) {
             _settings.Zoom -= scrollOffset;
 
             if (_settings.Zoom < 1.0f) _settings.Zoom = 1.0f;
@@ -167,24 +167,24 @@ namespace Vulkyrie {
         }
 
         /** @brief Returns the front vector of the camera. */
-        [[nodiscard]] inline glm::vec3 GetFront() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetFront() const {
             return _settings.Front;
         }
 
         /** @brief Returns the zoom level (field of view) of the camera. */
-        [[nodiscard]] inline f32 GetZoom() const {
+        [[nodiscard]] VE_INLINE f32 GetZoom() const {
             return _settings.Zoom;
         }
 
         /** @brief Returns the current position of the camera in world space. */
-        [[nodiscard]] inline glm::vec3 GetPosition() const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetPosition() const {
             return _settings.Position;
         }
 
         /** @brief Calculates and returns the view matrix using the camera's position and orientation.
          * @returns The view matrix as a glm::mat4.
          */
-        [[nodiscard]] inline glm::mat4 GetViewMatrix() const {
+        [[nodiscard]] VE_INLINE glm::mat4 GetViewMatrix() const {
             return glm::lookAt(_settings.Position, _settings.Position + _settings.Front, _up);
         }
 
@@ -193,7 +193,7 @@ namespace Vulkyrie {
          * @param yOffset The offset value of the mouse movement in the y direction.
          * @param constrainPitch A boolean indicating whether to constrain the pitch angle to prevent screen flipping. Default is true.
          */
-        inline void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true) {
+        VE_INLINE void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true) {
             // initialize the last mouse positions on the first mouse movement event.
             if (_firstMouseMove) {
                 _lastMouseX = xOffset;
@@ -248,7 +248,7 @@ namespace Vulkyrie {
         f32 _lastMouseY;
 
         /** @brief Updates the camera's front, right, and up vectors based on the current yaw and pitch angles. */
-        inline void updateCameraVectors() {
+        VE_INLINE void updateCameraVectors() {
             // calculate the new Front vector
             glm::vec3 front;
             front.x = cos(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch));

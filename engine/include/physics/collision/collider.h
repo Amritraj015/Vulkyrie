@@ -38,7 +38,7 @@ namespace Vulkyrie {
 
         /** @brief Retrieves the Entity associated with this Collider.
          * @returns The Entity associated with this Collider. */
-        [[nodiscard]] VE_FORCE_INLINE Entity GetEntity() const {
+        [[nodiscard]] VE_INLINE Entity GetEntity() const {
             return _entity;
         }
 
@@ -46,7 +46,7 @@ namespace Vulkyrie {
          * belongs to in the physics simulation. The collider uses the body's transform for movement and transformation, and it participates in collision
          * detection and response as part of the body.
          * @returns A reference to the Body to which this Collider is attached. */
-        [[nodiscard]] VE_FORCE_INLINE const Body &GetBody() const {
+        [[nodiscard]] VE_INLINE const Body &GetBody() const {
             return _body;
         }
 
@@ -55,7 +55,7 @@ namespace Vulkyrie {
          * (overlap) between this collider's AABB and the given AABB, and false otherwise.
          * @param aabb The axis-aligned bounding box to test for collision against this collider.
          * @returns True if this collider collides with the given AABB, false otherwise. */
-        [[nodiscard]] VE_FORCE_INLINE bool CollidesWith(const AABB &aabb) const {
+        [[nodiscard]] VE_INLINE bool CollidesWith(const AABB &aabb) const {
             return aabb.CollidesWith(GetWorldSpaceAABB());
         }
 

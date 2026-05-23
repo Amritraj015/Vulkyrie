@@ -32,26 +32,26 @@ namespace Vulkyrie {
         /** @brief Get the type of the collision shape.
          * @returns The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave).
          */
-        [[nodiscard]] VE_FORCE_INLINE CollisionShapeType GetType() const {
+        [[nodiscard]] VE_INLINE CollisionShapeType GetType() const {
             return _type;
         }
 
         /** @brief Get the specific name of the collision shape.
          * @returns The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield).
          */
-        [[nodiscard]] VE_FORCE_INLINE CollisionShapeName GetName() const {
+        [[nodiscard]] VE_INLINE CollisionShapeName GetName() const {
             return _name;
         }
 
         /** @brief Add a collider to the list of colliders using this collision shape.
          * @param collider The collider to be added to the list of colliders using this collision shape. */
-        VE_FORCE_INLINE void AddCollider(Collider &collider) {
+        VE_INLINE void AddCollider(Collider &collider) {
             _colliders.push_back(&collider);
         }
 
         /** @brief Remove a collider from the list of colliders using this collision shape.
          * @param collider The collider to be removed from the list of colliders using this collision shape. */
-        VE_FORCE_INLINE void RemoveCollider(Collider &collider) {
+        VE_INLINE void RemoveCollider(Collider &collider) {
             std::erase(_colliders, &collider);
         }
 
