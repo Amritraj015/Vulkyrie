@@ -1,10 +1,9 @@
 #pragma once
 
 #include "physics/collision/shapes/convex_shape.h"
+#include "physics/types/half_edge_mesh.h"
 
 namespace Vulkyrie {
-
-    class Face {};
 
     /** @brief The `ConvexPolyhedronShape` class represents a convex polyhedral collision shape, which is a type of convex shape defined by flat faces, straight
      * edges, and sharp vertices. This class provides an interface for accessing the geometric properties of the convex polyhedron, such as its faces, vertices,
@@ -17,7 +16,7 @@ namespace Vulkyrie {
          * @param margin The margin to be applied to the convex polyhedron shape for collision detection purposes. This is an optional parameter that
          * defaults to 0.0f if not provided. A positive margin can help improve collision detection stability by providing a small buffer around the shape.
          */
-        ConvexPolyhedronShape(CollisionShapeName name, f32 margin = 0.0f);
+        ConvexPolyhedronShape(CollisionShapeName name);
 
         /** @brief Destructor for the ConvexPolyhedronShape class. */
         virtual ~ConvexPolyhedronShape() override = default;
@@ -45,7 +44,7 @@ namespace Vulkyrie {
          * @returns The number of half edges of the convex polyhedron shape. This is typically equal to twice the number of edges, since each edge is
          * represented by two half edges in a half-edge data structure.
          */
-        virtual u32 GetHafEdgesCount() const = 0;
+        virtual u32 GetHalfEdgesCount() const = 0;
 
         /** @brief Get the position of a specific vertex of the convex polyhedron shape.
          * @param vertexIndex The index of the vertex for which to retrieve the position. The valid range for this index is from 0 to GetVerticesCount()
@@ -67,6 +66,47 @@ namespace Vulkyrie {
          * position of all its vertices.
          */
         virtual glm::vec3 GetCentroid() const = 0;
+
+        /** @brief Get a face of the convex polyhedron shape by index.
+         * @param faceIndex The index of the face to retrieve. The valid range is from 0 to GetFacesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Face` at the given index.
+         */
+        virtual const HalfEdgeMesh::Face &GetFace(size_t faceIndex) const = 0;
+
+        /** @brief Get a half-edge of the convex polyhedron shape by index.
+         * @param edgeIndex The index of the half-edge to retrieve. The valid range is from 0 to GetHafEdgesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Edge` at the given index.
+         */
+        virtual const HalfEdgeMesh::Edge &GetHalfEdge(size_t edgeIndex) const = 0;
+
+        /** @brief Get a vertex of the convex polyhedron shape by index.
+         * @param vertexIndex The index of the vertex to retrieve. The valid range is from 0 to GetVerticesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Vertex` at the given index.
+         */
+        virtual const HalfEdgeMesh::Vertex &GetVertex(size_t vertexIndex) const = 0;
+
+        /** @brief Find the index of the face whose outward normal is most anti-parallel to the given direction. This is used in collision detection algorithms
+         * (e.g., SAT, GJK/EPA) to quickly identify the face most likely to be the reference face for a contact manifold — i.e., the face pointing most
+         * directly against the query direction.
+         * @param direction The direction vector to test against each face normal. Does not need to be normalized.
+         * @returns The index of the face with the smallest dot product between its normal and `direction`.
+         */
+        [[nodiscard]] VE_INLINE size_t FindMostAntiParallelFaceIndex(const glm::vec3 &direction) const {
+            f32 minDotProduct = std::numeric_limits<f32>::max();
+            size_t mostAntiParallelFaceIndex = 0;
+
+            for (size_t i = 0; i < GetFacesCount(); ++i) {
+                const glm::vec3 faceNormal = GetFaceNormal(i);
+                const f32 dotProduct = glm::dot(faceNormal, direction);
+
+                if (dotProduct < minDotProduct) {
+                    minDotProduct = dotProduct;
+                    mostAntiParallelFaceIndex = i;
+                }
+            }
+
+            return mostAntiParallelFaceIndex;
+        }
 
         /** @brief Check if the collision shape is polyhedral.
          * @returns True if the collision shape is polyhedral, false otherwise.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "physics/collision/shapes/convex_polyhedron_shape.h"
+#include "physics/physics_context.h"
 
 namespace Vulkyrie {
 
@@ -16,7 +17,7 @@ namespace Vulkyrie {
          * @param margin The margin to be applied to the box shape for collision detection purposes. This is an optional parameter that defaults to 0.0f if
          * not provided. A positive margin can help improve collision detection stability by providing a small buffer around the shape.
          */
-        BoxShape(const glm::vec3 &halfExtents, f32 margin = 0.0f);
+        BoxShape(const glm::vec3 &halfExtents, PhysicsContext &context);
 
         /** @brief Destructor for the BoxShape class. */
         ~BoxShape() override = default;
@@ -65,7 +66,7 @@ namespace Vulkyrie {
         /** @brief Get the number of half edges of the box shape.
          * @returns The number of half edges of the box shape, which is always 24 for a box (each of the 12 edges has 2 half edges).
          */
-        [[nodiscard]] VE_INLINE constexpr u32 GetHafEdgesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr u32 GetHalfEdgesCount() const override {
             return 24;
         }
 
@@ -187,6 +188,36 @@ namespace Vulkyrie {
                     point.z < _halfExtents.z && point.z > -_halfExtents.z);
         }
 
+        /** @brief Get a face of the box shape by index.
+         * @param faceIndex The index of the face to retrieve. The valid range is from 0 to GetFacesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Face` at the given index.
+         */
+        [[nodiscard]] VE_INLINE const HalfEdgeMesh::Face &GetFace(size_t faceIndex) const override {
+            VASSERT(faceIndex < _physicsContext._boxShapeHalfEdgeMesh.GetFaceCount(), "Face index out of bounds for box shape.");
+
+            return _physicsContext._boxShapeHalfEdgeMesh.GetFace(faceIndex);
+        }
+
+        /** @brief Get a half-edge of the box shape by index.
+         * @param edgeIndex The index of the half-edge to retrieve. The valid range is from 0 to GetHafEdgesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Edge` at the given index.
+         */
+        [[nodiscard]] VE_INLINE const HalfEdgeMesh::Edge &GetHalfEdge(size_t edgeIndex) const override {
+            VASSERT(edgeIndex < GetHalfEdgesCount(), "Half-edge index out of bounds for box shape.");
+
+            return _physicsContext._boxShapeHalfEdgeMesh.GetHalfEdge(edgeIndex);
+        }
+
+        /** @brief Get a vertex of the box shape by index.
+         * @param vertexIndex The index of the vertex to retrieve. The valid range is from 0 to GetVerticesCount() - 1.
+         * @returns A const reference to the `HalfEdgeMesh::Vertex` at the given index.
+         */
+        [[nodiscard]] VE_INLINE const HalfEdgeMesh::Vertex &GetVertex(size_t vertexIndex) const override {
+            VASSERT(vertexIndex < GetVerticesCount(), "Vertex index out of bounds for box shape.");
+
+            return _physicsContext._boxShapeHalfEdgeMesh.GetVertex(vertexIndex);
+        }
+
         /** @brief Compute the local support point of the box shape in a given direction, without considering the margin.
          * @param direction The direction in which to compute the support point, specified as a glm::vec3. This vector does not need to be normalized.
          * @returns The local support point of the box shape in the given direction, calculated by taking the sign of each component of the direction vector
@@ -203,6 +234,9 @@ namespace Vulkyrie {
         /** @brief The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis. All
          * components must be positive. */
         glm::vec3 _halfExtents;
+
+        /** @brief A reference to the PhysicsContext. */
+        PhysicsContext &_physicsContext;
     };
 
 } // namespace Vulkyrie

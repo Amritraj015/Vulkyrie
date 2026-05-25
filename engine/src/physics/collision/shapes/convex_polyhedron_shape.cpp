@@ -2,8 +2,8 @@
 
 namespace Vulkyrie {
 
-    ConvexPolyhedronShape::ConvexPolyhedronShape(CollisionShapeName name, f32 margin)
-        : ConvexShape(CollisionShapeType::ConvexPolyhedron, name, margin) {
+    ConvexPolyhedronShape::ConvexPolyhedronShape(CollisionShapeName name)
+        : ConvexShape(CollisionShapeType::ConvexPolyhedron, name) {
     }
 
 } // namespace Vulkyrie

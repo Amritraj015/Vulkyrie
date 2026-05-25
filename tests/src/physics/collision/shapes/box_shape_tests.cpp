@@ -109,7 +109,7 @@ TEST_CASE("BoxShape - GetVerticesCount returns 8", "[physics][box]") {
 TEST_CASE("BoxShape - GetHafEdgesCount returns 24", "[physics][box]") {
     BoxShape shape(glm::vec3(1.0f));
 
-    REQUIRE(shape.GetHafEdgesCount() == 24);
+    REQUIRE(shape.GetHalfEdgesCount() == 24);
 }
 
 // ===========================================================================================
