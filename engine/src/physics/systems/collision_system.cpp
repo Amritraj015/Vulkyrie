@@ -1,6 +1,9 @@
 #include "physics/systems/collision_system.h"
+#include "physics/collision/shapes/concave_shape.h"
+#include "physics/collision/shapes/convex_shape.h"
 #include "physics/physics_world.h"
 #include "physics/body/body.h"
+#include <glm/matrix.hpp>
 
 namespace Vulkyrie {
 
@@ -89,10 +92,11 @@ namespace Vulkyrie {
             reportTriggers(*(eventListener), _currentContactPairs, _lostContactPairs);
         }
 
+        // TODO: Implement the following debug rendering of contacts and triggers, which can be enabled through a debug flag in the physics world.
         // Report contacts for debug rendering (if enabled)
-        if (_physicsWorld.IsDebugRenderingEnabled()) {
-            reportDebugRenderingContacts(_currentContactPairs, _currentContactManifolds, _currentContactPoints, _lostContactPairs);
-        }
+        // if (_physicsWorld.IsDebugRenderingEnabled()) {
+        //     reportDebugRenderingContacts(_currentContactPairs, _currentContactManifolds, _currentContactPoints, _lostContactPairs);
+        // }
 
         _overlappingPairs.UpdateCollidingInLastFrame();
         _lostContactPairs.clear();
@@ -245,12 +249,203 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery) {
+        // Clear last frame collision data for all active pairs,
+        // which will be used to determine if a pair is still colliding in the current frame during narrow-phase collision detection.
+        _overlappingPairs.ClearObsoleteLastFrameCollisionData();
+
+        // Store the count of active collider components.
+        const size_t activeColliderComponents = _colliderComponentStore.GetActiveComponentCount();
+
+        // Process the convex pairs to generate narrow-phase input batches for narrow-phase collision detection.
+        for (auto &pair : _overlappingPairs._convexPairs) {
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+                    "Collider one in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+                    "Collider two in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
+                    "Collider one and collider two in a convex pair have the same broad-phase ID when trying to compute middle-phase collision.");
+
+            // Mark the pair as not colliding for the current frame.
+            // This will be updated during narrow-phase collision detection if the pair is found to be colliding.
+            pair.AreCollidingThisFrame = false;
+
+            // Store the collider entities for both colliders in the overlapping pair.
+            const Entity colliderOneEntity = pair.ColliderOneEntity;
+            const Entity colliderTwoEntity = pair.ColliderTwoEntity;
+
+            // Store the collider indices for both colliders for faster access to their components in the collider component store.
+            const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+            const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+            // Check if either collider is a trigger, since triggers can generate contact events even though they don't produce collision response.
+            const bool isColliderOneTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex);
+            const bool isColliderTwoTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+
+            // Check if either collider is a query collider.
+            const bool isWorldQueryColliderOne = _colliderComponentStore.IsQueryColliderAtIndex(colliderOneIndex);
+            const bool isWorldQueryColliderTwo = _colliderComponentStore.IsQueryColliderAtIndex(colliderTwoIndex);
+
+            // Check if either collider is a simulation collider.
+            const bool isColliderOneSimulationCollider = _colliderComponentStore.IsSimulationColliderAtIndex(colliderOneIndex);
+            const bool isColliderTwoSimulationCollider = _colliderComponentStore.IsSimulationColliderAtIndex(colliderTwoIndex);
+
+            // Store if either collider is a simulation collider or a trigger.
+            const bool isColliderOneSimulationColliderOrTrigger = isColliderOneSimulationCollider || isColliderOneTrigger;
+            const bool isColliderTwoSimulationColliderOrTrigger = isColliderTwoSimulationCollider || isColliderTwoTrigger;
+
+            // For world queries, we want to consider pairs where both colliders are query colliders.
+            // For regular collision detection, we want to consider pairs where both colliders are either simulation colliders or triggers,
+            // since triggers can generate contact events even though they don't produce collision response.
+            if ((isWorldQuery && isWorldQueryColliderOne && isWorldQueryColliderTwo) ||
+                (!isWorldQuery && isColliderOneSimulationColliderOrTrigger && isColliderTwoSimulationColliderOrTrigger)) {
+
+                // Store the active status of both colliders to avoid redundant checks in the narrow-phase processing.
+                const bool isBodyOneActive = colliderOneIndex < activeColliderComponents;
+                const bool isBodyTwoActive = colliderTwoIndex < activeColliderComponents;
+
+                // For world queries, we want to test all pairs of query colliders regardless of their active state,
+                // since the user is explicitly asking for overlap information.
+                // For regular collision detection, we only want to test pairs where at least one collider is active,
+                // since inactive colliders should not generate collision callbacks or response.
+                if (isWorldQuery || (!isWorldQuery && (isBodyOneActive || isBodyTwoActive))) {
+                    CollisionShape &colliderOneShape = _colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex);
+                    CollisionShape &colliderTwoShape = _colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex);
+
+                    batches.AddNarrowPhaseTest(pair.PairID,
+                                               colliderOneEntity,
+                                               colliderTwoEntity,
+                                               colliderOneShape,
+                                               colliderTwoShape,
+                                               _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderOneIndex),
+                                               _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderTwoIndex),
+                                               pair.NarrowPhaseAlgorithmToUse,
+                                               reportContacts,
+                                               pair.LastFrameCollisionInfo
+
+                    );
+                }
+            }
+        }
+
+        // Process the concave pairs to generate narrow-phase input batches for narrow-phase collision detection.
+        for (auto &pair : _overlappingPairs._concavePairs) {
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+                    "Collider one in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+                    "Collider two in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
+                    "Collider one and collider two in a concave pair have the same broad-phase ID when trying to compute middle-phase collision.");
+
+            // Mark the pair as not colliding for the current frame.
+            // This will be updated during narrow-phase collision detection if the pair is found to be colliding.
+            pair.AreCollidingThisFrame = false;
+
+            // Store the collider entities for both colliders in the overlapping pair.
+            const Entity colliderOneEntity = pair.ColliderOneEntity;
+            const Entity colliderTwoEntity = pair.ColliderTwoEntity;
+
+            // Store the collider indices for both colliders for faster access to their components in the collider component store.
+            const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+            const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+            // Check if either collider is a trigger, since triggers can generate contact events even though they don't produce collision response.
+            const bool isColliderOneTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex);
+            const bool isColliderTwoTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+
+            // Check if either collider is a query collider.
+            const bool isWorldQueryColliderOne = _colliderComponentStore.IsQueryColliderAtIndex(colliderOneIndex);
+            const bool isWorldQueryColliderTwo = _colliderComponentStore.IsQueryColliderAtIndex(colliderTwoIndex);
+
+            // Check if either collider is a simulation collider.
+            const bool isColliderOneSimulationCollider = _colliderComponentStore.IsSimulationColliderAtIndex(colliderOneIndex);
+            const bool isColliderTwoSimulationCollider = _colliderComponentStore.IsSimulationColliderAtIndex(colliderTwoIndex);
+
+            // Store if either collider is a simulation collider or a trigger.
+            const bool isColliderOneSimulationColliderOrTrigger = isColliderOneSimulationCollider || isColliderOneTrigger;
+            const bool isColliderTwoSimulationColliderOrTrigger = isColliderTwoSimulationCollider || isColliderTwoTrigger;
+
+            // For world queries, we want to consider pairs where both colliders are query colliders.
+            // For regular collision detection, we want to consider pairs where both colliders are either simulation colliders or triggers,
+            // since triggers can generate contact events even though they don't produce collision response.
+            if ((isWorldQuery && isWorldQueryColliderOne && isWorldQueryColliderTwo) ||
+                (!isWorldQuery && isColliderOneSimulationColliderOrTrigger && isColliderTwoSimulationColliderOrTrigger)) {
+
+                // Store the active status of both colliders to avoid redundant checks in the narrow-phase processing.
+                const bool isBodyOneActive = colliderOneIndex < activeColliderComponents;
+                const bool isBodyTwoActive = colliderTwoIndex < activeColliderComponents;
+
+                // For world queries, we want to test all pairs of query colliders regardless of their active state,
+                // since the user is explicitly asking for overlap information.
+                // For regular collision detection, we only want to test pairs where at least one collider is active,
+                // since inactive colliders should not generate collision callbacks or response.
+                if (isWorldQuery || (!isWorldQuery && (isBodyOneActive || isBodyTwoActive))) {
+                    computeConvexVsConcaveMiddlePhase(pair, batches, reportContacts);
+                }
+            }
+        }
     }
 
     void CollisionSystem::computeMiddlePhaseCollisionSnapshot(std::vector<u64> &convexPairs,
                                                               std::vector<u64> &concavePairs,
                                                               NarrowPhaseInput &batches,
                                                               bool reportContacts) {
+        // Clear obsolete last-frame collision data for all active pairs before processing the current frame's pairs.
+        // This ensures that any per-sub-shape collision cache entries that are not refreshed during the middle-phase
+        // processing of the current frame will be pruned, which helps to keep the memory usage of the collision cache in check over time.
+        _overlappingPairs.ClearObsoleteLastFrameCollisionData();
+
+        // Process the convex pairs to generate narrow-phase input batches for narrow-phase collision detection.
+        for (const auto &pairID : convexPairs) {
+            const u64 pairIndex = _overlappingPairs._convexPairIDToPairIndexMap[pairID];
+
+            VASSERT(pairIndex < _overlappingPairs._convexPairs.size(),
+                    "Convex pair index is out of bounds when trying to compute middle-phase collision snapshot.");
+
+            ConvexOverlappingPair &pair = _overlappingPairs._convexPairs[pairIndex];
+            const Entity colliderOneEntity = pair.ColliderOneEntity;
+            const Entity colliderTwoEntity = pair.ColliderTwoEntity;
+            const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+            const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) != -1,
+                    "Collider one in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex) != -1,
+                    "Collider two in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) != _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex),
+                    "Collider one and collider two in a convex pair have the same broad-phase ID when trying to compute middle-phase collision snapshot.");
+
+            CollisionShape &colliderOneShape = _colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex);
+            CollisionShape &colliderTwoShape = _colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex);
+            const TransformComponent &localToWorldTransformOne = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderOneIndex);
+            const TransformComponent &localToWorldTransformTwo = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderTwoIndex);
+
+            // Add the convex pair to the narrow-phase input batches for narrow-phase collision detection.
+            batches.AddNarrowPhaseTest(pairID,
+                                       colliderOneEntity,
+                                       colliderTwoEntity,
+                                       colliderOneShape,
+                                       colliderTwoShape,
+                                       localToWorldTransformOne,
+                                       localToWorldTransformTwo,
+                                       pair.NarrowPhaseAlgorithmToUse,
+                                       reportContacts,
+                                       pair.LastFrameCollisionInfo);
+        }
+
+        // Process the concave pairs to generate narrow-phase input batches for narrow-phase collision detection.
+        for (const auto &pairID : concavePairs) {
+            ConcaveOverlappingPair &pair = _overlappingPairs._concavePairs[_overlappingPairs._concavePairIDToPairIndexMap[pairID]];
+
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+                    "Collider one in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+                    "Collider two in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
+                    "Collider one and collider two in a concave pair have the same broad-phase ID when trying to compute middle-phase collision snapshot.");
+
+            // Add the concave pair to the narrow-phase input batches for narrow-phase collision detection.
+            computeConvexVsConcaveMiddlePhase(pair, batches, reportContacts);
+        }
     }
 
     void CollisionSystem::computeNarrowPhase() {
@@ -380,6 +575,78 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes) {
+        for (const auto &pair : overlappingNodes) {
+            VASSERT(pair.First != -1 && pair.Second != -1,
+                    "Broad-phase overlapping pair contains an invalid broad-phase ID when trying to update overlapping pairs.");
+
+            // Make sure to only process pairs of different broad-phase IDs.
+            if (pair.First != pair.Second) {
+                // Get the collider entities for both colliders in the pair.
+                const Entity colliderOneEntity = _broadPhaseIDToColliderEntityMap[pair.First];
+                const Entity colliderTwoEntity = _broadPhaseIDToColliderEntityMap[pair.Second];
+
+                // Get the collider indices for both colliders in the pair.
+                const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+                const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+                // Get the body entities for both colliders in the pair.
+                const Entity bodyOneEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderOneIndex);
+                const Entity bodyTwoEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderTwoIndex);
+
+                // Only consider this pair of colliders for narrow-phase collision detection if they belong to different bodies,
+                // since colliders on the same body should not collide with each other.
+                if (bodyOneEntity != bodyTwoEntity) {
+
+                    // Create a pair of body entities for this pair of colliders, which will be used to check if this pair of colliders is in the list of
+                    // non-collidable pairs (i.e. pairs of colliders that should be ignored for collision detection because they belong to the same rigid body
+                    // or to a pair of rigid bodies that are set to ignore collision with each other).
+                    const Pair<Entity, Entity> bodyPair = OverlappingPairs::ComputeBodiesIndexPair(bodyOneEntity, bodyTwoEntity);
+
+                    if (!_nonCollidablePairs.contains(bodyPair)) {
+                        // Create a unique pair ID for this pair of colliders by combining their broad-phase IDs in a consistent order.
+                        const u64 pairID = PairNumbers(std::max(pair.First, pair.Second), std::min(pair.First, pair.Second));
+
+                        // Check if this broad-phase overlapping pair is already in the overlapping pair list.
+                        OverlappingPair *overlappingPair = _overlappingPairs.GetOverlappingPair(pairID);
+
+                        // If the broad-phase system reports this pair as overlapping but it's not already in the overlapping pair list,
+                        // we need to create a new overlapping pair for it.
+                        if (nullptr == overlappingPair) {
+                            // Get the collides-with mask bits for both colliders in the pair,
+                            // which will be used to check if their collision filters allow them to collide.
+                            const u16 shapeOneCollidesWithMaskBits = _colliderComponentStore.GetCollidesWithMaskBitsAtIndex(colliderOneIndex);
+                            const u16 shapeTwoCollidesWithMaskBits = _colliderComponentStore.GetCollidesWithMaskBitsAtIndex(colliderTwoIndex);
+
+                            // Get the collision category bits for both colliders in the pair,
+                            // which will be used to check if their collision filters allow them to collide.
+                            const u16 shapeOneCollisionCategoryBits = _colliderComponentStore.GetCollisionCategoryBitsAtIndex(colliderOneIndex);
+                            const u16 shapeTwoCollisionCategoryBits = _colliderComponentStore.GetCollisionCategoryBitsAtIndex(colliderTwoIndex);
+
+                            // Check if the collision filters of the two colliders in the pair allow them
+                            // to collide based on their collision category bits and collides-with mask bits.
+                            if ((shapeOneCollidesWithMaskBits & shapeTwoCollisionCategoryBits) != 0 &&
+                                (shapeTwoCollidesWithMaskBits & shapeOneCollisionCategoryBits) != 0) {
+
+                                // Check if either collider in the pair has a convex shape.
+                                const bool isShapeOneConvex = _colliderComponentStore.GetColliderAtIndex(colliderOneIndex).GetCollisionShape().IsConvex();
+                                const bool isShapeTwoConvex = _colliderComponentStore.GetColliderAtIndex(colliderTwoIndex).GetCollisionShape().IsConvex();
+
+                                // If at least one of the colliders in the pair has a convex shape,
+                                // we need to add this pair to the overlapping pair list for narrow-phase collision detection.
+                                if (isShapeOneConvex || isShapeTwoConvex) {
+                                    _overlappingPairs.AddPair(colliderOneIndex, colliderTwoIndex, isShapeOneConvex && isShapeTwoConvex);
+                                }
+                            }
+                        } else {
+                            // If the broad-phase system reports this pair as overlapping and it's already in the overlapping pair list, we can simply mark it
+                            // as not requiring a collision check for this frame, since it will be processed during narrow-phase collision detection based on
+                            // the existing overlapping pair information in the overlapping pair list.
+                            overlappingPair->RequiresCollisionCheck = false;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void CollisionSystem::removeNonOverlappingPairs() {
@@ -543,6 +810,101 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::computeConvexVsConcaveMiddlePhase(ConcaveOverlappingPair &overlappingPair, NarrowPhaseInput &batches, bool reportContacts) {
+        // const Entity colliderOneEntity = overlappingPair.ColliderOneEntity;
+        // const Entity colliderTwoEntity = overlappingPair.ColliderTwoEntity;
+        //
+        // const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+        // const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+        //
+        // const TransformComponent &shapeOneLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderOneIndex);
+        // const TransformComponent &shapeTwoLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderTwoIndex);
+        //
+        // TransformComponent convexToConcaveTransform;
+        // ConvexShape *convexShape = nullptr;
+        // ConcaveShape *concaveShape = nullptr;
+        //
+        // if (overlappingPair.IsFirstShapeConvex) {
+        //     convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
+        //     concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
+        //
+        //     // TODO: Calculate convexToConcaveTransform
+        //
+        // } else {
+        //     convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
+        //     concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
+        //
+        //     // TODO: Calculate convexToConcaveTransform
+        //     // convexToConcaveTransform = shapeOneLocalToWorldTransform.GetInverse() * shapeTwoLocalToWorldTransform;
+        // }
+        //
+        // VASSERT(convexShape->IsConvex(),
+        //         "Convex shape in a convex vs concave pair does not have a convex collision shape when trying to compute convex vs concave middle-phase.");
+        // VASSERT(!concaveShape->IsConvex(),
+        //         "Concave shape in a convex vs concave pair does not have a concave collision shape when trying to compute convex vs concave middle-phase.");
+        // VASSERT(overlappingPair.NarrowPhaseAlgorithmToUse != NarrowPhaseAlgorithm::NoCollisionCheck,
+        //         "Narrow-phase algorithm to use for a convex vs concave pair is not set when trying to compute convex vs concave middle-phase.");
+        //
+        // const AABB aabb = convexShape->ComputeTransformedAABB(convexToConcaveTransform);
+        // std::vector<glm::vec3> triangleVertices(64);
+        // std::vector<glm::vec3> triangleVerticesNormals(64);
+        // std::vector<u32> shapeIDs(64);
+        //
+        // concaveShape->ComputeOverlappingTriangles(aabb, triangleVertices, triangleVerticesNormals, shapeIDs);
+        //
+        // VASSERT(triangleVertices.size() == triangleVerticesNormals.size(),
+        //         "Triangle vertices and triangle vertex normals arrays should have the same size after computing overlapping triangles for convex vs concave "
+        //         "middle-phase.");
+        //
+        // VASSERT(shapeIDs.size() == triangleVertices.size() / 3,
+        //         "Shape IDs array size should be equal to the number of triangles (i.e. number of vertices divided by 3) after computing overlapping triangles
+        //         " "for convex vs concave " "middle-phase.");
+        //
+        // VASSERT(triangleVertices.size() % 3 == 0,
+        //         "Triangle vertices array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
+        //
+        // VASSERT(triangleVerticesNormals.size() % 3 == 0,
+        //         "Triangle vertex normals array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
+        //
+        // const bool isColliderOneTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex);
+        // const bool isColliderTwoTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+        // reportContacts = reportContacts && !isColliderOneTrigger && !isColliderTwoTrigger;
+        //
+        // CollisionShape *shapeOne = nullptr;
+        // CollisionShape *shapeTwo = nullptr;
+        //
+        // if (overlappingPair.IsFirstShapeConvex) {
+        //     shapeOne = convexShape;
+        // } else {
+        //     shapeTwo = convexShape;
+        // }
+        //
+        // for (size_t i = 0; i < shapeIDs.size(); ++i) {
+        //     // Create a triangle collision shape (the allocated memory for the TriangleShape will be released in the
+        //     // destructor of the corresponding NarrowPhaseInfo.
+        //     TriangleShape *triangleShape =
+        //         new TriangleShape(&(triangleVertices[i * 3]), &(triangleVerticesNormals[i * 3]), shapeIds[i], mTriangleHalfEdgeStructure);
+        //
+        //     if (overlappingPair.IsFirstShapeConvex) {
+        //         shapeTwo = triangleShape;
+        //     } else {
+        //         shapeOne = triangleShape;
+        //     }
+        //
+        //     // Add a collision info for the two collision shapes into the overlapping pair (if not present yet)
+        //     LastFrameCollisionData *lastFrameInfo = overlappingPair.AddLastFrameCollisionDataIfNecessary(shapeOne->GetID(), shapeTwo->GetID());
+        //
+        //     // Create a narrow phase info for the narrow-phase collision detection
+        //     batches.AddNarrowPhaseTest(overlappingPair.PairID,
+        //                                colliderOneEntity,
+        //                                colliderTwoEntity,
+        //                                shapeOne,
+        //                                shapeTwo,
+        //                                shapeOneLocalToWorldTransform,
+        //                                shapeTwoLocalToWorldTransform,
+        //                                overlappingPair.NarrowPhaseAlgorithmToUse,
+        //                                reportContacts,
+        //                                lastFrameInfo);
+        // }
     }
 
     void CollisionSystem::swapPreviousAndCurrentContacts() {
@@ -619,8 +981,8 @@ namespace Vulkyrie {
     void CollisionSystem::reducePotentialContactManifolds(std::vector<ContactPair> &contactPairs,
                                                           std::vector<ContactManifoldData> &potentialContactManifolds,
                                                           const std::vector<ContactPointData> &potentialContactPoints) const {
-        // For each contact pair, if the number of potential contact manifolds exceeds the maximum allowed, we can perform a reduction step to remove some of
-        // the manifolds based on their depth, which can help to improve the performance of the constraint solver while still maintaining good collision
+        // For each contact pair, if the number of potential contact manifolds exceeds the maximum allowed, we can perform a reduction step to remove some
+        // of the manifolds based on their depth, which can help to improve the performance of the constraint solver while still maintaining good collision
         // response quality. The depth of a contact manifold can be computed as the largest penetration depth among its contact points, which gives us an
         // indication of how significant the collision is for that manifold. By removing the manifolds with the smallest depth, we can focus the constraint
         // solver on the most significant collisions while still maintaining good overall collision response quality.
@@ -816,29 +1178,29 @@ namespace Vulkyrie {
     void CollisionSystem::reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs) {
         // Report trigger events if there are any contact pairs or lost contact pairs to report.
         if (contactPairs->size() + lostContactPairs.size() > 0) {
-            OverlapCallback::Data callbackData(*contactPairs, lostContactPairs, true, *mWorld);
+            OverlapCallback::Data callbackData(*contactPairs, lostContactPairs, true);
             eventListener.OnTrigger(callbackData);
         }
     }
 
-    void CollisionSystem::reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
-                                                       std::vector<ContactManifold> *manifolds,
-                                                       std::vector<ContactPoint> *contactPoints,
-                                                       std::vector<ContactPair> &lostContactPairs) {
-        // Report contacts for debug rendering if there are any contact pairs or lost contact pairs to report.
-        if (contactPairs->size() + lostContactPairs.size() > 0) {
-            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, *mWorld);
-            mWorld->mDebugRenderer.onContact(callbackData);
-        }
-    }
+    // void CollisionSystem::reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
+    //                                                    std::vector<ContactManifold> *manifolds,
+    //                                                    std::vector<ContactPoint> *contactPoints,
+    //                                                    std::vector<ContactPair> &lostContactPairs) {
+    //     // Report contacts for debug rendering if there are any contact pairs or lost contact pairs to report.
+    //     if (contactPairs->size() + lostContactPairs.size() > 0) {
+    //         CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, *mWorld);
+    //         mWorld->mDebugRenderer.OnContact(callbackData);
+    //     }
+    // }
 
     f32 CollisionSystem::computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold,
                                                                      const std::vector<ContactPointData> &potentialContactPoints) const {
         f32 largestDepth = 0.0f;
 
-        VASSERT(
-            manifold.TotalPotentialContactPoints > 0,
-            "Manifold should have at least one potential contact point when trying to compute the largest contact depth among the potential contact points.");
+        VASSERT(manifold.TotalPotentialContactPoints > 0,
+                "Manifold should have at least one potential contact point when trying to compute the largest contact depth among the potential contact "
+                "points.");
 
         // Iterate through the potential contact points in the manifold and find the largest penetration depth among them.
         // This can be used as a heuristic for determining the quality of the contact manifold

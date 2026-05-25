@@ -14,22 +14,22 @@ namespace Vulkyrie {
         std::vector<NarrowPhaseData> Data;
 
         VE_INLINE void AddNarrowPhaseData(u64 pairID,
-                                                Entity colliderOne,
-                                                Entity colliderTwo,
-                                                CollisionShape &shapeOne,
-                                                CollisionShape &shapeTwo,
-                                                const TransformComponent &shapeOneTransform,
-                                                const TransformComponent &shapeTwoTransform,
-                                                bool reportContacts,
-                                                LastFrameCollisionData &lastFrameInfo) {
+                                          Entity colliderOne,
+                                          Entity colliderTwo,
+                                          CollisionShape &shapeOne,
+                                          CollisionShape &shapeTwo,
+                                          const TransformComponent &shapeOneTransform,
+                                          const TransformComponent &shapeTwoTransform,
+                                          bool reportContacts,
+                                          LastFrameCollisionData &lastFrameInfo) {
             Data.emplace_back(pairID, colliderOne, colliderTwo, lastFrameInfo, shapeOne, shapeTwo, shapeOneTransform, shapeTwoTransform, reportContacts);
         }
 
         VE_INLINE void AddContactPoint(size_t index,
-                                             const glm::vec3 &contactNormal,
-                                             f32 penetrationDepth,
-                                             const glm::vec3 &localSpaceContactPointOnBodyOne,
-                                             const glm::vec3 &localSpaceContactPointOnBodyTwo) {
+                                       const glm::vec3 &contactNormal,
+                                       f32 penetrationDepth,
+                                       const glm::vec3 &localSpaceContactPointOnBodyOne,
+                                       const glm::vec3 &localSpaceContactPointOnBodyTwo) {
 
             VASSERT(penetrationDepth > f32(0.0), "Penetration depth should be greater than zero for a valid contact point.");
 

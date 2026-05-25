@@ -82,9 +82,9 @@ namespace Vulkyrie {
         PhysicsWorld &_physicsWorld;
         ColliderComponentStore &_colliderComponentStore;
         RigidBodyComponentStore &_rigidBodyComponentStore;
-        CollisionDispatch _collisionDispatch;
+        CollisionDispatch _collisionDispatch{};
 
-        std::unordered_set<Pair<Entity, Entity>> _nonCollidablePairs;
+        std::unordered_set<Pair<Entity, Entity>> _nonCollidablePairs{};
         OverlappingPairs _overlappingPairs;
         std::vector<Pair<i32, i32>> _broadphaseOverlappingPairs;
         BroadPhaseSystem _broadPhaseSystem;
@@ -171,10 +171,10 @@ namespace Vulkyrie {
                             std::vector<ContactPair> &lostContactPairs);
 
         void reportTriggers(EventListener &eventListener, std::vector<ContactPair> *contactPairs, std::vector<ContactPair> &lostContactPairs);
-        void reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
-                                          std::vector<ContactManifold> *manifolds,
-                                          std::vector<ContactPoint> *contactPoints,
-                                          std::vector<ContactPair> &lostContactPairs);
+        // void reportDebugRenderingContacts(std::vector<ContactPair> *contactPairs,
+        //                                   std::vector<ContactManifold> *manifolds,
+        //                                   std::vector<ContactPoint> *contactPoints,
+        //                                   std::vector<ContactPair> &lostContactPairs);
         f32 computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
         void filterOverlappingPairs(Entity bodyEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
         void filterOverlappingPairs(Entity body1Entity, Entity body2Entity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;

@@ -230,6 +230,17 @@ namespace Vulkyrie {
             return _collisionCategoryBits[_entityToComponentIndex.find(colliderEntity)->second];
         }
 
+        /** @brief Retrieves the collision category bitmask for the component at the specified index in the component vector. The category bits define the
+         * collision group this collider belongs to. Collision filtering is performed by testing this value against the CollidesWithMaskBits of the other
+         * collider. The index must be a valid index within the component vector.
+         * @param index The index of the component whose collision category bits are to be retrieved. Must be a valid index within the component vector.
+         * @returns The collision category bitmask assigned to the component at the specified index. */
+        [[nodiscard]] VE_INLINE u16 GetCollisionCategoryBitsAtIndex(size_t index) const {
+            VASSERT(index < _activeCount, "Index out of bounds.");
+
+            return _collisionCategoryBits[index];
+        }
+
         /** @brief Sets the collision category bitmask for the specified collider entity. The category bits define the collision group this collider belongs
          * to and are used during broad-phase and narrow-phase filtering. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose collision category bits are to be set.
@@ -249,6 +260,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return _collidesWithMaskBits[_entityToComponentIndex.find(colliderEntity)->second];
+        }
+
+        /** @brief Retrieves the collides-with bitmask for the component at the specified index in the component vector. This mask defines which collision
+         * categories this collider will respond to. A collision is only processed when (this->CollisionCategoryBits & other->CollidesWithMaskBits) != 0 and
+         * vice versa. The index must be a valid index within the component vector.
+         * @param index The index of the component whose collides-with mask bits are to be retrieved. Must be a valid index within the component vector.
+         * @returns The collides-with bitmask for the component at the specified index. */
+        [[nodiscard]] VE_INLINE u16 GetCollidesWithMaskBitsAtIndex(size_t index) const {
+            VASSERT(index < _activeCount, "Index out of bounds.");
+
+            return _collidesWithMaskBits[index];
         }
 
         /** @brief Sets the collides-with bitmask for the specified collider entity. This mask defines which collision categories this collider will respond
@@ -271,6 +293,16 @@ namespace Vulkyrie {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return _localToWorldTransforms[_entityToComponentIndex.find(colliderEntity)->second];
+        }
+
+        /** @brief Retrieves a reference to the local-to-world transform associated with the component at the specified index in the component vector. The
+         * index must be a valid index within the component vector.
+         * @param index The index of the component whose local-to-world transform is to be retrieved. Must be a valid index within the component vector.
+         * @returns A reference to the local-to-world transform associated with the component at the specified index in the component vector. */
+        [[nodiscard]] VE_INLINE const TransformComponent &GetLocalToWorldTransformAtIndex(size_t index) const {
+            VASSERT(index < _activeCount, "Index out of bounds.");
+
+            return _localToWorldTransforms[index];
         }
 
         /** @brief Sets the local-to-world transform for the specified collider entity. The local-to-world transform represents the transformation that
@@ -405,6 +437,17 @@ namespace Vulkyrie {
             return static_cast<bool>(_isSimulationColliderFlags[_entityToComponentIndex.find(colliderEntity)->second]);
         }
 
+        /** @brief Checks if the component at the specified index in the component vector is a simulation collider. A simulation collider participates in
+         * physics simulation and collision response, while a non-simulation collider may be used for other purposes such as triggers or queries. The index
+         * must be a valid index within the component vector.
+         * @param index The index of the component to be checked. Must be a valid index within the component vector.
+         * @returns True if the component at the specified index is a simulation collider, false otherwise. */
+        [[nodiscard]] VE_INLINE bool IsSimulationColliderAtIndex(size_t index) const {
+            VASSERT(index < _isSimulationColliderFlags.size(), "Index out of bounds.");
+
+            return static_cast<bool>(_isSimulationColliderFlags[index]);
+        }
+
         /** @brief Sets whether the specified collider entity is a simulation collider. A simulation collider participates in physics simulation and
          * collision response, while a non-simulation collider may be used for other purposes such as triggers or queries. The entity must have a
          * ColliderComponent associated with it.
@@ -424,6 +467,16 @@ namespace Vulkyrie {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return static_cast<bool>(_isQueryColliderFlags[_entityToComponentIndex.find(colliderEntity)->second]);
+        }
+
+        /** @brief Checks if the component at the specified index in the component vector is a query collider. A query collider is used for collision queries
+         * and does not participate in physics simulation. The index must be a valid index within the component vector.
+         * @param index The index of the component to be checked. Must be a valid index within the component vector.
+         * @returns True if the component at the specified index is a query collider, false otherwise. */
+        [[nodiscard]] VE_INLINE bool IsQueryColliderAtIndex(size_t index) const {
+            VASSERT(index < _isQueryColliderFlags.size(), "Index out of bounds.");
+
+            return static_cast<bool>(_isQueryColliderFlags[index]);
         }
 
         /** @brief Sets whether the specified collider entity is a query collider. A query collider is used for collision queries and does not participate

@@ -199,7 +199,7 @@ namespace Vulkyrie {
                 it->second->IsObsolete = false;
                 return it->second;
             } else {
-                LastFrameCollisionData *newData = new LastFrameCollisionData();
+                auto *newData = new LastFrameCollisionData();
                 LastFrameCollisionDataMap[shapeIDPair] = newData;
                 return newData;
             }
