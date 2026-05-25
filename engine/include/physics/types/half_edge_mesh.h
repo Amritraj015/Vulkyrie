@@ -69,17 +69,17 @@ namespace Vulkyrie {
         };
 
         /** @brief Construct a half-edge mesh and pre-allocate internal storage.
+         * @param faceCount Expected number of faces, used to reserve storage.
          * @param vertexCount Expected number of vertices, used to reserve storage.
          * @param edgeCount Expected number of half-edges, used to reserve storage.
-         * @param faceCount Expected number of faces, used to reserve storage.
          */
-        HalfEdgeMesh(const size_t vertexCount, const size_t edgeCount, const size_t faceCount) {
-            _edges.reserve(edgeCount);
+        HalfEdgeMesh(const size_t faceCount, const size_t vertexCount, const size_t edgeCount) {
             _faces.reserve(faceCount);
             _vertices.reserve(vertexCount);
+            _edges.reserve(edgeCount);
         }
 
-        // Default destructor.
+        /** @brief Default destructor. */
         ~HalfEdgeMesh() = default;
 
         /** @brief Build the half-edge connectivity from the previously added vertices and faces. Must be called once after all vertices and faces have been

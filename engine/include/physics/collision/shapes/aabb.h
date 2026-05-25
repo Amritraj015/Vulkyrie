@@ -10,6 +10,9 @@ namespace Vulkyrie {
      * detection and spatial partitioning algorithms due to its simplicity and efficiency. */
     class AABB final {
     public:
+        /** @brief Default constructor for AABB. */
+        AABB() = default;
+
         /** @brief Constructs an AABB from the given minimum and maximum corner coordinates.
          * @param minCoordinates The minimum corner of the box (smallest x, y, z values).
          * @param maxCoordinates The maximum corner of the box (largest x, y, z values). */
