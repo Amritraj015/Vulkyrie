@@ -943,7 +943,6 @@ namespace Vulkyrie {
                                                    std::vector<ContactManifoldData> &potentialContactManifolds,
                                                    std::unordered_map<u64, u32> &mapPairIdToContactPairIndex,
                                                    std::vector<ContactPair> &contactPairs) {
-
         const auto &settings = _physicsWorld.GetSettings();
         const f32 cosAngleSimilarContactManifold = settings.CosAngleSimilarContactManifold;
 
@@ -980,7 +979,8 @@ namespace Vulkyrie {
                 const bool isTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex) || _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
 
                 VASSERT((isTrigger && data.ContactPointCount == 0) || (!isTrigger && data.ContactPointCount > 0),
-                        "Trigger pairs should not have contact points and non-trigger pairs should have at least one contact point when trying to process potential contacts.");
+                        "Trigger pairs should not have contact points and non-trigger pairs should have at least one contact point when trying to process "
+                        "potential contacts.");
 
                 const bool isShapeOneConvex = _colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex).IsConvex();
                 const bool isShapeTwoConvex = _colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex).IsConvex();
@@ -1268,6 +1268,7 @@ namespace Vulkyrie {
         }
     }
 
+    // TODO: Implement this.
     void CollisionSystem::createContacts() {
         // _currentContactManifolds->reserve(_currentContactPairs->size());
         // _currentContactPoints->reserve(_currentContactManifolds->size());
@@ -1492,6 +1493,7 @@ namespace Vulkyrie {
         }
     }
 
+    // TODO: Implement this.
     void CollisionSystem::reduceContactPoints(ContactManifoldData &manifold,
                                               const TransformComponent &shape1ToWorldTransform,
                                               const std::vector<ContactPointData> &potentialContactPoints) const {
