@@ -140,7 +140,7 @@ namespace Vulkyrie {
         void computeConvexVsConcaveMiddlePhase(ConcaveOverlappingPair &overlappingPair, NarrowPhaseInput &batches, bool reportContacts);
         void swapPreviousAndCurrentContacts();
         void processPotentialContacts(NarrowPhaseDataBatch &batch,
-                                      bool updateLastFrameInfo,
+                                      bool updateLastFrameData,
                                       std::vector<ContactPointData> &potentialContactPoints,
                                       std::vector<ContactManifoldData> &potentialContactManifolds,
                                       std::unordered_map<u64, u32> &mapPairIdToContactPairIndex,

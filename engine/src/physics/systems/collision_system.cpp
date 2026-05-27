@@ -938,11 +938,225 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::processPotentialContacts(NarrowPhaseDataBatch &batch,
-                                                   bool updateLastFrameInfo,
+                                                   bool updateLastFrameData,
                                                    std::vector<ContactPointData> &potentialContactPoints,
                                                    std::vector<ContactManifoldData> &potentialContactManifolds,
                                                    std::unordered_map<u64, u32> &mapPairIdToContactPairIndex,
                                                    std::vector<ContactPair> &contactPairs) {
+
+        const auto &settings = _physicsWorld.GetSettings();
+        const f32 cosAngleSimilarContactManifold = settings.CosAngleSimilarContactManifold;
+
+        for (size_t d = 0; d < batch.Data.size(); ++d) {
+            NarrowPhaseData &data = batch.Data[d];
+
+            // Update the last-frame collision state for every entry in the batch unconditionally,
+            // so that pairs which stop colliding are correctly marked as non-colliding next frame.
+            if (updateLastFrameData) {
+                data.LastFrameCollisionInfo.WasColliding = data.IsColliding;
+                data.LastFrameCollisionInfo.IsValid = true;
+            }
+
+            if (data.IsColliding) {
+                const u64 pairID = data.OverlappingPairID;
+                OverlappingPair *overlappingPair = _overlappingPairs.GetOverlappingPair(pairID);
+
+                VASSERT(nullptr != overlappingPair,
+                        "Overlapping pair should exist for a colliding narrow-phase data entry when trying to process potential contacts.");
+
+                // Mark the overlapping pair as colliding in the current frame so that the event system
+                // can distinguish new, persisting, and lost contacts after all batches are processed.
+                overlappingPair->AreCollidingThisFrame = true;
+
+                const Entity colliderOneEntity = data.ColliderOneEntity;
+                const Entity colliderTwoEntity = data.ColliderTwoEntity;
+
+                const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+                const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+                const Entity bodyOneEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderOneIndex);
+                const Entity bodyTwoEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderTwoIndex);
+
+                const bool isTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex) || _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+
+                VASSERT((isTrigger && data.ContactPointCount == 0) || (!isTrigger && data.ContactPointCount > 0),
+                        "Trigger pairs should not have contact points and non-trigger pairs should have at least one contact point when trying to process potential contacts.");
+
+                const bool isShapeOneConvex = _colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex).IsConvex();
+                const bool isShapeTwoConvex = _colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex).IsConvex();
+
+                // Convex vs convex: each narrow-phase entry maps 1-to-1 to exactly one ContactPair
+                // and one ContactManifoldData, so we can create them unconditionally here.
+                if (isShapeOneConvex && isShapeTwoConvex) {
+                    const u32 newContactPairIndex = static_cast<u32>(contactPairs.size());
+
+                    contactPairs.emplace_back(pairID,
+                                              bodyOneEntity,
+                                              bodyTwoEntity,
+                                              colliderOneEntity,
+                                              colliderTwoEntity,
+                                              newContactPairIndex,
+                                              overlappingPair->WereCollidingLastFrame,
+                                              isTrigger);
+
+                    ContactPair &contactPair = contactPairs[newContactPairIndex];
+
+                    // Triggers don't generate contact points, so only build the manifold when there are points to store.
+                    if (data.ContactPointCount > 0) {
+                        const u32 contactManifoldIndex = static_cast<u32>(potentialContactManifolds.size());
+                        potentialContactManifolds.emplace_back(pairID);
+                        ContactManifoldData &contactManifoldData = potentialContactManifolds[contactManifoldIndex];
+
+                        // firstContactPointIndex is the offset into the shared potentialContactPoints array
+                        // where this manifold's points begin, allowing the indices stored in the manifold to
+                        // correctly reference their entries even after further points are appended.
+                        const u32 firstContactPointIndex = static_cast<u32>(potentialContactPoints.size());
+
+                        for (u32 i = 0; i < data.ContactPointCount; ++i) {
+                            if (contactManifoldData.TotalPotentialContactPoints < MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD) {
+                                // Add the contact point to the manifold.
+                                contactManifoldData.PotentialContactPointsIndices[contactManifoldData.TotalPotentialContactPoints] = firstContactPointIndex + i;
+                                contactManifoldData.TotalPotentialContactPoints++;
+
+                                // Add the contact point to the array of potential contact points
+                                const ContactPointData &contactPoint = data.ContactPoints[i];
+
+                                potentialContactPoints.push_back(contactPoint);
+                            }
+                        }
+
+                        VASSERT(data.ContactPointCount > 0,
+                                "Colliding narrow-phase data should have at least one contact point when trying to process potential contacts.");
+                        VASSERT(pairID == contactManifoldData.PairID,
+                                "Contact manifold data pair ID should match the narrow-phase data pair ID when trying to process potential contacts.");
+
+                        contactPair.PotentialContactManifoldIndices[0] = contactManifoldIndex;
+                        contactPair.PotentialContactManifoldsCount = 1;
+                    }
+                } else {
+                    // Convex vs concave: the concave shape is decomposed into many triangles by the middle phase,
+                    // each generating a separate narrow-phase entry that all share the same overlapping pair ID.
+                    // We therefore reuse a single ContactPair across all triangle sub-entries for this pair,
+                    // inserting one only on the first encounter and looking it up on subsequent ones.
+                    auto it = mapPairIdToContactPairIndex.find(pairID);
+                    ContactPair *contactPair = nullptr;
+
+                    if (it == mapPairIdToContactPairIndex.end()) {
+                        // First triangle for this pair — create a new ContactPair and register it in the map.
+                        const u32 newContactPairIndex = static_cast<u32>(contactPairs.size());
+                        contactPairs.emplace_back(pairID,
+                                                  bodyOneEntity,
+                                                  bodyTwoEntity,
+                                                  colliderOneEntity,
+                                                  colliderTwoEntity,
+                                                  newContactPairIndex,
+                                                  overlappingPair->WereCollidingLastFrame,
+                                                  isTrigger);
+
+                        contactPair = &contactPairs[newContactPairIndex];
+                        mapPairIdToContactPairIndex[pairID] = newContactPairIndex;
+                    } else {
+                        // Subsequent triangle for the same pair — reuse the existing ContactPair.
+                        VASSERT(it->first == pairID,
+                                "Pair ID in the map should match the narrow-phase data pair ID when trying to process potential contacts.");
+
+                        const u32 contactPairIndex = it->second;
+                        contactPair = &contactPairs[contactPairIndex];
+                    }
+
+                    VASSERT(nullptr != contactPair,
+                            "Contact pair should exist for a colliding narrow-phase data entry when trying to process potential contacts for convex vs concave "
+                            "pairs.");
+
+                    if (data.ContactPointCount > 0) {
+
+                        for (u8 i = 0; i < data.ContactPointCount; ++i) {
+                            const ContactPointData &contactPoint = data.ContactPoints[i];
+                            const u32 contactPointIndex = static_cast<u32>(potentialContactPoints.size());
+                            potentialContactPoints.push_back(contactPoint);
+
+                            bool similarManifoldFound = false;
+
+                            // Try to merge this contact point into an existing manifold whose first point has
+                            // a similar normal direction (dot product >= cosAngleSimilarContactManifold).
+                            // This groups geometrically coherent contacts together, which improves solver stability.
+                            for (u8 m = 0; m < contactPair->PotentialContactManifoldsCount; ++m) {
+
+                                const u32 contactManifoldIndex = contactPair->PotentialContactManifoldIndices[m];
+                                ContactManifoldData &contactManifoldData = potentialContactManifolds[contactManifoldIndex];
+
+                                VASSERT(contactManifoldData.TotalPotentialContactPoints > 0,
+                                        "Contact manifold data should have at least one potential contact point when trying to process potential contacts for "
+                                        "convex vs concave "
+                                        "pairs.");
+
+                                if (contactManifoldData.TotalPotentialContactPoints < MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD) {
+                                    // Get the first contact point of the current manifold.
+                                    const uint manifoldContactPointIndex = contactManifoldData.PotentialContactPointsIndices[0];
+                                    const ContactPointData &manifoldContactPoint = potentialContactPoints[manifoldContactPointIndex];
+
+                                    // If we have found a corresponding manifold for the new contact point
+                                    // (a manifold with a similar contact normal direction)
+                                    const f32 dotProduct = glm::dot(manifoldContactPoint.WorldSpaceContactNormal, contactPoint.WorldSpaceContactNormal);
+
+                                    if (dotProduct >= cosAngleSimilarContactManifold) {
+                                        // Add the contact point to the manifold.
+                                        contactManifoldData.PotentialContactPointsIndices[contactManifoldData.TotalPotentialContactPoints] = contactPointIndex;
+                                        contactManifoldData.TotalPotentialContactPoints++;
+
+                                        similarManifoldFound = true;
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // No existing manifold had a compatible normal — open a new one for this contact point.
+                            if (!similarManifoldFound && contactPair->PotentialContactManifoldsCount < MAX_POTENTIAL_CONTACT_MANIFOLDS) {
+
+                                // Create a new potential contact manifold for the overlapping pair
+                                u32 contactManifoldIndex = static_cast<u32>(potentialContactManifolds.size());
+                                potentialContactManifolds.push_back(pairID);
+                                ContactManifoldData &contactManifoldData = potentialContactManifolds[contactManifoldIndex];
+
+                                // Add the contact point to the manifold
+                                contactManifoldData.PotentialContactPointsIndices[0] = contactPointIndex;
+                                contactManifoldData.TotalPotentialContactPoints = 1;
+
+                                VASSERT(nullptr != contactPair,
+                                        "Contact pair should exist when trying to add a new potential contact manifold for a colliding narrow-phase data "
+                                        "entry for convex vs concave "
+                                        "pairs.");
+
+                                // Add the contact manifold to the overlapping pair contact
+                                VASSERT(potentialContactManifolds[contactManifoldIndex].TotalPotentialContactPoints > 0,
+                                        "New contact manifold should have at least one potential contact point when trying to add a new potential contact "
+                                        "manifold for a colliding narrow-phase data "
+                                        "entry for convex vs concave "
+                                        "pairs.");
+
+                                VASSERT(contactPair->PairID == contactManifoldData.PairID,
+                                        "Contact manifold data pair ID should match the contact pair ID when trying to add a new potential contact "
+                                        "manifold for a colliding narrow-phase data "
+                                        "entry for convex vs concave "
+                                        "pairs.");
+
+                                contactPair->PotentialContactManifoldIndices[contactPair->PotentialContactManifoldsCount] = contactManifoldIndex;
+                                contactPair->PotentialContactManifoldsCount++;
+                            }
+
+                            VASSERT(contactPair->PotentialContactManifoldsCount > 0,
+                                    "Contact pair should have at least one potential contact manifold when trying to process potential contacts for convex "
+                                    "vs concave pairs.");
+                        }
+                    }
+                }
+
+                // Release the contact points stored in the batch entry now that they have been
+                // moved into the shared potentialContactPoints array, freeing per-frame memory.
+                batch.ResetContactPoints(d);
+            }
+        }
     }
 
     void CollisionSystem::processAllPotentialContacts(NarrowPhaseInput &batches,
