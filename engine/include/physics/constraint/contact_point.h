@@ -58,7 +58,7 @@ namespace Vulkyrie {
         /** @brief Sets the penetration impulse for this contact point. The penetration impulse represents the corrective impulse that should be applied to
          * resolve the interpenetration between the two colliding bodies at this contact point.
          * @param penetrationImpulse The penetration impulse to set for this contact point. */
-        VE_INLINE void setPenetrationImpulse(f32 penetrationImpulse) {
+        VE_INLINE void SetPenetrationImpulse(f32 penetrationImpulse) {
             _penetrationImpulse = penetrationImpulse;
         }
 
@@ -77,7 +77,7 @@ namespace Vulkyrie {
          * point as a resting contact can help improve the stability of the physics simulation by allowing the engine to apply different response strategies
          * for contacts that are expected to persist over time.
          * @param isRestingContact True to set this contact point as a resting contact, false otherwise. */
-        VE_INLINE void setIsRestingContact(bool isRestingContact) {
+        VE_INLINE void SetIsRestingContact(bool isRestingContact) {
             _isRestingContact = isRestingContact;
         }
 

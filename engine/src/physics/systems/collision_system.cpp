@@ -1266,8 +1266,8 @@ namespace Vulkyrie {
 
                         if (distanceSquared <= persistentContactDistanceThreshold) {
                             // Transfer data from the previous contact point to the current one.
-                            currentContactPoint.setPenetrationImpulse(previousContactPoint.GetPenetrationImpulse());
-                            currentContactPoint.setIsRestingContact(previousContactPoint.IsRestingContact());
+                            currentContactPoint.SetPenetrationImpulse(previousContactPoint.GetPenetrationImpulse());
+                            currentContactPoint.SetIsRestingContact(previousContactPoint.IsRestingContact());
 
                             break;
                         }
