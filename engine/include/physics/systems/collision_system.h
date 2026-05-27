@@ -164,7 +164,7 @@ namespace Vulkyrie {
                                     std::vector<ContactPointData> &potentialContactPoints);
         void initContactsWithPreviousOnes();
         void reduceContactPoints(ContactManifoldData &manifold,
-                                 const TransformComponent &shape1ToWorldTransform,
+                                 const TransformComponent &shapeOneToWorldTransform,
                                  const std::vector<ContactPointData> &potentialContactPoints) const;
 
         void reportContacts(CollisionCallback &callback,

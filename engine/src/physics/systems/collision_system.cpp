@@ -1493,10 +1493,158 @@ namespace Vulkyrie {
         }
     }
 
-    // TODO: Implement this.
     void CollisionSystem::reduceContactPoints(ContactManifoldData &manifold,
-                                              const TransformComponent &shape1ToWorldTransform,
+                                              const TransformComponent &shapeOneToWorldTransform,
                                               const std::vector<ContactPointData> &potentialContactPoints) const {
+
+        u8 candidatePointsCount = manifold.TotalPotentialContactPoints;
+
+        VASSERT(candidatePointsCount > MAX_CONTACT_POINTS_IN_MANIFOLD,
+                "Contact manifold should have more than the maximum contact points in manifold when trying to reduce contact points in a manifold.");
+
+        u32 candidatePointsIndices[MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD];
+
+        for (u8 i = 0; i < candidatePointsCount; ++i) {
+            candidatePointsIndices[i] = manifold.PotentialContactPointsIndices[i];
+        }
+
+        u32 pointsIndicesToKeep[MAX_CONTACT_POINTS_IN_MANIFOLD]{};
+        const TransformComponent worldToShapeOneTransform = shapeOneToWorldTransform.Inverse();
+
+        // Transform the contact normal into the local space of the first shape so that all
+        // subsequent area calculations are done in a consistent local frame.
+        const glm::vec3 shapeOneSpaceContactNormal =
+            worldToShapeOneTransform.Rotation * potentialContactPoints[candidatePointsIndices[0]].WorldSpaceContactNormal;
+
+        // --- Point 1: pick the point with the greatest projection onto a fixed search direction.
+        // Using a constant direction produces stable, frame-coherent contact sets.
+        const glm::vec3 searchDirection(1);
+        f32 maxDotProduct = -std::numeric_limits<f32>::max();
+        u32 elementIndexToKeep = 0;
+
+        for (u8 i = 0; i < candidatePointsCount; ++i) {
+            const ContactPointData &point = potentialContactPoints[candidatePointsIndices[i]];
+            const f32 dotProduct = glm::dot(searchDirection, point.LocalSpaceContactPointOnBodyOne);
+
+            if (dotProduct > maxDotProduct) {
+                maxDotProduct = dotProduct;
+                elementIndexToKeep = i;
+            }
+        }
+
+        pointsIndicesToKeep[0] = candidatePointsIndices[elementIndexToKeep];
+        removeItemAtInArray(candidatePointsIndices, elementIndexToKeep, candidatePointsCount);
+
+        // --- Point 2: pick the point farthest from point 1.
+        // This maximizes the length of the first edge of the contact polygon.
+        f32 maxDistanceSquared(0.0f);
+        elementIndexToKeep = 0;
+        const ContactPointData &pointZero = potentialContactPoints[pointsIndicesToKeep[0]];
+
+        for (u8 i = 0; i < candidatePointsCount; ++i) {
+            const ContactPointData &element = potentialContactPoints[candidatePointsIndices[i]];
+            const f32 distanceSquared = glm::distance2(element.LocalSpaceContactPointOnBodyOne, pointZero.LocalSpaceContactPointOnBodyOne);
+
+            if (distanceSquared >= maxDistanceSquared) {
+                maxDistanceSquared = distanceSquared;
+                elementIndexToKeep = i;
+            }
+        }
+
+        pointsIndicesToKeep[1] = candidatePointsIndices[elementIndexToKeep];
+        removeItemAtInArray(candidatePointsIndices, elementIndexToKeep, candidatePointsCount);
+
+        // --- Point 3: pick the point that forms the largest-area triangle with points 1 and 2.
+        // We track both the most positive and most negative signed areas so we can choose the
+        // correct winding regardless of the contact normal orientation.
+        u32 thirdPointMaxAreaIndex = 0;
+        u32 thirdPointMinAreaIndex = 0;
+
+        f32 minArea(0.0f);
+        f32 maxArea(0.0f);
+
+        const glm::vec3 &p0 = potentialContactPoints[pointsIndicesToKeep[0]].LocalSpaceContactPointOnBodyOne;
+        const glm::vec3 &p1 = potentialContactPoints[pointsIndicesToKeep[1]].LocalSpaceContactPointOnBodyOne;
+
+        for (u8 i = 0; i < candidatePointsCount; ++i) {
+            const glm::vec3 &element = potentialContactPoints[candidatePointsIndices[i]].LocalSpaceContactPointOnBodyOne;
+
+            const glm::vec3 edgeOne = p0 - element;
+            const glm::vec3 edgeTwo = p1 - element;
+
+            // Signed area of the triangle formed by this candidate and the first two kept points,
+            // projected onto the contact normal.
+            const f32 area = glm::dot(glm::cross(edgeOne, edgeTwo), shapeOneSpaceContactNormal);
+
+            if (area >= maxArea) {
+                maxArea = area;
+                thirdPointMaxAreaIndex = i;
+            }
+
+            if (area <= minArea) {
+                minArea = area;
+                thirdPointMinAreaIndex = i;
+            }
+        }
+
+        // Keep whichever candidate produces the larger absolute area, and record its sign so
+        // the fourth-point search knows which winding to look for.
+        bool isPreviousAreaPositive;
+        if (maxArea > -minArea) {
+            isPreviousAreaPositive = true;
+            pointsIndicesToKeep[2] = candidatePointsIndices[thirdPointMaxAreaIndex];
+            removeItemAtInArray(candidatePointsIndices, thirdPointMaxAreaIndex, candidatePointsCount);
+        } else {
+            isPreviousAreaPositive = false;
+            pointsIndicesToKeep[2] = candidatePointsIndices[thirdPointMinAreaIndex];
+            removeItemAtInArray(candidatePointsIndices, thirdPointMinAreaIndex, candidatePointsCount);
+        }
+
+        // --- Point 4: pick the point that maximizes the total covered area by forming the
+        // largest triangle of opposite winding against any edge of the triangle from points 1-3.
+        // Opposite winding ensures the fourth point lies outside the existing triangle,
+        // giving the broadest possible contact patch.
+        f32 largestArea(0.0f);
+        elementIndexToKeep = 0;
+        f32 area;
+
+        for (u8 i = 0; i < candidatePointsCount; ++i) {
+            const ContactPointData &element = potentialContactPoints[candidatePointsIndices[i]];
+
+            // Test the candidate against each edge of the triangle made by the first three points.
+            for (u8 j = 0; j < 3; ++j) {
+                u32 edgeVertexOneIndex = j;
+                u32 edgeVertexTwoIndex = j < 2 ? j + 1 : 0;
+
+                const ContactPointData &pointToKeepEdgeV1 = potentialContactPoints[pointsIndicesToKeep[edgeVertexOneIndex]];
+                const ContactPointData &pointToKeepEdgeV2 = potentialContactPoints[pointsIndicesToKeep[edgeVertexTwoIndex]];
+
+                const glm::vec3 newToFirst = pointToKeepEdgeV1.LocalSpaceContactPointOnBodyOne - element.LocalSpaceContactPointOnBodyOne;
+                const glm::vec3 newToSecond = pointToKeepEdgeV2.LocalSpaceContactPointOnBodyOne - element.LocalSpaceContactPointOnBodyOne;
+
+                area = glm::dot(glm::cross(newToFirst, newToSecond), shapeOneSpaceContactNormal);
+
+                // We want the triangle with the greatest magnitude but opposite sign to point 3's
+                // winding, so the four points together form a convex contact patch.
+                if (isPreviousAreaPositive && area <= largestArea) {
+                    largestArea = area;
+                    elementIndexToKeep = i;
+                } else if (!isPreviousAreaPositive && area >= largestArea) {
+                    largestArea = area;
+                    elementIndexToKeep = i;
+                }
+            }
+        }
+
+        pointsIndicesToKeep[3] = candidatePointsIndices[elementIndexToKeep];
+        removeItemAtInArray(candidatePointsIndices, elementIndexToKeep, candidatePointsCount);
+
+        // Only keep the four selected contact points in the manifold.
+        manifold.PotentialContactPointsIndices[0] = pointsIndicesToKeep[0];
+        manifold.PotentialContactPointsIndices[1] = pointsIndicesToKeep[1];
+        manifold.PotentialContactPointsIndices[2] = pointsIndicesToKeep[2];
+        manifold.PotentialContactPointsIndices[3] = pointsIndicesToKeep[3];
+        manifold.TotalPotentialContactPoints = 4;
     }
 
     void CollisionSystem::reportContacts(CollisionCallback &callback,
