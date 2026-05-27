@@ -3,9 +3,10 @@
 
 namespace Vulkyrie {
 
-    CollisionShape::CollisionShape(CollisionShapeType type, CollisionShapeName name)
+    CollisionShape::CollisionShape(CollisionShapeType type, CollisionShapeName name, u32 id)
         : _type(type)
-        , _name(name) {
+        , _name(name)
+        , _id(id) {
     }
 
     AABB CollisionShape::ComputeTransformedAABB(const TransformComponent &transform) const {

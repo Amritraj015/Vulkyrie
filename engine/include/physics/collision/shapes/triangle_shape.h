@@ -98,10 +98,8 @@ namespace Vulkyrie {
                     isShape1Triangle ? static_cast<const TriangleShape *>(shapeOne) : static_cast<const TriangleShape *>(shapeTwo);
 
                 // Compute the world-to-local inverse of the other shape's transform.
-                // For a rigid transform T = {p, q}: T^-1 = { -q^-1 * p, q^-1 }.
                 const TransformComponent &otherToWorld = isShape1Triangle ? shapeTwoToWorld : shapeOneToWorld;
-                const glm::quat invOtherRot = glm::inverse(otherToWorld.Rotation);
-                const TransformComponent worldToOther = { invOtherRot * (-otherToWorld.Position), invOtherRot };
+                const TransformComponent worldToOther = otherToWorld.Inverse();
 
                 // Compute the smooth triangle mesh contact normal and recompute the local contact point on the other shape.
                 triangleShape->computeSmoothMeshContact(isShape1Triangle ? localContactPointShapeOne : localContactPointShapeTwo,

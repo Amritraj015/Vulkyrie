@@ -3,8 +3,8 @@
 
 namespace Vulkyrie {
 
-    ConvexShape::ConvexShape(CollisionShapeType type, CollisionShapeName name, f32 margin)
-        : CollisionShape(type, name)
+    ConvexShape::ConvexShape(CollisionShapeType type, CollisionShapeName name, f32 margin, u32 id)
+        : CollisionShape(type, name, id)
         , _margin(margin) {
     }
 

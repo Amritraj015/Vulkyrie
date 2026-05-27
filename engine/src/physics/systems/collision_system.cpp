@@ -810,101 +810,108 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::computeConvexVsConcaveMiddlePhase(ConcaveOverlappingPair &overlappingPair, NarrowPhaseInput &batches, bool reportContacts) {
-        // const Entity colliderOneEntity = overlappingPair.ColliderOneEntity;
-        // const Entity colliderTwoEntity = overlappingPair.ColliderTwoEntity;
-        //
-        // const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
-        // const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
-        //
-        // const TransformComponent &shapeOneLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderOneIndex);
-        // const TransformComponent &shapeTwoLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderTwoIndex);
-        //
-        // TransformComponent convexToConcaveTransform;
-        // ConvexShape *convexShape = nullptr;
-        // ConcaveShape *concaveShape = nullptr;
-        //
-        // if (overlappingPair.IsFirstShapeConvex) {
-        //     convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
-        //     concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
-        //
-        //     // TODO: Calculate convexToConcaveTransform
-        //
-        // } else {
-        //     convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
-        //     concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
-        //
-        //     // TODO: Calculate convexToConcaveTransform
-        //     // convexToConcaveTransform = shapeOneLocalToWorldTransform.GetInverse() * shapeTwoLocalToWorldTransform;
-        // }
-        //
-        // VASSERT(convexShape->IsConvex(),
-        //         "Convex shape in a convex vs concave pair does not have a convex collision shape when trying to compute convex vs concave middle-phase.");
-        // VASSERT(!concaveShape->IsConvex(),
-        //         "Concave shape in a convex vs concave pair does not have a concave collision shape when trying to compute convex vs concave middle-phase.");
-        // VASSERT(overlappingPair.NarrowPhaseAlgorithmToUse != NarrowPhaseAlgorithm::NoCollisionCheck,
-        //         "Narrow-phase algorithm to use for a convex vs concave pair is not set when trying to compute convex vs concave middle-phase.");
-        //
-        // const AABB aabb = convexShape->ComputeTransformedAABB(convexToConcaveTransform);
-        // std::vector<glm::vec3> triangleVertices(64);
-        // std::vector<glm::vec3> triangleVerticesNormals(64);
-        // std::vector<u32> shapeIDs(64);
-        //
-        // concaveShape->ComputeOverlappingTriangles(aabb, triangleVertices, triangleVerticesNormals, shapeIDs);
-        //
-        // VASSERT(triangleVertices.size() == triangleVerticesNormals.size(),
-        //         "Triangle vertices and triangle vertex normals arrays should have the same size after computing overlapping triangles for convex vs concave "
-        //         "middle-phase.");
-        //
-        // VASSERT(shapeIDs.size() == triangleVertices.size() / 3,
-        //         "Shape IDs array size should be equal to the number of triangles (i.e. number of vertices divided by 3) after computing overlapping triangles
-        //         " "for convex vs concave " "middle-phase.");
-        //
-        // VASSERT(triangleVertices.size() % 3 == 0,
-        //         "Triangle vertices array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
-        //
-        // VASSERT(triangleVerticesNormals.size() % 3 == 0,
-        //         "Triangle vertex normals array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
-        //
-        // const bool isColliderOneTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex);
-        // const bool isColliderTwoTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
-        // reportContacts = reportContacts && !isColliderOneTrigger && !isColliderTwoTrigger;
-        //
-        // CollisionShape *shapeOne = nullptr;
-        // CollisionShape *shapeTwo = nullptr;
-        //
-        // if (overlappingPair.IsFirstShapeConvex) {
-        //     shapeOne = convexShape;
-        // } else {
-        //     shapeTwo = convexShape;
-        // }
-        //
-        // for (size_t i = 0; i < shapeIDs.size(); ++i) {
-        //     // Create a triangle collision shape (the allocated memory for the TriangleShape will be released in the
-        //     // destructor of the corresponding NarrowPhaseInfo.
-        //     TriangleShape *triangleShape =
-        //         new TriangleShape(&(triangleVertices[i * 3]), &(triangleVerticesNormals[i * 3]), shapeIds[i], mTriangleHalfEdgeStructure);
-        //
-        //     if (overlappingPair.IsFirstShapeConvex) {
-        //         shapeTwo = triangleShape;
-        //     } else {
-        //         shapeOne = triangleShape;
-        //     }
-        //
-        //     // Add a collision info for the two collision shapes into the overlapping pair (if not present yet)
-        //     LastFrameCollisionData *lastFrameInfo = overlappingPair.AddLastFrameCollisionDataIfNecessary(shapeOne->GetID(), shapeTwo->GetID());
-        //
-        //     // Create a narrow phase info for the narrow-phase collision detection
-        //     batches.AddNarrowPhaseTest(overlappingPair.PairID,
-        //                                colliderOneEntity,
-        //                                colliderTwoEntity,
-        //                                shapeOne,
-        //                                shapeTwo,
-        //                                shapeOneLocalToWorldTransform,
-        //                                shapeTwoLocalToWorldTransform,
-        //                                overlappingPair.NarrowPhaseAlgorithmToUse,
-        //                                reportContacts,
-        //                                lastFrameInfo);
-        // }
+        const Entity colliderOneEntity = overlappingPair.ColliderOneEntity;
+        const Entity colliderTwoEntity = overlappingPair.ColliderTwoEntity;
+
+        const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
+        const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+
+        const TransformComponent &shapeOneLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderOneIndex);
+        const TransformComponent &shapeTwoLocalToWorldTransform = _colliderComponentStore.GetLocalToWorldTransformAtIndex(colliderTwoIndex);
+
+        TransformComponent convexToConcaveTransform;
+        ConvexShape *convexShape = nullptr;
+        ConcaveShape *concaveShape = nullptr;
+
+        // Determine which collider in the pair has the convex shape and which one has the concave shape,
+        // and compute the transform from the convex shape's local space to the concave shape's local space.
+        if (overlappingPair.IsFirstShapeConvex) {
+            convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
+            concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
+            convexToConcaveTransform = shapeTwoLocalToWorldTransform.Inverse() * shapeOneLocalToWorldTransform;
+        } else {
+            convexShape = static_cast<ConvexShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderTwoIndex));
+            concaveShape = static_cast<ConcaveShape *>(&_colliderComponentStore.GetCollisionShapeAtIndex(colliderOneIndex));
+            convexToConcaveTransform = shapeOneLocalToWorldTransform.Inverse() * shapeTwoLocalToWorldTransform;
+        }
+
+        VASSERT(convexShape->IsConvex(),
+                "Convex shape in a convex vs concave pair does not have a convex collision shape when trying to compute convex vs concave middle-phase.");
+        VASSERT(!concaveShape->IsConvex(),
+                "Concave shape in a convex vs concave pair does not have a concave collision shape when trying to compute convex vs concave middle-phase.");
+        VASSERT(overlappingPair.NarrowPhaseAlgorithmToUse != NarrowPhaseAlgorithm::NoCollisionCheck,
+                "Narrow-phase algorithm to use for a convex vs concave pair is not set when trying to compute convex vs concave middle-phase.");
+
+        const AABB aabb = convexShape->ComputeTransformedAABB(convexToConcaveTransform);
+
+        std::vector<glm::vec3> triangleVertices;
+        std::vector<glm::vec3> triangleVerticesNormals;
+        std::vector<u32> shapeIDs;
+        triangleVertices.reserve(64);
+        triangleVerticesNormals.reserve(64);
+        shapeIDs.reserve(64);
+
+        // Compute the triangles of the concave shape that overlap with the convex shape's AABB in the concave shape's local space.
+        concaveShape->ComputeOverlappingTriangles(aabb, triangleVertices, triangleVerticesNormals, shapeIDs);
+
+        VASSERT(triangleVertices.size() == triangleVerticesNormals.size(),
+                "Triangle vertices and triangle vertex normals arrays should have the same size after computing overlapping triangles for convex vs concave "
+                "middle-phase.");
+
+        VASSERT(shapeIDs.size() == triangleVertices.size() / 3,
+                "Shape IDs array size should be equal to the number of triangles (i.e. triangle vertices array size divided by 3) after computing overlapping "
+                "triangles for "
+                "convex vs concave middle-phase.");
+
+        VASSERT(triangleVertices.size() % 3 == 0,
+                "Triangle vertices array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
+
+        VASSERT(triangleVerticesNormals.size() % 3 == 0,
+                "Triangle vertex normals array size should be a multiple of 3 after computing overlapping triangles for convex vs concave middle-phase.");
+
+        const bool isColliderOneTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderOneIndex);
+        const bool isColliderTwoTrigger = _colliderComponentStore.IsTriggerAtIndex(colliderTwoIndex);
+        reportContacts = reportContacts && !isColliderOneTrigger && !isColliderTwoTrigger;
+
+        CollisionShape *shapeOne = nullptr;
+        CollisionShape *shapeTwo = nullptr;
+
+        if (overlappingPair.IsFirstShapeConvex) {
+            shapeOne = convexShape;
+        } else {
+            shapeTwo = convexShape;
+        }
+
+        // For each triangle of the concave shape that overlaps with the convex shape's AABB,
+        // create a triangle collision shape and add a narrow-phase test for this triangle
+        // against the convex shape in the narrow-phase input batches.
+        for (size_t i = 0; i < shapeIDs.size(); ++i) {
+            // Create a triangle collision shape (the allocated memory for the TriangleShape
+            // will be released in the destructor of the NarrowPhaseDataBatch.
+            auto *triangleShape = new TriangleShape(&(triangleVertices[i * 3]), &(triangleVerticesNormals[i * 3]), shapeIDs[i], _triangleHalfEdgeMesh);
+
+            if (overlappingPair.IsFirstShapeConvex) {
+                shapeTwo = triangleShape;
+            } else {
+                shapeOne = triangleShape;
+            }
+
+            // Add a collision info for the two collision shapes into the overlapping pair (if not present yet).
+            LastFrameCollisionData *lastFrameInfo = overlappingPair.AddLastFrameCollisionDataIfNecessary(shapeOne->GetID(), shapeTwo->GetID());
+
+            // Create a narrow-phase test for this triangle against the convex shape in the narrow-phase input batches,
+            // which will be processed later during narrow-phase collision detection.
+            batches.AddNarrowPhaseTest(overlappingPair.PairID,
+                                       colliderOneEntity,
+                                       colliderTwoEntity,
+                                       *shapeOne,
+                                       *shapeTwo,
+                                       shapeOneLocalToWorldTransform,
+                                       shapeTwoLocalToWorldTransform,
+                                       overlappingPair.NarrowPhaseAlgorithmToUse,
+                                       reportContacts,
+                                       *lastFrameInfo);
+        }
     }
 
     void CollisionSystem::swapPreviousAndCurrentContacts() {
@@ -942,7 +949,6 @@ namespace Vulkyrie {
                                                       std::vector<ContactPointData> &potentialContactPoints,
                                                       std::vector<ContactManifoldData> &potentialContactManifolds,
                                                       std::vector<ContactPair> &contactPairs) {
-
         VASSERT(contactPairs.size() == 0, "Contact pairs list should be empty at the start of processing potential contacts.");
 
         std::unordered_map<u64, u32> pairIdToContactPairIndexMap;
@@ -1048,6 +1054,8 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::createContacts() {
+        // _currentContactManifolds->reserve(_currentContactPairs->size());
+        // _currentContactPoints->reserve(_currentContactManifolds->size());
     }
 
     void CollisionSystem::addContactPairsToBodies() {
@@ -1156,6 +1164,117 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::initContactsWithPreviousOnes() {
+        const auto &settings = _physicsWorld.GetSettings();
+        const f32 persistentContactDistanceThreshold = settings.PersistentContactDistanceThresholdSquared;
+        const f32 cosAngleSimilarContactManifold = settings.CosAngleSimilarContactManifold;
+
+        // Iterate through the current contact pairs and try to initialize their contact manifolds
+        // and contact points with the contact manifolds and contact points of the previous contact
+        // pair with the same pair ID (if any), which can help to improve the stability of the
+        // contact constraints and reduce jitter in the collision response.
+        for (ContactPair &currentContactPair : *_currentContactPairs) {
+            auto itPreviousContactPair = _previousPairIDToContactPairIndexMap.find(currentContactPair.PairID);
+
+            // If there is a contact pair in the previous frame with the same pair ID as the current contact pair, we can try to initialize the contact
+            // manifolds and contact points of the current contact pair with the contact manifolds and contact points of the previous contact pair.
+            if (itPreviousContactPair != _previousPairIDToContactPairIndexMap.end()) {
+                const u32 previousContactPairIndex = itPreviousContactPair->second;
+                const ContactPair &previousContactPair = (*_previousContactPairs)[previousContactPairIndex];
+
+                /****************************************************************************/
+                // Contact Manifolds Initialization with Previous Contact Manifolds.
+                /****************************************************************************/
+
+                const u32 contactManifoldIndex = currentContactPair.ContactManifoldIndex;
+                const u32 contactManifoldCount = currentContactPair.ContactManifoldCount;
+
+                // Iterate through the contact manifolds for this contact pair and try to find a matching
+                // contact manifold in the previous contact pair based on the similarity of their contact normals.
+                for (u32 m = contactManifoldIndex; m < contactManifoldIndex + contactManifoldCount; ++m) {
+                    VASSERT(m < _currentContactManifolds->size(),
+                            "Contact manifold index should be within bounds of current contact manifolds list when trying to initialize contacts with previous "
+                            "ones.");
+
+                    ContactManifold &currentContactManifold = (*_currentContactManifolds)[m];
+
+                    VASSERT(currentContactManifold.ContactPointCount > 0,
+                            "Contact manifold should have at least one contact point when trying to initialize contacts with previous ones.");
+
+                    ContactPoint &currentContactPoint = (*_currentContactPoints)[currentContactManifold.ContactPointIndex];
+                    const glm::vec3 currentContactPointNormal = currentContactPoint.GetWorldSpaceContactNormal();
+
+                    const u32 previousContactManifoldIndex = previousContactPair.ContactManifoldIndex;
+                    const u32 previousContactManifoldCount = previousContactPair.ContactManifoldCount;
+
+                    // Iterate through the contact manifolds in the previous contact pair to find a contact manifold that has a similar contact normal to the
+                    // current contact manifolds contact normal based on the cosine of the angle between their contact normals. If such a contact manifold is
+                    // found, we can transfer the relevant data from the previous contact manifold to the current contact manifold, which can help to improve
+                    // the stability of the contact constraints and reduce jitter in the collision response. We use the cosine of the angle between the contact
+                    // normals to determine if the contact manifolds are similar enough to transfer data, as this allows us to account for cases where the
+                    // contact normals may not be exactly the same due to small variations in the collision response or numerical precision issues, while still
+                    // ensuring that we only transfer data between contact manifolds that are reasonably similar in terms of their contact normals, which is
+                    // important for maintaining good collision response quality.
+                    for (u32 p = previousContactManifoldIndex; p < previousContactManifoldIndex + previousContactManifoldCount; ++p) {
+                        ContactManifold &previousContactManifold = (*_previousContactManifolds)[p];
+
+                        VASSERT(previousContactManifold.ContactPointCount > 0,
+                                "Contact manifold should have at least one contact point when trying to initialize contacts with previous ones.");
+
+                        ContactPoint &previousContactPoint = (*_previousContactPoints)[previousContactManifold.ContactPointIndex];
+
+                        if (glm::dot(previousContactPoint.GetWorldSpaceContactNormal(), currentContactPointNormal) >= cosAngleSimilarContactManifold) {
+                            // Transfer data from the previous contact manifold to the current one.
+                            currentContactManifold.FrictionVectorOne = previousContactManifold.FrictionVectorOne;
+                            currentContactManifold.FrictionVectorTwo = previousContactManifold.FrictionVectorTwo;
+                            currentContactManifold.FrictionImpulseOne = previousContactManifold.FrictionImpulseOne;
+                            currentContactManifold.FrictionImpulseTwo = previousContactManifold.FrictionImpulseTwo;
+                            currentContactManifold.FrictionTwistImpulse = previousContactManifold.FrictionTwistImpulse;
+
+                            break;
+                        }
+                    }
+                }
+
+                /****************************************************************************/
+                // Contact Points Initialization with Previous Contact Points.
+                /*****************************************************************************/
+
+                const u32 contactPointIndex = currentContactPair.ContactPointIndex;
+                const u32 contactPointCount = currentContactPair.ContactPointCount;
+
+                // Iterate through the contact points for this contact pair and try to find a matching
+                // contact point in the previous contact pair based on the distance between their contact points.
+                for (u32 c = contactPointIndex; c < contactPointIndex + contactPointCount; ++c) {
+                    VASSERT(
+                        c < _currentContactPoints->size(),
+                        "Contact point index should be within bounds of current contact points list when trying to initialize contacts with previous ones.");
+
+                    ContactPoint &currentContactPoint = (*_currentContactPoints)[c];
+                    const glm::vec3 currentLocalSpaceContactPointOnBodyOne = currentContactPoint.GetLocalSpaceContactPointOnBodyOne();
+
+                    const u32 previousContactPointIndex = previousContactPair.ContactPointIndex;
+                    const u32 previousContactPointCount = previousContactPair.ContactPointCount;
+
+                    // Iterate through the contact points in the previous contact pair to find a contact point that is close enough to the current contact point
+                    // based on the distance between their contact points in the local space of body one. If such a contact point is found, we can transfer the
+                    // relevant data from the previous contact point to the current contact point, which can help to improve the stability of the contact
+                    // constraints and reduce jitter in the collision response.
+                    for (u32 p = previousContactPointIndex; p < previousContactPointIndex + previousContactPointCount; ++p) {
+                        ContactPoint &previousContactPoint = (*_previousContactPoints)[p];
+                        const f32 distanceSquared =
+                            glm::distance2(previousContactPoint.GetLocalSpaceContactPointOnBodyOne(), currentLocalSpaceContactPointOnBodyOne);
+
+                        if (distanceSquared <= persistentContactDistanceThreshold) {
+                            // Transfer data from the previous contact point to the current one.
+                            currentContactPoint.setPenetrationImpulse(previousContactPoint.GetPenetrationImpulse());
+                            currentContactPoint.setIsRestingContact(previousContactPoint.IsRestingContact());
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void CollisionSystem::reduceContactPoints(ContactManifoldData &manifold,
@@ -1190,7 +1309,7 @@ namespace Vulkyrie {
     //     // Report contacts for debug rendering if there are any contact pairs or lost contact pairs to report.
     //     if (contactPairs->size() + lostContactPairs.size() > 0) {
     //         CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, *mWorld);
-    //         mWorld->mDebugRenderer.OnContact(callbackData);
+    //         _physicsWorld.GetDebugRenderer().OnContact(callbackData);
     //     }
     // }
 

@@ -15,11 +15,9 @@ namespace Vulkyrie {
         /** @brief Construct a collision shape with the specified type and name.
          * @param type The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave).
          * @param name The specific name of the collision shape (e.g., Triangle, Sphere
+         * @param id The unique identifier of the collision shape in the overlapping pair.
          */
-        CollisionShape(CollisionShapeType type, CollisionShapeName name);
-
-        /** Virtual destructor to allow proper cleanup of derived classes. */
-        virtual ~CollisionShape() = default;
+        explicit CollisionShape(CollisionShapeType type, CollisionShapeName name, u32 id = 0);
 
         // Delete the copy constructor and operator.
         CollisionShape(const CollisionShape &) = delete;
@@ -28,6 +26,9 @@ namespace Vulkyrie {
         // Delete the move constructor and operator.
         CollisionShape(CollisionShape &&) = delete;
         CollisionShape &operator=(CollisionShape &&) = delete;
+
+        /** Virtual destructor to allow proper cleanup of derived classes. */
+        virtual ~CollisionShape() = default;
 
         /** @brief Get the type of the collision shape.
          * @returns The type of the collision shape (e.g., Sphere, Capsule, ConvexPolyhedron, Concave).
@@ -41,6 +42,13 @@ namespace Vulkyrie {
          */
         [[nodiscard]] VE_INLINE CollisionShapeName GetName() const {
             return _name;
+        }
+
+        /** @brief Get the unique identifier of the collision shape in the overlapping pair.
+         * @returns The unique identifier of the collision shape in the overlapping pair.
+         */
+        [[nodiscard]] VE_INLINE u32 GetID() const {
+            return _id;
         }
 
         /** @brief Add a collider to the list of colliders using this collision shape.
@@ -105,6 +113,9 @@ namespace Vulkyrie {
 
         /** @brief The specific name of the collision shape (e.g., Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield). */
         const CollisionShapeName _name;
+
+        /** @brief The unique identifier of the collision shape in the overlapping pair. */
+        const u32 _id;
 
         /** @brief Colliders that are using this collision shape. This allows the shape to notify its colliders of any changes that may affect collision
          * detection or response. */

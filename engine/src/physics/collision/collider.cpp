@@ -31,7 +31,7 @@ namespace Vulkyrie {
         const TransformComponent localToWorld = bodyTransform * transform;
         _body.GetPhysicsWorld().GetColliderComponentStore().SetLocalToWorldTransform(_entity, localToWorld);
 
-        RigidBody *rigidBody = dynamic_cast<RigidBody *>(&_body);
+        auto *rigidBody = dynamic_cast<RigidBody *>(&_body);
 
         if (nullptr != rigidBody) {
             rigidBody->SetIsSleeping(false);
@@ -52,7 +52,7 @@ namespace Vulkyrie {
         const TransformComponent localToWorld = _body.GetPhysicsWorld().GetTransformComponentStore().GetTransform(_body.GetEntity()) *
                                                 _body.GetPhysicsWorld().GetColliderComponentStore().GetLocalToBodyTransform(_entity);
 
-        const glm::vec3 localPoint = glm::inverse(localToWorld.Rotation) * (worldSpacePoint - localToWorld.Position);
+        const glm::vec3 localPoint = localToWorld.Inverse() * worldSpacePoint;
         const CollisionShape &collisionShape = _body.GetPhysicsWorld().GetColliderComponentStore().GetCollisionShape(_entity);
         return collisionShape.ContainsPoint(localPoint);
     }

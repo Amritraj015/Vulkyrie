@@ -15,11 +15,9 @@ namespace Vulkyrie {
          * @param name The specific name of the convex polyhedron shape. This is used to identify the exact type of convex polyhedron shape.
          * @param margin The margin to be applied to the convex polyhedron shape for collision detection purposes. This is an optional parameter that
          * defaults to 0.0f if not provided. A positive margin can help improve collision detection stability by providing a small buffer around the shape.
+         * @param id The unique identifier of the convex polyhedron shape in the overlapping pair.
          */
-        ConvexPolyhedronShape(CollisionShapeName name);
-
-        /** @brief Destructor for the ConvexPolyhedronShape class. */
-        virtual ~ConvexPolyhedronShape() override = default;
+        explicit ConvexPolyhedronShape(CollisionShapeName name, f32 margin = 0.0f, u32 id = 0);
 
         // Delete the copy constructor and operator.
         ConvexPolyhedronShape(const ConvexPolyhedronShape &) = delete;
@@ -28,6 +26,9 @@ namespace Vulkyrie {
         // Delete the move constructor and operator.
         ConvexPolyhedronShape(ConvexPolyhedronShape &&) = delete;
         ConvexPolyhedronShape &operator=(ConvexPolyhedronShape &&) = delete;
+
+        /** @brief Destructor for the ConvexPolyhedronShape class. */
+        virtual ~ConvexPolyhedronShape() override = default;
 
         /** @brief Get the number of faces of the convex polyhedron shape.
          * @returns The number of faces of the convex polyhedron shape. This is typically equal to the number of flat surfaces that make up the shape.

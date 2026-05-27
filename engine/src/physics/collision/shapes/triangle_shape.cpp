@@ -3,8 +3,8 @@
 
 namespace Vulkyrie {
 
-    TriangleShape::TriangleShape(const glm::vec3 vertices[3], const glm::vec3 vertexNormals[3], [[maybe_unused]] u32 shapeID, HalfEdgeMesh &halfEdgeStructure)
-        : ConvexPolyhedronShape(CollisionShapeName::Triangle)
+    TriangleShape::TriangleShape(const glm::vec3 vertices[3], const glm::vec3 vertexNormals[3], u32 shapeID, HalfEdgeMesh &halfEdgeStructure)
+        : ConvexPolyhedronShape(CollisionShapeName::Triangle, 0.0f, shapeID)
         , _raycastSide(TriangleRaycastSide::Front)
         , _halfEdgeStructure(halfEdgeStructure) {
         _vertices[0] = vertices[0];
@@ -23,8 +23,8 @@ namespace Vulkyrie {
         _vertexNormals[2] = vertexNormals[2];
     }
 
-    TriangleShape::TriangleShape(const glm::vec3 vertices[3], [[maybe_unused]] u32 shapeID, HalfEdgeMesh &halfEdgeStructure)
-        : ConvexPolyhedronShape(CollisionShapeName::Triangle)
+    TriangleShape::TriangleShape(const glm::vec3 vertices[3], u32 shapeID, HalfEdgeMesh &halfEdgeStructure)
+        : ConvexPolyhedronShape(CollisionShapeName::Triangle, 0.0f, shapeID)
         , _raycastSide(TriangleRaycastSide::Front)
         , _halfEdgeStructure(halfEdgeStructure) {
         _vertices[0] = vertices[0];

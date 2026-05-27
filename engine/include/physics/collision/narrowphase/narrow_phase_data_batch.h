@@ -4,12 +4,13 @@
 
 namespace Vulkyrie {
 
-    class OverlappingPairs;
-
     class NarrowPhaseDataBatch final {
     public:
         NarrowPhaseDataBatch() = default;
-        ~NarrowPhaseDataBatch() = default;
+
+        ~NarrowPhaseDataBatch() {
+            Dispose();
+        }
 
         std::vector<NarrowPhaseData> Data;
 
@@ -33,13 +34,16 @@ namespace Vulkyrie {
 
             VASSERT(penetrationDepth > f32(0.0), "Penetration depth should be greater than zero for a valid contact point.");
 
-            if (Data[index].ContactPointCount < MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE) {
+            NarrowPhaseData &data = Data[index];
+
+            if (data.ContactPointCount < MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE) {
                 VASSERT(glm::length2(contactNormal) == f32(1.0), "Contact normal should be a normalized vector with length of 1.");
 
-                Data[index].ContactPoints[Data[index].ContactPointCount] = {
+                data.ContactPoints[data.ContactPointCount] = {
                     contactNormal, localSpaceContactPointOnBodyOne, localSpaceContactPointOnBodyTwo, penetrationDepth
                 };
-                Data[index].ContactPointCount++;
+
+                data.ContactPointCount++;
             }
         }
 
@@ -48,7 +52,22 @@ namespace Vulkyrie {
         }
 
         // void ReserveMemory();
-        // void Clear();
+        VE_INLINE void Dispose() {
+
+            // TODO: Not a fan of this, need to figure out a better way to manage the lifetime of the triangle shapes that are created for concave collision
+            // detection without having to manually delete them here in the destructor of the narrow-phase data batch. The pointers are initialized in
+            // CollisionSystem.cpp
+
+            for (NarrowPhaseData &data : Data) {
+                if (data.ShapeOne.GetName() == CollisionShapeName::Triangle) {
+                    delete &data.ShapeOne;
+                }
+
+                if (data.ShapeTwo.GetName() == CollisionShapeName::Triangle) {
+                    delete &data.ShapeTwo;
+                }
+            }
+        }
     };
 
 } // namespace Vulkyrie

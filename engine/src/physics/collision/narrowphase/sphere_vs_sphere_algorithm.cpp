@@ -39,8 +39,8 @@ namespace Vulkyrie {
                     // If contact reporting is enabled, compute contact information.
                     if (data.ReportContacts) {
                         // Compute inverse transforms for both shapes (for local space contact points).
-                        const TransformComponent transformOneInverse = { -shapeOneTransform.Position, glm::conjugate(shapeOneTransform.Rotation) };
-                        const TransformComponent transformTwoInverse = { -shapeTwoTransform.Position, glm::conjugate(shapeTwoTransform.Rotation) };
+                        const TransformComponent transformOneInverse = shapeOneTransform.Inverse();
+                        const TransformComponent transformTwoInverse = shapeTwoTransform.Inverse();
 
                         glm::vec3 intersectionBodyOne;
                         glm::vec3 intersectionBodyTwo;

@@ -10,18 +10,32 @@ namespace Vulkyrie {
      *  transform composition numerically exact (no non-uniform scale / rotation interaction). */
     struct TransformComponent final {
     public:
-        /** Position of the entity in 3D space. */
-        glm::vec3 Position;
-
         /** Rotation of the entity represented as a quaternion. */
         glm::quat Rotation;
 
+        /** Position of the entity in 3D space. */
+        glm::vec3 Position;
+
         VE_INLINE TransformComponent operator*(const TransformComponent &other) const {
-            return { Position + Rotation * other.Position, Rotation * other.Rotation };
+            return { Rotation * other.Rotation, Position + Rotation * other.Position };
         }
 
         VE_INLINE glm::vec3 operator*(const glm::vec3 &point) const {
             return Position + Rotation * point;
+        }
+
+        /** @brief Computes the inverse of this transform component, which can be used to transform points from world space back into the local space of this
+         * transform. The inverse is computed by taking the conjugate of the rotation (which is equivalent to the inverse for unit quaternions) and applying it
+         * to the negated position. This allows for efficient composition of transforms and their inverses without needing to convert to matrices. */
+        [[nodiscard]] VE_INLINE TransformComponent Inverse() const {
+            const glm::quat inverseRotation = glm::conjugate(Rotation);
+            return { inverseRotation, inverseRotation * (-Position) };
+        }
+
+        /** @brief Returns an identity transform component, which represents no rotation and no translation. The rotation is set to the identity quaternion (1,
+         * 0, 0, 0), and the position is set to the zero vector (0, 0, 0). This can be used as a default or starting point for transformations. */
+        [[nodiscard]] VE_INLINE static constexpr TransformComponent Identity() {
+            return { glm::quat(1.f, 0.f, 0.f, 0.f), glm::vec3(0.f) };
         }
     };
 

@@ -12,6 +12,7 @@
 #include "physics/types/contact_manifold_data.h"
 #include "physics/types/contact_pair.h"
 #include "physics/types/event_listener.h"
+#include "physics/types/half_edge_mesh.h"
 #include "physics/types/narrow_phase_input.h"
 #include "physics/types/overlap_callback.h"
 #include "physics/types/overlapping_pairs.h"
@@ -110,6 +111,8 @@ namespace Vulkyrie {
         std::vector<ContactPoint> _contactPointsTwo;
         std::vector<ContactPoint> *_previousContactPoints;
         std::vector<ContactPoint> *_currentContactPoints;
+
+        HalfEdgeMesh &_triangleHalfEdgeMesh;
 
         u32 _previousPotentialContactManifoldsCount;
         u32 _previousPotentialContactPointsCount;

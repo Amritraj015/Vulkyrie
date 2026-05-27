@@ -16,8 +16,9 @@ namespace Vulkyrie {
          * @param name The specific name of the convex shape (e.g., Box, ConvexMesh).
          * @param margin The margin to be applied to the convex shape for collision detection purposes. This is an optional parameter that defaults to 0.0f
          * if not provided. A positive margin can help improve collision detection stability by providing a small buffer around the shape.
+         * @param id The unique identifier of the convex shape in the overlapping pair.
          */
-        ConvexShape(CollisionShapeType type, CollisionShapeName name, f32 margin = 0.0f);
+        explicit ConvexShape(CollisionShapeType type, CollisionShapeName name, f32 margin = 0.0f, u32 id = 0);
 
         /** @brief Virtual destructor for the ConvexShape class. */
         virtual ~ConvexShape() = default;

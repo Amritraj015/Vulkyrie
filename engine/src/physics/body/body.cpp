@@ -80,11 +80,7 @@ namespace Vulkyrie {
     }
 
     glm::vec3 Body::GetLocalPoint(const glm::vec3 &worldPoint) const {
-        const TransformComponent &transform = GetTransform();
-        const glm::quat inverseRotation = glm::inverse(transform.Rotation);
-        const glm::vec3 localPoint = inverseRotation * (worldPoint - transform.Position);
-
-        return localPoint;
+        return GetTransform().Inverse() * worldPoint;
     }
 
     glm::vec3 Body::GetLocalVector(const glm::vec3 &worldVector) const {
@@ -161,7 +157,7 @@ namespace Vulkyrie {
 
     Collider &Body::AddCollider(CollisionShape &collisionShape, const TransformComponent &transform) {
         const Entity colliderEntity = _physicsWorld.GetEntityManager().CreateEntity();
-        Collider *collider = new Collider(colliderEntity, *this);
+        auto *collider = new Collider(colliderEntity, *this);
 
         const TransformComponent localToWorldTransform = GetTransform() * transform;
         const PhysicsWorldSettings &settings = _physicsWorld.GetSettings();
