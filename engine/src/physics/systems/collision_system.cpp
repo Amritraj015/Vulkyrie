@@ -7,14 +7,15 @@
 
 namespace Vulkyrie {
 
-    CollisionSystem::CollisionSystem(PhysicsWorld &physicsWorld)
+    CollisionSystem::CollisionSystem(PhysicsWorld &physicsWorld, HalfEdgeMesh &triangleHalfEdgeMesh)
         : _physicsWorld(physicsWorld)
         , _colliderComponentStore(_physicsWorld.GetColliderComponentStore())
         , _rigidBodyComponentStore(_physicsWorld.GetRigidBodyComponentStore())
         , _collisionDispatch()
         , _overlappingPairs(physicsWorld, _nonCollidablePairs, _collisionDispatch)
         , _broadPhaseSystem(physicsWorld)
-        , _narrowPhaseInput() {
+        , _narrowPhaseInput()
+        , _triangleHalfEdgeMesh(triangleHalfEdgeMesh) {
     }
 
     void CollisionSystem::RemoveCollider(Collider &collider) {

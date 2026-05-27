@@ -1,4 +1,4 @@
-#include "physics/constraint/contact_point.h"
+#include "physics/types/contact_point.h"
 #include "core/asserts.h"
 
 namespace Vulkyrie {

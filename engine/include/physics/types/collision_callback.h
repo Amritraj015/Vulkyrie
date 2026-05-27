@@ -1,6 +1,6 @@
 #pragma once
 
-#include "physics/constraint/contact_point.h"
+#include "physics/types/contact_point.h"
 #include "physics/types/contact_pair.h"
 #include "physics/types/contact_manifold.h"
 

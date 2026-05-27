@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/pair.h"
-#include "physics/constraint/contact_point.h"
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
@@ -11,6 +10,7 @@
 #include "physics/types/contact_manifold.h"
 #include "physics/types/contact_manifold_data.h"
 #include "physics/types/contact_pair.h"
+#include "physics/types/contact_point.h"
 #include "physics/types/event_listener.h"
 #include "physics/types/half_edge_mesh.h"
 #include "physics/types/narrow_phase_input.h"
@@ -19,12 +19,12 @@
 
 namespace Vulkyrie {
 
-    class PhysicsWorld;
-    class Body;
+    // class PhysicsWorld;
+    // class Body;
 
     class CollisionSystem final {
     public:
-        explicit CollisionSystem(PhysicsWorld &physicsWorld);
+        explicit CollisionSystem(PhysicsWorld &physicsWorld, HalfEdgeMesh &triangleHalfEdgeMesh);
 
         // Delete the copy constructor and copy assignment operator.
         CollisionSystem(const CollisionSystem &) = delete;
