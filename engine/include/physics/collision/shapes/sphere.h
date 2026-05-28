@@ -11,7 +11,7 @@ namespace Vulkyrie {
             , _stacks(stacks)
             , _sectors(sectors) {
 
-            CreateSphere(radius, stacks, sectors);
+            createSphere(radius, stacks, sectors);
         }
 
         [[nodiscard]] f32 GetRadius() const {
@@ -42,23 +42,25 @@ namespace Vulkyrie {
         std::vector<f32> _vertices;
         std::vector<u32> _indices;
 
-        void CreateSphere(f32 radius, u32 stacks, u32 sectors) {
-            f32 pi = std::numbers::pi_v<f32>;
+        void createSphere(f32 radius, u32 stacks, u32 sectors) {
+            const f32 pi = std::numbers::pi_v<f32>;
+            const f32 sectorsAsFloat = static_cast<f32>(sectors);
+            const f32 stacksAsFloat = static_cast<f32>(stacks);
 
             // Each vertex has 8 attributes (position, normal, texCoords)
             _vertices.reserve((stacks + 1) * (sectors + 1) * 8);
 
             for (u32 i = 0; i <= stacks; ++i) {
-                f32 v = (f32)i / stacks;
-                f32 phi = v * pi;
+                const f32 v = (f32)i / stacksAsFloat;
+                const f32 phi = v * pi;
 
                 for (u32 j = 0; j <= sectors; ++j) {
-                    f32 u = (f32)j / sectors;
-                    f32 theta = u * 2 * pi;
+                    const f32 u = (f32)j / sectorsAsFloat;
+                    const f32 theta = u * 2 * pi;
 
-                    f32 x = radius * sin(phi) * cos(theta);
-                    f32 y = radius * cos(phi);
-                    f32 z = radius * sin(phi) * sin(theta);
+                    const f32 x = radius * std::sin(phi) * std::cos(theta);
+                    const f32 y = radius * std::cos(phi);
+                    const f32 z = radius * std::sin(phi) * std::sin(theta);
 
                     _vertices.push_back(x);          // x
                     _vertices.push_back(y);          // y
@@ -76,8 +78,8 @@ namespace Vulkyrie {
 
             for (u32 i = 0; i < stacks; ++i) {
                 for (u32 j = 0; j < sectors; ++j) {
-                    u32 first = i * (sectors + 1) + j;
-                    u32 second = first + sectors + 1;
+                    const u32 first = i * (sectors + 1) + j;
+                    const u32 second = first + sectors + 1;
 
                     _indices.push_back(first);
                     _indices.push_back(second);

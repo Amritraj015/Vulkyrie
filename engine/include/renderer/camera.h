@@ -250,9 +250,9 @@ namespace Vulkyrie {
         VE_INLINE void updateCameraVectors() {
             // calculate the new Front vector
             glm::vec3 front;
-            front.x = static_cast<f32>(cos(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch)));
-            front.y = static_cast<f32>(sin(glm::radians(_settings.Pitch)));
-            front.z = static_cast<f32>(sin(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch)));
+            front.x = std::cos(glm::radians(_settings.Yaw)) * std::cos(glm::radians(_settings.Pitch));
+            front.y = std::sin(glm::radians(_settings.Pitch));
+            front.z = std::sin(glm::radians(_settings.Yaw)) * std::cos(glm::radians(_settings.Pitch));
             _settings.Front = glm::normalize(front);
 
             // also re-calculate the Right and Up vector

@@ -308,7 +308,7 @@ namespace Vulkyrie {
          * @param isConvexPair     True if both shapes are convex; false if one shape is a concave mesh.
          * @returns The unique pair ID of the newly created pair.
          */
-        size_t AddPair(i32 colliderOneIndex, i32 colliderTwoIndex, bool isConvexPair);
+        size_t AddPair(size_t colliderOneIndex, size_t colliderTwoIndex, bool isConvexPair);
 
         /**
          * @brief Removes the pair with the given ID from whichever pool it resides in.

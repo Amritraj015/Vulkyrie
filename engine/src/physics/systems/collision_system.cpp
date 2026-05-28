@@ -1497,14 +1497,14 @@ namespace Vulkyrie {
                                               const TransformComponent &shapeOneToWorldTransform,
                                               const std::vector<ContactPointData> &potentialContactPoints) const {
 
-        u8 candidatePointsCount = manifold.TotalPotentialContactPoints;
+        u32 candidatePointsCount = manifold.TotalPotentialContactPoints;
 
         VASSERT(candidatePointsCount > MAX_CONTACT_POINTS_IN_MANIFOLD,
                 "Contact manifold should have more than the maximum contact points in manifold when trying to reduce contact points in a manifold.");
 
         u32 candidatePointsIndices[MAX_CONTACT_POINTS_IN_POTENTIAL_MANIFOLD];
 
-        for (u8 i = 0; i < candidatePointsCount; ++i) {
+        for (u32 i = 0; i < candidatePointsCount; ++i) {
             candidatePointsIndices[i] = manifold.PotentialContactPointsIndices[i];
         }
 
@@ -1522,7 +1522,7 @@ namespace Vulkyrie {
         f32 maxDotProduct = -std::numeric_limits<f32>::max();
         u32 elementIndexToKeep = 0;
 
-        for (u8 i = 0; i < candidatePointsCount; ++i) {
+        for (u32 i = 0; i < candidatePointsCount; ++i) {
             const ContactPointData &point = potentialContactPoints[candidatePointsIndices[i]];
             const f32 dotProduct = glm::dot(searchDirection, point.LocalSpaceContactPointOnBodyOne);
 
@@ -1541,7 +1541,7 @@ namespace Vulkyrie {
         elementIndexToKeep = 0;
         const ContactPointData &pointZero = potentialContactPoints[pointsIndicesToKeep[0]];
 
-        for (u8 i = 0; i < candidatePointsCount; ++i) {
+        for (u32 i = 0; i < candidatePointsCount; ++i) {
             const ContactPointData &element = potentialContactPoints[candidatePointsIndices[i]];
             const f32 distanceSquared = glm::distance2(element.LocalSpaceContactPointOnBodyOne, pointZero.LocalSpaceContactPointOnBodyOne);
 
@@ -1566,7 +1566,7 @@ namespace Vulkyrie {
         const glm::vec3 &p0 = potentialContactPoints[pointsIndicesToKeep[0]].LocalSpaceContactPointOnBodyOne;
         const glm::vec3 &p1 = potentialContactPoints[pointsIndicesToKeep[1]].LocalSpaceContactPointOnBodyOne;
 
-        for (u8 i = 0; i < candidatePointsCount; ++i) {
+        for (u32 i = 0; i < candidatePointsCount; ++i) {
             const glm::vec3 &element = potentialContactPoints[candidatePointsIndices[i]].LocalSpaceContactPointOnBodyOne;
 
             const glm::vec3 edgeOne = p0 - element;
@@ -1608,7 +1608,7 @@ namespace Vulkyrie {
         elementIndexToKeep = 0;
         f32 area;
 
-        for (u8 i = 0; i < candidatePointsCount; ++i) {
+        for (u32 i = 0; i < candidatePointsCount; ++i) {
             const ContactPointData &element = potentialContactPoints[candidatePointsIndices[i]];
 
             // Test the candidate against each edge of the triangle made by the first three points.
@@ -1747,7 +1747,7 @@ namespace Vulkyrie {
         }
     }
 
-    void CollisionSystem::removeItemAtInArray(u32 array[], u8 index, u8 &arraySize) const {
+    void CollisionSystem::removeItemAtInArray(u32 array[], size_t index, u32 &arraySize) const {
         VASSERT(index < arraySize, "Index to remove should be within the bounds of the array size.");
         VASSERT(arraySize > 0, "Array size should be greater than zero when trying to remove an item from the array.");
 

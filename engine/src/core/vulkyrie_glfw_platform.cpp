@@ -376,11 +376,14 @@ namespace Vulkyrie {
 
         // Set window event callbacks.
         glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, int width, int height) {
+            const u32 newWidth = static_cast<u32>(width);
+            const u32 newHeight = static_cast<u32>(height);
+
             // Reset the height and width of the viewport.
-            glViewport(0, 0, width, height);
+            glViewport(0, 0, newWidth, newHeight);
 
             // Create the window resize event.
-            WindowResizedEvent event(width, height);
+            WindowResizedEvent event(newWidth, newHeight);
 
             // Get the window user pointer.
             const EventCallbackFn &callbackFn = *static_cast<EventCallbackFn *>(glfwGetWindowUserPointer(window));

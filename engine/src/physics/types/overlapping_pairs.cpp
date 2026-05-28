@@ -148,7 +148,7 @@ namespace Vulkyrie {
         RemoveConcavePairWithIndex(pairIndex, false);
     }
 
-    size_t OverlappingPairs::AddPair(i32 colliderOneIndex, i32 colliderTwoIndex, bool isConvexPair) {
+    size_t OverlappingPairs::AddPair(size_t colliderOneIndex, size_t colliderTwoIndex, bool isConvexPair) {
         VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) && _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex),
                 "Trying to add a pair with broad-phase IDs that do not exist in the collider component store.");
 

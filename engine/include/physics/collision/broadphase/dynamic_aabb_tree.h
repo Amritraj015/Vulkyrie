@@ -12,7 +12,6 @@ namespace Vulkyrie {
      * used for spatial partitioning and do not contain user data. The structure is designed to be memory-efficient and to support fast queries for potential
      * collisions between objects by organizing them hierarchically based on their AABBs. */
     struct AABBTreeNode final {
-    public:
         /** @brief Default constructor for the AABBTreeNode struct. Initializes the AABB to a default state with zero size, sets the child indices to null,
          * and marks the node as free by setting its height to -1. This constructor is used when creating new nodes in the tree, and the node will be
          * properly initialized with valid data when it is allocated and added to the tree. */
@@ -25,7 +24,6 @@ namespace Vulkyrie {
         Vulkyrie::AABB AABB;
 
         union {
-        public:
             /** @brief The indices of the child nodes in the tree. For internal nodes, these indices point to the left and right child nodes that are
              * used for spatial partitioning. For leaf nodes, these indices are not used and can be ignored. */
             i32 Children[2];
@@ -42,7 +40,6 @@ namespace Vulkyrie {
         };
 
         union {
-        public:
             /** @brief The index of the parent node in the tree. For the root node, this index is set to a special null value (e.g., -1) to indicate
              * that it has no parent. For all other nodes, this index points to the parent node that contains this node as one of its children. The
              * parent node is used for navigating up the tree during operations such as insertion, removal, and balancing. */
@@ -116,22 +113,23 @@ namespace Vulkyrie {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
             const i32 nodeIndex = allocateNode();
+            const auto idx = static_cast<size_t>(nodeIndex);
 
             // Inflate the AABB by the specified percentage to create a "fat" AABB that
             // can accommodate some movement without needing to be updated immediately.
             const glm::vec3 inflation(aabb.GetExtents() * _inflationPercentage);
-            _nodes[nodeIndex].AABB.SetMinMax(aabb.GetMin() - inflation, aabb.GetMax() + inflation);
+            _nodes[idx].AABB.SetMinMax(aabb.GetMin() - inflation, aabb.GetMax() + inflation);
 
             // Set the height of the new leaf node to 0.
-            _nodes[nodeIndex].Height = 0;
+            _nodes[idx].Height = 0;
 
             // Store the user-defined data in the node.
-            _nodes[nodeIndex].Data = data;
+            _nodes[idx].Data = data;
 
             // Insert the new leaf node into the tree, which may cause the tree to rebalance if necessary.
             insertLeafNode(nodeIndex);
 
-            VASSERT(_nodes[nodeIndex].IsLeaf(), "Added node should be a leaf.");
+            VASSERT(_nodes[idx].IsLeaf(), "Added node should be a leaf.");
 
             // Return the index of the newly inserted node.
             return nodeIndex;
@@ -151,22 +149,23 @@ namespace Vulkyrie {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
             const i32 nodeIndex = allocateNode();
+            const auto idx = static_cast<size_t>(nodeIndex);
 
             // Inflate the AABB by the specified percentage to create a "fat" AABB that
             // can accommodate some movement without needing to be updated immediately.
             const glm::vec3 inflation(aabb.GetExtents() * _inflationPercentage);
-            _nodes[nodeIndex].AABB.SetMinMax(aabb.GetMin() - inflation, aabb.GetMax() + inflation);
+            _nodes[idx].AABB.SetMinMax(aabb.GetMin() - inflation, aabb.GetMax() + inflation);
 
             // Set the height of the new leaf node to 0.
-            _nodes[nodeIndex].Height = 0;
+            _nodes[idx].Height = 0;
 
             // Store the user-defined data pointer in the node.
-            _nodes[nodeIndex].DataPointer = dataPointer;
+            _nodes[idx].DataPointer = dataPointer;
 
             // Insert the new leaf node into the tree, which may cause the tree to rebalance if necessary.
             insertLeafNode(nodeIndex);
 
-            VASSERT(_nodes[nodeIndex].IsLeaf(), "Added node should be a leaf.");
+            VASSERT(_nodes[idx].IsLeaf(), "Added node should be a leaf.");
 
             // Return the index of the newly inserted node.
             return nodeIndex;
@@ -195,7 +194,7 @@ namespace Vulkyrie {
          * a leaf node. */
         VE_INLINE void RemoveObject(i32 nodeIndex) {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-            VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only remove leaf nodes.");
+            VASSERT(_nodes[static_cast<size_t>(nodeIndex)].IsLeaf(), "Can only remove leaf nodes.");
 
             // Remove the leaf node from the tree, which may cause the tree to rebalance if necessary.
             removeLeafNode(nodeIndex);
@@ -214,7 +213,7 @@ namespace Vulkyrie {
         [[nodiscard]] VE_INLINE const AABB &GetFatAABB(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
 
-            return _nodes[nodeIndex].AABB;
+            return _nodes[static_cast<size_t>(nodeIndex)].AABB;
         }
 
         /** @brief Returns the AABB of the root node, which encompasses all objects in the tree. This is useful for quickly determining the overall
@@ -223,7 +222,7 @@ namespace Vulkyrie {
         [[nodiscard]] VE_INLINE const AABB &GetRootNodeAABB() const {
             VASSERT(_rootNodeIndex != AABB_TREE_NULL_NODE, "Tree is empty.");
 
-            return _nodes[_rootNodeIndex].AABB;
+            return _nodes[static_cast<size_t>(_rootNodeIndex)].AABB;
         }
 
         /** @brief Returns the data associated with the leaf node.
@@ -232,9 +231,10 @@ namespace Vulkyrie {
          * @returns The data associated with the leaf node. */
         [[nodiscard]] VE_INLINE i32 GetNodeData(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-            VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
+            const auto idx = static_cast<size_t>(nodeIndex);
+            VASSERT(_nodes[idx].IsLeaf(), "Can only get data from leaf nodes.");
 
-            return _nodes[nodeIndex].Data;
+            return _nodes[idx].Data;
         }
 
         /** @brief Returns a pointer to the data associated with the leaf node. The caller is responsible for ensuring that the pointer is used
@@ -244,9 +244,10 @@ namespace Vulkyrie {
          * @returns A pointer to the data associated with the leaf node. */
         [[nodiscard]] VE_INLINE void *GetNodeDataPointer(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-            VASSERT(_nodes[nodeIndex].IsLeaf(), "Can only get data from leaf nodes.");
+            const auto idx = static_cast<size_t>(nodeIndex);
+            VASSERT(_nodes[idx].IsLeaf(), "Can only get data from leaf nodes.");
 
-            return _nodes[nodeIndex].DataPointer;
+            return _nodes[idx].DataPointer;
         }
 
         /** @brief Queries the tree for all leaf nodes whose AABBs overlap with the specified query AABB. The results are returned as a vector of

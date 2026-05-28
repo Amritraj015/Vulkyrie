@@ -30,7 +30,7 @@ namespace Vulkyrie {
                 &_textures.Ambient, &_textures.Diffuse, &_textures.Specular, &_textures.Normal, &_textures.Height
             };
 
-            i32 unit = 0; // Texture unit counter - increments as we bind each texture
+            u32 unit = 0; // Texture unit counter - increments as we bind each texture
 
             // Bind all textures in order and set their corresponding shader uniforms
             for (auto typeVec : availableTextures) {

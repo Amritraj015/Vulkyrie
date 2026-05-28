@@ -181,7 +181,7 @@ namespace Vulkyrie {
         f32 computePotentialManifoldLargestContactDepth(const ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
         void filterOverlappingPairs(Entity bodyEntity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
         void filterOverlappingPairs(Entity body1Entity, Entity body2Entity, std::vector<u64> &convexPairs, std::vector<u64> &concavePairs) const;
-        void removeItemAtInArray(u32 array[], u8 index, u8 &arraySize) const;
+        void removeItemAtInArray(u32 array[], size_t index, u32 &arraySize) const;
         void removeDuplicatedContactPointsInManifold(ContactManifoldData &manifold, const std::vector<ContactPointData> &potentialContactPoints) const;
     };
 
