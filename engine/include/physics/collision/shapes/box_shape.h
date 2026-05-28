@@ -19,9 +19,6 @@ namespace Vulkyrie {
          */
         BoxShape(const glm::vec3 &halfExtents, PhysicsContext &context);
 
-        /** @brief Destructor for the BoxShape class. */
-        ~BoxShape() override = default;
-
         // Delete the copy constructor and the copy assignment operator.
         BoxShape(const BoxShape &) = delete;
         BoxShape &operator=(const BoxShape &) = delete;
@@ -29,6 +26,9 @@ namespace Vulkyrie {
         // Delete the move constructor and the move assignment operator.
         BoxShape(BoxShape &&) = delete;
         BoxShape &operator=(BoxShape &&) = delete;
+
+        /** @brief Destructor for the BoxShape class. */
+        ~BoxShape() override = default;
 
         /** @brief Get the half extents of the box shape.
          * @returns The half extents of the box shape as a glm::vec3, where each component represents half the size of the box along that axis.
@@ -52,21 +52,21 @@ namespace Vulkyrie {
         /** @brief Get the number of faces of the box shape.
          * @returns The number of faces of the box shape, which is always 6 for a box.
          */
-        [[nodiscard]] VE_INLINE constexpr u32 GetFacesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr size_t GetFacesCount() const override {
             return 6;
         }
 
         /** @brief Get the number of vertices of the box shape.
          * @returns The number of vertices of the box shape, which is always 8 for a box.
          */
-        [[nodiscard]] VE_INLINE constexpr u32 GetVerticesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr size_t GetVerticesCount() const override {
             return 8;
         }
 
         /** @brief Get the number of half edges of the box shape.
          * @returns The number of half edges of the box shape, which is always 24 for a box (each of the 12 edges has 2 half edges).
          */
-        [[nodiscard]] VE_INLINE constexpr u32 GetHalfEdgesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr size_t GetHalfEdgesCount() const override {
             return 24;
         }
 
@@ -77,7 +77,7 @@ namespace Vulkyrie {
          * is typically at the centroid of the shape. The vertices are ordered in a consistent manner, such as starting from one corner and proceeding in a
          * specific order around the box.
          */
-        [[nodiscard]] VE_INLINE glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetVertexPosition(size_t vertexIndex) const override {
             VASSERT(vertexIndex < GetVerticesCount(), "Vertex index out of bounds for box shape.");
 
             switch (vertexIndex) {
@@ -111,7 +111,7 @@ namespace Vulkyrie {
          * outward from the surface of the shape. The faces are ordered in a consistent manner, such as starting from one face and proceeding in a specific
          * order around the box.
          */
-        [[nodiscard]] VE_INLINE glm::vec3 GetFaceNormal(u32 faceIndex) const override {
+        [[nodiscard]] VE_INLINE glm::vec3 GetFaceNormal(size_t faceIndex) const override {
             VASSERT(faceIndex < GetFacesCount(), "Face index out of bounds for box shape.");
 
             switch (faceIndex) {

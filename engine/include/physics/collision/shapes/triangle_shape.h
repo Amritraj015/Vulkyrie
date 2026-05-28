@@ -150,7 +150,7 @@ namespace Vulkyrie {
          * @param vertexIndex Index of the vertex (0, 1, or 2).
          * @returns The position of the specified vertex in local space.
          */
-        [[nodiscard]] VE_INLINE virtual glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
+        [[nodiscard]] VE_INLINE virtual glm::vec3 GetVertexPosition(size_t vertexIndex) const override {
             VASSERT(vertexIndex < 3, "Vertex index out of bounds for triangle shape. A triangle shape only has 3 vertices.");
 
             return _vertices[vertexIndex];
@@ -160,7 +160,7 @@ namespace Vulkyrie {
          * @param faceIndex Index of the face (0 for front, 1 for back).
          * @returns The unit normal of the specified face in local space.
          */
-        [[nodiscard]] VE_INLINE virtual glm::vec3 GetFaceNormal(u32 faceIndex) const override {
+        [[nodiscard]] VE_INLINE virtual glm::vec3 GetFaceNormal(size_t faceIndex) const override {
             VASSERT(faceIndex < 2, "Face index out of bounds for triangle shape. A triangle shape only has 2 faces (front and back).");
             VASSERT(glm::length2(_normal) > 0.0f, "Normal vector of the triangle shape should not be a zero vector.");
 
@@ -170,21 +170,21 @@ namespace Vulkyrie {
         /** @brief Returns 2. A triangle exposes both a front and a back face to the collision system.
          * @returns 2.
          */
-        [[nodiscard]] VE_INLINE constexpr virtual u32 GetFacesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr virtual size_t GetFacesCount() const override {
             return 2;
         }
 
         /** @brief Returns 3. A triangle has exactly three vertices.
          * @returns 3.
          */
-        [[nodiscard]] VE_INLINE constexpr virtual u32 GetVerticesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr virtual size_t GetVerticesCount() const override {
             return 3;
         }
 
         /** @brief Returns 6. A triangle has 3 edges, each represented as two directed half-edges in the half-edge structure.
          * @returns 6.
          */
-        [[nodiscard]] VE_INLINE constexpr virtual u32 GetHalfEdgesCount() const override {
+        [[nodiscard]] VE_INLINE constexpr virtual size_t GetHalfEdgesCount() const override {
             // A triangle has 3 edges, and each edge is represented by 2 half-edges
             // in a half-edge data structure, so the total number of half-edges is 6.
             return 6;

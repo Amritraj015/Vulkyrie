@@ -25,31 +25,29 @@ namespace {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetHalfExtents returns constructed half extents", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
 
     REQUIRE(shape.GetHalfExtents() == glm::vec3(1.0f, 2.0f, 3.0f));
 }
 
 TEST_CASE("BoxShape - GetMargin returns zero when not specified", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetMargin() == 0.0f);
 }
 
-TEST_CASE("BoxShape - GetMargin returns constructed margin", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f), 0.05f);
-
-    REQUIRE(shape.GetMargin() == 0.05f);
-}
-
 TEST_CASE("BoxShape - GetType returns ConvexPolyhedron", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetType() == CollisionShapeType::ConvexPolyhedron);
 }
 
 TEST_CASE("BoxShape - GetName returns Box", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetName() == CollisionShapeName::Box);
 }
@@ -59,13 +57,15 @@ TEST_CASE("BoxShape - GetName returns Box", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - IsConvex returns true", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.IsConvex() == true);
 }
 
 TEST_CASE("BoxShape - IsPolyhedral returns true", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.IsPolyhedral() == true);
 }
@@ -75,14 +75,18 @@ TEST_CASE("BoxShape - IsPolyhedral returns true", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - SetHalfExtents updates GetHalfExtents", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
+
     shape.SetHalfExtents(glm::vec3(4.0f, 5.0f, 6.0f));
 
     REQUIRE(shape.GetHalfExtents() == glm::vec3(4.0f, 5.0f, 6.0f));
 }
 
 TEST_CASE("BoxShape - SetHalfExtents updates GetLocalAABB", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
+
     shape.SetHalfExtents(glm::vec3(2.0f, 3.0f, 4.0f));
     const AABB aabb = shape.GetLocalAABB();
 
@@ -95,19 +99,22 @@ TEST_CASE("BoxShape - SetHalfExtents updates GetLocalAABB", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetFacesCount returns 6", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetFacesCount() == 6);
 }
 
 TEST_CASE("BoxShape - GetVerticesCount returns 8", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetVerticesCount() == 8);
 }
 
 TEST_CASE("BoxShape - GetHafEdgesCount returns 24", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.GetHalfEdgesCount() == 24);
 }
@@ -117,7 +124,8 @@ TEST_CASE("BoxShape - GetHafEdgesCount returns 24", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetCentroid is at origin", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
 
     REQUIRE(shape.GetCentroid() == glm::vec3(0.0f));
 }
@@ -127,19 +135,21 @@ TEST_CASE("BoxShape - GetCentroid is at origin", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - All 8 vertices are distinct", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
     std::vector<glm::vec3> verts;
-    for (u32 i = 0; i < shape.GetVerticesCount(); ++i) verts.push_back(shape.GetVertexPosition(i));
+    for (size_t i = 0; i < shape.GetVerticesCount(); ++i) verts.push_back(shape.GetVertexPosition(i));
 
-    for (u32 i = 0; i < verts.size(); ++i)
-        for (u32 j = i + 1; j < verts.size(); ++j) REQUIRE(verts[i] != verts[j]);
+    for (size_t i = 0; i < verts.size(); ++i)
+        for (size_t j = i + 1; j < verts.size(); ++j) REQUIRE(verts[i] != verts[j]);
 }
 
 TEST_CASE("BoxShape - All vertex absolute coordinates equal the half extents", "[physics][box]") {
     const glm::vec3 half(1.0f, 2.0f, 3.0f);
-    BoxShape shape(half);
+    PhysicsContext context;
+    BoxShape shape(half, context);
 
-    for (u32 i = 0; i < shape.GetVerticesCount(); ++i) {
+    for (size_t i = 0; i < shape.GetVerticesCount(); ++i) {
         const glm::vec3 v = shape.GetVertexPosition(i);
         REQUIRE(std::abs(v.x) == Catch::Approx(half.x));
         REQUIRE(std::abs(v.y) == Catch::Approx(half.y));
@@ -149,10 +159,11 @@ TEST_CASE("BoxShape - All vertex absolute coordinates equal the half extents", "
 
 TEST_CASE("BoxShape - All 8 sign combinations of half-extents are covered by vertices", "[physics][box]") {
     const glm::vec3 half(1.0f, 2.0f, 3.0f);
-    BoxShape shape(half);
+    PhysicsContext context;
+    BoxShape shape(half, context);
 
     std::set<std::tuple<int, int, int>> signCombinations;
-    for (u32 i = 0; i < shape.GetVerticesCount(); ++i) {
+    for (size_t i = 0; i < shape.GetVerticesCount(); ++i) {
         const glm::vec3 v = shape.GetVertexPosition(i);
         signCombinations.insert({ v.x > 0 ? 1 : -1, v.y > 0 ? 1 : -1, v.z > 0 ? 1 : -1 });
     }
@@ -165,18 +176,20 @@ TEST_CASE("BoxShape - All 8 sign combinations of half-extents are covered by ver
 // ===========================================================================================
 
 TEST_CASE("BoxShape - All 6 face normals are unit vectors", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
-    for (u32 i = 0; i < shape.GetFacesCount(); ++i) {
+    for (size_t i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
         REQUIRE(glm::length(n) == Catch::Approx(1.0f));
     }
 }
 
 TEST_CASE("BoxShape - All 6 face normals are axis-aligned", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
-    for (u32 i = 0; i < shape.GetFacesCount(); ++i) {
+    for (size_t i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
         const int zeros = (n.x == 0.0f ? 1 : 0) + (n.y == 0.0f ? 1 : 0) + (n.z == 0.0f ? 1 : 0);
         REQUIRE(zeros == 2);
@@ -184,10 +197,11 @@ TEST_CASE("BoxShape - All 6 face normals are axis-aligned", "[physics][box]") {
 }
 
 TEST_CASE("BoxShape - All 6 axis directions are represented by face normals", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     std::set<std::tuple<float, float, float>> normals;
-    for (u32 i = 0; i < shape.GetFacesCount(); ++i) {
+    for (size_t i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
         normals.insert({ n.x, n.y, n.z });
     }
@@ -200,19 +214,22 @@ TEST_CASE("BoxShape - All 6 axis directions are represented by face normals", "[
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetLocalAABB min equals negative half extents", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
 
     REQUIRE(shape.GetLocalAABB().GetMin() == glm::vec3(-2.0f, -3.0f, -4.0f));
 }
 
 TEST_CASE("BoxShape - GetLocalAABB max equals positive half extents", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
 
     REQUIRE(shape.GetLocalAABB().GetMax() == glm::vec3(2.0f, 3.0f, 4.0f));
 }
 
 TEST_CASE("BoxShape - GetLocalAABB is centered at origin", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 5.0f, 2.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 5.0f, 2.0f), context);
 
     REQUIRE(shape.GetLocalAABB().GetCenter() == glm::vec3(0.0f));
 }
@@ -222,21 +239,24 @@ TEST_CASE("BoxShape - GetLocalAABB is centered at origin", "[physics][box]") {
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetVolume matches 8*hx*hy*hz", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
     const float expected = 8.0f * 1.0f * 2.0f * 3.0f;
 
     REQUIRE(shape.GetVolume() == Catch::Approx(expected));
 }
 
 TEST_CASE("BoxShape - GetVolume for unit cube (half=0.5) equals 1", "[physics][box]") {
-    BoxShape shape(glm::vec3(0.5f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(0.5f), context);
 
     REQUIRE(shape.GetVolume() == Catch::Approx(1.0f));
 }
 
 TEST_CASE("BoxShape - GetVolume scales correctly when half extents double", "[physics][box]") {
-    BoxShape s1(glm::vec3(1.0f));
-    BoxShape s2(glm::vec3(2.0f));
+    PhysicsContext context;
+    BoxShape s1(glm::vec3(1.0f), context);
+    BoxShape s2(glm::vec3(2.0f), context);
 
     REQUIRE(s2.GetVolume() == Catch::Approx(s1.GetVolume() * 8.0f));
 }
@@ -246,7 +266,9 @@ TEST_CASE("BoxShape - GetVolume scales correctly when half extents double", "[ph
 // ===========================================================================================
 
 TEST_CASE("BoxShape - GetLocalInertiaTensor for unit cube has equal components", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
+
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(1.0f);
 
     REQUIRE(inertia.x == Catch::Approx(inertia.y));
@@ -254,7 +276,9 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor for unit cube has equal components",
 }
 
 TEST_CASE("BoxShape - GetLocalInertiaTensor matches formula for non-uniform box", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const float mass = 1.0f;
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(mass);
 
@@ -264,7 +288,9 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor matches formula for non-uniform box"
 }
 
 TEST_CASE("BoxShape - GetLocalInertiaTensor components are not all equal for non-uniform box", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(1.0f);
 
     REQUIRE(inertia.x != Catch::Approx(inertia.y));
@@ -272,7 +298,9 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor components are not all equal for non
 }
 
 TEST_CASE("BoxShape - GetLocalInertiaTensor scales linearly with mass", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const glm::vec3 i1 = shape.GetLocalInertiaTensor(1.0f);
     const glm::vec3 i2 = shape.GetLocalInertiaTensor(4.0f);
 
@@ -282,7 +310,9 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor scales linearly with mass", "[physic
 }
 
 TEST_CASE("BoxShape - GetLocalInertiaTensor is zero for zero mass", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(0.0f);
 
     REQUIRE(inertia.x == Catch::Approx(0.0f));
@@ -295,19 +325,22 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor is zero for zero mass", "[physics][b
 // ===========================================================================================
 
 TEST_CASE("BoxShape - ContainsPoint returns true for origin", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(0.0f)) == true);
 }
 
 TEST_CASE("BoxShape - ContainsPoint returns true for point strictly inside", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(1.0f, 1.0f, 1.0f)) == true);
 }
 
 TEST_CASE("BoxShape - ContainsPoint returns false for point on face boundary", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(2.0f, 0.0f, 0.0f)) == false);
     REQUIRE(shape.ContainsPoint(glm::vec3(0.0f, 3.0f, 0.0f)) == false);
@@ -315,19 +348,22 @@ TEST_CASE("BoxShape - ContainsPoint returns false for point on face boundary", "
 }
 
 TEST_CASE("BoxShape - ContainsPoint returns false for point outside", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(2.0f, 0.0f, 0.0f)) == false);
 }
 
 TEST_CASE("BoxShape - ContainsPoint returns false for corner point on boundary", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(1.0f, 2.0f, 3.0f)) == false);
 }
 
 TEST_CASE("BoxShape - ContainsPoint works with negative coordinates", "[physics][box]") {
-    BoxShape shape(glm::vec3(3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(3.0f), context);
 
     REQUIRE(shape.ContainsPoint(glm::vec3(-1.0f, -1.0f, -1.0f)) == true);
     REQUIRE(shape.ContainsPoint(glm::vec3(-3.0f, 0.0f, 0.0f)) == false);
@@ -338,7 +374,9 @@ TEST_CASE("BoxShape - ContainsPoint works with negative coordinates", "[physics]
 // ===========================================================================================
 
 TEST_CASE("BoxShape - ComputeTransformedAABB with identity transform matches local AABB", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
 
     REQUIRE(aabb.GetMin().x == Catch::Approx(-1.0f));
@@ -350,7 +388,9 @@ TEST_CASE("BoxShape - ComputeTransformedAABB with identity transform matches loc
 }
 
 TEST_CASE("BoxShape - ComputeTransformedAABB translation moves the AABB center", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
+
     const glm::vec3 pos(5.0f, -3.0f, 2.0f);
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(pos));
 
@@ -360,7 +400,9 @@ TEST_CASE("BoxShape - ComputeTransformedAABB translation moves the AABB center",
 }
 
 TEST_CASE("BoxShape - ComputeTransformedAABB 90-degree Z rotation swaps X and Y extents", "[physics][box]") {
-    BoxShape shape(glm::vec3(2.0f, 1.0f, 1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 1.0f, 1.0f), context);
+
     const glm::quat rot90z = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f), rot90z));
     const glm::vec3 halfExtents = (aabb.GetMax() - aabb.GetMin()) * 0.5f;
@@ -371,7 +413,9 @@ TEST_CASE("BoxShape - ComputeTransformedAABB 90-degree Z rotation swaps X and Y 
 }
 
 TEST_CASE("BoxShape - ComputeTransformedAABB 90-degree X rotation swaps Y and Z extents", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 1.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 1.0f), context);
+
     const glm::quat rot90x = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f), rot90x));
     const glm::vec3 halfExtents = (aabb.GetMax() - aabb.GetMin()) * 0.5f;
@@ -382,7 +426,9 @@ TEST_CASE("BoxShape - ComputeTransformedAABB 90-degree X rotation swaps Y and Z 
 }
 
 TEST_CASE("BoxShape - ComputeTransformedAABB AABB is never smaller than local AABB", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+
     const AABB localAABB = shape.GetLocalAABB();
     const glm::vec3 localHalfExtents = (localAABB.GetMax() - localAABB.GetMin()) * 0.5f;
 
@@ -396,7 +442,8 @@ TEST_CASE("BoxShape - ComputeTransformedAABB AABB is never smaller than local AA
 }
 
 TEST_CASE("BoxShape - ComputeTransformedAABB 180-degree rotation produces same AABB as no rotation", "[physics][box]") {
-    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f));
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
     const glm::quat rot180 = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     const AABB noRot = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
     const AABB withRot = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f), rot180));

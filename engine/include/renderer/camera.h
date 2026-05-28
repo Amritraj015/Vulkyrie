@@ -71,18 +71,17 @@ namespace Vulkyrie {
 
         // Make move-only
         CameraSettings() = default;
-        CameraSettings(const CameraSettings &) = delete; // no copies
-        CameraSettings(CameraSettings &&) = default;     // moves allowed
-        CameraSettings &operator=(const CameraSettings &) = delete;
-        CameraSettings &operator=(CameraSettings &&) = default;
+
+        /** @brief Destructor for the CameraSettings struct. */
+        ~CameraSettings() = default;
     };
 
     /** @brief A class representing a camera for navigating a scene. */
     class Camera {
     public:
         // Factory method to handle defaults and move-only semantics
-        static Camera Create(CameraSettings settings = makeDefaultCameraSettings()) {
-            return Camera(std::move(settings));
+        static Camera Create(const CameraSettings &settings = {}) {
+            return Camera(settings);
         }
 
         /** @brief Sets the position of the camera in world space.
@@ -223,8 +222,8 @@ namespace Vulkyrie {
         /** @brief Constructs a Camera object with specified camera settings.
          * @param settings The settings for the camera.
          */
-        Camera(CameraSettings &&settings)
-            : _settings(std::move(settings))
+        Camera(const CameraSettings &settings)
+            : _settings(settings)
             , _firstMouseMove(true) {
             updateCameraVectors();
         }
@@ -251,9 +250,9 @@ namespace Vulkyrie {
         VE_INLINE void updateCameraVectors() {
             // calculate the new Front vector
             glm::vec3 front;
-            front.x = cos(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch));
-            front.y = sin(glm::radians(_settings.Pitch));
-            front.z = sin(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch));
+            front.x = static_cast<f32>(cos(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch)));
+            front.y = static_cast<f32>(sin(glm::radians(_settings.Pitch)));
+            front.z = static_cast<f32>(sin(glm::radians(_settings.Yaw)) * cos(glm::radians(_settings.Pitch)));
             _settings.Front = glm::normalize(front);
 
             // also re-calculate the Right and Up vector
@@ -261,12 +260,6 @@ namespace Vulkyrie {
             _right = glm::normalize(glm::cross(_settings.Front, _settings.WorldUp));
             _up = glm::normalize(glm::cross(_right, _settings.Front));
         }
-
-        /** @brief Creates a CameraSettings object with default values.
-         * @returns A CameraSettings object initialized with default values.
-         */
-        static CameraSettings makeDefaultCameraSettings() {
-            return CameraSettings{}; // uses member defaults
-        }
     };
+
 } // namespace Vulkyrie

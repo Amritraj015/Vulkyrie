@@ -66,6 +66,7 @@
 #include "physics/body/body.h"
 #include "physics/body/rigid_body.h"
 #include "physics/physics_world_settings.h"
+#include "physics/physics_context.h"
 #include "physics/physics_world.h"
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/plane.h"

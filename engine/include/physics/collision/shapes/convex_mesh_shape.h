@@ -30,27 +30,27 @@ namespace Vulkyrie {
     //         return _scale;
     //     }
     //
-    //     u32 GetFacesCount() const override {
+    //     size_t GetFacesCount() const override {
     //         // TODO: Implement this pure virtual method.
     //         static_assert(false, "Method `GetFacesCount` is not implemented.");
     //     }
     //
-    //     u32 GetVerticesCount() const override {
+    //     size_t GetVerticesCount() const override {
     //         // TODO: Implement this pure virtual method.
     //         static_assert(false, "Method `GetVerticesCount` is not implemented.");
     //     }
     //
-    //     u32 GetHalfEdgesCount() const override {
+    //     size_t GetHalfEdgesCount() const override {
     //         // TODO: Implement this pure virtual method.
     //         static_assert(false, "Method `GetHalfEdgesCount` is not implemented.");
     //     }
     //
-    //     glm::vec3 GetVertexPosition(u32 vertexIndex) const override {
+    //     glm::vec3 GetVertexPosition(size_t vertexIndex) const override {
     //         // TODO: Implement this pure virtual method.
     //         static_assert(false, "Method `GetVertexPosition` is not implemented.");
     //     }
     //
-    //     glm::vec3 GetFaceNormal(u32 faceIndex) const override {
+    //     glm::vec3 GetFaceNormal(size_t faceIndex) const override {
     //         // TODO: Implement this pure virtual method.
     //         static_assert(false, "Method `GetFaceNormal` is not implemented.");
     //     }

@@ -354,8 +354,11 @@ namespace Vulkyrie {
 #endif
         }
 
+        const i32 width = static_cast<i32>(_windowProps.Width);
+        const i32 height = static_cast<i32>(_windowProps.Height);
+
         // GLFW window creation
-        _window = glfwCreateWindow(_windowProps.Width, _windowProps.Height, _windowProps.Title.c_str(), nullptr, nullptr);
+        _window = glfwCreateWindow(width, height, _windowProps.Title.c_str(), nullptr, nullptr);
 
         // Check if window creation failed.
         if (nullptr == _window) {

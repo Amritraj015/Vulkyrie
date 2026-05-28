@@ -33,19 +33,19 @@ namespace Vulkyrie {
         /** @brief Get the number of faces of the convex polyhedron shape.
          * @returns The number of faces of the convex polyhedron shape. This is typically equal to the number of flat surfaces that make up the shape.
          */
-        virtual u32 GetFacesCount() const = 0;
+        virtual size_t GetFacesCount() const = 0;
 
         /** @brief Get the number of vertices of the convex polyhedron shape.
          * @returns The number of vertices of the convex polyhedron shape. This is typically equal to the number of corners or points where edges meet on the
          * shape.
          */
-        virtual u32 GetVerticesCount() const = 0;
+        virtual size_t GetVerticesCount() const = 0;
 
         /** @brief Get the number of half edges of the convex polyhedron shape.
          * @returns The number of half edges of the convex polyhedron shape. This is typically equal to twice the number of edges, since each edge is
          * represented by two half edges in a half-edge data structure.
          */
-        virtual u32 GetHalfEdgesCount() const = 0;
+        virtual size_t GetHalfEdgesCount() const = 0;
 
         /** @brief Get the position of a specific vertex of the convex polyhedron shape.
          * @param vertexIndex The index of the vertex for which to retrieve the position. The valid range for this index is from 0 to GetVerticesCount()
@@ -53,14 +53,14 @@ namespace Vulkyrie {
          * @returns The position of the specified vertex as a glm::vec3. The position is given in the local coordinate space of the shape, where the origin
          * is typically at the centroid of the shape.
          */
-        virtual glm::vec3 GetVertexPosition(u32 vertexIndex) const = 0;
+        virtual glm::vec3 GetVertexPosition(size_t vertexIndex) const = 0;
 
         /** @brief Get the normal vector of a specific face of the convex polyhedron shape.
          * @param faceIndex The index of the face for which to retrieve the normal vector. The valid range for this index is from 0 to GetFacesCount() - 1.
          * @returns The normal vector of the specified face as a glm::vec3. The normal vector is a unit vector that is perpendicular to the face and points
          * outward from the surface of the shape.
          */
-        virtual glm::vec3 GetFaceNormal(u32 faceIndex) const = 0;
+        virtual glm::vec3 GetFaceNormal(size_t faceIndex) const = 0;
 
         /** @brief Get the centroid of the convex polyhedron shape.
          * @returns The centroid of the convex polyhedron shape as a glm::vec3. The centroid is the geometric center of the shape, calculated as the average

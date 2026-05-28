@@ -15,12 +15,14 @@ namespace Vulkyrie {
 
     class PhysicsContext {
     public:
+        PhysicsContext();
+
     private:
         std::unordered_set<PhysicsWorld *> _physicsWorlds;
         std::unordered_set<SphereShape *> _sphereShapes;
         std::unordered_set<BoxShape *> _boxShapes;
         std::unordered_set<CapsuleShape *> _capsuleShapes;
-        std::unordered_set<ConvexMeshShape *> _convexMeshShapes;
+        // std::unordered_set<ConvexMeshShape *> _convexMeshShapes;
         std::unordered_set<ConcaveMeshShape *> _concaveMeshShapes;
         // std::unordered_set<HeightFieldShape *> _heightFieldShapes;
         std::unordered_set<TriangleMesh *> _triangleMeshes;
