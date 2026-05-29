@@ -19,9 +19,6 @@
 
 namespace Vulkyrie {
 
-    // class PhysicsWorld;
-    // class Body;
-
     class CollisionSystem final {
     public:
         explicit CollisionSystem(PhysicsWorld &physicsWorld, HalfEdgeMesh &triangleHalfEdgeMesh);

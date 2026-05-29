@@ -12,12 +12,14 @@ namespace Vulkyrie {
          * @param contactPointData The data used to initialize the ContactPoint. */
         explicit ContactPoint(const ContactPointData &contactPointData);
 
-        // Delete the copy constructor and copy assignment operator to prevent copying of ContactPoint instances,
-        ContactPoint(const ContactPoint &) = delete;
+        // Default the copy constructor and move constructor to allow copying and moving of ContactPoint instances,
+        ContactPoint(const ContactPoint &contactPoint) = default;
+        ContactPoint(ContactPoint &&) = default;
+
+        // Delete the copy assignment operator to prevent copying of ContactPoint instances,
         ContactPoint &operator=(const ContactPoint &) = delete;
 
-        // Delete the move constructor and move assignment operator to prevent moving of ContactPoint instances,
-        ContactPoint(ContactPoint &&) = default;
+        // Delete the move assignment operator to prevent moving of ContactPoint instances,
         ContactPoint &operator=(ContactPoint &&) = delete;
 
         /** @brief Default destructor for ContactPoint. */

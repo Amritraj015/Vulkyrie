@@ -1654,7 +1654,7 @@ namespace Vulkyrie {
                                          std::vector<ContactPair> &lostContactPairs) {
         // Report contacts if there are any contact pairs or lost contact pairs to report.
         if (contactPairs.size() + lostContactPairs.size() > 0) {
-            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs);
+            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, _physicsWorld);
             callback.OnCollision(callbackData);
         }
     }
