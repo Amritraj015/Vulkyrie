@@ -3,33 +3,32 @@
 #include <fstream>
 
 namespace Vulkyrie {
-    /** Reads the contents of a file at the given path and returns it as a string.
-     * @param path The path to the file to read.
-     * @returns The contents of the file as a string.
-     */
-    std::string ReadTextFromFile(const std::filesystem::path &path) {
-        // Open the file.
-        std::ifstream file(path, std::ios::in | std::ios::binary);
 
-        // Check if file opened successfully.
-        if (!file.is_open()) {
-            // If the file failed to open, log an error and return an empty string.
+    std::optional<std::string> ReadTextFromFile(const std::filesystem::path &path) {
+        std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+        if (!file) {
             VERROR("Failed to open file: {}", path.string());
-
-            return {};
+            return std::nullopt;
         }
 
-        // Read the file contents into a string.
-        std::string contents;
-        file.seekg(0, std::ios::end);
-        contents.resize(static_cast<std::size_t>(file.tellg()));
+        const auto size = file.tellg();
+
+        if (size < 0) {
+            VERROR("Failed to determine file size: {}", path.string());
+            return std::nullopt;
+        }
+
+        std::string contents(static_cast<size_t>(size), '\0');
+
         file.seekg(0, std::ios::beg);
-        file.read(contents.data(), contents.size());
 
-        // Close the file.
-        file.close();
+        if (!file.read(contents.data(), size)) {
+            VERROR("Failed to read file: {}", path.string());
+            return std::nullopt;
+        }
 
-        // Return the file contents.
         return contents;
     }
+
 } // namespace Vulkyrie

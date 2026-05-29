@@ -12,13 +12,16 @@ namespace Vulkyrie {
         /** @brief Initializes the audio system. */
         AudioSystem();
 
+        // Delete the copy constructor and copy assignment operator.
+        AudioSystem(const AudioSystem &) = delete;
+        AudioSystem &operator=(const AudioSystem &) = delete;
+
+        // Delete the move constructor and move assignment operator.
+        AudioSystem(AudioSystem &&) = delete;
+        AudioSystem &operator=(AudioSystem &&) = delete;
+
         /** @brief Cleans up the audio system and releases all resources. */
         ~AudioSystem();
-
-        AudioSystem(const AudioSystem &) = delete;
-        AudioSystem(AudioSystem &&) = delete;
-        AudioSystem &operator=(const AudioSystem &) = delete;
-        AudioSystem &operator=(AudioSystem &&) = delete;
 
         /** @brief Loads an audio clip from the specified file path. Currently only supports WAV files.
          * @param filepath The path to the audio file to load.

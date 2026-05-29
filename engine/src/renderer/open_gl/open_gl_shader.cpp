@@ -152,10 +152,19 @@ namespace Vulkyrie {
 
     u32 OpenGLShader::LoadAndCompile() {
         // Fetch the shader source code.
-        const std::string shaderSources = ReadTextFromFile(_shaderSourcePath);
+        const std::optional<std::string> shaderSources = ReadTextFromFile(_shaderSourcePath);
+
+        if (!shaderSources.has_value()) {
+            VERROR("Failed to read shader source from file: {}", _shaderSourcePath.string());
+
+            // Mark the shader as invalid.
+            _isValid = false;
+
+            return 0;
+        }
 
         // Split the shader source into its respective stages.
-        const auto shaderStages = ExtractShaderStages(shaderSources);
+        const auto shaderStages = ExtractShaderStages(shaderSources.value());
 
         // Attach the shaders to the program and then link the program.
         u32 program = glCreateProgram();
@@ -192,7 +201,7 @@ namespace Vulkyrie {
                     glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
 
                     // Get the compilation error message.
-                    std::vector<char> infoLog(logLength);
+                    std::vector<char> infoLog(static_cast<size_t>(logLength));
                     glGetShaderInfoLog(shaderID, logLength, &logLength, &infoLog[0]);
 
                     // Log an error and return.
@@ -238,7 +247,7 @@ namespace Vulkyrie {
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the linking error message.
-            std::vector<char> infoLog(maxLength);
+            std::vector<char> infoLog(static_cast<size_t>(maxLength));
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             // Log the linking error.
@@ -271,7 +280,7 @@ namespace Vulkyrie {
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
             // Get the validation error message.
-            std::vector<char> infoLog(maxLength);
+            std::vector<char> infoLog(static_cast<size_t>(maxLength));
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             // Log the validation error.

@@ -6,7 +6,7 @@ namespace Vulkyrie {
 
     class Sphere final {
     public:
-        Sphere(f32 radius, u32 stacks, u32 sectors)
+        explicit Sphere(f32 radius, u32 stacks, u32 sectors)
             : _radius(radius)
             , _stacks(stacks)
             , _sectors(sectors) {

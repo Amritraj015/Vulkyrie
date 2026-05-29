@@ -8,7 +8,7 @@ namespace Vulkyrie {
     class AudioClip final {
     public:
         /** @brief The buffer handle for the audio clip. */
-        i32 Buffer = 0;
+        u32 Buffer = 0;
 
         /** @brief The format of the audio source. */
         i32 Format = 0;

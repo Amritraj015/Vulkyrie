@@ -78,7 +78,7 @@ namespace Vulkyrie {
                 src.SetVolume(1.0f);
                 src.Handle.Valid = true;
 
-                alSourcei(src.Source, AL_BUFFER, clip->Buffer);
+                alSourcei(src.Source, AL_BUFFER, static_cast<ALint>(clip->Buffer));
                 alSourcei(src.Source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
                 alSourcePlay(src.Source);
 
@@ -184,7 +184,7 @@ namespace Vulkyrie {
         }
 
         // Read the audio data from the "data" chunk into a buffer.
-        std::vector<char> bufferData(chunkSize);
+        std::vector<char> bufferData(static_cast<size_t>(chunkSize));
         file.read(bufferData.data(), chunkSize);
 
         // Determine the OpenAL format based on the number of channels and bits per sample.

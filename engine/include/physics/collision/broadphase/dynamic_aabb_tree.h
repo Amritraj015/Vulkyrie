@@ -30,7 +30,7 @@ namespace Vulkyrie {
 
             /** @brief The user-defined data associated with a leaf node. For internal nodes, this field is not used and can be ignored. The caller is
              * responsible for ensuring that the data associated with leaf nodes remains valid for the duration of its use in the tree. */
-            i32 Data;
+            u32 Data;
 
             /** @brief A pointer to user-defined data associated with a leaf node. This can be used as an alternative to the integer Data field for
              * storing more complex information about the object represented by the leaf node. For internal nodes, this field is not used and can be
@@ -109,7 +109,7 @@ namespace Vulkyrie {
          * type identifier, or any other integer value that helps identify or categorize the object. The caller is responsible for ensuring that
          * this data remains valid for the duration of its use in the tree.
          * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
-        VE_INLINE i32 AddObject(const AABB &aabb, i32 data) {
+        VE_INLINE i32 AddObject(const AABB &aabb, u32 data) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
             const i32 nodeIndex = allocateNode();
