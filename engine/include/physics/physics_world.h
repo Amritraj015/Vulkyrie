@@ -6,6 +6,7 @@
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
 #include "physics/components/transform_component_store.h"
+#include "physics/physics_context.h"
 #include "physics/systems/collision_system.h"
 #include "physics/systems/dynamics_system.h"
 
@@ -97,6 +98,7 @@ namespace Vulkyrie {
     private:
         bool _gravityEnabled;
         PhysicsWorldSettings _settings;
+        PhysicsContext _context;
         EntityManager _entityManager;
         BodyComponentStore _bodyComponentStore;
         RigidBodyComponentStore _rigidBodyComponentStore;

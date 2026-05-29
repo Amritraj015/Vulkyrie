@@ -193,9 +193,9 @@ namespace Vulkyrie {
          * @returns A const reference to the `HalfEdgeMesh::Face` at the given index.
          */
         [[nodiscard]] VE_INLINE const HalfEdgeMesh::Face &GetFace(size_t faceIndex) const override {
-            VASSERT(faceIndex < _physicsContext._boxShapeHalfEdgeMesh.GetFaceCount(), "Face index out of bounds for box shape.");
+            VASSERT(faceIndex < _boxShapeHalfEdgeMesh.GetFaceCount(), "Face index out of bounds for box shape.");
 
-            return _physicsContext._boxShapeHalfEdgeMesh.GetFace(faceIndex);
+            return _boxShapeHalfEdgeMesh.GetFace(faceIndex);
         }
 
         /** @brief Get a half-edge of the box shape by index.
@@ -205,7 +205,7 @@ namespace Vulkyrie {
         [[nodiscard]] VE_INLINE const HalfEdgeMesh::Edge &GetHalfEdge(size_t edgeIndex) const override {
             VASSERT(edgeIndex < GetHalfEdgesCount(), "Half-edge index out of bounds for box shape.");
 
-            return _physicsContext._boxShapeHalfEdgeMesh.GetHalfEdge(edgeIndex);
+            return _boxShapeHalfEdgeMesh.GetHalfEdge(edgeIndex);
         }
 
         /** @brief Get a vertex of the box shape by index.
@@ -215,7 +215,7 @@ namespace Vulkyrie {
         [[nodiscard]] VE_INLINE const HalfEdgeMesh::Vertex &GetVertex(size_t vertexIndex) const override {
             VASSERT(vertexIndex < GetVerticesCount(), "Vertex index out of bounds for box shape.");
 
-            return _physicsContext._boxShapeHalfEdgeMesh.GetVertex(vertexIndex);
+            return _boxShapeHalfEdgeMesh.GetVertex(vertexIndex);
         }
 
         /** @brief Compute the local support point of the box shape in a given direction, without considering the margin.
@@ -235,8 +235,8 @@ namespace Vulkyrie {
          * components must be positive. */
         glm::vec3 _halfExtents;
 
-        /** @brief A reference to the PhysicsContext. */
-        PhysicsContext &_physicsContext;
+        /** @brief A reference to the half-edge mesh representing the box shape. */
+        HalfEdgeMesh &_boxShapeHalfEdgeMesh;
     };
 
 } // namespace Vulkyrie

@@ -69,7 +69,7 @@ namespace Vulkyrie {
     OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path &path)
         : _path(path)
         , _fileName(_path.filename().string()) {
-        int width, height, channels;
+        i32 width, height, channels;
         const std::string pathString = path.string();
 
         stbi_set_flip_vertically_on_load(true);
@@ -83,8 +83,8 @@ namespace Vulkyrie {
 
         if (data) {
             _loaded = true;
-            _width = width;
-            _height = height;
+            _width = static_cast<u32>(width);
+            _height = static_cast<u32>(height);
 
             GLenum internalFormat = 0, dataFormat = 0;
 

@@ -1210,7 +1210,7 @@ namespace Vulkyrie {
         for (ContactPair &pair : contactPairs) {
             while (pair.PotentialContactManifoldsCount > MAX_CONTACT_MANIFOLDS) {
                 f32 minDepth = std::numeric_limits<f32>::max();
-                u32 minDepthManifoldIndex = -1;
+                u32 minDepthManifoldIndex = std::numeric_limits<u32>::max();
 
                 // Iterate through the potential contact manifolds for this pair to find the one
                 // with the smallest depth, which will be the candidate for removal in this reduction step.

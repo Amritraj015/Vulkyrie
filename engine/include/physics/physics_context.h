@@ -4,7 +4,6 @@
 #include "physics/collision/shapes/concave_mesh_shape.h"
 #include "physics/collision/shapes/convex_mesh_shape.h"
 #include "physics/collision/shapes/sphere_shape.h"
-#include "physics/physics_world.h"
 #include "physics/types/convex_mesh.h"
 #include "physics/types/half_edge_mesh.h"
 #include "physics/types/triangle_mesh.h"
@@ -12,10 +11,19 @@
 namespace Vulkyrie {
 
     class BoxShape;
+    class PhysicsWorld;
 
     class PhysicsContext {
     public:
         PhysicsContext();
+
+        [[nodiscard]] VE_INLINE HalfEdgeMesh &GetBoxShapeHalfEdgeMesh() {
+            return _boxShapeHalfEdgeMesh;
+        }
+
+        [[nodiscard]] VE_INLINE HalfEdgeMesh &GetTriangleShapeHalfEdgeMesh() {
+            return _triangleShapeHalfEdgeMesh;
+        }
 
     private:
         std::unordered_set<PhysicsWorld *> _physicsWorlds;
@@ -30,8 +38,6 @@ namespace Vulkyrie {
 
         HalfEdgeMesh _boxShapeHalfEdgeMesh;
         HalfEdgeMesh _triangleShapeHalfEdgeMesh;
-
-        friend class BoxShape;
     };
 
 } // namespace Vulkyrie

@@ -2,7 +2,7 @@
 
 namespace Vulkyrie {
 
-    OverlapCallback::Date::Data(std::vector<ContactPair> &contactPairs, std::vector<ContactPair> &lostContactPairs, bool reportTriggersOnly)
+    OverlapCallback::Data::Data(std::vector<ContactPair> &contactPairs, std::vector<ContactPair> &lostContactPairs, bool reportTriggersOnly)
         : _contactPairs(contactPairs)
         , _lostContactPairs(lostContactPairs) {
 

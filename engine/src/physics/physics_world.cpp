@@ -10,7 +10,7 @@ namespace Vulkyrie {
         , _rigidBodyComponentStore()
         , _colliderComponentStore()
         , _transformComponentStore()
-        , _collisionSystem(*this)
+        , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity) {
     }
 
