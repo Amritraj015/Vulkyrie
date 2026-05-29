@@ -229,7 +229,7 @@ namespace Vulkyrie {
          * @param nodeIndex The index of the leaf node to retrieve the data from. Must be a valid index into the _nodes vector and must correspond
          * to a leaf node.
          * @returns The data associated with the leaf node. */
-        [[nodiscard]] VE_INLINE i32 GetNodeData(i32 nodeIndex) const {
+        [[nodiscard]] VE_INLINE u32 GetNodeData(i32 nodeIndex) const {
             VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
             const auto idx = static_cast<size_t>(nodeIndex);
             VASSERT(_nodes[idx].IsLeaf(), "Can only get data from leaf nodes.");
