@@ -11,6 +11,7 @@
 #include "core/noise_generator.h"
 #include "core/entity.h"
 #include "core/entity_manager.h"
+#include "core/utilities.h"
 
 // Debug includes
 #include "debug/profiler.h"
@@ -75,6 +76,7 @@
 #include "physics/collision/shapes/sphere.h"
 #include "physics/collision/shapes/sphere_shape.h"
 #include "physics/collision/broadphase/dynamic_aabb_tree.h"
+#include "physics/collision/narrowphase/capsule_vs_capsule_algorithm.h"
 #include "physics/collision/narrowphase/sphere_vs_sphere_algorithm.h"
 #include "physics/collision/narrowphase/sphere_vs_capsule_algorithm.h"
 #include "physics/collision/narrowphase/narrow_phase_data_batch.h"
