@@ -16,7 +16,7 @@ namespace Vulkyrie {
 
         ~SphereVsCapsuleAlgorithm() = default;
 
-        bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount);
+        bool PerformCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount);
     };
 
 } // namespace Vulkyrie

@@ -2,11 +2,11 @@
 
 namespace Vulkyrie {
 
-    bool SphereVsConvexPolyhedronAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
+    bool SphereVsConvexPolyhedronAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &batch,
                                                                   size_t batchStartIndex,
                                                                   size_t batchItemsCount,
                                                                   bool clipWithPreviousAxisIfStillColliding) {
-        (void)narrowPhaseDataBatch;
+        (void)batch;
         (void)batchStartIndex;
         (void)batchItemsCount;
         (void)clipWithPreviousAxisIfStillColliding;

@@ -5,11 +5,11 @@
 
 namespace Vulkyrie {
 
-    bool SphereVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount) {
+    bool SphereVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
         bool collisionDetected = false;
 
         for (size_t i = batchStartIndex; i < batchStartIndex + batchItemsCount; ++i) {
-            NarrowPhaseData &data = narrowPhaseDataBatch.Data[i];
+            NarrowPhaseData &data = batch.Data[i];
 
             VASSERT(data.ContactPointCount == 0, "Contact points should be cleared before performing collision checks.");
             VASSERT(!data.IsColliding, "Collision state should be false before performing collision checks.");
@@ -107,11 +107,11 @@ namespace Vulkyrie {
                     }
 
                     // Add the computed contact point to the batch.
-                    narrowPhaseDataBatch.AddContactPoint(i,
-                                                         contactNormal,
-                                                         penetrationDepth,
-                                                         isShapeOneSphere ? contactPointSphereLocal : contactPointCapsuleLocal,
-                                                         isShapeOneSphere ? contactPointCapsuleLocal : contactPointSphereLocal);
+                    batch.AddContactPoint(i,
+                                          contactNormal,
+                                          penetrationDepth,
+                                          isShapeOneSphere ? contactPointSphereLocal : contactPointCapsuleLocal,
+                                          isShapeOneSphere ? contactPointCapsuleLocal : contactPointSphereLocal);
                 }
 
                 collisionDetected = true;

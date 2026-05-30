@@ -16,10 +16,7 @@ namespace Vulkyrie {
 
         ~ConvexPolyhedronVsConvexPolyhedronAlgorithm() = default;
 
-        bool PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch,
-                                   size_t batchStartIndex,
-                                   size_t batchItemsCount,
-                                   bool clipWithPreviousAxisIfStillColliding);
+        bool PerformCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount, bool clipWithPreviousAxisIfStillColliding);
     };
 
 } // namespace Vulkyrie

@@ -4,11 +4,11 @@
 
 namespace Vulkyrie {
 
-    bool CapsuleVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &narrowPhaseDataBatch, size_t batchStartIndex, size_t batchItemsCount) {
+    bool CapsuleVsCapsuleAlgorithm::PerformCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
         bool collisionDetected = false;
 
         for (size_t i = batchStartIndex; i < batchStartIndex + batchItemsCount; ++i) {
-            NarrowPhaseData &data = narrowPhaseDataBatch.Data[i];
+            NarrowPhaseData &data = batch.Data[i];
 
             VASSERT(data.ContactPointCount == 0, "Contact points should be cleared before performing collision checks.");
             VASSERT(!data.IsColliding, "Collision state should be false before performing collision checks.");
@@ -109,8 +109,8 @@ namespace Vulkyrie {
 
                         const glm::vec3 normalWorld = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpaceNormalized;
 
-                        narrowPhaseDataBatch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointACapsuleOneLocal, contactPointACapsuleTwoLocal);
-                        narrowPhaseDataBatch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointBCapsuleOneLocal, contactPointBCapsuleTwoLocal);
+                        batch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointACapsuleOneLocal, contactPointACapsuleTwoLocal);
+                        batch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointBCapsuleOneLocal, contactPointBCapsuleTwoLocal);
                     }
 
                     data.IsColliding = true;
@@ -152,7 +152,7 @@ namespace Vulkyrie {
 
                         const f32 penetrationDepth = std::max(radiusSum - closestPointsDistance, VE_MACHINE_EPSILON);
 
-                        narrowPhaseDataBatch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
+                        batch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
 
                     } else {
                         // Degenerate case: the closest points on the inner segments coincide.
@@ -171,7 +171,7 @@ namespace Vulkyrie {
 
                             const glm::vec3 normalWorld = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpace;
 
-                            narrowPhaseDataBatch.AddContactPoint(i, normalWorld, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
+                            batch.AddContactPoint(i, normalWorld, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
 
                         } else {
                             // Segments are not parallel and cross at a single point.
@@ -184,7 +184,7 @@ namespace Vulkyrie {
 
                             const glm::vec3 normalWorld = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpace;
 
-                            narrowPhaseDataBatch.AddContactPoint(i, normalWorld, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
+                            batch.AddContactPoint(i, normalWorld, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
                         }
                     }
                 }
