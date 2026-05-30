@@ -3,7 +3,7 @@
 #include "core/entity.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/collision/shapes/collision_shape.h"
-#include "physics/materials/material.h"
+#include "physics/types/material.h"
 
 namespace Vulkyrie {
     class Body;

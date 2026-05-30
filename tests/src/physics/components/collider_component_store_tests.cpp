@@ -1,11 +1,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <vulkyrie.h>
-
-#include "physics/components/collider_component_store.h"
-#include "physics/materials/material.h"
-
 #include <unordered_set>
+#include <vulkyrie.h>
 
 using namespace Vulkyrie;
 

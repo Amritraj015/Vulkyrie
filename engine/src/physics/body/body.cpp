@@ -1,5 +1,5 @@
 #include "physics/body/body.h"
-#include "physics/materials/material.h"
+#include "physics/types/material.h"
 
 namespace Vulkyrie {
 

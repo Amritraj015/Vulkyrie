@@ -6,14 +6,18 @@ namespace Vulkyrie {
 
     class SphereVsSphereAlgorithm final {
     public:
+        /** @brief Default constructor. */
         SphereVsSphereAlgorithm() = default;
 
+        // Delete the copy constructor and copy assignment operator.
         SphereVsSphereAlgorithm(const SphereVsSphereAlgorithm &) = delete;
         SphereVsSphereAlgorithm &operator=(const SphereVsSphereAlgorithm &) = delete;
 
+        // Delete the move constructor and move assignment operator.
         SphereVsSphereAlgorithm(SphereVsSphereAlgorithm &&) = delete;
         SphereVsSphereAlgorithm &operator=(SphereVsSphereAlgorithm &&) = delete;
 
+        /** @brief Default destructor. */
         ~SphereVsSphereAlgorithm() = default;
 
         /**
