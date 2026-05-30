@@ -64,8 +64,9 @@ namespace Vulkyrie {
 
                     if (data.ReportContacts) {
                         if (t1 > 1.0f) t1 = 1.0f;
-                        const glm::vec3 clipPointA = capsuleTwoSegmentEnd - t1 * segmentTwo;
                         if (t2 > 1.0f) t2 = 1.0f;
+
+                        const glm::vec3 clipPointA = capsuleTwoSegmentEnd - t1 * segmentTwo;
                         const glm::vec3 clipPointB = capsuleTwoSegmentStart + t2 * segmentTwo;
 
                         // Project capsule 2's segment start onto the line of capsule 1's inner segment.
