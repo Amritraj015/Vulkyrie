@@ -68,10 +68,17 @@
 #include "physics/physics_world_settings.h"
 #include "physics/physics_context.h"
 #include "physics/physics_world.h"
-#include "physics/collision/shapes/sphere.h"
-#include "physics/collision/shapes/plane.h"
-#include "physics/collision/broadphase/dynamic_aabb_tree.h"
-#include "physics/collision/shapes/aabb.h"
 #include "physics/components/transform_component_store.h"
+#include "physics/collision/shapes/aabb.h"
+#include "physics/collision/shapes/capsule_shape.h"
+#include "physics/collision/shapes/plane.h"
+#include "physics/collision/shapes/sphere.h"
+#include "physics/collision/shapes/sphere_shape.h"
+#include "physics/collision/broadphase/dynamic_aabb_tree.h"
+#include "physics/collision/narrowphase/sphere_vs_sphere_algorithm.h"
+#include "physics/collision/narrowphase/sphere_vs_capsule_algorithm.h"
+#include "physics/collision/narrowphase/narrow_phase_data_batch.h"
+#include "physics/types/last_frame_collision_data.h"
+
 
 extern std::unique_ptr<Vulkyrie::Application> CreateApplication();
