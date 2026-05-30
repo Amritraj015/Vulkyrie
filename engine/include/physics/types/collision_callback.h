@@ -12,6 +12,7 @@ namespace Vulkyrie {
 
     class CollisionCallback {
     public:
+        /** @brief Default constructor for CollisionCallback. */
         CollisionCallback() = default;
 
         // Delete the copy constructor and copy assignment operator.
@@ -47,9 +48,9 @@ namespace Vulkyrie {
             /** @brief Reference to the contact pair data from the collision system. */
             const Vulkyrie::ContactPair &_contactPair;
 
-            /** @brief Reference to the contact manifolds associated with this contact pair. The manifolds contain detailed information about the contact points
-             * and their properties, such as contact normals, penetration depths, and friction coefficients. This reference allows the callback to access the
-             * contact manifolds for this pair and perform any necessary processing or event dispatch based on the collision data. */
+            /** @brief Reference to the contact points associated with this contact pair. The contact points contain detailed information about each point of
+             * contact, such as contact normals, penetration depths, and positions in world and local space. This reference allows the callback to access the
+             * contact points for this pair and perform any necessary processing or event dispatch based on the collision data. */
             std::vector<Vulkyrie::ContactPoint> &_contactPoints;
 
             /** @brief Reference to the physics world that contains this contact pair. */
@@ -74,7 +75,7 @@ namespace Vulkyrie {
                         PhysicsWorld &world,
                         bool isLostContactPair);
 
-            // Delete the copy constructor and copy assignment operator.
+            // Allow copying but prevent copy assignment (references cannot be reseated).
             ContactPair(const ContactPair &contactPair) = default;
             ContactPair &operator=(const ContactPair &contactPair) = delete;
 
@@ -93,7 +94,7 @@ namespace Vulkyrie {
             }
 
             /** @brief Retrieves the contact point at the specified index for this contact pair.
-             * @param index The index of the contact point to retrieve (must be 0 >= index < GetContactPointsCount()).
+             * @param index The index of the contact point to retrieve (must be 0 <= index < GetContactPointsCount()).
              * @returns A ContactPoint object representing the contact point at the specified index for this contact pair.
              * */
             [[nodiscard]] VE_INLINE ContactPoint GetContactPoint(size_t index) const {
@@ -161,7 +162,7 @@ namespace Vulkyrie {
             /** @brief Retrieves the contact pair at the specified index from the collision data. The index should be in the range of valid contact pairs, which
              * includes both current contact pairs and lost contact pairs (contact pairs that were colliding in the previous frame but are no longer colliding
              * in the current frame).
-             * @param index The index of the contact pair to retrieve (must be 0 >= index < GetContactPairCount()).
+             * @param index The index of the contact pair to retrieve (must be 0 <= index < GetContactPairCount()).
              * @returns A CollisionCallback::ContactPair object representing the contact pair at the specified index from the collision data. */
             [[nodiscard]] CollisionCallback::ContactPair GetContactPair(size_t index) const;
 

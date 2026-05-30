@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/constants.h"
 #include "physics/collision/shapes/convex_polyhedron_shape.h"
 #include "physics/types/half_edge_mesh.h"
 

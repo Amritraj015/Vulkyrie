@@ -116,21 +116,3 @@ template <typename T> VE_INLINE void CombineHash(std::size_t &seed, const T &v) 
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
-
-/** @brief Pairs two 32-bit unsigned integers into a single 64-bit unsigned integer using a specific formula.
- *
- * The function takes two 32-bit unsigned integers, `number1` and `number2`, and combines them into a single 64-bit unsigned integer.
- * The formula used is: `number1 * number1 + number1 + number2`. This ensures that the resulting 64-bit integer is unique for each pair of input numbers,
- * as long as `number1` is greater than or equal to `number2`.
- *
- * @param number1 The first 32-bit unsigned integer. Must be greater than or equal to `number2`.
- * @param number2 The second 32-bit unsigned integer.
- * @returns A 64-bit unsigned integer that uniquely represents the pair of input numbers.
- */
-VE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
-    assert(number1 == std::max(number1, number2));
-
-    u64 nb1 = number1;
-    u64 nb2 = number2;
-    return nb1 * nb1 + nb1 + nb2;
-}

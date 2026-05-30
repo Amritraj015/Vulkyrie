@@ -1,5 +1,6 @@
 #include "physics/collision/narrowphase/sphere_vs_sphere_algorithm.h"
 #include "physics/collision/shapes/sphere_shape.h"
+#include "core/constants.h"
 
 namespace Vulkyrie {
 
@@ -12,7 +13,7 @@ namespace Vulkyrie {
 
             // Sanity checks to ensure data is in a valid state for collision checking.
             VASSERT(data.ContactPointCount == 0, "Contact points should be cleared before performing collision checks.");
-            VASSERT(data.IsColliding, "Narrow phase collision check should only be performed for pairs that are colliding according to the broad phase.");
+            VASSERT(!data.IsColliding, "Collision state should be false before performing collision checks.");
 
             // Get world transforms for both shapes.
             const TransformComponent &shapeOneTransform = data.ShapeOneWorldTransform;

@@ -1,5 +1,6 @@
 #include "physics/collision/shapes/convex_shape.h"
 #include "physics/physics_constants.h"
+#include "core/constants.h"
 
 namespace Vulkyrie {
 
