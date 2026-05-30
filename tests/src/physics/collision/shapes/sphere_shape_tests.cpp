@@ -31,13 +31,7 @@ TEST_CASE("SphereShape - GetRadius returns constructed radius", "[physics][spher
 TEST_CASE("SphereShape - GetMargin returns zero when not specified", "[physics][sphere]") {
     SphereShape shape(1.0f);
 
-    REQUIRE(shape.GetMargin() == 0.0f);
-}
-
-TEST_CASE("SphereShape - GetMargin returns constructed margin", "[physics][sphere]") {
-    SphereShape shape(1.0f, 0.05f);
-
-    REQUIRE(shape.GetMargin() == 0.05f);
+    REQUIRE(shape.GetMargin() == 1.0f);
 }
 
 TEST_CASE("SphereShape - GetType returns Sphere", "[physics][sphere]") {
@@ -88,6 +82,23 @@ TEST_CASE("SphereShape - SetRadius updates GetLocalAABB", "[physics][sphere]") {
     REQUIRE(aabb.GetMax() == glm::vec3(4.0f));
 }
 
+TEST_CASE("SphereShape - SetRadius updates GetVolume", "[physics][sphere]") {
+    SphereShape shape(1.0f);
+    shape.SetRadius(2.0f);
+    const f32 expected = (4.0f / 3.0f) * std::numbers::pi_v<f32> * 8.0f;
+
+    REQUIRE(shape.GetVolume() == Catch::Approx(expected));
+}
+
+TEST_CASE("SphereShape - SetRadius updates ComputeTransformedAABB", "[physics][sphere]") {
+    SphereShape shape(1.0f);
+    shape.SetRadius(3.0f);
+    const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
+
+    REQUIRE(aabb.GetMin() == glm::vec3(-3.0f));
+    REQUIRE(aabb.GetMax() == glm::vec3(3.0f));
+}
+
 // ===========================================================================================
 // GetLocalAABB
 // ===========================================================================================
@@ -125,7 +136,7 @@ TEST_CASE("SphereShape - GetLocalAABB is a cube (all half-extents equal)", "[phy
 
 TEST_CASE("SphereShape - GetVolume matches (4/3)*pi*r^3 for r=1", "[physics][sphere]") {
     SphereShape shape(1.0f);
-    const float expected = (4.0f / 3.0f) * std::numbers::pi_v<float>;
+    const f32 expected = (4.0f / 3.0f) * std::numbers::pi_v<f32>;
 
     REQUIRE(shape.GetVolume() == Catch::Approx(expected));
 }
@@ -135,6 +146,13 @@ TEST_CASE("SphereShape - GetVolume scales as cube of radius", "[physics][sphere]
     SphereShape s2(2.0f);
 
     REQUIRE(s2.GetVolume() == Catch::Approx(s1.GetVolume() * 8.0f));
+}
+
+TEST_CASE("SphereShape - GetVolume is correct for non-unit radius", "[physics][sphere]") {
+    SphereShape shape(3.0f);
+    const f32 expected = (4.0f / 3.0f) * std::numbers::pi_v<f32> * 27.0f;
+
+    REQUIRE(shape.GetVolume() == Catch::Approx(expected));
 }
 
 // ===========================================================================================
@@ -151,8 +169,8 @@ TEST_CASE("SphereShape - GetLocalInertiaTensor is uniform (all components equal)
 
 TEST_CASE("SphereShape - GetLocalInertiaTensor matches (2/5)*mass*r^2", "[physics][sphere]") {
     SphereShape shape(3.0f);
-    const float mass = 5.0f;
-    const float expected = 0.4f * mass * 3.0f * 3.0f;
+    const f32 mass = 5.0f;
+    const f32 expected = 0.4f * mass * 3.0f * 3.0f;
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(mass);
 
     REQUIRE(inertia.x == Catch::Approx(expected));
@@ -175,6 +193,15 @@ TEST_CASE("SphereShape - GetLocalInertiaTensor is zero for zero mass", "[physics
     REQUIRE(inertia.x == Catch::Approx(0.0f));
     REQUIRE(inertia.y == Catch::Approx(0.0f));
     REQUIRE(inertia.z == Catch::Approx(0.0f));
+}
+
+TEST_CASE("SphereShape - GetLocalInertiaTensor scales as square of radius", "[physics][sphere]") {
+    SphereShape s1(1.0f);
+    SphereShape s2(2.0f);
+    const glm::vec3 i1 = s1.GetLocalInertiaTensor(1.0f);
+    const glm::vec3 i2 = s2.GetLocalInertiaTensor(1.0f);
+
+    REQUIRE(i2.x == Catch::Approx(i1.x * 4.0f));
 }
 
 // ===========================================================================================
@@ -270,21 +297,73 @@ TEST_CASE("SphereShape - ComputeTransformedAABB is always a cube", "[physics][sp
 }
 
 TEST_CASE("SphereShape - ComputeTransformedAABB half-extents equal radius plus margin", "[physics][sphere]") {
-    SphereShape shape(2.0f, 0.1f);
+    SphereShape shape(2.0f);
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
     const glm::vec3 halfExtents = (aabb.GetMax() - aabb.GetMin()) * 0.5f;
 
-    REQUIRE(halfExtents.x == Catch::Approx(2.1f));
-    REQUIRE(halfExtents.y == Catch::Approx(2.1f));
-    REQUIRE(halfExtents.z == Catch::Approx(2.1f));
+    REQUIRE(halfExtents.x == Catch::Approx(2.0f));
+    REQUIRE(halfExtents.y == Catch::Approx(2.0f));
+    REQUIRE(halfExtents.z == Catch::Approx(2.0f));
 }
 
 TEST_CASE("SphereShape - ComputeTransformedAABB with zero margin half-extents equal radius", "[physics][sphere]") {
-    SphereShape shape(3.0f, 0.0f);
+    SphereShape shape(3.0f);
     const AABB aabb = shape.ComputeTransformedAABB(MakeTransform(glm::vec3(0.0f)));
     const glm::vec3 halfExtents = (aabb.GetMax() - aabb.GetMin()) * 0.5f;
 
     REQUIRE(halfExtents.x == Catch::Approx(3.0f));
     REQUIRE(halfExtents.y == Catch::Approx(3.0f));
     REQUIRE(halfExtents.z == Catch::Approx(3.0f));
+}
+
+// ===========================================================================================
+// GetLocalSupportPointWithoutMargin
+// ===========================================================================================
+
+TEST_CASE("SphereShape - GetLocalSupportPointWithoutMargin returns origin for +X direction", "[physics][sphere]") {
+    SphereShape shape(2.0f);
+    const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(glm::vec3(1.0f, 0.0f, 0.0f));
+
+    REQUIRE(result.x == Catch::Approx(0.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(0.0f));
+}
+
+TEST_CASE("SphereShape - GetLocalSupportPointWithoutMargin returns origin for arbitrary direction", "[physics][sphere]") {
+    SphereShape shape(5.0f);
+    const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(glm::normalize(glm::vec3(1.0f, 2.0f, 3.0f)));
+
+    REQUIRE(result.x == Catch::Approx(0.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(0.0f));
+}
+
+// ===========================================================================================
+// GetLocalSupportPointWithMargin
+// ===========================================================================================
+
+TEST_CASE("SphereShape - GetLocalSupportPointWithMargin returns point on surface in +X direction", "[physics][sphere]") {
+    SphereShape shape(3.0f);
+    const glm::vec3 result = shape.GetLocalSupportPointWithMargin(glm::vec3(1.0f, 0.0f, 0.0f));
+
+    REQUIRE(result.x == Catch::Approx(3.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(0.0f));
+}
+
+TEST_CASE("SphereShape - GetLocalSupportPointWithMargin result has magnitude equal to radius", "[physics][sphere]") {
+    SphereShape shape(4.0f);
+    const glm::vec3 result = shape.GetLocalSupportPointWithMargin(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f)));
+
+    REQUIRE(glm::length(result) == Catch::Approx(4.0f));
+}
+
+TEST_CASE("SphereShape - GetLocalSupportPointWithMargin is in same direction as input", "[physics][sphere]") {
+    SphereShape shape(2.0f);
+    const glm::vec3 dir = glm::normalize(glm::vec3(1.0f, -2.0f, 3.0f));
+    const glm::vec3 result = shape.GetLocalSupportPointWithMargin(dir);
+
+    REQUIRE(glm::normalize(result).x == Catch::Approx(dir.x));
+    REQUIRE(glm::normalize(result).y == Catch::Approx(dir.y));
+    REQUIRE(glm::normalize(result).z == Catch::Approx(dir.z));
 }

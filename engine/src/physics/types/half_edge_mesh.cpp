@@ -88,12 +88,12 @@ namespace Vulkyrie {
         // Resolve NextEdgeIndex for each half-edge: map the edge's key to its next key via nextEdgeMap,
         // then convert that key back to a final _edges index via edgeToIndexMap.
         for (size_t i = 0; i < _edges.size(); ++i) {
-            _edges[i].NextEdgeIndex = edgeToIndexMap[nextEdgeMap[edgeIndexToKeyMap[i]]];
+            _edges[i].NextEdgeIndex = edgeToIndexMap.at(nextEdgeMap.at(edgeIndexToKeyMap.at(i)));
         }
 
         // Resolve the entry-point half-edge index for each face.
         for (size_t i = 0; i < _faces.size(); ++i) {
-            _faces[i].EdgeIndex = edgeToIndexMap[faceIndexToEdgeKeyMap[i]];
+            _faces[i].EdgeIndex = edgeToIndexMap.at(faceIndexToEdgeKeyMap.at(i));
         }
     }
 

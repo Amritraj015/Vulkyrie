@@ -189,11 +189,11 @@ namespace Vulkyrie {
         }
 
         /** @brief Retrieves the broad-phase ID assigned to the specified collider entity. The broad-phase ID is used by the broad-phase collision
-         * detection system to track the collider's bounding volume. A value of -1 indicates the collider has not yet been registered with the broad phase.
+         * detection system to track the collider's bounding volume. A value of AABB_TREE_NULL_NODE indicates the collider has not yet been registered with the broad phase.
          * The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose broad-phase ID is to be retrieved.
-         * @returns The broad-phase ID of the collider, or -1 if not yet registered. */
-        [[nodiscard]] VE_INLINE i32 GetBroadPhaseID(Entity colliderEntity) const {
+         * @returns The broad-phase ID of the collider, or AABB_TREE_NULL_NODE if not yet registered. */
+        [[nodiscard]] VE_INLINE u32 GetBroadPhaseID(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return _broadPhaseIDs[_entityToComponentIndex.find(colliderEntity)->second];
@@ -203,7 +203,7 @@ namespace Vulkyrie {
          * the broad-phase structure. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose broad-phase ID is to be set.
          * @param broadPhaseID The broad-phase ID assigned by the broad-phase collision detection system. */
-        VE_INLINE void SetBroadPhaseID(Entity colliderEntity, i32 broadPhaseID) {
+        VE_INLINE void SetBroadPhaseID(Entity colliderEntity, u32 broadPhaseID) {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             _broadPhaseIDs[_entityToComponentIndex.find(colliderEntity)->second] = broadPhaseID;
@@ -212,8 +212,8 @@ namespace Vulkyrie {
         /** @brief Retrieves the broad-phase ID assigned to the component at the specified index in the component vector. The index must be a valid index
          * within the component vector.
          * @param index The index of the component whose broad-phase ID is to be retrieved. Must be a valid index within the component vector.
-         * @returns The broad-phase ID of the component at the specified index, or -1 if not yet registered. */
-        [[nodiscard]] VE_INLINE i32 GetBroadPhaseIDAtIndex(size_t index) const {
+         * @returns The broad-phase ID of the component at the specified index, or AABB_TREE_NULL_NODE if not yet registered. */
+        [[nodiscard]] VE_INLINE u32 GetBroadPhaseIDAtIndex(size_t index) const {
             VASSERT(index < _activeCount, "Index out of bounds.");
 
             return _broadPhaseIDs[index];
@@ -522,7 +522,7 @@ namespace Vulkyrie {
 
         /** @brief Returns a contiguous view of the active broad-phase IDs.
          * @returns A span over the densely packed active broad-phase IDs at the front of the storage. */
-        [[nodiscard]] VE_INLINE std::span<const i32> GetActiveBroadPhaseIDs() const {
+        [[nodiscard]] VE_INLINE std::span<const u32> GetActiveBroadPhaseIDs() const {
             return { _broadPhaseIDs.data(), _activeCount };
         }
 
@@ -549,7 +549,7 @@ namespace Vulkyrie {
         std::vector<Collider *> _colliders;
 
         /** @brief Parallel array of broad-phase IDs. Entry i holds the ID assigned by the broad-phase system, or -1 if not yet registered. */
-        std::vector<i32> _broadPhaseIDs;
+        std::vector<u32> _broadPhaseIDs;
 
         /** @brief Parallel array of local-to-body transforms. Entry i converts from collider i's local space to its owning body's local space. */
         std::vector<TransformComponent> _localToBodyTransforms;

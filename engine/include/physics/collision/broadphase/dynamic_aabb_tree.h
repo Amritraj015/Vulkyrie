@@ -26,30 +26,30 @@ namespace Vulkyrie {
         union {
             /** @brief The indices of the child nodes in the tree. For internal nodes, these indices point to the left and right child nodes that are
              * used for spatial partitioning. For leaf nodes, these indices are not used and can be ignored. */
-            i32 Children[2];
+            u32 Children[2];
 
             /** @brief The user-defined data associated with a leaf node. For internal nodes, this field is not used and can be ignored. The caller is
              * responsible for ensuring that the data associated with leaf nodes remains valid for the duration of its use in the tree. */
-            u32 Data;
+            size_t Data;
 
             /** @brief A pointer to user-defined data associated with a leaf node. This can be used as an alternative to the integer Data field for
              * storing more complex information about the object represented by the leaf node. For internal nodes, this field is not used and can be
-             * ignored. The caller is responsible for ensuring that the data pointed to by DataPointer remains valid for the duration of its use in the
+             * ignored. The caller is responsible for ensuring that the data pointed to by DataPtr remains valid for the duration of its use in the
              * tree. */
-            void *DataPointer;
+            void *DataPtr;
         };
 
         union {
-            /** @brief The index of the parent node in the tree. For the root node, this index is set to a special null value (e.g., -1) to indicate
+            /** @brief The index of the parent node in the tree. For the root node, this index is set to AABB_TREE_NULL_NODE to indicate
              * that it has no parent. For all other nodes, this index points to the parent node that contains this node as one of its children. The
              * parent node is used for navigating up the tree during operations such as insertion, removal, and balancing. */
-            i32 ParentNodeIndex;
+            u32 ParentNodeIndex;
 
             /** @brief The index of the next free node in the tree's node pool. This is used for efficient allocation and deallocation of nodes when
              * adding or removing objects from the tree. When a node is allocated, it is removed from the free list, and when it is released, it is
              * added back to the free list. This allows the tree to reuse nodes without needing to perform expensive dynamic memory allocations for each
              * new node. */
-            i32 NextNodeIndex;
+            u32 NextNodeIndex;
         };
 
         /** @brief The height of the node in the tree. A leaf node has a height of 0, while internal nodes have a height greater than 0. The height is used
@@ -82,10 +82,8 @@ namespace Vulkyrie {
          * updates when objects move slightly. The initial node capacity is used to pre-allocate memory for the tree's nodes, which can improve
          * performance by reducing the need for dynamic memory allocations as objects are added to the tree. If the tree needs to grow beyond the
          * initial capacity, it will automatically resize itself to accommodate more nodes.
-         * @param inflationPercentage The percentage by which to inflate the AABBs of objects when they are added to the tree. This helps reduce the
-         * frequency of tree updates when objects move slightly.
-         * @param initialNodeCapacity The initial number of nodes to pre-allocate for the tree. This can improve performance by reducing the need
-         * for dynamic memory allocations as objects are added to the tree. */
+         * @param inflationPercentage The percentage by which to inflate the AABBs of objects when they are added to the tree.
+         * @param initialNodeCapacity The initial number of nodes to pre-allocate for the tree. */
         DynamicAABBTree(f32 inflationPercentage = AABB_TREE_DEFAULT_INFLATION_PERCENTAGE, size_t initialNodeCapacity = AABB_TREE_DEFAULT_INITIAL_NODE_CAPACITY);
 
         // Delete the copy constructor and copy assignment operator to prevent accidental copying,
@@ -103,16 +101,15 @@ namespace Vulkyrie {
          * to create a "fat" AABB that can accommodate some movement without needing to be updated immediately. The function returns the index of
          * the newly added node in the tree, which can be used for future updates or removals. The caller is responsible for ensuring that the data
          * associated with the node remains valid for the duration of its use in the tree.
-         * @param aabb The axis-aligned bounding box representing the spatial bounds of the object being added to the tree. This AABB will be
-         * inflated by the specified percentage to create a "fat" AABB that can accommodate some movement without needing to be updated immediately.
+         * @param aabb The axis-aligned bounding box representing the spatial bounds of the object being added to the tree.
          * @param data An integer value representing user-defined data associated with the object being added to the tree. This could be an ID, a
          * type identifier, or any other integer value that helps identify or categorize the object. The caller is responsible for ensuring that
          * this data remains valid for the duration of its use in the tree.
          * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
-        VE_INLINE i32 AddObject(const AABB &aabb, u32 data) {
+        VE_INLINE u32 AddObject(const AABB &aabb, size_t data) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
-            const i32 nodeIndex = allocateNode();
+            const u32 nodeIndex = allocateNode();
             const auto idx = static_cast<size_t>(nodeIndex);
 
             // Inflate the AABB by the specified percentage to create a "fat" AABB that
@@ -138,17 +135,15 @@ namespace Vulkyrie {
         /** @brief Adds a new object to the tree with the specified AABB and associated data pointer. The AABB will be inflated by the specified
          * percentage to create a "fat" AABB that can accommodate some movement without needing to be updated immediately. The function returns the
          * index of the newly added node in the tree, which can be used for future updates or removals. The caller is responsible for ensuring that
-         * the data pointed to by dataPointer remains valid for the duration of its use in the tree.
-         * @param aabb The axis-aligned bounding box representing the spatial bounds of the object being added to the tree. This AABB will be
-         * inflated by the specified percentage to create a "fat" AABB that can accommodate some movement without needing to be updated immediately.
-         * @param dataPointer A pointer to user-defined data associated with the object being added to the tree. This could point to any type of
-         * data structure that helps identify or categorize the object. The caller is responsible for ensuring that this pointer remains valid for
-         * the duration of its use in the tree and that it points to a valid memory location containing the intended data.
+         * the data pointed to by dataPtr remains valid for the duration of its use in the tree.
+         * @param aabb The axis-aligned bounding box representing the spatial bounds of the object being added to the tree.
+         * @param dataPtr A void pointer to user-defined data associated with the object being added to the tree. The caller is responsible for
+         * ensuring that this pointer remains valid for the duration of its use in the tree and that it points to a valid memory location.
          * @returns The index of the newly added node in the tree, which can be used for future updates or removals. */
-        VE_INLINE i32 AddObject(const AABB &aabb, void *dataPointer) {
+        VE_INLINE u32 AddObject(const AABB &aabb, void *dataPtr) {
             // Allocate a new node from the pool of available nodes.
             // This will give us an index into the _nodes vector where we can store the new node's data.
-            const i32 nodeIndex = allocateNode();
+            const u32 nodeIndex = allocateNode();
             const auto idx = static_cast<size_t>(nodeIndex);
 
             // Inflate the AABB by the specified percentage to create a "fat" AABB that
@@ -160,7 +155,7 @@ namespace Vulkyrie {
             _nodes[idx].Height = 0;
 
             // Store the user-defined data pointer in the node.
-            _nodes[idx].DataPointer = dataPointer;
+            _nodes[idx].DataPtr = dataPtr;
 
             // Insert the new leaf node into the tree, which may cause the tree to rebalance if necessary.
             insertLeafNode(nodeIndex);
@@ -184,7 +179,7 @@ namespace Vulkyrie {
          * if they don't require an update based on containment checks.
          * @returns True if the tree was updated and may need to be re-queried for collisions, or false if no update was necessary because the new AABB
          * is still contained within the existing fat AABB and we're not forcing a reinsert. */
-        bool UpdateObject(i32 nodeIndex, const AABB &newAABB, bool forceReinsert);
+        bool UpdateObject(u32 nodeIndex, const AABB &newAABB, bool forceReinsert);
 
         /** @brief Removes the object corresponding to the specified node index from the tree. The node index must correspond to a valid leaf node
          * in the tree, and after removal, the node will be released back to the free list for future use. The caller is responsible for ensuring
@@ -192,8 +187,8 @@ namespace Vulkyrie {
          * any references to it after removal.
          * @param nodeIndex The index of the node to remove from the tree. This must be a valid index into the _nodes vector and must correspond to
          * a leaf node. */
-        VE_INLINE void RemoveObject(i32 nodeIndex) {
-            VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+        VE_INLINE void RemoveObject(u32 nodeIndex) {
+            VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
             VASSERT(_nodes[static_cast<size_t>(nodeIndex)].IsLeaf(), "Can only remove leaf nodes.");
 
             // Remove the leaf node from the tree, which may cause the tree to rebalance if necessary.
@@ -210,8 +205,8 @@ namespace Vulkyrie {
          * intended context.
          * @param nodeIndex The index of the node to retrieve the AABB from. This must be a valid index into the _nodes vector.
          * @returns The AABB associated with the specified node index. */
-        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(i32 nodeIndex) const {
-            VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(u32 nodeIndex) const {
+            VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
 
             return _nodes[static_cast<size_t>(nodeIndex)].AABB;
         }
@@ -229,8 +224,8 @@ namespace Vulkyrie {
          * @param nodeIndex The index of the leaf node to retrieve the data from. Must be a valid index into the _nodes vector and must correspond
          * to a leaf node.
          * @returns The data associated with the leaf node. */
-        [[nodiscard]] VE_INLINE u32 GetNodeData(i32 nodeIndex) const {
-            VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+        [[nodiscard]] VE_INLINE size_t GetNodeData(u32 nodeIndex) const {
+            VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
             const auto idx = static_cast<size_t>(nodeIndex);
             VASSERT(_nodes[idx].IsLeaf(), "Can only get data from leaf nodes.");
 
@@ -242,12 +237,12 @@ namespace Vulkyrie {
          * @param nodeIndex The index of the leaf node to retrieve the data pointer from. Must be a valid index into the _nodes vector and must
          * correspond to a leaf node.
          * @returns A pointer to the data associated with the leaf node. */
-        [[nodiscard]] VE_INLINE void *GetNodeDataPointer(i32 nodeIndex) const {
-            VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+        [[nodiscard]] VE_INLINE void *GetNodeDataPointer(u32 nodeIndex) const {
+            VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
             const auto idx = static_cast<size_t>(nodeIndex);
             VASSERT(_nodes[idx].IsLeaf(), "Can only get data from leaf nodes.");
 
-            return _nodes[idx].DataPointer;
+            return _nodes[idx].DataPtr;
         }
 
         /** @brief Queries the tree for all leaf nodes whose AABBs overlap with the specified query AABB. The results are returned as a vector of
@@ -256,7 +251,7 @@ namespace Vulkyrie {
          * @param queryAABB The AABB to query against. All leaf nodes whose AABBs overlap with this AABB will be included in the results.
          * @param outResults A vector that will be populated with the indices of the overlapping leaf nodes. The caller is responsible for clearing
          * this vector before calling the function if they want to avoid appending to existing results. */
-        void QueryOverlaps(const AABB &queryAABB, std::vector<i32> &outResults);
+        void QueryOverlaps(const AABB &queryAABB, std::vector<u32> &outResults);
 
         /** @brief Queries the tree for all pairs of leaf nodes that overlap with each other among the specified node indices. This is useful for
          * finding potential collisions between objects in the tree without needing to specify a separate query AABB, as it will check for overlaps
@@ -267,29 +262,29 @@ namespace Vulkyrie {
          * correspond to a leaf node.
          * @param outOverlappingPairs A vector that will be populated with pairs of indices representing overlapping nodes. The caller is
          * responsible for clearing this vector before calling the function if they want to avoid appending to existing results. */
-        void QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<Pair<i32, i32>> &outOverlappingPairs);
+        void QueryOverlappingPairs(const std::vector<u32> &nodeIndices, std::vector<Pair<u32, u32>> &outOverlappingPairs);
 
     private:
         /** @brief The vector of nodes in the dynamic AABB tree. Each node represents either a leaf (which corresponds to an actual object in the
          * world) or an internal node (which is used for spatial partitioning and does not correspond to a real object). The tree is stored as a
          * contiguous array of nodes, where the parent-child relationships are maintained through indices. The root node is at index _rootNodeIndex,
-         * and each node's LeftChildIndex and RightChildIndex point to its children in the vector. Leaf nodes have their LeftChildIndex and
-         * RightChildIndex set to AABB_TREE_NULL_NODE. */
+         * and each node's Children[0] and Children[1] point to its left and right children in the vector. Leaf nodes have their Children[0] and
+         * Children[1] set to AABB_TREE_NULL_NODE. */
         std::vector<AABBTreeNode> _nodes;
 
         // WARN: This is not thread-safe. If you need to perform queries from multiple threads,
         // you should use a separate instance of this vector for each thread.
-        std::vector<i32> _queryNodesToVisit;
+        std::vector<u32> _queryNodesToVisit;
 
         /** @brief The index of the root node in the _nodes vector. This is used to quickly access the top-level AABB that encompasses all objects
          * in the tree. If the tree is empty, this will be set to AABB_TREE_NULL_NODE. */
-        i32 _rootNodeIndex;
+        u32 _rootNodeIndex;
 
         /** @brief The index of the first free node in the _nodes vector. This is used to efficiently manage the allocation and deallocation of
          * nodes in the tree. When a new node is needed, it can be taken from the free list starting at this index, and when a node is removed, it
          * can be added back to the free list. This helps to minimize memory fragmentation and improve performance by reusing existing nodes instead
          * of constantly resizing the vector. */
-        i32 _firstFreeNodeIndex;
+        u32 _firstFreeNodeIndex;
 
         /** @brief The percentage by which to inflate the AABBs of leaf nodes when they are inserted or updated. This creates "fat" AABBs that can
          * accommodate some movement without needing to be updated immediately, which can improve performance by reducing the frequency of tree
@@ -302,9 +297,8 @@ namespace Vulkyrie {
          * leaf node in the tree, and after this function is called, the node will be removed from the tree and should not be used until it is reallocated
          * and reinserted.
          * @param leafNodeIndex The index of the leaf node to remove from the tree. This must be a valid index into the _nodes vector and must correspond to
-         * a leaf node. After this function is called, the node will be removed from the tree and should not be used until it is reallocated and reinserted.
-         * */
-        void removeLeafNode(i32 leafNodeIndex);
+         * a leaf node. */
+        void removeLeafNode(u32 leafNodeIndex);
 
         /** @brief Inserts a leaf node into the tree. This function is called when a new object is added to the tree, and it will find the appropriate
          * location for the new leaf node based on its AABB and insert it into the tree structure. The function will also perform any necessary balancing of
@@ -312,13 +306,13 @@ namespace Vulkyrie {
          * index corresponds to a valid leaf node in the tree, and after this function is called, the node will be part of the tree and can be used for
          * queries and updates.
          * @param leafNodeIndex The index of the leaf node to insert into the tree. This must be a valid index into the _nodes vector and must correspond
-         * to a leaf node. After this function is called, the node will be part of the tree and can be used for queries and updates. */
-        void insertLeafNode(i32 leafNodeIndex);
+         * to a leaf node. */
+        void insertLeafNode(u32 leafNodeIndex);
 
         /** @brief Releases a node back to the free list. This function is called when a node is removed from the tree, and it adds the node back to the
          * free list so that it can be reused for future insertions.
          * @param nodeIndex The index of the node to release back to the free list. This must be a valid index into the _nodes vector. */
-        void releaseNode(i32 nodeIndex);
+        void releaseNode(u32 nodeIndex);
 
         /** @brief Balances the subtree rooted at the specified node index. This function is called after inserting or removing a leaf node to ensure that
          * the tree remains balanced and efficient for queries. The balancing process may involve performing rotations on the subtree to maintain
@@ -327,13 +321,13 @@ namespace Vulkyrie {
          * updating any parent nodes accordingly after balancing.
          * @param nodeIndex The index of the node at the root of the subtree to balance. This should be a valid index into the _nodes vector.
          * @returns The new index of the root of the balanced subtree after performing any necessary rotations. */
-        i32 balanceSubtree(i32 nodeIndex);
+        u32 balanceSubtree(u32 nodeIndex);
 
         /** @brief Allocates a new node from the pool of available nodes. This function will check if there are any free nodes in the free list, and if
          * so, it will return the index of the first free node and update the free list accordingly. If there are no free nodes available, it will
          * resize the _nodes vector to create more nodes and then return the index of the newly allocated node. The caller is responsible for ensuring
          * that the returned node index is used to properly initialize the node's data before inserting it into the tree. */
-        i32 allocateNode();
+        u32 allocateNode();
     };
 
 } // namespace Vulkyrie

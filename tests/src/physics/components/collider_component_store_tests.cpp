@@ -207,7 +207,7 @@ TEST_CASE("ColliderComponentStore - HasComponent returns false after remove", "[
 // BroadPhaseID
 // ===========================================================================================
 
-TEST_CASE("ColliderComponentStore - BroadPhaseID initializes to -1", "[ecs][collider]") {
+TEST_CASE("ColliderComponentStore - BroadPhaseID initializes to AABB_TREE_NULL_NODE", "[ecs][collider]") {
     EntityManager em;
     ColliderComponentStore store;
 
@@ -215,7 +215,7 @@ TEST_CASE("ColliderComponentStore - BroadPhaseID initializes to -1", "[ecs][coll
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeComponent(body), true);
 
-    REQUIRE(store.GetBroadPhaseID(e) == -1);
+    REQUIRE(store.GetBroadPhaseID(e) == AABB_TREE_NULL_NODE);
 }
 
 TEST_CASE("ColliderComponentStore - SetBroadPhaseID updates value", "[ecs][collider]") {
@@ -837,8 +837,8 @@ TEST_CASE("ColliderComponentStore - Span accessors align with per-entity getters
     auto broadPhaseIDs = store.GetActiveBroadPhaseIDs();
     REQUIRE(broadPhaseIDs.size() == 2);
     // All initialized to -1.
-    REQUIRE(broadPhaseIDs[0] == -1);
-    REQUIRE(broadPhaseIDs[1] == -1);
+    REQUIRE(broadPhaseIDs[0] == AABB_TREE_NULL_NODE);
+    REQUIRE(broadPhaseIDs[1] == AABB_TREE_NULL_NODE);
 }
 
 TEST_CASE("ColliderComponentStore - GetActiveBroadPhaseIDs reflects SetBroadPhaseID", "[ecs][collider]") {

@@ -2,8 +2,8 @@
 
 namespace Vulkyrie {
 
-    SphereShape::SphereShape(f32 radius, f32 margin)
-        : ConvexShape(CollisionShapeType::Sphere, CollisionShapeName::Sphere, margin) {
+    SphereShape::SphereShape(f32 radius)
+        : ConvexShape(CollisionShapeType::Sphere, CollisionShapeName::Sphere, radius) {
         VASSERT(radius > 0.0f, "Radius must be positive for sphere shape.");
     }
 

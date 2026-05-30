@@ -37,7 +37,7 @@ namespace Vulkyrie {
         VE_INLINE void AddCollider(Collider &collider, const AABB &aabb) {
             _broadPhaseSystem.AddCollider(collider, aabb);
 
-            const i32 broadPhaseID = _colliderComponentStore.GetBroadPhaseID(collider.GetEntity());
+            const u32 broadPhaseID = _colliderComponentStore.GetBroadPhaseID(collider.GetEntity());
 
             VASSERT(!_broadPhaseIDToColliderEntityMap.contains(broadPhaseID), "Broad-phase ID already exists in the map when trying to add a collider.");
 
@@ -57,7 +57,7 @@ namespace Vulkyrie {
         }
 
         VE_INLINE void RequestBroadPhaseCollisionCheck(Collider &collider) {
-            if (collider.GetBroadPhaseID() != -1) {
+            if (collider.GetBroadPhaseID() != AABB_TREE_NULL_NODE) {
                 _broadPhaseSystem.AddMovedCollider(collider.GetBroadPhaseID(), collider);
             }
         }
@@ -84,9 +84,9 @@ namespace Vulkyrie {
 
         std::unordered_set<Pair<Entity, Entity>> _nonCollidablePairs{};
         OverlappingPairs _overlappingPairs;
-        std::vector<Pair<i32, i32>> _broadphaseOverlappingPairs;
+        std::vector<Pair<u32, u32>> _broadphaseOverlappingPairs;
         BroadPhaseSystem _broadPhaseSystem;
-        std::unordered_map<i32, Entity> _broadPhaseIDToColliderEntityMap;
+        std::unordered_map<u32, Entity> _broadPhaseIDToColliderEntityMap;
 
         NarrowPhaseInput _narrowPhaseInput;
         std::vector<ContactPointData> _potentialContactPoints;
@@ -126,7 +126,7 @@ namespace Vulkyrie {
         void computeOverlapSnapshotContactPairs(NarrowPhaseDataBatch &batch,
                                                 std::vector<ContactPair> &contactPairs,
                                                 std::unordered_set<u64> overlappingContactPairIDs) const;
-        void updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes);
+        void updateOverlappingPairs(const std::vector<Pair<u32, u32>> &overlappingNodes);
         void removeNonOverlappingPairs();
         void disableOverlappingPair(u64 pairID);
         void removeOverlappingPair(u64 pairID, bool notifyLostContact);

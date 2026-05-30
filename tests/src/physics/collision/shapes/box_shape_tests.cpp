@@ -94,6 +94,15 @@ TEST_CASE("BoxShape - SetHalfExtents updates GetLocalAABB", "[physics][box]") {
     REQUIRE(aabb.GetMax() == glm::vec3(2.0f, 3.0f, 4.0f));
 }
 
+TEST_CASE("BoxShape - SetHalfExtents updates GetVolume", "[physics][box]") {
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f), context);
+
+    shape.SetHalfExtents(glm::vec3(2.0f, 3.0f, 4.0f));
+
+    REQUIRE(shape.GetVolume() == Catch::Approx(8.0f * 2.0f * 3.0f * 4.0f));
+}
+
 // ===========================================================================================
 // Topology counts
 // ===========================================================================================
@@ -454,4 +463,73 @@ TEST_CASE("BoxShape - ComputeTransformedAABB 180-degree rotation produces same A
     REQUIRE(withRot.GetMax().x == Catch::Approx(noRot.GetMax().x));
     REQUIRE(withRot.GetMax().y == Catch::Approx(noRot.GetMax().y));
     REQUIRE(withRot.GetMax().z == Catch::Approx(noRot.GetMax().z));
+}
+
+// ===========================================================================================
+// GetLocalSupportPointWithoutMargin
+// ===========================================================================================
+
+TEST_CASE("BoxShape - GetLocalSupportPointWithoutMargin returns corner in +X+Y+Z direction", "[physics][box]") {
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+    const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    REQUIRE(result.x == Catch::Approx(1.0f));
+    REQUIRE(result.y == Catch::Approx(2.0f));
+    REQUIRE(result.z == Catch::Approx(3.0f));
+}
+
+TEST_CASE("BoxShape - GetLocalSupportPointWithoutMargin returns corner in -X-Y-Z direction", "[physics][box]") {
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+    const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(glm::vec3(-1.0f, -1.0f, -1.0f));
+
+    REQUIRE(result.x == Catch::Approx(-1.0f));
+    REQUIRE(result.y == Catch::Approx(-2.0f));
+    REQUIRE(result.z == Catch::Approx(-3.0f));
+}
+
+TEST_CASE("BoxShape - GetLocalSupportPointWithoutMargin returns correct corner for mixed signs", "[physics][box]") {
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(2.0f, 3.0f, 4.0f), context);
+    const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(glm::vec3(1.0f, -1.0f, 1.0f));
+
+    REQUIRE(result.x == Catch::Approx(2.0f));
+    REQUIRE(result.y == Catch::Approx(-3.0f));
+    REQUIRE(result.z == Catch::Approx(4.0f));
+}
+
+TEST_CASE("BoxShape - GetLocalSupportPointWithoutMargin result is always a vertex", "[physics][box]") {
+    PhysicsContext context;
+    const glm::vec3 half(1.0f, 2.0f, 3.0f);
+    BoxShape shape(half, context);
+
+    // Check all 8 axis-diagonal directions map to the correct vertex.
+    for (int sx : {-1, 1}) {
+        for (int sy : {-1, 1}) {
+            for (int sz : {-1, 1}) {
+                const glm::vec3 dir(static_cast<float>(sx), static_cast<float>(sy), static_cast<float>(sz));
+                const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(dir);
+                REQUIRE(result.x == Catch::Approx(sx * half.x));
+                REQUIRE(result.y == Catch::Approx(sy * half.y));
+                REQUIRE(result.z == Catch::Approx(sz * half.z));
+            }
+        }
+    }
+}
+
+// ===========================================================================================
+// GetLocalSupportPointWithMargin
+// ===========================================================================================
+
+TEST_CASE("BoxShape - GetLocalSupportPointWithMargin with zero margin matches WithoutMargin", "[physics][box]") {
+    PhysicsContext context;
+    BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
+    const glm::vec3 dir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+    const glm::vec3 withMargin = shape.GetLocalSupportPointWithMargin(dir);
+    const glm::vec3 withoutMargin = shape.GetLocalSupportPointWithoutMargin(dir);
+
+    REQUIRE(withMargin.x == Catch::Approx(withoutMargin.x));
+    REQUIRE(withMargin.y == Catch::Approx(withoutMargin.y));
+    REQUIRE(withMargin.z == Catch::Approx(withoutMargin.z));
 }

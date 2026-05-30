@@ -6,7 +6,7 @@
 using namespace Vulkyrie;
 
 // Helper: build an AABB cube of given side length at position (x, y, z).
-static AABB MakeAABB(float x, float y, float z, float size = 1.0f) {
+static AABB MakeAABB(f32 x, f32 y, f32 z, f32 size = 1.0f) {
     return AABB(glm::vec3(x, y, z), glm::vec3(x + size, y + size, z + size));
 }
 
@@ -17,7 +17,7 @@ static AABB MakeAABB(float x, float y, float z, float size = 1.0f) {
 TEST_CASE("DynamicAABBTree - Default construction creates queryable empty tree", "[physics][bvh]") {
     DynamicAABBTree tree;
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-1000.0f, -1000.0f, -1000.0f, 2000.0f), results);
     REQUIRE(results.empty());
 }
@@ -26,8 +26,8 @@ TEST_CASE("DynamicAABBTree - Construction with custom initial capacity", "[physi
     DynamicAABBTree tree(0.0f, 4);
 
     // Should be able to add objects without error
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    REQUIRE(idx >= 0);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    REQUIRE(idx != AABB_TREE_NULL_NODE);
 }
 
 // ===========================================================================================
@@ -37,15 +37,15 @@ TEST_CASE("DynamicAABBTree - Construction with custom initial capacity", "[physi
 TEST_CASE("DynamicAABBTree - AddObject returns valid leaf index", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 42);
-    REQUIRE(idx >= 0);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 42);
+    REQUIRE(idx != AABB_TREE_NULL_NODE);
 }
 
 TEST_CASE("DynamicAABBTree - AddObject with zero inflation stores exact AABB", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
     AABB aabb(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(4.0f, 5.0f, 6.0f));
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
     const AABB &fat = tree.GetFatAABB(idx);
 
     REQUIRE(fat.GetMin() == glm::vec3(1.0f, 2.0f, 3.0f));
@@ -53,11 +53,11 @@ TEST_CASE("DynamicAABBTree - AddObject with zero inflation stores exact AABB", "
 }
 
 TEST_CASE("DynamicAABBTree - AddObject inflates fat AABB by inflation percentage of extents", "[physics][bvh]") {
-    constexpr float inflationPct = 0.1f;
+    constexpr f32 inflationPct = 0.1f;
     DynamicAABBTree tree(inflationPct);
     AABB aabb(glm::vec3(0.0f), glm::vec3(10.0f)); // extents = (10,10,10), inflation = 1 per side
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
     const AABB &fat = tree.GetFatAABB(idx);
 
     REQUIRE(fat.GetMin().x == Catch::Approx(-1.0f));
@@ -72,7 +72,7 @@ TEST_CASE("DynamicAABBTree - Fat AABB contains original AABB after inflation", "
     DynamicAABBTree tree(0.05f);
     AABB aabb(glm::vec3(-3.0f, -1.0f, 0.0f), glm::vec3(3.0f, 1.0f, 2.0f));
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
 
     REQUIRE(tree.GetFatAABB(idx).Contains(aabb));
 }
@@ -80,9 +80,9 @@ TEST_CASE("DynamicAABBTree - Fat AABB contains original AABB after inflation", "
 TEST_CASE("DynamicAABBTree - AddObject multiple distinct indices", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    i32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    i32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
-    i32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
+    u32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
+    u32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
 
     REQUIRE(i0 != i1);
     REQUIRE(i1 != i2);
@@ -96,7 +96,7 @@ TEST_CASE("DynamicAABBTree - AddObject multiple distinct indices", "[physics][bv
 TEST_CASE("DynamicAABBTree - GetNodeData returns stored integer", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 1337);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 1337);
 
     REQUIRE(tree.GetNodeData(idx) == 1337);
 }
@@ -104,21 +104,21 @@ TEST_CASE("DynamicAABBTree - GetNodeData returns stored integer", "[physics][bvh
 TEST_CASE("DynamicAABBTree - GetNodeData survives tree mutations", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 99);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 99);
     // Add other nodes to force internal node creation
-    tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 0);
-    tree.AddObject(MakeAABB(20.0f, 0.0f, 0.0f), 0);
+    tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    tree.AddObject(MakeAABB(20.0f, 0.0f, 0.0f), static_cast<size_t>(0));
 
     REQUIRE(tree.GetNodeData(idx) == 99);
 }
 
 TEST_CASE("DynamicAABBTree - GetNodeDataPointer returns stored pointer", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    int sentinel = 0xDEAD;
+    Collider *collider = nullptr;
 
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<void *>(&sentinel));
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), collider);
 
-    REQUIRE(tree.GetNodeDataPointer(idx) == static_cast<void *>(&sentinel));
+    REQUIRE(nullptr == tree.GetNodeDataPointer(idx));
 }
 
 // ===========================================================================================
@@ -129,7 +129,7 @@ TEST_CASE("DynamicAABBTree - GetRootNodeAABB on single-node tree equals its fat 
     DynamicAABBTree tree(0.0f);
     AABB aabb(glm::vec3(1.0f), glm::vec3(3.0f));
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
 
     REQUIRE(tree.GetRootNodeAABB().GetMin() == tree.GetFatAABB(idx).GetMin());
     REQUIRE(tree.GetRootNodeAABB().GetMax() == tree.GetFatAABB(idx).GetMax());
@@ -137,7 +137,7 @@ TEST_CASE("DynamicAABBTree - GetRootNodeAABB on single-node tree equals its fat 
 
 TEST_CASE("DynamicAABBTree - GetRootNodeAABB encompasses all leaf AABBs", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
+    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
     tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 1);
     tree.AddObject(MakeAABB(-5.0f, -5.0f, -5.0f), 2);
 
@@ -155,11 +155,11 @@ TEST_CASE("DynamicAABBTree - GetRootNodeAABB encompasses all leaf AABBs", "[phys
 TEST_CASE("DynamicAABBTree - RemoveObject from single-node tree leaves tree empty", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
     AABB aabb = MakeAABB(0.0f, 0.0f, 0.0f);
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
 
     tree.RemoveObject(idx);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-10.0f, -10.0f, -10.0f, 20.0f), results);
     REQUIRE(results.empty());
 }
@@ -169,16 +169,16 @@ TEST_CASE("DynamicAABBTree - RemoveObject sibling becomes new root for 2-node tr
     AABB aabbA = MakeAABB(0.0f, 0.0f, 0.0f);
     AABB aabbB = MakeAABB(10.0f, 0.0f, 0.0f);
 
-    i32 idxA = tree.AddObject(aabbA, 1);
-    i32 idxB = tree.AddObject(aabbB, 2);
+    u32 idxA = tree.AddObject(aabbA, 1);
+    u32 idxB = tree.AddObject(aabbB, 2);
 
     tree.RemoveObject(idxA);
 
-    std::vector<i32> resultsA;
+    std::vector<u32> resultsA;
     tree.QueryOverlaps(aabbA, resultsA);
     REQUIRE(resultsA.empty());
 
-    std::vector<i32> resultsB;
+    std::vector<u32> resultsB;
     tree.QueryOverlaps(aabbB, resultsB);
     REQUIRE(resultsB.size() == 1);
     REQUIRE(resultsB[0] == idxB);
@@ -188,13 +188,13 @@ TEST_CASE("DynamicAABBTree - Removed node slot can be reused", "[physics][bvh]")
     DynamicAABBTree tree(0.0f);
     AABB aabb = MakeAABB(0.0f, 0.0f, 0.0f);
 
-    i32 first = tree.AddObject(aabb, 1);
+    u32 first = tree.AddObject(aabb, 1);
     tree.RemoveObject(first);
-    i32 second = tree.AddObject(aabb, 2);
+    u32 second = tree.AddObject(aabb, 2);
 
     REQUIRE(tree.GetNodeData(second) == 2);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(aabb, results);
     REQUIRE(results.size() == 1);
     REQUIRE(results[0] == second);
@@ -202,21 +202,21 @@ TEST_CASE("DynamicAABBTree - Removed node slot can be reused", "[physics][bvh]")
 
 TEST_CASE("DynamicAABBTree - RemoveObject from multi-node tree preserves remaining nodes", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    i32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
-    i32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
-    i32 i3 = tree.AddObject(MakeAABB(15.0f, 0.0f, 0.0f), 3);
+    u32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
+    u32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
+    u32 i3 = tree.AddObject(MakeAABB(15.0f, 0.0f, 0.0f), 3);
 
     tree.RemoveObject(i1);
 
     // Remaining three nodes must still be findable
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-1.0f, -1.0f, -1.0f, 20.0f), results);
     REQUIRE(results.size() == 3);
 
-    std::vector<i32> remaining = { i0, i2, i3 };
-    for (i32 r : remaining) {
-        std::vector<i32> single;
+    std::vector<u32> remaining = { i0, i2, i3 };
+    for (u32 r : remaining) {
+        std::vector<u32> single;
         tree.QueryOverlaps(tree.GetFatAABB(r), single);
         REQUIRE(!single.empty());
     }
@@ -225,19 +225,19 @@ TEST_CASE("DynamicAABBTree - RemoveObject from multi-node tree preserves remaini
 TEST_CASE("DynamicAABBTree - Interleaved add and remove keeps tree consistent", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    i32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    i32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
+    u32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
     tree.RemoveObject(i0);
-    i32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
+    u32 i2 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 2);
     tree.RemoveObject(i1);
-    i32 i3 = tree.AddObject(MakeAABB(15.0f, 0.0f, 0.0f), 3);
+    u32 i3 = tree.AddObject(MakeAABB(15.0f, 0.0f, 0.0f), 3);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-1.0f, -1.0f, -1.0f, 20.0f), results);
     REQUIRE(results.size() == 2);
 
-    std::vector<i32> found = { i2, i3 };
-    for (i32 f : found) {
+    std::vector<u32> found = { i2, i3 };
+    for (u32 f : found) {
         REQUIRE(tree.GetNodeData(f) == (f == i2 ? 2 : 3));
     }
 }
@@ -250,7 +250,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject returns false when new AABB fits insid
     DynamicAABBTree tree(0.2f);                   // 20% inflation
     AABB aabb(glm::vec3(0.0f), glm::vec3(10.0f)); // extents=10, inflation=2 → fat=[−2..12]
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
 
     // Slight shift still within fat AABB
     AABB slightlyMoved(glm::vec3(0.5f), glm::vec3(10.5f));
@@ -262,7 +262,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject returns false when new AABB fits insid
 TEST_CASE("DynamicAABBTree - UpdateObject returns true when new AABB escapes fat AABB", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f); // No padding → any movement escapes immediately
 
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
 
     bool updated = tree.UpdateObject(idx, MakeAABB(50.0f, 50.0f, 50.0f), false);
     REQUIRE(updated);
@@ -272,7 +272,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject forceReinsert always returns true", "[
     DynamicAABBTree tree(0.5f); // Large padding — AABB is well inside fat
     AABB aabb(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    i32 idx = tree.AddObject(aabb, 0);
+    u32 idx = tree.AddObject(aabb, static_cast<size_t>(0));
 
     // Same AABB but forced reinsert
     bool updated = tree.UpdateObject(idx, aabb, true);
@@ -284,14 +284,14 @@ TEST_CASE("DynamicAABBTree - Updated node is queryable at new position and not a
     AABB original = MakeAABB(0.0f, 0.0f, 0.0f);
     AABB moved = MakeAABB(100.0f, 100.0f, 100.0f);
 
-    i32 idx = tree.AddObject(original, 7);
+    u32 idx = tree.AddObject(original, 7);
     tree.UpdateObject(idx, moved, false);
 
-    std::vector<i32> oldArea;
+    std::vector<u32> oldArea;
     tree.QueryOverlaps(original, oldArea);
     REQUIRE(oldArea.empty());
 
-    std::vector<i32> newArea;
+    std::vector<u32> newArea;
     tree.QueryOverlaps(moved, newArea);
     REQUIRE(newArea.size() == 1);
     REQUIRE(newArea[0] == idx);
@@ -301,7 +301,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject re-inflates fat AABB around new positi
     DynamicAABBTree tree(0.1f);
     AABB original(glm::vec3(0.0f), glm::vec3(10.0f));
 
-    i32 idx = tree.AddObject(original, 0);
+    u32 idx = tree.AddObject(original, static_cast<size_t>(0));
 
     AABB moved(glm::vec3(50.0f), glm::vec3(60.0f));
     tree.UpdateObject(idx, moved, false);
@@ -313,7 +313,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject data is preserved after reinsert", "[p
     DynamicAABBTree tree(0.0f);
     AABB original = MakeAABB(0.0f, 0.0f, 0.0f);
 
-    i32 idx = tree.AddObject(original, 555);
+    u32 idx = tree.AddObject(original, 555);
     tree.UpdateObject(idx, MakeAABB(50.0f, 50.0f, 50.0f), false);
 
     REQUIRE(tree.GetNodeData(idx) == 555);
@@ -326,7 +326,7 @@ TEST_CASE("DynamicAABBTree - UpdateObject data is preserved after reinsert", "[p
 TEST_CASE("DynamicAABBTree - QueryOverlaps on empty tree returns nothing", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-1000.0f, -1000.0f, -1000.0f, 2000.0f), results);
     REQUIRE(results.empty());
 }
@@ -335,9 +335,9 @@ TEST_CASE("DynamicAABBTree - QueryOverlaps finds the single overlapping node", "
     DynamicAABBTree tree(0.0f);
     AABB aabb = MakeAABB(0.0f, 0.0f, 0.0f);
 
-    i32 idx = tree.AddObject(aabb, 5);
+    u32 idx = tree.AddObject(aabb, 5);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(aabb, results);
 
     REQUIRE(results.size() == 1);
@@ -346,30 +346,30 @@ TEST_CASE("DynamicAABBTree - QueryOverlaps finds the single overlapping node", "
 
 TEST_CASE("DynamicAABBTree - QueryOverlaps misses non-overlapping node", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
+    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(100.0f, 100.0f, 100.0f), results);
     REQUIRE(results.empty());
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlaps finds all overlapping nodes", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
+    tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
     tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // overlaps first
     tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);          // far away
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(AABB(glm::vec3(0.0f), glm::vec3(4.0f)), results);
     REQUIRE(results.size() == 2);
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlaps with touching (face-shared) AABB reports overlap", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 idx = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(1.0f)), 0);
+    u32 idx = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(1.0f)), static_cast<size_t>(0));
 
     // Query AABB shares exactly one face (x=1 plane)
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(AABB(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f)), results);
     REQUIRE(results.size() == 1);
     REQUIRE(results[0] == idx);
@@ -377,27 +377,27 @@ TEST_CASE("DynamicAABBTree - QueryOverlaps with touching (face-shared) AABB repo
 
 TEST_CASE("DynamicAABBTree - QueryOverlaps appends to existing results vector", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
+    tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
 
-    std::vector<i32> results;
-    results.push_back(-5); // sentinel pre-existing element
+    std::vector<u32> results;
+    results.push_back(AABB_TREE_NULL_NODE); // sentinel pre-existing element
 
     tree.QueryOverlaps(MakeAABB(0.0f, 0.0f, 0.0f), results);
 
     // Results are appended; the pre-existing element is still at front
     REQUIRE(results.size() == 2);
-    REQUIRE(results[0] == -5);
+    REQUIRE(results[0] == AABB_TREE_NULL_NODE);
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlaps returns nothing when all nodes removed", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    i32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
+    u32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(MakeAABB(5.0f, 0.0f, 0.0f), 1);
 
     tree.RemoveObject(i0);
     tree.RemoveObject(i1);
 
-    std::vector<i32> results;
+    std::vector<u32> results;
     tree.QueryOverlaps(MakeAABB(-10.0f, -10.0f, -10.0f, 30.0f), results);
     REQUIRE(results.empty());
 }
@@ -409,36 +409,36 @@ TEST_CASE("DynamicAABBTree - QueryOverlaps returns nothing when all nodes remove
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs on empty tree returns nothing", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({}, pairs);
     REQUIRE(pairs.empty());
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs single node produces no pairs", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
+    u32 idx = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ idx }, pairs);
     REQUIRE(pairs.empty());
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs two non-overlapping nodes produce no pairs", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), 0);
-    i32 i1 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 1);
+    u32 i0 = tree.AddObject(MakeAABB(0.0f, 0.0f, 0.0f), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(MakeAABB(10.0f, 0.0f, 0.0f), 1);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
     REQUIRE(pairs.empty());
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs finds one overlapping pair", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
 
     REQUIRE(pairs.size() == 2);
@@ -447,13 +447,13 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs finds one overlapping pair", 
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs both-active pair appears exactly twice (once per test node)", "[physics][bvh]") {
-    // With no deduplication, when both endpoints are in nodeIndices each acts as the test
-    // node and finds the other — so the same geometric pair is emitted twice.
+    // When both endpoints are in nodeIndices each acts as the test node and finds the other,
+    // so the same geometric pair is emitted twice (no deduplication).
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
 
     REQUIRE(pairs.size() == 2);
@@ -461,29 +461,29 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs both-active pair appears exac
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs finds one overlapping pair (no dedupe)", "[physics][bvh]") {
     // No deduplication: two active nodes each find the other, producing 2 raw entries.
-    // This test just confirms each direction finds a pair containing both indices.
+    // Both entries must reference the same two nodes in canonical (smaller-first) order.
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
 
     REQUIRE(pairs.size() == 2);
-    // Both raw entries must reference the same two nodes (order within a pair may differ)
     for (const auto &[a, b] : pairs) {
-        REQUIRE(((a == i0 && b == i1) || (a == i1 && b == i0)));
+        REQUIRE(a == std::min(i0, i1));
+        REQUIRE(b == std::max(i0, i1));
     }
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs three mutually overlapping nodes yield six raw entries", "[physics][bvh]") {
-    // C(3,2) = 3 geometric pairs, but each active node finds both others → 3*2 = 6 raw entries.
+    // C(3,2) = 3 geometric pairs; each active node finds both others → 3*2 = 6 raw entries.
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(3.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
-    i32 i2 = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(3.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
+    u32 i2 = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1, i2 }, pairs);
 
     REQUIRE(pairs.size() == 6);
@@ -493,32 +493,33 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs mixed: one overlapping, one n
     // i0 and i1 overlap; i2 is isolated. Both i0 and i1 are active so the pair is emitted
     // twice (once from each direction). i2 finds nothing.
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // overlaps i0
-    i32 i2 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);          // isolated
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // overlaps i0
+    u32 i2 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 2);          // isolated
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i0, i1, i2 }, pairs);
 
     REQUIRE(pairs.size() == 2);
     for (const auto &[a, b] : pairs) {
-        REQUIRE(((a == i0 && b == i1) || (a == i1 && b == i0)));
+        REQUIRE(a == std::min(i0, i1));
+        REQUIRE(b == std::max(i0, i1));
     }
 }
 
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs appends to existing output vector", "[physics][bvh]") {
     // Two active overlapping nodes → 2 raw entries appended to the sentinel.
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
 
-    std::vector<Pair<i32, i32>> pairs;
-    pairs.emplace_back(-1, -1); // sentinel
+    std::vector<Pair<u32, u32>> pairs;
+    pairs.emplace_back(AABB_TREE_NULL_NODE, AABB_TREE_NULL_NODE); // sentinel
 
     tree.QueryOverlappingPairs({ i0, i1 }, pairs);
 
     REQUIRE(pairs.size() == 3); // sentinel + 2 raw entries
-    REQUIRE(pairs[0] == Pair{ i32(-1), i32(-1) });
+    REQUIRE(pairs[0] == (Pair<u32, u32>{ AABB_TREE_NULL_NODE, AABB_TREE_NULL_NODE }));
 }
 
 // ===========================================================================================
@@ -529,9 +530,9 @@ TEST_CASE("DynamicAABBTree - Tree capacity grows automatically when exceeded", "
     // Start with capacity for 2 nodes; every insertion past that doubles the pool
     DynamicAABBTree tree(0.0f, 2);
 
-    std::vector<i32> indices;
+    std::vector<u32> indices;
     for (int i = 0; i < 16; ++i) {
-        float x = static_cast<float>(i * 3);
+        auto x = static_cast<f32>(i * 3);
         indices.push_back(tree.AddObject(MakeAABB(x, 0.0f, 0.0f), i));
     }
 
@@ -544,15 +545,15 @@ TEST_CASE("DynamicAABBTree - Tree capacity grows automatically when exceeded", "
 TEST_CASE("DynamicAABBTree - All nodes queryable after capacity growth", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f, 2);
 
-    std::vector<i32> indices;
+    std::vector<u32> indices;
     for (int i = 0; i < 8; ++i) {
-        float x = static_cast<float>(i * 5);
+        auto x = static_cast<f32>(i * 5);
         indices.push_back(tree.AddObject(MakeAABB(x, 0.0f, 0.0f), i));
     }
 
     for (int i = 0; i < 8; ++i) {
-        float x = static_cast<float>(i * 5);
-        std::vector<i32> results;
+        auto x = static_cast<f32>(i * 5);
+        std::vector<u32> results;
         tree.QueryOverlaps(MakeAABB(x, 0.0f, 0.0f), results);
         REQUIRE(results.size() == 1);
         REQUIRE(results[0] == indices[i]);
@@ -566,15 +567,15 @@ TEST_CASE("DynamicAABBTree - All nodes queryable after capacity growth", "[physi
 TEST_CASE("DynamicAABBTree - 50 non-overlapping objects: each found by exact query", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    std::vector<i32> indices;
+    std::vector<u32> indices;
     for (int i = 0; i < 50; ++i) {
-        float x = static_cast<float>(i * 3); // 2-unit gap between each
+        auto x = static_cast<f32>(i * 3); // 2-unit gap between each
         indices.push_back(tree.AddObject(MakeAABB(x, 0.0f, 0.0f), i));
     }
 
     for (int i = 0; i < 50; ++i) {
-        float x = static_cast<float>(i * 3);
-        std::vector<i32> results;
+        auto x = static_cast<f32>(i * 3);
+        std::vector<u32> results;
         tree.QueryOverlaps(MakeAABB(x, 0.0f, 0.0f), results);
 
         REQUIRE(results.size() == 1);
@@ -586,9 +587,9 @@ TEST_CASE("DynamicAABBTree - 50 non-overlapping objects: each found by exact que
 TEST_CASE("DynamicAABBTree - Remove half then query remaining are still correct", "[physics][bvh]") {
     DynamicAABBTree tree(0.0f);
 
-    std::vector<i32> indices;
+    std::vector<u32> indices;
     for (int i = 0; i < 30; ++i) {
-        float x = static_cast<float>(i * 3);
+        auto x = static_cast<f32>(i * 3);
         indices.push_back(tree.AddObject(MakeAABB(x, 0.0f, 0.0f), i));
     }
 
@@ -599,16 +600,16 @@ TEST_CASE("DynamicAABBTree - Remove half then query remaining are still correct"
 
     // Removed range should be gone
     for (int i = 0; i < 15; ++i) {
-        float x = static_cast<float>(i * 3);
-        std::vector<i32> results;
+        auto x = static_cast<f32>(i * 3);
+        std::vector<u32> results;
         tree.QueryOverlaps(MakeAABB(x, 0.0f, 0.0f), results);
         REQUIRE(results.empty());
     }
 
     // Remaining nodes (15–29) should still be found
     for (int i = 15; i < 30; ++i) {
-        float x = static_cast<float>(i * 3);
-        std::vector<i32> results;
+        auto x = static_cast<f32>(i * 3);
+        std::vector<u32> results;
         tree.QueryOverlaps(MakeAABB(x, 0.0f, 0.0f), results);
         REQUIRE(results.size() == 1);
         REQUIRE(tree.GetNodeData(results[0]) == i);
@@ -620,12 +621,12 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs on 10 overlapping objects yie
     // Each of the 10 test nodes emits 9 entries → 90 raw entries total (each geometric pair twice).
     DynamicAABBTree tree(0.0f);
 
-    std::vector<i32> indices;
+    std::vector<u32> indices;
     for (int i = 0; i < 10; ++i) {
         indices.push_back(tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(1.0f)), i));
     }
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs(indices, pairs);
 
     // 10 test nodes × 9 other active leaves = 90 raw entries
@@ -642,11 +643,11 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: moved node (higher index) fi
     //
     // Moved nodes: [i1]   Static: [i0]   (i0 inserted first → i0 < i1)
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0); // static
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // "moved"
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0)); // static
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1); // "moved"
 
     // Only i1 is in the active (moved) set; i0 is static
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ i1 }, pairs);
 
     REQUIRE(pairs.size() == 1);
@@ -659,11 +660,11 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: moved node (higher index) fi
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: moved node finds static node, no false positives", "[physics][bvh]") {
     // The moved node overlaps one static node but not another. Single test node → one raw entry.
     DynamicAABBTree tree(0.0f);
-    i32 iStatic0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0); // overlaps moved
-    i32 iStatic1 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 1);          // far away
-    i32 iMoved = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 2);   // overlaps only iStatic0
+    u32 iStatic0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0)); // overlaps moved
+    u32 iStatic1 = tree.AddObject(MakeAABB(50.0f, 50.0f, 50.0f), 1);          // far away
+    u32 iMoved = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 2);   // overlaps only iStatic0
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ iMoved }, pairs);
 
     REQUIRE(pairs.size() == 1);
@@ -679,11 +680,11 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: mixed active+static, raw ent
     // iB finds {iStatic, iA}  → 2 entries
     // Total: 4 raw entries (active-active pair appears twice, each active-static once).
     DynamicAABBTree tree(0.0f);
-    i32 iStatic = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(5.0f)), 0); // overlaps everything
-    i32 iA = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
-    i32 iB = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
+    u32 iStatic = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(5.0f)), static_cast<size_t>(0)); // overlaps everything
+    u32 iA = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(4.0f)), 1);
+    u32 iB = tree.AddObject(AABB(glm::vec3(2.0f), glm::vec3(5.0f)), 2);
 
-    std::vector<Pair<i32, i32>> pairs;
+    std::vector<Pair<u32, u32>> pairs;
     tree.QueryOverlappingPairs({ iA, iB }, pairs);
 
     REQUIRE(pairs.size() == 4);
@@ -693,10 +694,10 @@ TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: mixed active+static, raw ent
 TEST_CASE("DynamicAABBTree - QueryOverlappingPairs: both nodes active, query order does not affect entry count", "[physics][bvh]") {
     // Querying with i1 first or i0 first should still emit 2 raw entries.
     DynamicAABBTree tree(0.0f);
-    i32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), 0);
-    i32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
+    u32 i0 = tree.AddObject(AABB(glm::vec3(0.0f), glm::vec3(2.0f)), static_cast<size_t>(0));
+    u32 i1 = tree.AddObject(AABB(glm::vec3(1.0f), glm::vec3(3.0f)), 1);
 
-    std::vector<Pair<i32, i32>> pairsAB, pairsBA;
+    std::vector<Pair<u32, u32>> pairsAB, pairsBA;
     tree.QueryOverlappingPairs({ i0, i1 }, pairsAB);
     tree.QueryOverlappingPairs({ i1, i0 }, pairsBA);
 

@@ -91,7 +91,7 @@ namespace Vulkyrie {
         VTRACE("Collider {}: Set Collides With mask bits: {}", colliderComponentStore.GetBroadPhaseID(_entity), maskBits);
     }
 
-    i32 Collider::GetBroadPhaseID() const {
+    u32 Collider::GetBroadPhaseID() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetBroadPhaseID(_entity);
     }
 

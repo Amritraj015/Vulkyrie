@@ -148,7 +148,7 @@ namespace Vulkyrie {
             for (Entity colliderEntity : colliderEntities) {
                 Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
 
-                if (collider.GetBroadPhaseID() != -1) {
+                if (collider.GetBroadPhaseID() != AABB_TREE_NULL_NODE) {
                     _physicsWorld.GetCollisionSystem().RemoveCollider(collider);
                 }
             }
@@ -189,7 +189,7 @@ namespace Vulkyrie {
     }
 
     void Body::RemoveCollider(Collider &collider) {
-        if (collider.GetBroadPhaseID() != -1) {
+        if (collider.GetBroadPhaseID() != AABB_TREE_NULL_NODE) {
             _physicsWorld.GetCollisionSystem().RemoveCollider(collider);
         }
 

@@ -151,7 +151,7 @@ namespace Vulkyrie {
         /** @brief Retrieves the broad-phase ID for this collider. The broad-phase ID is an identifier used in the broad-phase collision detection system to
          * efficiently manage and query colliders in the physics simulation.
          * @returns The broad-phase ID for this collider. */
-        [[nodiscard]] i32 GetBroadPhaseID() const;
+        [[nodiscard]] u32 GetBroadPhaseID() const;
 
         /** @brief Reports if this collider is a trigger. A trigger is a special type of collider that does not participate in physics simulation or
          * collision response but can be used to detect overlaps and trigger events.

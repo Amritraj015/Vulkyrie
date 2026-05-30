@@ -21,7 +21,7 @@ namespace Vulkyrie {
         // Link all the nodes together in a free list. Each node's NextNodeIndex points to the next
         // free node in the list, and the last node's NextNodeIndex is set to AABB_TREE_NULL_NODE to indicate the end of the list.
         for (size_t i = 0; i < initialNodeCapacity - 1; ++i) {
-            _nodes[i].NextNodeIndex = static_cast<i32>(i + 1);
+            _nodes[i].NextNodeIndex = static_cast<u32>(i + 1);
         }
 
         _nodes[initialNodeCapacity - 1].NextNodeIndex = AABB_TREE_NULL_NODE;
@@ -30,13 +30,12 @@ namespace Vulkyrie {
         _firstFreeNodeIndex = 0;
     }
 
-    bool DynamicAABBTree::UpdateObject(i32 nodeIndex, const AABB &newAABB, bool forceReinsert) {
-        VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-        const auto idx = static_cast<size_t>(nodeIndex);
-        VASSERT(_nodes[idx].IsLeaf() && _nodes[idx].Height >= 0, "Can only update leaf nodes.");
+    bool DynamicAABBTree::UpdateObject(u32 nodeIndex, const AABB &newAABB, bool forceReinsert) {
+        VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
+        VASSERT(_nodes[nodeIndex].IsLeaf() && _nodes[nodeIndex].Height >= 0, "Can only update leaf nodes.");
 
         // If the new AABB is still contained within the existing fat AABB and we're not forcing a reinsert, we can skip updating the tree.
-        if (!forceReinsert && _nodes[idx].AABB.Contains(newAABB)) {
+        if (!forceReinsert && _nodes[nodeIndex].AABB.Contains(newAABB)) {
             return false;
         }
 
@@ -46,7 +45,7 @@ namespace Vulkyrie {
 
         // Update the node's AABB to the new AABB, and inflate it by the specified percentage to
         // create a "fat" AABB that can accommodate some movement without needing to be updated immediately.
-        AABBTreeNode &node = _nodes[idx];
+        AABBTreeNode &node = _nodes[nodeIndex];
         node.AABB = newAABB;
         const glm::vec3 inflation(newAABB.GetExtents() * _inflationPercentage);
         node.AABB.Inflate(inflation);
@@ -60,7 +59,7 @@ namespace Vulkyrie {
         return true;
     }
 
-    void DynamicAABBTree::QueryOverlaps(const AABB &queryAABB, std::vector<i32> &outResults) {
+    void DynamicAABBTree::QueryOverlaps(const AABB &queryAABB, std::vector<u32> &outResults) {
 
         // If the tree is empty, there are no overlaps to find, so we can return early.
         if (_rootNodeIndex == AABB_TREE_NULL_NODE) {
@@ -75,10 +74,8 @@ namespace Vulkyrie {
         while (!_queryNodesToVisit.empty()) {
             // Pop the next node index from the list of nodes to visit.
             // This will be the current node we are checking for overlap with the query AABB.
-            const i32 currentNodeIndex = _queryNodesToVisit.back();
+            const u32 currentNodeIndex = _queryNodesToVisit.back();
             _queryNodesToVisit.pop_back();
-
-            VASSERT(currentNodeIndex >= 0 && currentNodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
 
             // If the current node index is AABB_TREE_NULL_NODE, it means we've reached a leaf node that
             // has been removed from the tree, so we can skip it and continue with the next node in the list.
@@ -86,7 +83,7 @@ namespace Vulkyrie {
                 continue;
             }
 
-            const AABBTreeNode &currentNode = _nodes[static_cast<size_t>(currentNodeIndex)];
+            const AABBTreeNode &currentNode = _nodes[currentNodeIndex];
 
             // Check if the query AABB overlaps with the current node's AABB.
             // If it does, we need to check if it's a leaf node or an internal node.
@@ -106,7 +103,7 @@ namespace Vulkyrie {
         }
     }
 
-    void DynamicAABBTree::QueryOverlappingPairs(const std::vector<i32> &nodeIndices, std::vector<Pair<i32, i32>> &outOverlappingPairs) {
+    void DynamicAABBTree::QueryOverlappingPairs(const std::vector<u32> &nodeIndices, std::vector<Pair<u32, u32>> &outOverlappingPairs) {
 
         // If the tree is empty, there are no overlapping pairs to find, so we can return early.
         if (_rootNodeIndex == AABB_TREE_NULL_NODE) {
@@ -114,21 +111,21 @@ namespace Vulkyrie {
         }
 
         // For each node index in the input vector, we will perform a query against the tree to find all overlapping nodes.
-        for (const i32 testNodeIndex : nodeIndices) {
-            VASSERT(testNodeIndex >= 0 && testNodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+        for (const u32 testNodeIndex : nodeIndices) {
+            VASSERT(testNodeIndex < _nodes.size(), "Invalid node index.");
 
             // Start the query for this node by adding the root node to the list of nodes to visit.
             // We will perform a depth-first traversal of the tree, checking for AABB overlaps between the test node and the nodes in the tree.
             _queryNodesToVisit.emplace_back(_rootNodeIndex);
 
             // Get the AABB of the test node that we will be checking for overlaps against the nodes in the tree.
-            const AABB &testNodeAABB = _nodes[static_cast<size_t>(testNodeIndex)].AABB;
+            const AABB &testNodeAABB = _nodes[testNodeIndex].AABB;
 
             // Continue traversing the tree until there are no more nodes to visit.
             while (!_queryNodesToVisit.empty()) {
 
                 // Pop the next node index from the list of nodes to visit. This will be the current node we are checking for overlap with the test node's AABB.
-                const i32 currentNodeIndex = _queryNodesToVisit.back();
+                const u32 currentNodeIndex = _queryNodesToVisit.back();
                 _queryNodesToVisit.pop_back();
 
                 // Skip comparing the test node with itself, as we are only interested in finding pairs of distinct nodes that overlap.
@@ -138,7 +135,7 @@ namespace Vulkyrie {
                     continue;
                 }
 
-                const AABBTreeNode &currentNode = _nodes[static_cast<size_t>(currentNodeIndex)];
+                const AABBTreeNode &currentNode = _nodes[currentNodeIndex];
 
                 // Check if the test node's AABB overlaps with the current node's AABB.
                 // If it does, we need to check if it's a leaf node or an internal node.
@@ -148,8 +145,10 @@ namespace Vulkyrie {
                     // with the test node's AABB, so we add the pair of indices (test node index, current node index) to the results.
                     if (currentNode.IsLeaf()) {
 
-                        // To avoid adding duplicate pairs in the results (e.g., both (A, B) and (B, A)), we can enforce a consistent
-                        // ordering of the indices in the pair. For example, we can always store the pair with the smaller index first.
+                        // To avoid adding both (A,B) and (B,A) in the results, enforce a consistent
+                        // ordering by always storing the pair with the smaller index first.
+                        // Note: when both nodes are in nodeIndices the pair will still appear twice
+                        // (once from each direction), which is acceptable.
                         if (testNodeIndex < currentNodeIndex) {
                             outOverlappingPairs.emplace_back(testNodeIndex, currentNodeIndex);
                         } else {
@@ -167,10 +166,9 @@ namespace Vulkyrie {
         }
     }
 
-    void DynamicAABBTree::removeLeafNode(i32 leafNodeIndex) {
-        VASSERT(leafNodeIndex >= 0 && leafNodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-        const auto leafIdx = static_cast<size_t>(leafNodeIndex);
-        VASSERT(_nodes[leafIdx].IsLeaf(), "Can only remove leaf nodes.");
+    void DynamicAABBTree::removeLeafNode(u32 leafNodeIndex) {
+        VASSERT(leafNodeIndex < _nodes.size(), "Invalid node index.");
+        VASSERT(_nodes[leafNodeIndex].IsLeaf(), "Can only remove leaf nodes.");
 
         // If the leaf node to remove is the root, we can simply clear the tree.
         if (_rootNodeIndex == leafNodeIndex) {
@@ -178,112 +176,100 @@ namespace Vulkyrie {
             return;
         }
 
-        i32 siblingNodeIndex;
-        i32 parentNodeIndex = _nodes[leafIdx].ParentNodeIndex;
-        const auto parentIdx = static_cast<size_t>(parentNodeIndex);
-        i32 grandParentNodeIndex = _nodes[parentIdx].ParentNodeIndex;
+        u32 siblingNodeIndex;
+        u32 parentNodeIndex = _nodes[leafNodeIndex].ParentNodeIndex;
+        u32 grandParentNodeIndex = _nodes[parentNodeIndex].ParentNodeIndex;
 
         // Determine the sibling node of the leaf being removed.
         // The sibling is the other child of the parent node, which will replace the parent in the tree after we remove the leaf.
-        if (_nodes[parentIdx].Children[0] == leafNodeIndex) {
-            siblingNodeIndex = _nodes[parentIdx].Children[1];
+        if (_nodes[parentNodeIndex].Children[0] == leafNodeIndex) {
+            siblingNodeIndex = _nodes[parentNodeIndex].Children[1];
         } else {
-            siblingNodeIndex = _nodes[parentIdx].Children[0];
+            siblingNodeIndex = _nodes[parentNodeIndex].Children[0];
         }
 
         // If the parent of the node to remove is not the root,
         // we need to update the grandparent to point to the sibling of the removed node,
         // and then we can release the parent node back to the free list.
         if (grandParentNodeIndex != AABB_TREE_NULL_NODE) {
-            const auto grandParentIdx = static_cast<size_t>(grandParentNodeIndex);
-            const auto siblingIdx = static_cast<size_t>(siblingNodeIndex);
-            if (_nodes[grandParentIdx].Children[0] == parentNodeIndex) {
-                _nodes[grandParentIdx].Children[0] = siblingNodeIndex;
+            if (_nodes[grandParentNodeIndex].Children[0] == parentNodeIndex) {
+                _nodes[grandParentNodeIndex].Children[0] = siblingNodeIndex;
             } else {
-                VASSERT(_nodes[grandParentIdx].Children[1] == parentNodeIndex, "Parent node should be a child of its grandparent.");
-                _nodes[grandParentIdx].Children[1] = siblingNodeIndex;
+                VASSERT(_nodes[grandParentNodeIndex].Children[1] == parentNodeIndex, "Parent node should be a child of its grandparent.");
+                _nodes[grandParentNodeIndex].Children[1] = siblingNodeIndex;
             }
 
-            _nodes[siblingIdx].ParentNodeIndex = grandParentNodeIndex;
+            _nodes[siblingNodeIndex].ParentNodeIndex = grandParentNodeIndex;
             releaseNode(parentNodeIndex);
 
             // After removing a leaf node and replacing its parent with its sibling, we need to walk back up the tree from the grandparent node and update the
             // AABBs and heights of all ancestor nodes, and perform any necessary balancing to maintain the properties of the tree.
-            i32 currentNodeIndex = grandParentNodeIndex;
+            u32 currentNodeIndex = grandParentNodeIndex;
 
             while (currentNodeIndex != AABB_TREE_NULL_NODE) {
                 // First, we balance the subtree rooted at the current node.
                 // This may change the structure of the tree and update the current node index to point to the new root of the subtree after balancing.
                 currentNodeIndex = balanceSubtree(currentNodeIndex);
 
-                const auto currentIdx = static_cast<size_t>(currentNodeIndex);
-                VASSERT(!_nodes[currentIdx].IsLeaf(), "Internal nodes should never be leaves.");
+                VASSERT(!_nodes[currentNodeIndex].IsLeaf(), "Internal nodes should never be leaves.");
 
                 // After balancing, we need to update the AABB and height of the current node based on its children.
-                i32 leftChildIndex = _nodes[currentIdx].Children[0];
-                i32 rightChildIndex = _nodes[currentIdx].Children[1];
-                const auto leftIdx = static_cast<size_t>(leftChildIndex);
-                const auto rightIdx = static_cast<size_t>(rightChildIndex);
+                u32 leftChildIndex = _nodes[currentNodeIndex].Children[0];
+                u32 rightChildIndex = _nodes[currentNodeIndex].Children[1];
 
-                _nodes[currentIdx].AABB.MergeTwoAABBs(_nodes[leftIdx].AABB, _nodes[rightIdx].AABB);
-                _nodes[currentIdx].Height = 1 + std::max(_nodes[leftIdx].Height, _nodes[rightIdx].Height);
+                _nodes[currentNodeIndex].AABB.MergeTwoAABBs(_nodes[leftChildIndex].AABB, _nodes[rightChildIndex].AABB);
+                _nodes[currentNodeIndex].Height = 1 + std::max(_nodes[leftChildIndex].Height, _nodes[rightChildIndex].Height);
 
-                VASSERT(_nodes[currentIdx].Height > 0, "Node height should be greater than 0 after balancing.");
+                VASSERT(_nodes[currentNodeIndex].Height > 0, "Node height should be greater than 0 after balancing.");
 
-                currentNodeIndex = _nodes[currentIdx].ParentNodeIndex;
+                currentNodeIndex = _nodes[currentNodeIndex].ParentNodeIndex;
             }
         } else {
             // If the parent node of the leaf being removed is the root node,
             // we need to update the root node index to point to the sibling of the removed leaf,
             // which will become the new root of the tree.
-            const auto siblingIdx = static_cast<size_t>(siblingNodeIndex);
             _rootNodeIndex = siblingNodeIndex;
-            _nodes[siblingIdx].ParentNodeIndex = AABB_TREE_NULL_NODE;
+            _nodes[siblingNodeIndex].ParentNodeIndex = AABB_TREE_NULL_NODE;
             releaseNode(parentNodeIndex);
         }
     }
 
-    void DynamicAABBTree::insertLeafNode(i32 leafNodeIndex) {
-        const auto leafIdx = static_cast<size_t>(leafNodeIndex);
-
+    void DynamicAABBTree::insertLeafNode(u32 leafNodeIndex) {
         // If the tree is currently empty, we can simply set the root node to be the new leaf node.
         if (_rootNodeIndex == AABB_TREE_NULL_NODE) {
             _rootNodeIndex = leafNodeIndex;
-            _nodes[static_cast<size_t>(_rootNodeIndex)].ParentNodeIndex = AABB_TREE_NULL_NODE;
+            _nodes[_rootNodeIndex].ParentNodeIndex = AABB_TREE_NULL_NODE;
             return;
         }
 
-        const AABB newNodeAABB = _nodes[leafIdx].AABB;
-        i32 currentNodeIndex = _rootNodeIndex;
+        const AABB newNodeAABB = _nodes[leafNodeIndex].AABB;
+        u32 currentNodeIndex = _rootNodeIndex;
 
-        while (!_nodes[static_cast<size_t>(currentNodeIndex)].IsLeaf()) {
-            const auto currentIdx = static_cast<size_t>(currentNodeIndex);
-            i32 leftChildIndex = _nodes[currentIdx].Children[0];
-            i32 rightChildIndex = _nodes[currentIdx].Children[1];
-            const auto leftIdx = static_cast<size_t>(leftChildIndex);
-            const auto rightIdx = static_cast<size_t>(rightChildIndex);
+        while (!_nodes[currentNodeIndex].IsLeaf()) {
+            u32 leftChildIndex = _nodes[currentNodeIndex].Children[0];
+            u32 rightChildIndex = _nodes[currentNodeIndex].Children[1];
 
-            const f32 currentNodeAABBVolume = _nodes[currentIdx].AABB.GetVolume();
-            const f32 costHere = AABB::With(_nodes[currentIdx].AABB, newNodeAABB).GetVolume();
+            const f32 currentNodeAABBVolume = _nodes[currentNodeIndex].AABB.GetVolume();
+            const f32 costHere = AABB::With(_nodes[currentNodeIndex].AABB, newNodeAABB).GetVolume();
             const f32 inheritedCost = costHere - currentNodeAABBVolume;
 
             f32 costLeft;
-            const f32 currentAndLeftCombinedAABBVolume = AABB::With(_nodes[leftIdx].AABB, newNodeAABB).GetVolume();
+            const f32 currentAndLeftCombinedAABBVolume = AABB::With(_nodes[leftChildIndex].AABB, newNodeAABB).GetVolume();
 
-            if (_nodes[leftIdx].IsLeaf()) {
+            if (_nodes[leftChildIndex].IsLeaf()) {
                 costLeft = currentAndLeftCombinedAABBVolume + inheritedCost;
             } else {
-                const f32 leftChildAABBVolume = _nodes[leftIdx].AABB.GetVolume();
+                const f32 leftChildAABBVolume = _nodes[leftChildIndex].AABB.GetVolume();
                 costLeft = inheritedCost + currentAndLeftCombinedAABBVolume - leftChildAABBVolume;
             }
 
             f32 costRight;
-            const f32 currentAndRightCombinedAABBVolume = AABB::With(_nodes[rightIdx].AABB, newNodeAABB).GetVolume();
+            const f32 currentAndRightCombinedAABBVolume = AABB::With(_nodes[rightChildIndex].AABB, newNodeAABB).GetVolume();
 
-            if (_nodes[rightIdx].IsLeaf()) {
+            if (_nodes[rightChildIndex].IsLeaf()) {
                 costRight = currentAndRightCombinedAABBVolume + inheritedCost;
             } else {
-                const f32 rightChildAABBVolume = _nodes[rightIdx].AABB.GetVolume();
+                const f32 rightChildAABBVolume = _nodes[rightChildIndex].AABB.GetVolume();
                 costRight = inheritedCost + currentAndRightCombinedAABBVolume - rightChildAABBVolume;
             }
 
@@ -294,112 +280,105 @@ namespace Vulkyrie {
             currentNodeIndex = costLeft < costRight ? leftChildIndex : rightChildIndex;
         }
 
-        const auto insertionIdx = static_cast<size_t>(currentNodeIndex);
-        const i32 oldParentNodeIndex = _nodes[insertionIdx].ParentNodeIndex;
-        const i32 newParentNodeIndex = allocateNode();
-        const auto newParentIdx = static_cast<size_t>(newParentNodeIndex);
-        _nodes[newParentIdx].ParentNodeIndex = oldParentNodeIndex;
-        _nodes[newParentIdx].AABB.MergeTwoAABBs(_nodes[insertionIdx].AABB, newNodeAABB);
-        _nodes[newParentIdx].Height = _nodes[insertionIdx].Height + 1;
+        const u32 oldParentNodeIndex = _nodes[currentNodeIndex].ParentNodeIndex;
+        const u32 newParentNodeIndex = allocateNode();
+        _nodes[newParentNodeIndex].ParentNodeIndex = oldParentNodeIndex;
+        _nodes[newParentNodeIndex].AABB.MergeTwoAABBs(_nodes[currentNodeIndex].AABB, newNodeAABB);
+        _nodes[newParentNodeIndex].Height = _nodes[currentNodeIndex].Height + 1;
 
-        VASSERT(_nodes[newParentIdx].Height > 0, "New parent node height should be greater than 0.");
+        VASSERT(_nodes[newParentNodeIndex].Height > 0, "New parent node height should be greater than 0.");
 
         if (oldParentNodeIndex != AABB_TREE_NULL_NODE) {
-            const auto oldParentIdx = static_cast<size_t>(oldParentNodeIndex);
-            VASSERT(!_nodes[oldParentIdx].IsLeaf(), "Old parent node should not be a leaf.");
+            VASSERT(!_nodes[oldParentNodeIndex].IsLeaf(), "Old parent node should not be a leaf.");
 
-            if (_nodes[oldParentIdx].Children[0] == currentNodeIndex) {
-                _nodes[oldParentIdx].Children[0] = newParentNodeIndex;
+            if (_nodes[oldParentNodeIndex].Children[0] == currentNodeIndex) {
+                _nodes[oldParentNodeIndex].Children[0] = newParentNodeIndex;
             } else {
-                _nodes[oldParentIdx].Children[1] = newParentNodeIndex;
+                _nodes[oldParentNodeIndex].Children[1] = newParentNodeIndex;
             }
 
-            _nodes[newParentIdx].Children[0] = currentNodeIndex;
-            _nodes[newParentIdx].Children[1] = leafNodeIndex;
-            _nodes[insertionIdx].ParentNodeIndex = newParentNodeIndex;
-            _nodes[leafIdx].ParentNodeIndex = newParentNodeIndex;
+            _nodes[newParentNodeIndex].Children[0] = currentNodeIndex;
+            _nodes[newParentNodeIndex].Children[1] = leafNodeIndex;
+            _nodes[currentNodeIndex].ParentNodeIndex = newParentNodeIndex;
+            _nodes[leafNodeIndex].ParentNodeIndex = newParentNodeIndex;
         } else {
-            _nodes[newParentIdx].Children[0] = currentNodeIndex;
-            _nodes[newParentIdx].Children[1] = leafNodeIndex;
-            _nodes[insertionIdx].ParentNodeIndex = newParentNodeIndex;
-            _nodes[leafIdx].ParentNodeIndex = newParentNodeIndex;
+            _nodes[newParentNodeIndex].Children[0] = currentNodeIndex;
+            _nodes[newParentNodeIndex].Children[1] = leafNodeIndex;
+            _nodes[currentNodeIndex].ParentNodeIndex = newParentNodeIndex;
+            _nodes[leafNodeIndex].ParentNodeIndex = newParentNodeIndex;
             _rootNodeIndex = newParentNodeIndex;
         }
 
-        currentNodeIndex = _nodes[leafIdx].ParentNodeIndex;
+        currentNodeIndex = _nodes[leafNodeIndex].ParentNodeIndex;
 
-        VASSERT(!_nodes[static_cast<size_t>(currentNodeIndex)].IsLeaf(), "Parent node of a leaf should not be a leaf.");
+        VASSERT(!_nodes[currentNodeIndex].IsLeaf(), "Parent node of a leaf should not be a leaf.");
 
         while (currentNodeIndex != AABB_TREE_NULL_NODE) {
             currentNodeIndex = balanceSubtree(currentNodeIndex);
-            const auto currentIdx = static_cast<size_t>(currentNodeIndex);
 
-            VASSERT(_nodes[leafIdx].IsLeaf(), "Inserted node should still be a leaf after balancing.");
-            VASSERT(!_nodes[currentIdx].IsLeaf(), "Internal nodes should never be leaves.");
+            VASSERT(_nodes[leafNodeIndex].IsLeaf(), "Inserted node should still be a leaf after balancing.");
+            VASSERT(!_nodes[currentNodeIndex].IsLeaf(), "Internal nodes should never be leaves.");
 
-            const i32 leftChildIndex = _nodes[currentIdx].Children[0];
-            const i32 rightChildIndex = _nodes[currentIdx].Children[1];
-            const auto leftIdx = static_cast<size_t>(leftChildIndex);
-            const auto rightIdx = static_cast<size_t>(rightChildIndex);
+            const u32 leftChildIndex = _nodes[currentNodeIndex].Children[0];
+            const u32 rightChildIndex = _nodes[currentNodeIndex].Children[1];
 
             VASSERT(leftChildIndex != AABB_TREE_NULL_NODE && rightChildIndex != AABB_TREE_NULL_NODE, "Internal nodes should have two children.");
 
-            _nodes[currentIdx].Height = 1 + std::max(_nodes[leftIdx].Height, _nodes[rightIdx].Height);
+            _nodes[currentNodeIndex].Height = 1 + std::max(_nodes[leftChildIndex].Height, _nodes[rightChildIndex].Height);
 
-            VASSERT(_nodes[currentIdx].Height > 0, "Node height should be greater than 0 after balancing.");
+            VASSERT(_nodes[currentNodeIndex].Height > 0, "Node height should be greater than 0 after balancing.");
 
-            _nodes[currentIdx].AABB.MergeTwoAABBs(_nodes[leftIdx].AABB, _nodes[rightIdx].AABB);
+            _nodes[currentNodeIndex].AABB.MergeTwoAABBs(_nodes[leftChildIndex].AABB, _nodes[rightChildIndex].AABB);
 
-            currentNodeIndex = _nodes[currentIdx].ParentNodeIndex;
+            currentNodeIndex = _nodes[currentNodeIndex].ParentNodeIndex;
         }
 
-        VASSERT(_nodes[leafIdx].IsLeaf(), "Inserted node should be a leaf.");
+        VASSERT(_nodes[leafNodeIndex].IsLeaf(), "Inserted node should be a leaf.");
     }
 
-    i32 DynamicAABBTree::balanceSubtree(i32 nodeIndex) {
-        VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
+    u32 DynamicAABBTree::balanceSubtree(u32 nodeIndex) {
+        VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
 
-        AABBTreeNode &nodeA = _nodes[static_cast<size_t>(nodeIndex)];
+        AABBTreeNode &nodeA = _nodes[nodeIndex];
 
         // If the node is a leaf or has a height less than 2, it cannot be unbalanced, so we can return it as is.
         if (nodeA.IsLeaf() || nodeA.Height < 2) {
             return nodeIndex;
         }
 
-        const i32 nodeBIndex = nodeA.Children[0];
-        const i32 nodeCIndex = nodeA.Children[1];
+        const u32 nodeBIndex = nodeA.Children[0];
+        const u32 nodeCIndex = nodeA.Children[1];
 
-        VASSERT(nodeBIndex >= 0 && nodeBIndex < static_cast<i32>(_nodes.size()), "Invalid left child index.");
-        VASSERT(nodeCIndex >= 0 && nodeCIndex < static_cast<i32>(_nodes.size()), "Invalid right child index.");
+        VASSERT(nodeBIndex < _nodes.size(), "Invalid left child index.");
+        VASSERT(nodeCIndex < _nodes.size(), "Invalid right child index.");
 
-        AABBTreeNode &nodeB = _nodes[static_cast<size_t>(nodeBIndex)];
-        AABBTreeNode &nodeC = _nodes[static_cast<size_t>(nodeCIndex)];
+        AABBTreeNode &nodeB = _nodes[nodeBIndex];
+        AABBTreeNode &nodeC = _nodes[nodeCIndex];
 
         const i32 balanceFactor = nodeC.Height - nodeB.Height;
 
         if (balanceFactor < -1) {
             VASSERT(!nodeB.IsLeaf(), "Left child should not be a leaf if balance factor is less than -1.");
 
-            const i32 nodeDIndex = nodeB.Children[0];
-            const i32 nodeEIndex = nodeB.Children[1];
+            const u32 nodeDIndex = nodeB.Children[0];
+            const u32 nodeEIndex = nodeB.Children[1];
 
-            VASSERT(nodeDIndex >= 0 && nodeDIndex < static_cast<i32>(_nodes.size()), "Invalid left-left child index.");
-            VASSERT(nodeEIndex >= 0 && nodeEIndex < static_cast<i32>(_nodes.size()), "Invalid left-right child index.");
+            VASSERT(nodeDIndex < _nodes.size(), "Invalid left-left child index.");
+            VASSERT(nodeEIndex < _nodes.size(), "Invalid left-right child index.");
 
-            AABBTreeNode &nodeD = _nodes[static_cast<size_t>(nodeDIndex)];
-            AABBTreeNode &nodeE = _nodes[static_cast<size_t>(nodeEIndex)];
+            AABBTreeNode &nodeD = _nodes[nodeDIndex];
+            AABBTreeNode &nodeE = _nodes[nodeEIndex];
 
             nodeB.Children[0] = nodeIndex;
             nodeB.ParentNodeIndex = nodeA.ParentNodeIndex;
             nodeA.ParentNodeIndex = nodeBIndex;
 
             if (nodeB.ParentNodeIndex != AABB_TREE_NULL_NODE) {
-                const auto bParentIdx = static_cast<size_t>(nodeB.ParentNodeIndex);
-                if (_nodes[bParentIdx].Children[0] == nodeIndex) {
-                    _nodes[bParentIdx].Children[0] = nodeBIndex;
+                if (_nodes[nodeB.ParentNodeIndex].Children[0] == nodeIndex) {
+                    _nodes[nodeB.ParentNodeIndex].Children[0] = nodeBIndex;
                 } else {
-                    VASSERT(_nodes[bParentIdx].Children[1] == nodeIndex, "Node A should be a child of its parent.");
-                    _nodes[bParentIdx].Children[1] = nodeBIndex;
+                    VASSERT(_nodes[nodeB.ParentNodeIndex].Children[1] == nodeIndex, "Node A should be a child of its parent.");
+                    _nodes[nodeB.ParentNodeIndex].Children[1] = nodeBIndex;
                 }
 
             } else {
@@ -440,26 +419,25 @@ namespace Vulkyrie {
         if (balanceFactor > 1) {
             VASSERT(!nodeC.IsLeaf(), "Right child should not be a leaf if balance factor is greater than 1.");
 
-            const i32 nodeFIndex = nodeC.Children[0];
-            const i32 nodeGIndex = nodeC.Children[1];
+            const u32 nodeFIndex = nodeC.Children[0];
+            const u32 nodeGIndex = nodeC.Children[1];
 
-            VASSERT(nodeFIndex >= 0 && nodeFIndex < static_cast<i32>(_nodes.size()), "Invalid right-left child index.");
-            VASSERT(nodeGIndex >= 0 && nodeGIndex < static_cast<i32>(_nodes.size()), "Invalid right-right child index.");
+            VASSERT(nodeFIndex < _nodes.size(), "Invalid right-left child index.");
+            VASSERT(nodeGIndex < _nodes.size(), "Invalid right-right child index.");
 
-            AABBTreeNode &nodeF = _nodes[static_cast<size_t>(nodeFIndex)];
-            AABBTreeNode &nodeG = _nodes[static_cast<size_t>(nodeGIndex)];
+            AABBTreeNode &nodeF = _nodes[nodeFIndex];
+            AABBTreeNode &nodeG = _nodes[nodeGIndex];
 
             nodeC.Children[0] = nodeIndex;
             nodeC.ParentNodeIndex = nodeA.ParentNodeIndex;
             nodeA.ParentNodeIndex = nodeCIndex;
 
             if (nodeC.ParentNodeIndex != AABB_TREE_NULL_NODE) {
-                const auto cParentIdx = static_cast<size_t>(nodeC.ParentNodeIndex);
-                if (_nodes[cParentIdx].Children[0] == nodeIndex) {
-                    _nodes[cParentIdx].Children[0] = nodeCIndex;
+                if (_nodes[nodeC.ParentNodeIndex].Children[0] == nodeIndex) {
+                    _nodes[nodeC.ParentNodeIndex].Children[0] = nodeCIndex;
                 } else {
-                    VASSERT(_nodes[cParentIdx].Children[1] == nodeIndex, "Node A should be a child of its parent.");
-                    _nodes[cParentIdx].Children[1] = nodeCIndex;
+                    VASSERT(_nodes[nodeC.ParentNodeIndex].Children[1] == nodeIndex, "Node A should be a child of its parent.");
+                    _nodes[nodeC.ParentNodeIndex].Children[1] = nodeCIndex;
                 }
 
             } else {
@@ -500,36 +478,34 @@ namespace Vulkyrie {
         return nodeIndex;
     }
 
-    void DynamicAABBTree::releaseNode(i32 nodeIndex) {
+    void DynamicAABBTree::releaseNode(u32 nodeIndex) {
         VASSERT(!_nodes.empty(), "Node pool should not be empty when releasing a node.");
-        VASSERT(nodeIndex >= 0 && nodeIndex < static_cast<i32>(_nodes.size()), "Invalid node index.");
-        const auto idx = static_cast<size_t>(nodeIndex);
-        VASSERT(_nodes[idx].Height >= 0, "Node being released should be currently allocated.");
+        VASSERT(nodeIndex < _nodes.size(), "Invalid node index.");
+        VASSERT(_nodes[nodeIndex].Height >= 0, "Node being released should be currently allocated.");
 
-        _nodes[idx].NextNodeIndex = _firstFreeNodeIndex;
-        _nodes[idx].Height = -1;
+        _nodes[nodeIndex].NextNodeIndex = _firstFreeNodeIndex;
+        _nodes[nodeIndex].Height = -1;
         _firstFreeNodeIndex = nodeIndex;
     }
 
-    i32 DynamicAABBTree::allocateNode() {
+    u32 DynamicAABBTree::allocateNode() {
         if (_firstFreeNodeIndex == AABB_TREE_NULL_NODE) {
             size_t oldNodeCount = _nodes.size();
 
-            VASSERT(oldNodeCount * 2 <= static_cast<size_t>(std::numeric_limits<i32>::max()), "Exceeded maximum node capacity.");
+            VASSERT(oldNodeCount * 2 < AABB_TREE_NULL_NODE, "Exceeded maximum node capacity.");
 
             _nodes.resize(oldNodeCount * 2);
 
             for (size_t i = oldNodeCount; i < _nodes.size() - 1; ++i) {
-                _nodes[i].NextNodeIndex = static_cast<i32>(i + 1);
+                _nodes[i].NextNodeIndex = static_cast<u32>(i + 1);
             }
 
-            _firstFreeNodeIndex = static_cast<i32>(oldNodeCount);
+            _firstFreeNodeIndex = static_cast<u32>(oldNodeCount);
         }
 
-        i32 allocatedNodeIndex = _firstFreeNodeIndex;
-        const auto allocIdx = static_cast<size_t>(allocatedNodeIndex);
-        _firstFreeNodeIndex = _nodes[allocIdx].NextNodeIndex;
-        _nodes[allocIdx].Height = 0;
+        u32 allocatedNodeIndex = _firstFreeNodeIndex;
+        _firstFreeNodeIndex = _nodes[allocatedNodeIndex].NextNodeIndex;
+        _nodes[allocatedNodeIndex].Height = 0;
 
         return allocatedNodeIndex;
     }

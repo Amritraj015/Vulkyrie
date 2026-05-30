@@ -11,9 +11,8 @@ namespace Vulkyrie {
     class SphereShape final : public ConvexShape {
     public:
         /** @brief Construct a sphere collision shape.
-         * @param radius The radius of the sphere. Must be positive.
-         * @param margin Optional collision margin that expands the effective surface of the shape for broadphase and GJK/EPA stability. Defaults to 0. */
-        SphereShape(f32 radius, f32 margin = 0.0f);
+         * @param radius The radius of the sphere. Must be positive. */
+        SphereShape(f32 radius);
 
         // Delete the copy constructor and the copy assignment operator.
         SphereShape(const SphereShape &) = delete;
@@ -69,7 +68,7 @@ namespace Vulkyrie {
          * @returns The volume of the sphere shape, calculated using the formula V = (4/3) * π * r^3, where r is the radius of the sphere.
          */
         [[nodiscard]] VE_INLINE f32 GetVolume() const override {
-            return f32(4.0) / f32(3.0) * static_cast<f32>(std::numbers::pi) * _margin * _margin * _margin;
+            return f32(4.0) / f32(3.0) * std::numbers::pi_v<f32> * _margin * _margin * _margin;
         }
 
         /** @brief Check if a given point is contained within the sphere shape.
@@ -93,7 +92,7 @@ namespace Vulkyrie {
         [[nodiscard]] VE_INLINE AABB ComputeTransformedAABB(const TransformComponent &transform) const override {
             // A sphere is rotationally symmetric, so its AABB is always a cube regardless of orientation.
             // The effective radius includes the collision margin so the broadphase doesn't miss contacts.
-            const glm::vec3 halfExtents(_margin + _margin);
+            const glm::vec3 halfExtents(_margin);
 
             // The local center is at the origin, so rotation has no effect — the world center is just the translation.
             return AABB(transform.Position - halfExtents, transform.Position + halfExtents);

@@ -158,8 +158,8 @@ namespace Vulkyrie {
         const Entity colliderOneEntity = _colliderComponentStore.GetEntityAtIndex(colliderOneIndex);
         const Entity colliderTwoEntity = _colliderComponentStore.GetEntityAtIndex(colliderTwoIndex);
 
-        const i32 colliderOneBroadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex);
-        const i32 colliderTwoBroadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex);
+        const u32 colliderOneBroadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex);
+        const u32 colliderTwoBroadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex);
 
         const u64 pairID = PairNumbers(std::max(colliderOneBroadPhaseID, colliderTwoBroadPhaseID), std::min(colliderOneBroadPhaseID, colliderTwoBroadPhaseID));
 

@@ -75,7 +75,7 @@ namespace Vulkyrie {
          * moved and need to be updated in the next broad phase update cycle.
          * @param broadPhaseID The broad phase ID of the collider that has been moved and needs to be updated in the broad phase system. This ID corresponds
          * to the entry of the collider in the dynamic AABB tree, and it must be valid and currently active in the broad phase system. */
-        void AddMovedCollider(i32 broadPhaseID, Collider &collider);
+        void AddMovedCollider(u32 broadPhaseID, Collider &collider);
 
         /** @brief Tests whether the fat AABBs of two colliders, identified by their broad phase IDs, overlap in the broad phase system. This method
          * retrieves the fat AABBs associated with the specified broad phase IDs from the dynamic AABB tree and checks for overlap between them. If the
@@ -88,7 +88,7 @@ namespace Vulkyrie {
          * in the dynamic AABB tree, and it must be valid and currently active in the broad phase system.
          * @returns True if there is an overlap between the AABBs of the two colliders identified by their broad phase IDs, indicating a potential collision,
          * and false otherwise. */
-        bool TestOverlap(i32 shapeOneBroadPhaseID, i32 shapeTwoBroadPhaseID) const;
+        bool TestOverlap(u32 shapeOneBroadPhaseID, u32 shapeTwoBroadPhaseID) const;
 
         /** @brief Computes the pairs of colliders that are potentially overlapping in the broad phase system. This method queries the dynamic AABB tree to
          * identify pairs of colliders whose AABBs overlap, indicating that they may be colliding and need to be tested for actual collisions in the narrow
@@ -98,7 +98,7 @@ namespace Vulkyrie {
          * @param outOverlappingPairs A reference to a vector that will be populated with pairs of broad phase IDs corresponding to potentially overlapping
          * colliders. Each pair in the vector represents two colliders that have overlapping AABBs and should be further tested for collision detection and
          * response in the narrow phase. */
-        void ComputeOverlappingPairs(std::vector<Pair<i32, i32>> &outOverlappingPairs);
+        void ComputeOverlappingPairs(std::vector<Pair<u32, u32>> &outOverlappingPairs);
 
         /** @brief Retrieves the fat AABB associated with a specified broad phase ID from the dynamic AABB tree. The fat AABB is an expanded version of the
          * collider's original AABB that accounts for potential movement and changes in shape during the simulation. It is used in the broad phase collision
@@ -108,7 +108,7 @@ namespace Vulkyrie {
          * dynamic AABB tree, and it must be valid and currently active in the broad phase system.
          * @returns A reference to the fat AABB associated with the specified broad phase ID. This AABB can be used for efficient collision checks against
          * other colliders in the broad phase system. */
-        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(i32 broadPaseID) const {
+        [[nodiscard]] VE_INLINE const AABB &GetFatAABB(u32 broadPaseID) const {
             return _aabbTree.GetFatAABB(broadPaseID);
         }
 
@@ -136,7 +136,7 @@ namespace Vulkyrie {
          * is used to track which colliders have changed position or shape during the simulation, allowing the broad phase system to efficiently update
          * their entries in the dynamic AABB tree and identify new potential collisions. The buffer is cleared after each update cycle, once all moved
          * colliders have been processed and their overlaps have been computed. */
-        std::vector<i32> _movedShapes;
+        std::vector<u32> _movedShapes;
 
         /** @brief Updates the entries in the collider component store for a specified range of components. This method is called to update the AABBs of
          * colliders in the broad phase system when their transforms or shapes have changed. It iterates over the specified range of collider components,

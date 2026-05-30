@@ -1,4 +1,5 @@
 #include "physics/components/collider_component_store.h"
+#include "physics/physics_constants.h"
 
 namespace Vulkyrie {
 
@@ -27,7 +28,7 @@ namespace Vulkyrie {
         // Append the new component and its associated entity to the end of their respective vectors.
         _bodyEntities.push_back(component.BodyEntity);
         _colliders.push_back(component.Collider);
-        _broadPhaseIDs.push_back(static_cast<i32>(-1));
+        _broadPhaseIDs.push_back(AABB_TREE_NULL_NODE);
         _localToBodyTransforms.push_back(component.LocalToBodyTransform);
         _collisionShapes.push_back(component.CollisionShape);
         _collisionCategoryBits.push_back(component.CollisionCategoryBits);

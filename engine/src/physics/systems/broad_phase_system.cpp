@@ -13,10 +13,10 @@ namespace Vulkyrie {
     }
 
     void BroadPhaseSystem::AddCollider(Collider &collider, const AABB &aabb) {
-        VASSERT(collider.GetBroadPhaseID() == -1, "Collider is already in the broad phase system.");
+        VASSERT(collider.GetBroadPhaseID() == AABB_TREE_NULL_NODE, "Collider is already in the broad phase system.");
 
         // Add the collider to the AABB tree.
-        const i32 broadPhaseID = _aabbTree.AddObject(aabb, &collider);
+        const u32 broadPhaseID = _aabbTree.AddObject(aabb, &collider);
 
         // Set the broad-phase ID for this collider in the collider component store.
         _colliderComponentStore.SetBroadPhaseID(collider.GetEntity(), broadPhaseID);
@@ -28,14 +28,14 @@ namespace Vulkyrie {
     }
 
     void BroadPhaseSystem::RemoveCollider(Collider &collider) {
-        VASSERT(collider.GetBroadPhaseID() != -1, "Collider is not in the broad phase system.");
+        VASSERT(collider.GetBroadPhaseID() != AABB_TREE_NULL_NODE, "Collider is not in the broad phase system.");
 
         // Get the broad-phase ID for this collider from the collider component store.
-        const i32 broadPhaseID = collider.GetBroadPhaseID();
+        const u32 broadPhaseID = collider.GetBroadPhaseID();
 
-        // Set the broad-phase ID for this collider to -1 in the collider component
+        // Set the broad-phase ID for this collider to AABB_TREE_NULL_NODE in the collider component
         // store to indicate that it is no longer in the broad phase system.
-        _colliderComponentStore.SetBroadPhaseID(collider.GetEntity(), -1);
+        _colliderComponentStore.SetBroadPhaseID(collider.GetEntity(), AABB_TREE_NULL_NODE);
 
         // Remove the collider object from the AABB tree using its broad-phase ID.
         _aabbTree.RemoveObject(broadPhaseID);
@@ -65,8 +65,8 @@ namespace Vulkyrie {
         }
     }
 
-    void BroadPhaseSystem::AddMovedCollider(i32 broadPhaseID, Collider &collider) {
-        VASSERT(broadPhaseID != -1, "Collider must already be in the broad phase system to be moved.");
+    void BroadPhaseSystem::AddMovedCollider(u32 broadPhaseID, Collider &collider) {
+        VASSERT(broadPhaseID != AABB_TREE_NULL_NODE, "Collider must already be in the broad phase system to be moved.");
 
         // Add the broad-phase ID of this moved collider to the set of moved colliders.
         _movedShapes.emplace_back(broadPhaseID);
@@ -76,8 +76,8 @@ namespace Vulkyrie {
         _collisionSystem.NotifyOverlappingPairsToTestOverlap(collider);
     }
 
-    bool BroadPhaseSystem::TestOverlap(i32 shapeOneBroadPhaseID, i32 shapeTwoBroadPhaseID) const {
-        VASSERT(shapeOneBroadPhaseID != -1 && shapeTwoBroadPhaseID != -1, "Both colliders must be in the broad phase system to test for overlap.");
+    bool BroadPhaseSystem::TestOverlap(u32 shapeOneBroadPhaseID, u32 shapeTwoBroadPhaseID) const {
+        VASSERT(shapeOneBroadPhaseID != AABB_TREE_NULL_NODE && shapeTwoBroadPhaseID != AABB_TREE_NULL_NODE, "Both colliders must be in the broad phase system to test for overlap.");
 
         // Get the Fat AABBs of the two shapes from the AABB tree.
         const AABB &aabbOne = _aabbTree.GetFatAABB(shapeOneBroadPhaseID);
@@ -87,7 +87,7 @@ namespace Vulkyrie {
         return aabbOne.CollidesWith(aabbTwo);
     }
 
-    void BroadPhaseSystem::ComputeOverlappingPairs(std::vector<Pair<i32, i32>> &outOverlappingPairs) {
+    void BroadPhaseSystem::ComputeOverlappingPairs(std::vector<Pair<u32, u32>> &outOverlappingPairs) {
         // Query the AABB tree for overlapping pairs involving the moved shapes and populate the provided vector with the results.
         _aabbTree.QueryOverlappingPairs(_movedShapes, outOverlappingPairs);
 
@@ -105,10 +105,10 @@ namespace Vulkyrie {
         // Iterate over the specified range of collider components in the collider component store to update their corresponding entries in the AABB tree.
         for (size_t i = startIndex; i < startIndex + count; i++) {
             // Get the broad-phase ID for this collider from the collider component store.
-            const i32 broadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(i);
+            const u32 broadPhaseID = _colliderComponentStore.GetBroadPhaseIDAtIndex(i);
 
-            // If the broad-phase ID is -1, this collider has not yet been registered with the broad-phase system, so we skip it.
-            if (-1 != broadPhaseID) {
+            // If the broad-phase ID is AABB_TREE_NULL_NODE, this collider has not yet been registered with the broad-phase system, so we skip it.
+            if (AABB_TREE_NULL_NODE != broadPhaseID) {
 
                 // Get the body entity associated with this collider from the collider component store.
                 const Entity bodyEntity = _colliderComponentStore.GetBodyEntityAtIndex(i);

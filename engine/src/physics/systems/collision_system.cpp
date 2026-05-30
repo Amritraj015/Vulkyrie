@@ -19,9 +19,9 @@ namespace Vulkyrie {
     }
 
     void CollisionSystem::RemoveCollider(Collider &collider) {
-        const i32 broadPhaseID = collider.GetBroadPhaseID();
+        const u32 broadPhaseID = collider.GetBroadPhaseID();
 
-        VASSERT(broadPhaseID != -1, "Collider does not have a valid broad-phase ID when trying to remove it from the collision system.");
+        VASSERT(broadPhaseID != AABB_TREE_NULL_NODE, "Collider does not have a valid broad-phase ID when trying to remove it from the collision system.");
         VASSERT(_broadPhaseIDToColliderEntityMap.contains(broadPhaseID), "Broad-phase ID does not exist in the map when trying to remove a collider.");
 
         const std::vector<u64> &overlappingPairs = _colliderComponentStore.GetOverlappingPairs(collider.GetEntity());
@@ -259,9 +259,9 @@ namespace Vulkyrie {
 
         // Process the convex pairs to generate narrow-phase input batches for narrow-phase collision detection.
         for (auto &pair : _overlappingPairs._convexPairs) {
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != AABB_TREE_NULL_NODE,
                     "Collider one in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != AABB_TREE_NULL_NODE,
                     "Collider two in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
             VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
                     "Collider one and collider two in a convex pair have the same broad-phase ID when trying to compute middle-phase collision.");
@@ -330,9 +330,9 @@ namespace Vulkyrie {
 
         // Process the concave pairs to generate narrow-phase input batches for narrow-phase collision detection.
         for (auto &pair : _overlappingPairs._concavePairs) {
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != AABB_TREE_NULL_NODE,
                     "Collider one in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != AABB_TREE_NULL_NODE,
                     "Collider two in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision.");
             VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
                     "Collider one and collider two in a concave pair have the same broad-phase ID when trying to compute middle-phase collision.");
@@ -408,9 +408,9 @@ namespace Vulkyrie {
             const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
             const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
 
-            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) != AABB_TREE_NULL_NODE,
                     "Collider one in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
-            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex) != AABB_TREE_NULL_NODE,
                     "Collider two in a convex pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
             VASSERT(_colliderComponentStore.GetBroadPhaseIDAtIndex(colliderOneIndex) != _colliderComponentStore.GetBroadPhaseIDAtIndex(colliderTwoIndex),
                     "Collider one and collider two in a convex pair have the same broad-phase ID when trying to compute middle-phase collision snapshot.");
@@ -437,9 +437,9 @@ namespace Vulkyrie {
         for (const auto &pairID : concavePairs) {
             ConcaveOverlappingPair &pair = _overlappingPairs._concavePairs[_overlappingPairs._concavePairIDToPairIndexMap[pairID]];
 
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != AABB_TREE_NULL_NODE,
                     "Collider one in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
-            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != -1,
+            VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity) != AABB_TREE_NULL_NODE,
                     "Collider two in a concave pair does not have a valid broad-phase ID when trying to compute middle-phase collision snapshot.");
             VASSERT(_colliderComponentStore.GetBroadPhaseID(pair.ColliderOneEntity) != _colliderComponentStore.GetBroadPhaseID(pair.ColliderTwoEntity),
                     "Collider one and collider two in a concave pair have the same broad-phase ID when trying to compute middle-phase collision snapshot.");
@@ -575,20 +575,24 @@ namespace Vulkyrie {
         }
     }
 
-    void CollisionSystem::updateOverlappingPairs(const std::vector<Pair<i32, i32>> &overlappingNodes) {
+    void CollisionSystem::updateOverlappingPairs(const std::vector<Pair<u32, u32>> &overlappingNodes) {
         for (const auto &pair : overlappingNodes) {
-            VASSERT(pair.First != -1 && pair.Second != -1,
+            VASSERT(pair.First != AABB_TREE_NULL_NODE && pair.Second != AABB_TREE_NULL_NODE,
                     "Broad-phase overlapping pair contains an invalid broad-phase ID when trying to update overlapping pairs.");
 
             // Make sure to only process pairs of different broad-phase IDs.
             if (pair.First != pair.Second) {
-                // Get the collider entities for both colliders in the pair.
-                const Entity colliderOneEntity = _broadPhaseIDToColliderEntityMap[pair.First];
-                const Entity colliderTwoEntity = _broadPhaseIDToColliderEntityMap[pair.Second];
+                // Find the collider entities corresponding to the broad-phase IDs of both
+                // colliders in the pair using the broad-phase ID to collider entity map.
+                const auto itBroadPhaseIDColliderEntityPairOne = _broadPhaseIDToColliderEntityMap.find(pair.First);
+                const auto itBroadPhaseIDColliderEntityPairTwo = _broadPhaseIDToColliderEntityMap.find(pair.Second);
+
+                VASSERT(itBroadPhaseIDColliderEntityPairOne != _broadPhaseIDToColliderEntityMap.end(), "Could not find Collider Entity One");
+                VASSERT(itBroadPhaseIDColliderEntityPairTwo != _broadPhaseIDToColliderEntityMap.end(), "Could not find Collider Entity Two");
 
                 // Get the collider indices for both colliders in the pair.
-                const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(colliderOneEntity);
-                const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(colliderTwoEntity);
+                const size_t colliderOneIndex = _colliderComponentStore.GetEntityIndex(itBroadPhaseIDColliderEntityPairOne->second);
+                const size_t colliderTwoIndex = _colliderComponentStore.GetEntityIndex(itBroadPhaseIDColliderEntityPairTwo->second);
 
                 // Get the body entities for both colliders in the pair.
                 const Entity bodyOneEntity = _colliderComponentStore.GetBodyEntityAtIndex(colliderOneIndex);

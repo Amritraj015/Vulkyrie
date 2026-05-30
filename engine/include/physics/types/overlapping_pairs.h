@@ -26,10 +26,10 @@ namespace Vulkyrie {
         u64 PairID;
 
         /** @brief Broad-phase AABB tree ID of the first collider. */
-        i32 ColliderOneBroadPhaseID;
+        u32 ColliderOneBroadPhaseID;
 
         /** @brief Broad-phase AABB tree ID of the second collider. */
-        i32 ColliderTwoBroadPhaseID;
+        u32 ColliderTwoBroadPhaseID;
 
         /** @brief Entity handle for the first collider component. */
         Entity ColliderOneEntity;
@@ -64,8 +64,8 @@ namespace Vulkyrie {
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
         explicit OverlappingPair(u64 pairID,
-                                 i32 colliderOneBroadPhaseID,
-                                 i32 colliderTwoBroadPhaseID,
+                                 u32 colliderOneBroadPhaseID,
+                                 u32 colliderTwoBroadPhaseID,
                                  Entity colliderOneEntity,
                                  Entity colliderTwoEntity,
                                  NarrowPhaseAlgorithm narrowPhaseAlgorithmToUse,
@@ -109,8 +109,8 @@ namespace Vulkyrie {
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
         explicit ConvexOverlappingPair(u64 pairID,
-                                       i32 colliderOneBroadPhaseID,
-                                       i32 colliderTwoBroadPhaseID,
+                                       u32 colliderOneBroadPhaseID,
+                                       u32 colliderTwoBroadPhaseID,
                                        Entity colliderOneEntity,
                                        Entity colliderTwoEntity,
                                        NarrowPhaseAlgorithm narrowPhaseAlgorithmToUse,
@@ -150,8 +150,8 @@ namespace Vulkyrie {
          * @param isEnabled                 Whether this pair participates in collision resolution.
          */
         explicit ConcaveOverlappingPair(u64 pairID,
-                                        i32 colliderOneBroadPhaseID,
-                                        i32 colliderTwoBroadPhaseID,
+                                        u32 colliderOneBroadPhaseID,
+                                        u32 colliderTwoBroadPhaseID,
                                         Entity colliderOneEntity,
                                         Entity colliderTwoEntity,
                                         NarrowPhaseAlgorithm narrowPhaseAlgorithmToUse,

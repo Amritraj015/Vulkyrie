@@ -167,7 +167,7 @@ namespace Vulkyrie {
 
         private:
             std::vector<Vulkyrie::ContactPair> &_contactPairs;
-            std::vector<Vulkyrie::ContactManifold> &_contactManifolds;
+            [[maybe_unused]] std::vector<Vulkyrie::ContactManifold> &_contactManifolds;
             std::vector<Vulkyrie::ContactPoint> &_contactPoints;
             std::vector<Vulkyrie::ContactPair> &_lostContactPairs;
             std::vector<size_t> _contactPairIndices;

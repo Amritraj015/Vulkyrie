@@ -8,7 +8,7 @@ namespace Vulkyrie {
     constexpr f32 VE_MACHINE_EPSILON = std::numeric_limits<f32>::epsilon();
 
     // Dynamic AABB tree parameters.
-    constexpr i32 AABB_TREE_NULL_NODE = -1;
+    constexpr u32 AABB_TREE_NULL_NODE = std::numeric_limits<u32>::max();
     constexpr f32 AABB_TREE_DEFAULT_INFLATION_PERCENTAGE = 0.04f;
     constexpr size_t AABB_TREE_DEFAULT_INITIAL_NODE_CAPACITY = 128;
 

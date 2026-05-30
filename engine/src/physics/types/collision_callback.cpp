@@ -3,6 +3,16 @@
 
 namespace Vulkyrie {
 
+    CollisionCallback::ContactPair::ContactPair(const Vulkyrie::ContactPair &contactPair,
+                                                std::vector<Vulkyrie::ContactPoint> &contactPoints,
+                                                PhysicsWorld &world,
+                                                bool isLostContactPair)
+        : _contactPair(contactPair)
+        , _contactPoints(contactPoints)
+        , _physicsWorld(world)
+        , _isLostContactPair(isLostContactPair) {
+    }
+
     Body &CollisionCallback::ContactPair::GetBodyOne() const {
         return _physicsWorld.GetBodyComponentStore().GetBody(_contactPair.BodyOneEntity);
     }
