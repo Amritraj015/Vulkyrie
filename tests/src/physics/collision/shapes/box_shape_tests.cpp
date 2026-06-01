@@ -200,7 +200,7 @@ TEST_CASE("BoxShape - All 6 face normals are axis-aligned", "[physics][box]") {
 
     for (size_t i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
-        const int zeros = (n.x == 0.0f ? 1 : 0) + (n.y == 0.0f ? 1 : 0) + (n.z == 0.0f ? 1 : 0);
+        const i32 zeros = (n.x == 0.0f ? 1 : 0) + (n.y == 0.0f ? 1 : 0) + (n.z == 0.0f ? 1 : 0);
         REQUIRE(zeros == 2);
     }
 }
@@ -209,7 +209,7 @@ TEST_CASE("BoxShape - All 6 axis directions are represented by face normals", "[
     PhysicsContext context;
     BoxShape shape(glm::vec3(1.0f), context);
 
-    std::set<std::tuple<float, float, float>> normals;
+    std::set<std::tuple<f32, f32, f32>> normals;
     for (size_t i = 0; i < shape.GetFacesCount(); ++i) {
         const glm::vec3 n = shape.GetFaceNormal(i);
         normals.insert({ n.x, n.y, n.z });
@@ -250,7 +250,7 @@ TEST_CASE("BoxShape - GetLocalAABB is centered at origin", "[physics][box]") {
 TEST_CASE("BoxShape - GetVolume matches 8*hx*hy*hz", "[physics][box]") {
     PhysicsContext context;
     BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
-    const float expected = 8.0f * 1.0f * 2.0f * 3.0f;
+    const f32 expected = 8.0f * 1.0f * 2.0f * 3.0f;
 
     REQUIRE(shape.GetVolume() == Catch::Approx(expected));
 }
@@ -288,7 +288,7 @@ TEST_CASE("BoxShape - GetLocalInertiaTensor matches formula for non-uniform box"
     PhysicsContext context;
     BoxShape shape(glm::vec3(1.0f, 2.0f, 3.0f), context);
 
-    const float mass = 1.0f;
+    const f32 mass = 1.0f;
     const glm::vec3 inertia = shape.GetLocalInertiaTensor(mass);
 
     REQUIRE(inertia.x == Catch::Approx((1.0f / 3.0f) * mass * (4.0f + 9.0f)));
@@ -505,10 +505,10 @@ TEST_CASE("BoxShape - GetLocalSupportPointWithoutMargin result is always a verte
     BoxShape shape(half, context);
 
     // Check all 8 axis-diagonal directions map to the correct vertex.
-    for (int sx : {-1, 1}) {
-        for (int sy : {-1, 1}) {
-            for (int sz : {-1, 1}) {
-                const glm::vec3 dir(static_cast<float>(sx), static_cast<float>(sy), static_cast<float>(sz));
+    for (int sx : { -1, 1 }) {
+        for (int sy : { -1, 1 }) {
+            for (int sz : { -1, 1 }) {
+                const glm::vec3 dir(static_cast<f32>(sx), static_cast<f32>(sy), static_cast<f32>(sz));
                 const glm::vec3 result = shape.GetLocalSupportPointWithoutMargin(dir);
                 REQUIRE(result.x == Catch::Approx(sx * half.x));
                 REQUIRE(result.y == Catch::Approx(sy * half.y));

@@ -78,10 +78,10 @@ struct MockBuffer {
 
 TEST_CASE("FrameGraph - Basic pass addition", "[framegraph]") {
     FrameGraph graph;
-    int executionCount = 0;
+    i32 executionCount = 0;
 
     struct PassData {
-        int value = 42;
+        i32 value = 42;
     };
 
     const auto &data = graph.AddPass<PassData>(
@@ -173,8 +173,8 @@ TEST_CASE("FrameGraph - Read and Write operations", "[framegraph]") {
 
 TEST_CASE("FrameGraph - Pass culling for unreferenced resources", "[framegraph]") {
     FrameGraph graph;
-    int producerExecuted = 0;
-    int consumerExecuted = 0;
+    i32 producerExecuted = 0;
+    i32 consumerExecuted = 0;
 
     struct ProducerData {
         ResourceID texture;
@@ -207,7 +207,7 @@ TEST_CASE("FrameGraph - Pass culling for unreferenced resources", "[framegraph]"
 
 TEST_CASE("FrameGraph - Side effects prevent culling", "[framegraph]") {
     FrameGraph graph;
-    int executionCount = 0;
+    i32 executionCount = 0;
 
     struct PassData {
         ResourceID texture;
@@ -291,9 +291,9 @@ TEST_CASE("FrameGraph - Multiple passes with dependencies", "[framegraph]") {
 TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph]") {
     FrameGraph graph;
     ResourceID texture1, texture2;
-    int pass1Executed = 0;
-    int pass2Executed = 0;
-    int pass3Executed = 0;
+    i32 pass1Executed = 0;
+    i32 pass2Executed = 0;
+    i32 pass3Executed = 0;
 
     struct Pass1Data {
         ResourceID output;
@@ -500,15 +500,15 @@ TEST_CASE("FrameGraph - Resource lifetime tracking", "[framegraph]") {
     graph.Execute(nullptr, &stats);
 
     // Resource should be created and then destroyed after last use
-    int createIndex = -1;
-    int destroyIndex = -1;
+    i32 createIndex = -1;
+    i32 destroyIndex = -1;
 
     for (size_t i = 0; i < stats.size(); ++i) {
         if (stats[i].find("Create:") != std::string::npos) {
-            createIndex = static_cast<int>(i);
+            createIndex = static_cast<i32>(i);
         }
         if (stats[i].find("Destroy:") != std::string::npos) {
-            destroyIndex = static_cast<int>(i);
+            destroyIndex = static_cast<i32>(i);
         }
     }
 
@@ -519,7 +519,7 @@ TEST_CASE("FrameGraph - Resource lifetime tracking", "[framegraph]") {
 
 TEST_CASE("FrameGraph - Multiple resource types", "[framegraph]") {
     FrameGraph graph;
-    int executionCount = 0;
+    i32 executionCount = 0;
 
     struct PassData {
         ResourceID texture;
@@ -547,7 +547,7 @@ TEST_CASE("FrameGraph - Multiple resource types", "[framegraph]") {
 
 TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegraph]") {
     FrameGraph graph;
-    std::vector<int> executionOrder;
+    std::vector<i32> executionOrder;
     ResourceID res;
 
     struct CreateData {
@@ -613,7 +613,7 @@ TEST_CASE("FrameGraphBlackboard - Store and retrieve data", "[framegraph][blackb
     FrameGraphBlackboard blackboard;
 
     struct TestData {
-        int value = 42;
+        i32 value = 42;
         std::string name = "test";
     };
 
@@ -648,11 +648,11 @@ TEST_CASE("FrameGraphBlackboard - Multiple types", "[framegraph][blackboard]") {
     FrameGraphBlackboard blackboard;
 
     struct TypeA {
-        int x = 10;
+        i32 x = 10;
     };
 
     struct TypeB {
-        float y = 3.14f;
+        f32 y = 3.14f;
     };
 
     blackboard.Set<TypeA>();
@@ -677,14 +677,14 @@ TEST_CASE("FrameGraph - Empty graph", "[framegraph]") {
 
 TEST_CASE("FrameGraph - All passes culled except side effects", "[framegraph]") {
     FrameGraph graph;
-    int executed = 0;
+    i32 executed = 0;
 
     struct PassData {
         ResourceID res;
     };
 
     // Add 5 passes, only one with side effects
-    for (int i = 0; i < 4; ++i) {
+    for (i32 i = 0; i < 4; ++i) {
         graph.AddPass<PassData>(
             "CulledPass",
             [](FrameGraph::Builder &builder, PassData &data) {

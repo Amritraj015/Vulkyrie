@@ -34,7 +34,7 @@ namespace Vulkyrie {
          * @param name The name of the uniform variable.
          * @param value The integer value to set.
          */
-        virtual void SetIntUniform(std::string_view name, int value) const = 0;
+        virtual void SetIntUniform(std::string_view name, i32 value) const = 0;
 
         /** @brief Sets a float uniform variable in the shader program.
          * @param name The name of the uniform variable.

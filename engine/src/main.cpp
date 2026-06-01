@@ -7,7 +7,7 @@
 // }
 #endif
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     // Initialize the logger sub-system.
     auto statusCode = Vulkyrie::Logger::InitializeLogger(Vulkyrie::LoggerType::Console);
 

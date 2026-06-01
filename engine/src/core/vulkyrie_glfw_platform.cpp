@@ -14,7 +14,7 @@ namespace Vulkyrie {
      * @param glfwKeyCode The GLFW key code to convert.
      * @returns The corresponding Vulkyrie key code.
      */
-    static constexpr KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(int glfwKeyCode) {
+    static constexpr KeyCode ConvertGLFWKeyCodeToVulkyrieKeyCode(i32 glfwKeyCode) {
         switch (glfwKeyCode) {
             case GLFW_KEY_SPACE:
                 return KeyCode::Space;
@@ -263,7 +263,7 @@ namespace Vulkyrie {
      * @param glfwMouseButton The GLFW mouse button to convert.
      * @returns The corresponding Vulkyrie mouse button.
      */
-    static constexpr MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(int glfwMouseButton) {
+    static constexpr MouseButton ConvertGLFWMouseButtonToVulkyrieMouseButton(i32 glfwMouseButton) {
         switch (glfwMouseButton) {
             case GLFW_MOUSE_BUTTON_1:
                 return MouseButton::MouseButton1;
@@ -297,7 +297,7 @@ namespace Vulkyrie {
      * @param glfwMods The GLFW modifier flags.
      * @returns The corresponding Vulkyrie key modifiers.
      */
-    static constexpr KeyModifier GetModifiersFromGLFW(int glfwMods) {
+    static constexpr KeyModifier GetModifiersFromGLFW(i32 glfwMods) {
         u8 modifiers = 0U;
 
         if (glfwMods & GLFW_MOD_SHIFT) {
@@ -341,7 +341,7 @@ namespace Vulkyrie {
         glfwInit();
 
         // Set GLFW error callback.
-        glfwSetErrorCallback([](int errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
+        glfwSetErrorCallback([](i32 errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -375,7 +375,7 @@ namespace Vulkyrie {
         glfwSetWindowUserPointer(_window, &_eventCallbackFn);
 
         // Set window event callbacks.
-        glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, int width, int height) {
+        glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, i32 width, i32 height) {
             const u32 newWidth = static_cast<u32>(width);
             const u32 newHeight = static_cast<u32>(height);
 
@@ -402,7 +402,7 @@ namespace Vulkyrie {
             callbackFn(event);
         });
 
-        glfwSetKeyCallback(_window, [](GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, int mods) {
+        glfwSetKeyCallback(_window, [](GLFWwindow *window, i32 key, [[maybe_unused]] i32 scancode, i32 action, i32 mods) {
             const KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
 
             switch (action) {
@@ -446,7 +446,7 @@ namespace Vulkyrie {
             }
         });
 
-        // glfwSetCharCallback(_window, [](GLFWwindow *window, unsigned int codepoint) {
+        // glfwSetCharCallback(_window, [](GLFWwindow *window, u32 codepoint) {
         //     KeyCode keycode = ConvertGLFWKeyCodeToVulkyrieKeyCode(codepoint);
         //     KeyCharEvent event(keycode);
 
@@ -457,7 +457,7 @@ namespace Vulkyrie {
         //     app.RaiseEvent(event);
         // });
 
-        glfwSetMouseButtonCallback(_window, [](GLFWwindow *window, int button, int action, int mods) {
+        glfwSetMouseButtonCallback(_window, [](GLFWwindow *window, i32 button, i32 action, i32 mods) {
             const MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
 
             switch (action) {

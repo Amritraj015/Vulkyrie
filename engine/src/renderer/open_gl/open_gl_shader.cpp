@@ -80,7 +80,7 @@ namespace Vulkyrie {
         glUniform1i(GetUniformLocation(name.data()), static_cast<int>(value));
     }
 
-    void OpenGLShader::SetIntUniform(const std::string_view name, const int value) const {
+    void OpenGLShader::SetIntUniform(const std::string_view name, const i32 value) const {
         glUniform1i(GetUniformLocation(name.data()), value);
     }
 

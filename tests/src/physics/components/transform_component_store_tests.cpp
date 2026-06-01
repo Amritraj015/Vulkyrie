@@ -594,7 +594,7 @@ TEST_CASE("TransformComponentStore - Stress: many adds, removes, SetActiveStatus
     EntityManager em;
     TransformComponentStore store;
 
-    constexpr int N = 100;
+    constexpr i32 N = 100;
     std::vector<Entity> entities;
     entities.reserve(N);
 

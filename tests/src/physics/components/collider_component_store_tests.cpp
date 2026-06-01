@@ -9,14 +9,14 @@ using namespace Vulkyrie;
 // Helpers
 // ===========================================================================================
 
-static TransformComponent makeTransform(float x, float y = 0.0f, float z = 0.0f) {
+static TransformComponent makeTransform(f32 x, f32 y = 0.0f, f32 z = 0.0f) {
     TransformComponent t{};
     t.Position = glm::vec3(x, y, z);
     t.Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     return t;
 }
 
-static Material makeMaterial(float friction = 0.5f, float restitution = 0.3f, float density = 1.0f) {
+static Material makeMaterial(f32 friction = 0.5f, f32 restitution = 0.3f, f32 density = 1.0f) {
     return Material(friction, restitution, density);
 }
 
@@ -955,7 +955,7 @@ TEST_CASE("ColliderComponentStore - Stress: many adds, removes, and SetActiveSta
     ColliderComponentStore store;
     Entity body = em.CreateEntity();
 
-    constexpr int N = 100;
+    constexpr i32 N = 100;
     std::vector<Entity> entities;
     entities.reserve(N);
 
@@ -963,7 +963,7 @@ TEST_CASE("ColliderComponentStore - Stress: many adds, removes, and SetActiveSta
         Entity e = em.CreateEntity();
         entities.push_back(e);
         bool active = (i % 3 != 0);
-        store.AddComponent(e, makeComponent(body, makeTransform(static_cast<float>(i))), active);
+        store.AddComponent(e, makeComponent(body, makeTransform(static_cast<f32>(i))), active);
     }
 
     REQUIRE(store.GetTotalComponentCount() == N);
@@ -992,7 +992,7 @@ TEST_CASE("ColliderComponentStore - Stress: many adds, removes, and SetActiveSta
     for (int i = 1; i < N; i += 2) {
         Entity e = entities[static_cast<size_t>(i)];
         REQUIRE(store.HasComponent(e));
-        REQUIRE(store.GetLocalToBodyTransform(e).Position.x == Catch::Approx(static_cast<float>(i)));
+        REQUIRE(store.GetLocalToBodyTransform(e).Position.x == Catch::Approx(static_cast<f32>(i)));
     }
 
     // Verify removed entities are gone.

@@ -48,7 +48,7 @@ namespace Vulkyrie {
         void setBarycentricCoords(f32 a, f32 b, f32 c, f32 d);
         bool recomputeClosestPoint();
         bool checkClosestPointValid() const;
-        void computeClosestPointOnSegment(const glm::vec3 &a, const glm::vec3 &b, int &bitUsedVertices, float &t) const;
+        void computeClosestPointOnSegment(const glm::vec3 &a, const glm::vec3 &b, int &bitUsedVertices, f32 &t) const;
         void computeClosestPointOnTriangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, int &bitsUsedPoints, glm::vec3 &baryCoordsABC) const;
         bool computeClosestPointOnTetrahedron(const glm::vec3 &a,
                                               const glm::vec3 &b,
