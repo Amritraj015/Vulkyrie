@@ -17,8 +17,7 @@ namespace Vulkyrie {
      *   1. Call `ReserveMemory()` once to pre-allocate based on last-frame counts.
      *   2. Call `AddIsland()` to open a new island, then `AddBodyToIsland()` for each member body.
      *   3. Process each island for constraint solving.
-     *   4. Call `Clear()` at the end of the frame to reset state while preserving capacity hints
-     *      for the next frame.
+     *   4. Call `Clear()` at the end of the frame to reset state while preserving capacity hints for the next frame.
      */
     struct Islands final {
     public:
