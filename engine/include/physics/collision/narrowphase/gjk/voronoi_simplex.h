@@ -200,9 +200,6 @@ namespace Vulkyrie {
         /// Barycentric coordinates of the closest point using simplex vertices
         std::array<f32, 4> _barycentricCoordinates;
 
-        /// Squared length of each vertex (cached for performance)
-        std::array<f32, 4> _pointsLengthSquare;
-
         /// Current point on the simplex closest to the origin
         glm::vec3 _closestPoint;
 

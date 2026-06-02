@@ -658,7 +658,7 @@ TEST_CASE("VoronoiSimplex - support points for single vertex simplex", "[physics
     simplex.AddPoint(point, suppA, suppB);
 
     glm::vec3 closestPoint;
-    simplex.ComputeClosestPoint(closestPoint);
+    REQUIRE(simplex.ComputeClosestPoint(closestPoint));
 
     glm::vec3 pA, pB;
     simplex.ComputeClosestPointsOfAandB(pA, pB);
