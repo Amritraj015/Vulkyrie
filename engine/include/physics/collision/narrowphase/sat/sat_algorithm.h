@@ -40,8 +40,9 @@ namespace Vulkyrie {
                                                        bool isShapeOneCapsule) const;
 
         // This method returns true if an edge of a polyhedron and a capsule forms a face of the Minkowski Difference
-        bool
-        IsMinkowskiFaceCapsuleVsEdge(const glm::vec3 &capsuleSegment, const glm::vec3 &edgeAdjacentFace1Normal, const glm::vec3 &edgeAdjacentFace2Normal) const;
+        bool IsMinkowskiFaceCapsuleVsEdge(const glm::vec3 &capsuleSegment,
+                                          const glm::vec3 &edgeAdjacentFaceOneNormal,
+                                          const glm::vec3 &edgeAdjacentFace2Normal) const;
 
     private:
         constexpr static f32 SEPARATING_AXIS_RELATIVE_TOLERANCE = f32(1.002);
@@ -53,7 +54,7 @@ namespace Vulkyrie {
                                          const HalfEdgeMesh::Edge &edgeOne,
                                          const ConvexPolyhedronShape &polyhedronTwo,
                                          const HalfEdgeMesh::Edge &edgeTwo,
-                                         const TransformComponent &polyhedron1ToPolyhedron2) const;
+                                         const TransformComponent &polyhedronOneToTwo) const;
 
         bool testGaussMapArcsIntersect(
             const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &d, const glm::vec3 &bCrossA, const glm::vec3 &dCrossC) const;
@@ -96,11 +97,11 @@ namespace Vulkyrie {
                                                              const TransformComponent &polyhedronToCapsuleTransform,
                                                              glm::vec3 &outAxis) const;
 
-        bool computePolyhedronVsPolyhedronFaceContactPoints(bool isMinPenetrationFaceNormalPolyhedron1,
-                                                            const ConvexPolyhedronShape *polyhedron1,
-                                                            const ConvexPolyhedronShape *polyhedron2,
-                                                            const TransformComponent &polyhedron1ToPolyhedron2,
-                                                            const TransformComponent &polyhedron2ToPolyhedron1,
+        bool computePolyhedronVsPolyhedronFaceContactPoints(bool isMinPenetrationFaceNormalPolyhedronOne,
+                                                            const ConvexPolyhedronShape *polyhedronOne,
+                                                            const ConvexPolyhedronShape *polyhedronTwo,
+                                                            const TransformComponent &polyhedronOneToTwo,
+                                                            const TransformComponent &polyhedronTwoToOne,
                                                             size_t minFaceIndex,
                                                             NarrowPhaseDataBatch &batch,
                                                             size_t batchIndex) const;

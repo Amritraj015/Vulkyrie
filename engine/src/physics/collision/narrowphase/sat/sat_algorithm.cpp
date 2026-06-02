@@ -41,22 +41,22 @@ namespace Vulkyrie {
                                                    const HalfEdgeMesh::Edge &edgeOne,
                                                    const ConvexPolyhedronShape &polyhedronTwo,
                                                    const HalfEdgeMesh::Edge &edgeTwo,
-                                                   const TransformComponent &polyhedron1ToPolyhedron2) const {
-        const glm::vec3 a = polyhedron1ToPolyhedron2.Rotation * polyhedronOne.GetFaceNormal(edgeOne.FaceIndex);
-        const glm::vec3 b = polyhedron1ToPolyhedron2.Rotation * polyhedronOne.GetFaceNormal(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).FaceIndex);
+                                                   const TransformComponent &polyhedronOneToTwo) const {
+        const glm::vec3 a = polyhedronOneToTwo.Rotation * polyhedronOne.GetFaceNormal(edgeOne.FaceIndex);
+        const glm::vec3 b = polyhedronOneToTwo.Rotation * polyhedronOne.GetFaceNormal(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).FaceIndex);
 
         const glm::vec3 c = polyhedronTwo.GetFaceNormal(edgeTwo.FaceIndex);
         const glm::vec3 d = polyhedronTwo.GetFaceNormal(polyhedronTwo.GetHalfEdge(edgeTwo.TwinEdgeIndex).FaceIndex);
 
         // Compute b.cross(a) using the edge direction.
-        const glm::vec3 edge1Vertex1 = polyhedronOne.GetVertexPosition(edgeOne.StartVertexIndex);
-        const glm::vec3 edge1Vertex2 = polyhedronOne.GetVertexPosition(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).StartVertexIndex);
-        const glm::vec3 bCrossA = polyhedron1ToPolyhedron2.Rotation * (edge1Vertex1 - edge1Vertex2);
+        const glm::vec3 edgeOneVertexOne = polyhedronOne.GetVertexPosition(edgeOne.StartVertexIndex);
+        const glm::vec3 edgeOneVertexTwo = polyhedronOne.GetVertexPosition(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).StartVertexIndex);
+        const glm::vec3 bCrossA = polyhedronOneToTwo.Rotation * (edgeOneVertexOne - edgeOneVertexTwo);
 
         // Compute d.cross(c) using the edge direction.
-        const glm::vec3 edge2Vertex1 = polyhedronTwo.GetVertexPosition(edgeTwo.StartVertexIndex);
-        const glm::vec3 edge2Vertex2 = polyhedronTwo.GetVertexPosition(polyhedronTwo.GetHalfEdge(edgeTwo.TwinEdgeIndex).StartVertexIndex);
-        const glm::vec3 dCrossC = edge2Vertex1 - edge2Vertex2;
+        const glm::vec3 edgeTwoVertexOne = polyhedronTwo.GetVertexPosition(edgeTwo.StartVertexIndex);
+        const glm::vec3 edgeTwoVertexTwo = polyhedronTwo.GetVertexPosition(polyhedronTwo.GetHalfEdge(edgeTwo.TwinEdgeIndex).StartVertexIndex);
+        const glm::vec3 dCrossC = edgeTwoVertexOne - edgeTwoVertexTwo;
 
         // Test if the two arcs of the Gauss Map intersect (therefore forming a minkowski face)
         // Note that we negate the normals of the second polyhedron because we are looking at the
@@ -243,22 +243,22 @@ namespace Vulkyrie {
         return penetrationDepth;
     }
 
-    bool SATAlgorithm::computePolyhedronVsPolyhedronFaceContactPoints(bool isMinPenetrationFaceNormalPolyhedron1,
-                                                                      const ConvexPolyhedronShape *polyhedron1,
-                                                                      const ConvexPolyhedronShape *polyhedron2,
-                                                                      const TransformComponent &polyhedron1ToPolyhedron2,
-                                                                      const TransformComponent &polyhedron2ToPolyhedron1,
+    bool SATAlgorithm::computePolyhedronVsPolyhedronFaceContactPoints(bool isMinPenetrationFaceNormalPolyhedronOne,
+                                                                      const ConvexPolyhedronShape *polyhedronOne,
+                                                                      const ConvexPolyhedronShape *polyhedronTwo,
+                                                                      const TransformComponent &polyhedronOneToTwo,
+                                                                      const TransformComponent &polyhedronTwoToOne,
                                                                       size_t minFaceIndex,
                                                                       NarrowPhaseDataBatch &batch,
                                                                       size_t batchIndex) const {
 
         bool collisionDetected = false;
 
-        (void)isMinPenetrationFaceNormalPolyhedron1;
-        (void)polyhedron1;
-        (void)polyhedron2;
-        (void)polyhedron1ToPolyhedron2;
-        (void)polyhedron2ToPolyhedron1;
+        (void)isMinPenetrationFaceNormalPolyhedronOne;
+        (void)polyhedronOne;
+        (void)polyhedronTwo;
+        (void)polyhedronOneToTwo;
+        (void)polyhedronTwoToOne;
         (void)minFaceIndex;
         (void)batch;
         (void)batchIndex;
