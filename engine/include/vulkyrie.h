@@ -80,6 +80,7 @@
 #include "physics/collision/narrowphase/sphere_vs_sphere_algorithm.h"
 #include "physics/collision/narrowphase/sphere_vs_capsule_algorithm.h"
 #include "physics/collision/narrowphase/narrow_phase_data_batch.h"
+#include "physics/collision/narrowphase/gjk/voronoi_simplex.h"
 #include "physics/types/last_frame_collision_data.h"
 #include "physics/types/islands.h"
 
