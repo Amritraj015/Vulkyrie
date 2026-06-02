@@ -8,23 +8,34 @@ namespace Vulkyrie {
         : _clipWithPreviousAxisIfStillColliding(clipWithPreviousAxisIfStillColliding) {
     }
 
-    // bool SATAlgorithm::PerformSphereVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
-    //     bool collisionDetected = false;
-    //
-    //     return collisionDetected;
-    // }
-    //
-    // bool SATAlgorithm::PerformCapsuleVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchIndex) {
-    //     bool collisionDetected = false;
-    //
-    //     return collisionDetected;
-    // }
-    //
-    // bool SATAlgorithm::PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
-    //     bool collisionDetected = false;
-    //
-    //     return collisionDetected;
-    // }
+    bool SATAlgorithm::PerformSphereVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
+        bool collisionDetected = false;
+
+        (void)batch;
+        (void)batchStartIndex;
+        (void)batchItemsCount;
+
+        return collisionDetected;
+    }
+
+    bool SATAlgorithm::PerformCapsuleVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchIndex) {
+        bool collisionDetected = false;
+
+        (void)batch;
+        (void)batchIndex;
+
+        return collisionDetected;
+    }
+
+    bool SATAlgorithm::PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
+        bool collisionDetected = false;
+
+        (void)batch;
+        (void)batchStartIndex;
+        (void)batchItemsCount;
+
+        return collisionDetected;
+    }
 
     bool SATAlgorithm::testEdgesBuildMinkowskiFace(const ConvexPolyhedronShape &polyhedronOne,
                                                    const HalfEdgeMesh::Edge &edgeOne,
@@ -242,6 +253,15 @@ namespace Vulkyrie {
                                                                       size_t batchIndex) const {
 
         bool collisionDetected = false;
+
+        (void)isMinPenetrationFaceNormalPolyhedron1;
+        (void)polyhedron1;
+        (void)polyhedron2;
+        (void)polyhedron1ToPolyhedron2;
+        (void)polyhedron2ToPolyhedron1;
+        (void)minFaceIndex;
+        (void)batch;
+        (void)batchIndex;
 
         return collisionDetected;
     }

@@ -377,7 +377,7 @@ namespace Vulkyrie {
         // Check if origin is in the Voronoi region of edge BC
         const f32 va = d3 * d6 - d5 * d4;
         if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
-            VASSERT(std::abs((d4 - d3) - (d5 - d6)) > VE_MACHINE_EPSILON, "Degenerate triangle: vertices B and C are too close to each other.");
+            VASSERT(std::abs((d4 - d3) + (d5 - d6)) > VE_MACHINE_EPSILON, "Degenerate triangle: vertices B and C are too close to each other.");
 
             bitsUsedPoints = 6; // Vertices B and C are used (bits 1 and 2 set)
             // Compute parametric position along edge BC

@@ -6,11 +6,12 @@ namespace Vulkyrie {
                                              size_t batchStartIndex,
                                              size_t totalBatchItems,
                                              std::vector<GJKResult> &gjkResults) {
+        bool collisionDetected = false;
+
         (void)narrowPhaseInfoBatch;
         (void)batchStartIndex;
         (void)totalBatchItems;
         (void)gjkResults;
-        bool collisionDetected = false;
 
         return collisionDetected;
     }

@@ -114,7 +114,7 @@ TEST_CASE("VoronoiSimplex - GetMaxLengthSquareOfAPoint for single point", "[phys
     VoronoiSimplex simplex;
     glm::vec3 point(3.0f, 4.0f, 0.0f); // Distance = 5, squared = 25
 
-    simplex.AddPoint(point, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(point, point, glm::vec3(0.0f));
 
     f32 maxLengthSq = simplex.GetMaxLengthSquareOfAPoint();
 
@@ -131,8 +131,8 @@ TEST_CASE("VoronoiSimplex - segment with origin closest to first vertex", "[phys
     glm::vec3 a(1.0f, 0.0f, 0.0f);
     glm::vec3 b(5.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -152,8 +152,8 @@ TEST_CASE("VoronoiSimplex - segment with origin closest to second vertex", "[phy
     glm::vec3 a(-5.0f, 0.0f, 0.0f);
     glm::vec3 b(-1.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -173,8 +173,8 @@ TEST_CASE("VoronoiSimplex - segment with origin projecting onto interior", "[phy
     glm::vec3 a(-2.0f, 1.0f, 0.0f);
     glm::vec3 b(2.0f, 1.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -194,8 +194,8 @@ TEST_CASE("VoronoiSimplex - segment passing through origin", "[physics][narrowph
     glm::vec3 a(-1.0f, 0.0f, 0.0f);
     glm::vec3 b(1.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -215,9 +215,9 @@ TEST_CASE("VoronoiSimplex - triangle with origin in vertex A Voronoi region", "[
     glm::vec3 b(5.0f, 0.0f, 0.0f);
     glm::vec3 c(3.0f, 4.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -238,9 +238,9 @@ TEST_CASE("VoronoiSimplex - triangle with origin in edge AB Voronoi region", "[p
     glm::vec3 b(1.0f, 1.0f, 0.0f);
     glm::vec3 c(0.0f, 5.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -261,9 +261,9 @@ TEST_CASE("VoronoiSimplex - triangle with origin projecting onto face", "[physic
     glm::vec3 b(-0.5f, 0.866f, 1.0f);
     glm::vec3 c(-0.5f, -0.866f, 1.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -287,9 +287,9 @@ TEST_CASE("VoronoiSimplex - triangle containing origin in its plane", "[physics]
     glm::vec3 b(0.0f, 1.0f, 0.0f);
     glm::vec3 c(-1.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -304,10 +304,10 @@ TEST_CASE("VoronoiSimplex - triangle containing origin in its plane", "[physics]
 
 TEST_CASE("VoronoiSimplex - tetrahedron is full when it has 4 vertices", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     REQUIRE(simplex.IsFull());
     REQUIRE_FALSE(simplex.IsEmpty());
@@ -316,10 +316,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron is full when it has 4 vertices", "[physi
 TEST_CASE("VoronoiSimplex - tetrahedron containing origin returns origin as closest", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
     // Regular tetrahedron containing origin
-    simplex.AddPoint(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -336,10 +336,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron containing origin returns origin as clos
 TEST_CASE("VoronoiSimplex - tetrahedron with origin outside finds closest face", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
     // Tetrahedron shifted away from origin, closest face should be found
-    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(3.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(3.0f, 0.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(4.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(3.0f, 1.0f, 0.0f), glm::vec3(3.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(3.0f, 0.0f, 1.0f), glm::vec3(3.0f, 0.0f, 1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(4.0f, 0.0f, 0.0f), glm::vec3(4.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -358,10 +358,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron with origin outside finds closest face",
 TEST_CASE("VoronoiSimplex - tetrahedron with origin closest to a vertex", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
     // Tetrahedron with one vertex much closer to origin than others
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(10.0f, 10.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(10.0f, 0.0f, 10.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(10.0f, 10.0f, 0.0f), glm::vec3(10.0f, 10.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(10.0f, 0.0f, 10.0f), glm::vec3(10.0f, 0.0f, 10.0f), glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -383,7 +383,7 @@ TEST_CASE("VoronoiSimplex - IsPointInSimplex returns true for existing point", "
     VoronoiSimplex simplex;
     glm::vec3 point(1.0f, 2.0f, 3.0f);
 
-    simplex.AddPoint(point, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(point, point, glm::vec3(0.0f));
 
     REQUIRE(simplex.IsPointInSimplex(point));
 }
@@ -393,7 +393,7 @@ TEST_CASE("VoronoiSimplex - IsPointInSimplex returns false for non-existing poin
     glm::vec3 point1(1.0f, 2.0f, 3.0f);
     glm::vec3 point2(5.0f, 6.0f, 7.0f);
 
-    simplex.AddPoint(point1, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(point1, point1, glm::vec3(0.0f));
 
     REQUIRE_FALSE(simplex.IsPointInSimplex(point2));
 }
@@ -403,7 +403,7 @@ TEST_CASE("VoronoiSimplex - IsPointInSimplex returns true for nearly identical p
     glm::vec3 point1(1.0f, 2.0f, 3.0f);
     glm::vec3 point2(1.00001f, 2.00001f, 3.00001f); // Very close
 
-    simplex.AddPoint(point1, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(point1, point1, glm::vec3(0.0f));
 
     REQUIRE(simplex.IsPointInSimplex(point2));
 }
@@ -414,51 +414,51 @@ TEST_CASE("VoronoiSimplex - IsPointInSimplex returns true for nearly identical p
 
 TEST_CASE("VoronoiSimplex - single point is not affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(0.0f));
 
     REQUIRE_FALSE(simplex.IsAffinelyDependent());
 }
 
 TEST_CASE("VoronoiSimplex - two distinct points are not affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
 
     REQUIRE_FALSE(simplex.IsAffinelyDependent());
 }
 
 TEST_CASE("VoronoiSimplex - two very close points are affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(1.000001f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.000001f, 0.0f, 0.0f), glm::vec3(1.000001f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     REQUIRE(simplex.IsAffinelyDependent());
 }
 
 TEST_CASE("VoronoiSimplex - three non-collinear points are not affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f));
 
     REQUIRE_FALSE(simplex.IsAffinelyDependent());
 }
 
 TEST_CASE("VoronoiSimplex - three collinear points are affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     REQUIRE(simplex.IsAffinelyDependent());
 }
 
 TEST_CASE("VoronoiSimplex - four non-coplanar points are not affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f));
 
     REQUIRE_FALSE(simplex.IsAffinelyDependent());
 }
@@ -466,10 +466,10 @@ TEST_CASE("VoronoiSimplex - four non-coplanar points are not affinely dependent"
 TEST_CASE("VoronoiSimplex - four coplanar points are affinely dependent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
     // All points in XY plane (z=0)
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f));
 
     REQUIRE(simplex.IsAffinelyDependent());
 }
@@ -480,9 +480,9 @@ TEST_CASE("VoronoiSimplex - four coplanar points are affinely dependent", "[phys
 
 TEST_CASE("VoronoiSimplex - GetMaxLengthSquareOfAPoint returns max distance", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f)); // length^2 = 1
-    simplex.AddPoint(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f)); // length^2 = 4
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0.0f)); // length^2 = 9
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f)); // length^2 = 1
+    simplex.AddPoint(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f)); // length^2 = 4
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f)); // length^2 = 9
 
     f32 maxLengthSq = simplex.GetMaxLengthSquareOfAPoint();
 
@@ -504,7 +504,7 @@ TEST_CASE("VoronoiSimplex - GetMaxLengthSquareOfAPoint returns zero for empty si
 TEST_CASE("VoronoiSimplex - BackupClosestPointInSimplex stores current closest point", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
     glm::vec3 point(1.0f, 2.0f, 3.0f);
-    simplex.AddPoint(point, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(point, point, glm::vec3(0.0f));
 
     glm::vec3 computed, backup;
     REQUIRE(simplex.ComputeClosestPoint(computed));
@@ -524,8 +524,8 @@ TEST_CASE("VoronoiSimplex - segment perpendicular to origin", "[physics][narrowp
     glm::vec3 a(1.0f, -5.0f, 0.0f);
     glm::vec3 b(1.0f, 5.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -541,9 +541,9 @@ TEST_CASE("VoronoiSimplex - right triangle with origin at right angle", "[physic
     glm::vec3 b(1.0f, 1.0f, 0.0f);
     glm::vec3 c(1.0f, 0.0f, 1.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -556,8 +556,8 @@ TEST_CASE("VoronoiSimplex - right triangle with origin at right angle", "[physic
 
 TEST_CASE("VoronoiSimplex - multiple calls to ComputeClosestPoint are idempotent", "[physics][narrowphase][gjk][voronoi_simplex]") {
     VoronoiSimplex simplex;
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
 
     glm::vec3 result1, result2, result3;
     REQUIRE(simplex.ComputeClosestPoint(result1));
@@ -573,15 +573,15 @@ TEST_CASE("VoronoiSimplex - adding points incrementally maintains consistency", 
     glm::vec3 cp;
 
     // Add first point
-    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f));
     REQUIRE(simplex.ComputeClosestPoint(cp));
 
     // Add second point
-    simplex.AddPoint(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f));
     REQUIRE(simplex.ComputeClosestPoint(cp));
 
     // Add third point
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f));
     REQUIRE(simplex.ComputeClosestPoint(cp));
 
     // Each addition should produce a valid closest point
@@ -594,8 +594,8 @@ TEST_CASE("VoronoiSimplex - large coordinate values maintain precision", "[physi
     VoronoiSimplex simplex;
     // Use large coordinates
     f32 large = 1000.0f;
-    simplex.AddPoint(glm::vec3(large, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, large, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(large, 0.0f, 0.0f), glm::vec3(large, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, large, 0.0f), glm::vec3(0.0f, large, 0.0f), glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -611,7 +611,7 @@ TEST_CASE("VoronoiSimplex - very small coordinate values", "[physics][narrowphas
     VoronoiSimplex simplex;
     // Use very small but non-zero coordinates
     f32 small = 0.001f;
-    simplex.AddPoint(glm::vec3(small, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(small, 0.0f, 0.0f), glm::vec3(small, 0.0f, 0.0f), glm::vec3(0.0f));
 
     glm::vec3 closestPoint;
     bool isValid = simplex.ComputeClosestPoint(closestPoint);
@@ -677,9 +677,9 @@ TEST_CASE("VoronoiSimplex - alternating additions and reductions", "[physics][na
     glm::vec3 cp;
 
     // Add 3 points
-    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f));
 
     // Compute (may reduce)
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -705,10 +705,10 @@ TEST_CASE("VoronoiSimplex - degenerate tetrahedron (coplanar) returns invalid cl
     glm::vec3 c(-1.0f, 0.0f, 1.0f);
     glm::vec3 d(0.5f, 0.2f, 1.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(d, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
+    simplex.AddPoint(d, d, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE_FALSE(simplex.ComputeClosestPoint(cp));
@@ -719,10 +719,10 @@ TEST_CASE("VoronoiSimplex - duplicate points (zero-length segment) handled", "[p
     VoronoiSimplex simplex;
 
     glm::vec3 p(1.234f, 2.345f, 3.456f);
-    glm::vec3 suppA1(2.0f, 0.0f, 0.0f);
-    glm::vec3 suppB1(1.0f, 0.0f, 0.0f);
-    glm::vec3 suppA2(2.5f, 0.0f, 0.0f);
-    glm::vec3 suppB2(1.5f, 0.0f, 0.0f);
+    glm::vec3 suppA1 = p + glm::vec3(2.0f, 0.0f, 0.0f);
+    glm::vec3 suppB1 = glm::vec3(2.0f, 0.0f, 0.0f);
+    glm::vec3 suppA2 = p + glm::vec3(2.5f, 0.0f, 0.0f);
+    glm::vec3 suppB2 = glm::vec3(2.5f, 0.0f, 0.0f);
 
     simplex.AddPoint(p, suppA1, suppB1);
     simplex.AddPoint(p, suppA2, suppB2);
@@ -748,9 +748,9 @@ TEST_CASE("VoronoiSimplex - triangle with origin in edge AC Voronoi region", "[p
     glm::vec3 b(0.0f, 5.0f, 0.0f);
     glm::vec3 c(2.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -769,9 +769,9 @@ TEST_CASE("VoronoiSimplex - triangle with origin in edge BC Voronoi region", "[p
     glm::vec3 b(-2.0f, 0.0f, 0.0f);
     glm::vec3 c(2.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -791,10 +791,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ABC", "[physics][narrowphas
     glm::vec3 c(0.0f, 1.0f, 1.0f);
     glm::vec3 d(0.0f, 0.0f, 10.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(d, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
+    simplex.AddPoint(d, d, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -802,7 +802,7 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ABC", "[physics][narrowphas
 
     glm::vec3 suppA[4], suppB[4], vertices[4];
     size_t count = simplex.GetSimplex(suppA, suppB, vertices);
-    REQUIRE(count == 3);
+    REQUIRE(count == 2);  // Origin projects onto edge AB
 }
 
 TEST_CASE("VoronoiSimplex - tetrahedron closest face ACD", "[physics][narrowphase][gjk][voronoi_simplex]") {
@@ -814,10 +814,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ACD", "[physics][narrowphas
     glm::vec3 d(-1.0f, 0.0f, 1.0f);
     glm::vec3 b(0.0f, 0.0f, 10.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(d, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
+    simplex.AddPoint(d, d, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -825,7 +825,7 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ACD", "[physics][narrowphas
 
     glm::vec3 suppA[4], suppB[4], vertices[4];
     size_t count = simplex.GetSimplex(suppA, suppB, vertices);
-    REQUIRE(count == 3);
+    REQUIRE(count == 2);  // Origin projects onto edge AD
 }
 
 TEST_CASE("VoronoiSimplex - tetrahedron closest face ADB", "[physics][narrowphase][gjk][voronoi_simplex]") {
@@ -836,10 +836,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ADB", "[physics][narrowphas
     glm::vec3 b(-1.0f, 0.0f, 1.0f);
     glm::vec3 c(0.0f, 0.0f, 10.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(d, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(d, d, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -847,7 +847,7 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face ADB", "[physics][narrowphas
 
     glm::vec3 suppA[4], suppB[4], vertices[4];
     size_t count = simplex.GetSimplex(suppA, suppB, vertices);
-    REQUIRE(count == 3);
+    REQUIRE(count == 2);  // Origin projects onto edge AB
 }
 
 TEST_CASE("VoronoiSimplex - tetrahedron closest face BDC", "[physics][narrowphase][gjk][voronoi_simplex]") {
@@ -858,10 +858,10 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face BDC", "[physics][narrowphas
     glm::vec3 c(-1.0f, 0.0f, 1.0f);
     glm::vec3 a(0.0f, 0.0f, 10.0f);
 
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(d, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(d, d, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
 
     glm::vec3 cp;
     REQUIRE(simplex.ComputeClosestPoint(cp));
@@ -869,7 +869,7 @@ TEST_CASE("VoronoiSimplex - tetrahedron closest face BDC", "[physics][narrowphas
 
     glm::vec3 suppA[4], suppB[4], vertices[4];
     size_t count = simplex.GetSimplex(suppA, suppB, vertices);
-    REQUIRE(count == 3);
+    REQUIRE(count == 2);  // Origin projects onto edge BD
 }
 
 TEST_CASE("VoronoiSimplex - RemovePoint swaps last vertex into removed index", "[physics][narrowphase][gjk][voronoi_simplex]") {
@@ -879,9 +879,9 @@ TEST_CASE("VoronoiSimplex - RemovePoint swaps last vertex into removed index", "
     glm::vec3 b(2.0f, 0.0f, 0.0f);
     glm::vec3 c(3.0f, 0.0f, 0.0f);
 
-    simplex.AddPoint(a, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(b, glm::vec3(0.0f), glm::vec3(0.0f));
-    simplex.AddPoint(c, glm::vec3(0.0f), glm::vec3(0.0f));
+    simplex.AddPoint(a, a, glm::vec3(0.0f));
+    simplex.AddPoint(b, b, glm::vec3(0.0f));
+    simplex.AddPoint(c, c, glm::vec3(0.0f));
 
     // Remove the middle element; last element should be swapped into its place
     simplex.RemovePoint(1);
