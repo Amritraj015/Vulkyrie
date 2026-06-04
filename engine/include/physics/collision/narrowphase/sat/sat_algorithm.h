@@ -22,6 +22,14 @@ namespace Vulkyrie {
         /** @brief Default destructor. */
         ~SATAlgorithm() = default;
 
+        [[nodiscard]] VE_INLINE bool IsMinkowskiFaceCapsuleVsEdge(const glm::vec3 &capsuleSegment,
+                                                                  const glm::vec3 &edgeAdjacentFaceOneNormal,
+                                                                  const glm::vec3 &edgeAdjacentFaceTwoNormal) const {
+            // Return true if the arc on the Gauss Map corresponding to the polyhedron edge
+            // intersect the unit circle plane corresponding to capsule Gauss Map
+            return glm::dot(capsuleSegment, edgeAdjacentFaceOneNormal) * glm::dot(capsuleSegment, edgeAdjacentFaceTwoNormal) < 0.0f;
+        }
+
         bool PerformSphereVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount);
         bool PerformCapsuleVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchIndex);
         bool PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount);
@@ -38,11 +46,6 @@ namespace Vulkyrie {
                                                        NarrowPhaseDataBatch &batch,
                                                        size_t batchIndex,
                                                        bool isShapeOneCapsule) const;
-
-        // This method returns true if an edge of a polyhedron and a capsule forms a face of the Minkowski Difference
-        bool IsMinkowskiFaceCapsuleVsEdge(const glm::vec3 &capsuleSegment,
-                                          const glm::vec3 &edgeAdjacentFaceOneNormal,
-                                          const glm::vec3 &edgeAdjacentFace2Normal) const;
 
     private:
         constexpr static f32 SEPARATING_AXIS_RELATIVE_TOLERANCE = f32(1.002);

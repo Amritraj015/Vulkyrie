@@ -2,6 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/constants.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -22,7 +23,7 @@ namespace Vulkyrie {
      * @returns A 64-bit unsigned integer that uniquely represents the pair of input numbers.
      */
     [[nodiscard]] VE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
-        assert(number1 == std::max(number1, number2));
+        VASSERT(number1 == std::max(number1, number2), "The first number must be greater than the second one.");
 
         u64 nb1 = number1;
         u64 nb2 = number2;
@@ -98,7 +99,7 @@ namespace Vulkyrie {
                                                                 const glm::vec3 &segmentEnd,
                                                                 const f32 planeD,
                                                                 const glm::vec3 &planeNormal) {
-        const f32 parallelEpsilon = 0.0001f;
+        constexpr f32 parallelEpsilon = 0.0001f;
         f32 t = -1.0f;
 
         // dot(n, B - A): denominator of the intersection formula.
@@ -119,49 +120,48 @@ namespace Vulkyrie {
      * If the squared length of the cross product is very small, it indicates that the vectors are parallel (or nearly parallel) since the cross product of
      * parallel vectors is zero.
      *
-     * @param v1 The first vector to compare.
-     * @param v2 The second vector to compare.
+     * @param vectorOne The first vector to compare.
+     * @param vectorTwo The second vector to compare.
      * @returns True if the vectors are parallel (or nearly parallel), false otherwise.
      */
-    [[nodiscard]] VE_INLINE bool AreParallelVectors(const glm::vec3 &v1, const glm::vec3 &v2) {
-        return glm::length2(glm::cross(v1, v2)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
+    [[nodiscard]] VE_INLINE bool AreParallelVectors(const glm::vec3 &vectorOne, const glm::vec3 &vectorTwo) {
+        return glm::length2(glm::cross(vectorOne, vectorTwo)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
     }
 
     /** @brief Computes the closest points between two line segments.
      *
      * Uses the parametric approach from "Real-Time Collision Detection" (Ericson, §5.1.9).
-     * Each segment is parameterized as P(s) = seg1Start + s*(seg1End - seg1Start) and
-     * Q(t) = seg2Start + t*(seg2End - seg2Start), with s, t clamped to [0, 1].
+     * Each segment is parameterized as P(s) = segmentOneStart + s*(segmentOneEnd - segmentOneStart) and
+     * Q(t) = segmentTwoStart + t*(segmentTwoEnd - segmentTwoStart), with s, t clamped to [0, 1].
      * Degenerate segments (where start == end) are handled as points.
      *
-     * @param seg1Start The start point of the first segment.
-     * @param seg1End The end point of the first segment.
-     * @param seg2Start The start point of the second segment.
-     * @param seg2End The end point of the second segment.
-     * @param closestPointSeg1 Output: the closest point on segment 1.
-     * @param closestPointSeg2 Output: the closest point on segment 2.
+     * @param segmentOneStart The start point of the first segment.
+     * @param segmentOneEnd The end point of the first segment.
+     * @param segmentTwoStart The start point of the second segment.
+     * @param segmentTwoEnd The end point of the second segment.
+     * @param closestPointSegmentOne Output: the closest point on segment 1.
+     * @param closestPointSegmentTwo Output: the closest point on segment 2.
      */
-    VE_INLINE void ComputeClosestPointBetweenTwoSegments(const glm::vec3 &seg1Start,
-                                                         const glm::vec3 &seg1End,
-                                                         const glm::vec3 &seg2Start,
-                                                         const glm::vec3 &seg2End,
-                                                         glm::vec3 &closestPointSeg1,
-                                                         glm::vec3 &closestPointSeg2) {
-
-        const glm::vec3 seg1Direction = seg1End - seg1Start;    // Direction vector of segment 1.
-        const glm::vec3 seg2Direction = seg2End - seg2Start;    // Direction vector of segment 2.
-        const glm::vec3 originOffset  = seg1Start - seg2Start;  // Vector from seg2 start to seg1 start.
+    VE_INLINE void ComputeClosestPointBetweenTwoSegments(const glm::vec3 &segmentOneStart,
+                                                         const glm::vec3 &segmentOneEnd,
+                                                         const glm::vec3 &segmentTwoStart,
+                                                         const glm::vec3 &segmentTwoEnd,
+                                                         glm::vec3 &closestPointSegmentOne,
+                                                         glm::vec3 &closestPointSegmentTwo) {
+        const glm::vec3 seg1Direction = segmentOneEnd - segmentOneStart;  // Direction vector of segment 1.
+        const glm::vec3 seg2Direction = segmentTwoEnd - segmentTwoStart;  // Direction vector of segment 2.
+        const glm::vec3 originOffset = segmentOneStart - segmentTwoStart; // Vector from seg2 start to seg1 start.
 
         const f32 seg1LengthSquared = glm::length2(seg1Direction); // a: squared length of segment 1.
         const f32 seg2LengthSquared = glm::length2(seg2Direction); // e: squared length of segment 2.
-        const f32 d2DotR            = glm::dot(seg2Direction, originOffset); // f: used for projecting onto segment 2.
+        const f32 d2DotR = glm::dot(seg2Direction, originOffset);  // f: used for projecting onto segment 2.
 
         f32 s, t; // Parametric values on segment 1 and segment 2 respectively.
 
         // If both segments degenerate into points, return the two endpoints.
         if (seg1LengthSquared <= VE_MACHINE_EPSILON && seg2LengthSquared <= VE_MACHINE_EPSILON) {
-            closestPointSeg1 = seg1Start;
-            closestPointSeg2 = seg2Start;
+            closestPointSegmentOne = segmentOneStart;
+            closestPointSegmentTwo = segmentTwoStart;
             return;
         }
 
@@ -178,8 +178,8 @@ namespace Vulkyrie {
                 s = std::clamp(-d1DotR / seg1LengthSquared, 0.0f, 1.0f);
             } else {
                 // General case: neither segment is degenerate.
-                const f32 d1DotD2 = glm::dot(seg1Direction, seg2Direction); // b: dot product of both directions.
-                const f32 denom   = seg1LengthSquared * seg2LengthSquared - d1DotD2 * d1DotD2; // a*e - b²
+                const f32 d1DotD2 = glm::dot(seg1Direction, seg2Direction);                  // b: dot product of both directions.
+                const f32 denom = seg1LengthSquared * seg2LengthSquared - d1DotD2 * d1DotD2; // a*e - b²
 
                 if (denom != 0.0f) {
                     // Segments are not parallel: compute and clamp s to segment 1.
@@ -204,8 +204,145 @@ namespace Vulkyrie {
         }
 
         // Reconstruct the closest points from the parametric values.
-        closestPointSeg1 = seg1Start + seg1Direction * s;
-        closestPointSeg2 = seg2Start + seg2Direction * t;
+        closestPointSegmentOne = segmentOneStart + seg1Direction * s;
+        closestPointSegmentTwo = segmentTwoStart + seg2Direction * t;
+    }
+
+    VE_INLINE void clipPolygonWithPlane(const std::vector<glm::vec3> &polygonVertices,
+                                        const glm::vec3 &planePoint,
+                                        const glm::vec3 &planeNormal,
+                                        std::vector<glm::vec3> &outClippedPolygonVertices) {
+        size_t nbInputVertices = polygonVertices.size();
+
+        VASSERT(outClippedPolygonVertices.size() == 0, "outClippedPolygonVertices must be empty");
+
+        size_t vStartIndex = nbInputVertices - 1;
+
+        const f32 planeNormalDotPlanePoint = glm::dot(planeNormal, planePoint);
+
+        f32 vStartDotN = glm::dot(polygonVertices[vStartIndex] - planePoint, planeNormal);
+
+        // For each edge of the polygon
+        for (size_t vEndIndex = 0; vEndIndex < nbInputVertices; vEndIndex++) {
+
+            const glm::vec3 &vStart = polygonVertices[vStartIndex];
+            const glm::vec3 &vEnd = polygonVertices[vEndIndex];
+
+            const f32 vEndDotN = glm::dot(vEnd - planePoint, planeNormal);
+
+            // If the second vertex is in front of the clipping plane
+            if (vEndDotN >= 0.0f) {
+
+                // If the first vertex is not in front of the clipping plane
+                if (vStartDotN < 0.0f) {
+
+                    // The second point we keep is the intersection between the segment v1, v2 and the clipping plane
+                    const f32 t = ComputePlaneSegmentIntersection(vStart, vEnd, planeNormalDotPlanePoint, planeNormal);
+
+                    if (t >= 0.0f && t <= 1.0f) {
+                        outClippedPolygonVertices.push_back(vStart + t * (vEnd - vStart));
+                    } else {
+                        outClippedPolygonVertices.push_back(vEnd);
+                    }
+                }
+
+                // Add the second vertex
+                outClippedPolygonVertices.push_back(vEnd);
+            } else { // If the second vertex is behind the clipping plane
+
+                // If the first vertex is in front of the clipping plane
+                if (vStartDotN >= 0.0f) {
+
+                    // The first point we keep is the intersection between the segment v1, v2 and the clipping plane
+                    const f32 t = ComputePlaneSegmentIntersection(vStart, vEnd, -planeNormalDotPlanePoint, -planeNormal);
+
+                    if (t >= 0.0f && t <= 1.0f) {
+                        outClippedPolygonVertices.push_back(vStart + t * (vEnd - vStart));
+                    } else {
+                        outClippedPolygonVertices.push_back(vStart);
+                    }
+                }
+            }
+
+            vStartIndex = vEndIndex;
+            vStartDotN = vEndDotN;
+        }
+    }
+
+    VE_INLINE glm::vec3 ProjectPointOntoPlane(const glm::vec3 &point, const glm::vec3 &unitPlaneNormal, const glm::vec3 &planePoint) {
+        return point - glm::dot(unitPlaneNormal, point - planePoint) * unitPlaneNormal;
+    }
+
+    VE_INLINE std::vector<glm::vec3> ClipSegmentWithPlanes(const glm::vec3 &segA,
+                                                           const glm::vec3 &segB,
+                                                           const std::vector<glm::vec3> &planesPoints,
+                                                           const std::vector<glm::vec3> &planesNormals) {
+        VASSERT(planesPoints.size() == planesNormals.size(), "planesPoints size must be equal to planesNormals.");
+
+        std::vector<glm::vec3> inputVertices;
+        std::vector<glm::vec3> outputVertices;
+        inputVertices.reserve(2);
+        outputVertices.reserve(2);
+
+        inputVertices.push_back(segA);
+        inputVertices.push_back(segB);
+
+        // For each clipping plane
+        for (size_t p = 0; p < planesPoints.size(); p++) {
+
+            // If there is no more vertices, stop
+            if (inputVertices.size() == 0) return inputVertices;
+
+            VASSERT(inputVertices.size() == 2, "Size of inputVertices must be 2.");
+
+            outputVertices.clear();
+
+            glm::vec3 &v1 = inputVertices[0];
+            glm::vec3 &v2 = inputVertices[1];
+
+            const f32 v1DotN = glm::dot(v1 - planesPoints[p], planesNormals[p]);
+            const f32 v2DotN = glm::dot(v2 - planesPoints[p], planesNormals[p]);
+
+            // If the second vertex is in front of the clipping plane
+            if (v2DotN >= 0.0f) {
+
+                // If the first vertex is not in front of the clipping plane
+                if (v1DotN < 0.0f) {
+
+                    // The second point we keep is the intersection between the segment v1, v2 and the clipping plane
+                    f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(planesNormals[p], planesPoints[p]), planesNormals[p]);
+
+                    if (t >= 0.0f && t <= 1.0f) {
+                        outputVertices.push_back(v1 + t * (v2 - v1));
+                    } else {
+                        outputVertices.push_back(v2);
+                    }
+                } else {
+                    outputVertices.push_back(v1);
+                }
+
+                // Add the second vertex
+                outputVertices.push_back(v2);
+            } else { // If the second vertex is behind the clipping plane
+
+                // If the first vertex is in front of the clipping plane
+                if (v1DotN >= 0.0f) {
+
+                    outputVertices.push_back(v1);
+
+                    // The first point we keep is the intersection between the segment v1, v2 and the clipping plane
+                    f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(-planesNormals[p], planesPoints[p]), -planesNormals[p]);
+
+                    if (t >= 0.0f && t <= 1.0f) {
+                        outputVertices.push_back(v1 + t * (v2 - v1));
+                    }
+                }
+            }
+
+            inputVertices = outputVertices;
+        }
+
+        return outputVertices;
     }
 
 } // namespace Vulkyrie

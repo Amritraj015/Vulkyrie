@@ -1,6 +1,7 @@
 #include "physics/collision/narrowphase/sat/sat_algorithm.h"
 #include "core/utilities.h"
 #include "physics/collision/shapes/triangle_shape.h"
+#include <limits>
 
 namespace Vulkyrie {
 
@@ -225,439 +226,539 @@ namespace Vulkyrie {
 
     bool SATAlgorithm::PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck(NarrowPhaseDataBatch &batch, size_t batchStartIndex, size_t batchItemsCount) {
         bool collisionDetected = false;
-        //
-        // for (size_t i = batchStartIndex; i < batchStartIndex + batchItemsCount; ++i) {
-        //     NarrowPhaseData &data = batch.Data[i];
-        //
-        //     VASSERT(
-        //         data.ShapeOne.GetType() == CollisionShapeType::ConvexPolyhedron && data.ShapeTwo.GetType() == CollisionShapeType::ConvexPolyhedron,
-        //         "SATAlgorithm::PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck only supports Convex Polyhedron vs Convex Polyhedron collision
-        //         checks.");
-        //     VASSERT(data.ContactPointCount == 0, "Contact points should be cleared before performing collision checks.");
-        //
-        //     const auto *polyhedronOne = static_cast<const ConvexPolyhedronShape *>(&data.ShapeOne);
-        //     const auto *polyhedronTwo = static_cast<const ConvexPolyhedronShape *>(&data.ShapeTwo);
-        //
-        //     const TransformComponent polyhedronOneToTwo = data.ShapeTwoToWorldTransform.Inverse() * data.ShapeOneToWorldTransform;
-        //     const TransformComponent polyhedronTwoToOne = polyhedronOneToTwo.Inverse();
-        //
-        //     f32 minPenetrationDepth = std::numeric_limits<f32>::max();
-        //     size_t minFaceIndex = 0;
-        //     bool isMinPenetrationFaceNormal = false;
-        //     bool isMinPenetrationFaceNormalPolyhedronOne = false;
-        //     size_t minSeparatingEdgeOneIndex = 0;
-        //     size_t minSeparatingEdgeTwoIndex = 0;
-        //     glm::vec3 separatingEdgeOneVertexOne;
-        //     glm::vec3 separatingEdgeOneVertexTwo;
-        //     glm::vec3 separatingEdgeTwoVertexOne;
-        //     glm::vec3 separatingEdgeTwoVertexTwo;
-        //     glm::vec3 minEdgeVsEdgeSeparatingAxisInPolyhedronTwoSpace;
-        //
-        //     const bool isShapeOneTriangle = polyhedronOne->GetName() == CollisionShapeName::Triangle;
-        //
-        //     LastFrameCollisionData &lastFrameCollisionData = data.LastFrameCollisionData;
-        //
-        //     if (lastFrameCollisionData.IsValid && lastFrameCollisionData.WasUsingSATAlgorithm) {
-        //         // We perform temporal coherence, we check if there is still an overlapping along the previous minimum separating
-        //         // axis. If it is the case, we directly report the collision without executing the whole SAT algorithm again. If
-        //         // the shapes are still separated along this axis, we directly exit with no collision.
-        //
-        //         // If the previous separating axis (or axis with minimum penetration depth)
-        //         // was a face normal of polyhedron 1
-        //         if (lastFrameCollisionData.SATIsAxisFacePolyhedronOne) {
-        //
-        //             const f32 penetrationDepth = testSingleFaceDirectionPolyhedronVsPolyhedron(
-        //                 *polyhedronOne, *polyhedronTwo, polyhedronOneToTwo, lastFrameCollisionData.SATMinAxisFaceIndex);
-        //
-        //             // If the previous axis was a separating axis and is still a separating axis in this frame
-        //             if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
-        //
-        //                 // Return no collision without running the whole SAT algorithm
-        //                 continue;
-        //             }
-        //
-        //             // The two shapes were overlapping in the previous frame and still seem to overlap in this one
-        //             if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > 0.0f) {
-        //
-        //                 minPenetrationDepth = penetrationDepth;
-        //                 minFaceIndex = lastFrameCollisionData.SATMinAxisFaceIndex;
-        //                 isMinPenetrationFaceNormal = true;
-        //                 isMinPenetrationFaceNormalPolyhedronOne = true;
-        //
-        //                 // Compute the contact points between two faces of two convex polyhedra.
-        //                 if (computePolyhedronVsPolyhedronFaceContactPoints(isMinPenetrationFaceNormalPolyhedronOne,
-        //                                                                    polyhedronOne,
-        //                                                                    polyhedronTwo,
-        //                                                                    polyhedronOneToTwo,
-        //                                                                    polyhedronTwoToOne,
-        //                                                                    minFaceIndex,
-        //                                                                    batch,
-        //                                                                    i)) {
-        //
-        //                     lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
-        //                     lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
-        //                     lastFrameCollisionData.SATMinAxisFaceIndex = minFaceIndex;
-        //
-        //                     // The shapes are still overlapping in the previous axis (the contact manifold is not empty).
-        //                     // Therefore, we can return without running the whole SAT algorithm
-        //                     data.IsColliding = true;
-        //                     collisionDetected = true;
-        //                     continue;
-        //                 }
-        //
-        //                 // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
-        //             }
-        //         } else if (lastFrameCollisionData.SATIsAxisFacePolyhedronTwo) { // If the previous separating axis (or axis with minimum penetration depth)
-        //                                                                         // was a face normal of polyhedron 2
-        //
-        //             f32 penetrationDepth = testSingleFaceDirectionPolyhedronVsPolyhedron(
-        //                 *polyhedronTwo, *polyhedronOne, polyhedronTwoToOne, lastFrameCollisionData.SATMinAxisFaceIndex);
-        //
-        //             // If the previous axis was a separating axis and is still a separating axis in this frame
-        //             if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
-        //
-        //                 // Return no collision without running the whole SAT algorithm
-        //                 continue;
-        //             }
-        //
-        //             // The two shapes were overlapping in the previous frame and still seem to overlap in this one
-        //             if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > 0.0f) {
-        //
-        //                 minPenetrationDepth = penetrationDepth;
-        //                 minFaceIndex = lastFrameCollisionData.SATMinAxisFaceIndex;
-        //                 isMinPenetrationFaceNormal = true;
-        //                 isMinPenetrationFaceNormalPolyhedronOne = false;
-        //
-        //                 // Compute the contact points between two faces of two convex polyhedra.
-        //                 if (computePolyhedronVsPolyhedronFaceContactPoints(isMinPenetrationFaceNormalPolyhedronOne,
-        //                                                                    polyhedronOne,
-        //                                                                    polyhedronTwo,
-        //                                                                    polyhedronOneToTwo,
-        //                                                                    polyhedronTwoToOne,
-        //                                                                    minFaceIndex,
-        //                                                                    batch,
-        //                                                                    i)) {
-        //
-        //                     lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
-        //                     lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
-        //                     lastFrameCollisionData.SATMinAxisFaceIndex = minFaceIndex;
-        //
-        //                     // The shapes are still overlapping in the previous axis (the contact manifold is not empty).
-        //                     // Therefore, we can return without running the whole SAT algorithm
-        //                     data.IsColliding = true;
-        //                     collisionDetected = true;
-        //                     continue;
-        //                 }
-        //
-        //                 // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
-        //             }
-        //         } else { // If the previous separating axis (or axis with minimum penetration depth) was the cross product of two edges
-        //
-        //             const HalfEdgeMesh::Edge &edge1 = polyhedronOne->GetHalfEdge(lastFrameCollisionData.SATMinEdgeOneIndex);
-        //             const HalfEdgeMesh::Edge &edge2 = polyhedronTwo->GetHalfEdge(lastFrameCollisionData.SATMinEdgeTwoIndex);
-        //
-        //             const glm::vec3 edge1A = polyhedronOneToTwo * polyhedronOne->GetVertexPosition(edge1.StartVertexIndex);
-        //             const glm::vec3 edge1B =
-        //                 polyhedronOneToTwo * polyhedronOne->GetVertexPosition(polyhedronOne->GetHalfEdge(edge1.NextEdgeIndex).StartVertexIndex);
-        //             const glm::vec3 edge1Direction = edge1B - edge1A;
-        //             const glm::vec3 edge2A = polyhedronTwo->GetVertexPosition(edge2.StartVertexIndex);
-        //             const glm::vec3 edge2B = polyhedronTwo->GetVertexPosition(polyhedronTwo->GetHalfEdge(edge2.NextEdgeIndex).StartVertexIndex);
-        //             const glm::vec3 edge2Direction = edge2B - edge2A;
-        //
-        //             // If the two edges build a minkowski face (and the cross product is
-        //             // therefore a candidate for separating axis
-        //             if (testEdgesBuildMinkowskiFace(*polyhedronOne, edge1, *polyhedronTwo, edge2, polyhedronOneToTwo)) {
-        //
-        //                 glm::vec3 separatingAxisPolyhedron2Space;
-        //
-        //                 // Compute the penetration depth along the previous axis
-        //                 const glm::vec3 polyhedron1Centroid = polyhedronOneToTwo * polyhedronOne->GetCentroid();
-        //                 f32 penetrationDepth = computeDistanceBetweenEdges(edge1A,
-        //                                                                    edge2A,
-        //                                                                    polyhedron1Centroid,
-        //                                                                    polyhedronTwo->GetCentroid(),
-        //                                                                    edge1Direction,
-        //                                                                    edge2Direction,
-        //                                                                    isShapeOneTriangle,
-        //                                                                    separatingAxisPolyhedron2Space);
-        //
-        //                 // If the shapes were not overlapping in the previous frame and are still not
-        //                 // overlapping in the current one
-        //                 if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
-        //
-        //                     // We have found a separating axis without running the whole SAT algorithm
-        //                     continue;
-        //                 }
-        //
-        //                 // If the shapes were overlapping on the previous axis and still seem to overlap in this frame
-        //                 if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > f32(0.0) &&
-        //                     penetrationDepth < DECIMAL_LARGEST) {
-        //
-        //                     // Compute the closest points between the two edges (in the local-space of poylhedron 2)
-        //                     glm::vec3 closestPointPolyhedron1Edge, closestPointPolyhedron2Edge;
-        //                     ComputeClosestPointBetweenTwoSegments(edge1A, edge1B, edge2A, edge2B, closestPointPolyhedron1Edge, closestPointPolyhedron2Edge);
-        //
-        //                     // Here we try to project the closest point on edge1 onto the segment of edge 2 to see if
-        //                     // the projected point falls onto the segment. We also try to project the closest point
-        //                     // on edge 2 to see if it falls onto the segment of edge 1. If one of the point does not
-        //                     // fall onto the opposite segment, it means the edges are not colliding (the contact manifold
-        //                     // is empty). Therefore, we need to run the whole SAT algorithm again.
-        //                     const glm::vec3 vec1 = closestPointPolyhedron1Edge - edge2A;
-        //                     const glm::vec3 vec2 = closestPointPolyhedron2Edge - edge1A;
-        //                     const f32 edge1LengthSquare = glm::length2(edge1Direction);
-        //                     const f32 edge2LengthSquare = glm::length2(edge2Direction);
-        //                     f32 t1 = glm::dot(vec1, edge2Direction) / edge2LengthSquare;
-        //                     f32 t2 = glm::dot(vec2, edge1Direction) / edge1LengthSquare;
-        //
-        //                     if (t1 >= 0.0f && t1 <= 1.0f && t2 >= 0.0f && t2 <= 1.0f) {
-        //
-        //                         // If we need to report contact points
-        //                         if (data.ReportContacts) {
-        //
-        //                             // Compute the contact point on polyhedron 1 edge in the local-space of polyhedron 1
-        //                             glm::vec3 closestPointPolyhedron1EdgeLocalSpace = polyhedronTwoToOne * closestPointPolyhedron1Edge;
-        //
-        //                             // Compute the world normal
-        //                             glm::vec3 normalWorld = data.ShapeTwoToWorldTransform.Rotation * separatingAxisPolyhedron2Space;
-        //
-        //                             // Compute smooth triangle mesh contact if one of the two collision shapes is a triangle
-        //                             TriangleShape::ComputeSmoothTriangleMeshContact(data.ShapeOne,
-        //                                                                             data.ShapeTwo,
-        //                                                                             closestPointPolyhedron1EdgeLocalSpace,
-        //                                                                             closestPointPolyhedron2Edge,
-        //                                                                             data.ShapeOneToWorldTransform,
-        //                                                                             data.ShapeTwoToWorldTransform,
-        //                                                                             penetrationDepth,
-        //                                                                             normalWorld);
-        //
-        //                             // Create the contact point
-        //                             batch.AddContactPoint(i, normalWorld, penetrationDepth, closestPointPolyhedron1EdgeLocalSpace,
-        //                             closestPointPolyhedron2Edge);
-        //                         }
-        //
-        //                         // The shapes are overlapping on the previous axis (the contact manifold is not empty). Therefore
-        //                         // we return without running the whole SAT algorithm
-        //                         data.IsColliding = true;
-        //                         collisionDetected = true;
-        //
-        //                         continue;
-        //                     }
-        //
-        //                     // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
-        //                 }
-        //             }
-        //         }
-        //     }
-        //
-        //     minPenetrationDepth = DECIMAL_LARGEST;
-        //     isMinPenetrationFaceNormal = false;
-        //
-        //     // Test all the face normals of the polyhedron 1 for separating axis
-        //     size_t faceIndex1;
-        //     f32 penetrationDepth1 = testFacesDirectionPolyhedronVsPolyhedron(polyhedronOne, polyhedronTwo, polyhedronOneToTwo, faceIndex1);
-        //     if (penetrationDepth1 <= f32(0.0)) {
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronOne = true;
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = false;
-        //         lastFrameCollisionData.SATMinAxisFaceIndex = faceIndex1;
-        //
-        //         // We have found a separating axis
-        //         continue;
-        //     }
-        //
-        //     // Test all the face normals of the polyhedron 2 for separating axis
-        //     size_t faceIndex2;
-        //     f32 penetrationDepth2 = testFacesDirectionPolyhedronVsPolyhedron(*polyhedronTwo, *polyhedronOne, polyhedronTwoToOne, faceIndex2);
-        //
-        //     if (penetrationDepth2 <= 0.0f) {
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronOne = false;
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = true;
-        //         lastFrameCollisionData.SATMinAxisFaceIndex = faceIndex2;
-        //
-        //         // We have found a separating axis
-        //         continue;
-        //     }
-        //
-        //     // Here we know that we have found penetration along both axis of a face of polyhedronOne and a face of
-        //     // polyhedronTwo. If the two penetration depths are almost the same, we need to make sure we always prefer
-        //     // one axis to the other for consistency between frames. This is to prevent the contact manifolds to switch
-        //     // from one reference axis to the other for a face to face resting contact for instance. This is better for
-        //     // stability. To do this, we use a relative and absolute bias to move penetrationDepth2 a little bit to the right.
-        //     // Now if:
-        //     //  penetrationDepth1 < penetrationDepth2: Nothing happens and we use axis of polygon 1
-        //     //  penetrationDepth1 ~ penetrationDepth2: Until penetrationDepth2 becomes significantly less than penetrationDepth1 we still use axis of polygon
-        //     1
-        //     //  penetrationDepth1 >> penetrationDepth2: penetrationDepth2 is now significantly less than penetrationDepth1 and we use polygon 2 axis
-        //     if (penetrationDepth1 < penetrationDepth2 * SEPARATING_AXIS_RELATIVE_TOLERANCE + SEPARATING_AXIS_ABSOLUTE_TOLERANCE) {
-        //
-        //         // We use penetration axis of polygon 1
-        //         isMinPenetrationFaceNormal = true;
-        //         minPenetrationDepth = std::min(penetrationDepth1, penetrationDepth2);
-        //         minFaceIndex = faceIndex1;
-        //         isMinPenetrationFaceNormalPolyhedronOne = true;
-        //     } else {
-        //
-        //         // We use penetration axis of polygon 2
-        //         isMinPenetrationFaceNormal = true;
-        //         minPenetrationDepth = std::min(penetrationDepth1, penetrationDepth2);
-        //         minFaceIndex = faceIndex2;
-        //         isMinPenetrationFaceNormalPolyhedronOne = false;
-        //     }
-        //
-        //     bool separatingAxisFound = false;
-        //
-        //     // Test the cross products of edges of polyhedron 1 with edges of polyhedron 2 for separating axis
-        //     for (uint32 i = 0; i < polyhedronOne->getNbHalfEdges(); i += 2) {
-        //
-        //         // Get an edge of polyhedron 1
-        //         const HalfEdgeStructure::Edge &edge1 = polyhedronOne->getHalfEdge(i);
-        //
-        //         const glm::vec3 edge1A = polyhedronOneToTwo * polyhedronOne->getVertexPosition(edge1.vertexIndex);
-        //         const glm::vec3 edge1B = polyhedronOneToTwo * polyhedronOne->getVertexPosition(polyhedronOne->getHalfEdge(edge1.nextEdgeIndex).vertexIndex);
-        //         const glm::vec3 edge1Direction = edge1B - edge1A;
-        //
-        //         for (uint32 j = 0; j < polyhedronTwo->getNbHalfEdges(); j += 2) {
-        //
-        //             // Get an edge of polyhedron 2
-        //             const HalfEdgeStructure::Edge &edge2 = polyhedronTwo->getHalfEdge(j);
-        //
-        //             const glm::vec3 edge2A = polyhedronTwo->getVertexPosition(edge2.vertexIndex);
-        //             const glm::vec3 edge2B = polyhedronTwo->getVertexPosition(polyhedronTwo->getHalfEdge(edge2.nextEdgeIndex).vertexIndex);
-        //             const glm::vec3 edge2Direction = edge2B - edge2A;
-        //
-        //             // If the two edges build a minkowski face (and the cross product is therefore a candidate for separating axis
-        //             if (testEdgesBuildMinkowskiFace(polyhedronOne, edge1, polyhedronTwo, edge2, polyhedronOneToTwo)) {
-        //
-        //                 glm::vec3 separatingAxisPolyhedron2Space;
-        //
-        //                 // Compute the penetration depth
-        //                 const glm::vec3 polyhedron1Centroid = polyhedronOneToTwo * polyhedronOne->getCentroid();
-        //                 f32 penetrationDepth = computeDistanceBetweenEdges(edge1A,
-        //                                                                    edge2A,
-        //                                                                    polyhedron1Centroid,
-        //                                                                    polyhedronTwo->getCentroid(),
-        //                                                                    edge1Direction,
-        //                                                                    edge2Direction,
-        //                                                                    isShape1Triangle,
-        //                                                                    separatingAxisPolyhedron2Space);
-        //
-        //                 if (penetrationDepth <= f32(0.0)) {
-        //
-        //                     lastFrameCollisionData.satIsAxisFacePolyhedron1 = false;
-        //                     lastFrameCollisionData.satIsAxisFacePolyhedron2 = false;
-        //                     lastFrameCollisionData.satMinEdge1Index = i;
-        //                     lastFrameCollisionData.satMinEdge2Index = j;
-        //
-        //                     // We have found a separating axis
-        //                     separatingAxisFound = true;
-        //                     break;
-        //                 }
-        //
-        //                 // If the current minimum penetration depth is along a face normal axis (isMinPenetrationFaceNormal=true) and we have found a new
-        //                 // smaller penetration depth along an edge-edge cross-product axis we want to favor the face normal axis because contact manifolds
-        //                 // between faces have more contact points and therefore more stable than the single contact point of an edge-edge collision. It means
-        //                 // that if the new minimum penetration depth from the edge-edge contact is only a little bit smaller than the current
-        //                 // minPenetrationDepth (from a face contact), we favor the face contact and do not generate an edge-edge contact. However, if the new
-        //                 // penetration depth from the edge-edge contact is really smaller than the current one, we generate an edge-edge contact. To do this,
-        //                 we
-        //                 // use a relative and absolute bias to increase a little bit the new penetration depth from the edge-edge contact during the
-        //                 comparison
-        //                 // test
-        //                 if ((isMinPenetrationFaceNormal &&
-        //                      penetrationDepth * SEPARATING_AXIS_RELATIVE_TOLERANCE + SEPARATING_AXIS_ABSOLUTE_TOLERANCE < minPenetrationDepth) ||
-        //                     (!isMinPenetrationFaceNormal && penetrationDepth < minPenetrationDepth)) {
-        //
-        //                     minPenetrationDepth = penetrationDepth;
-        //                     isMinPenetrationFaceNormalPolyhedronOne = false;
-        //                     isMinPenetrationFaceNormal = false;
-        //                     minSeparatingEdge1Index = i;
-        //                     minSeparatingEdge2Index = j;
-        //                     separatingEdge1A = edge1A;
-        //                     separatingEdge1B = edge1B;
-        //                     separatingEdge2A = edge2A;
-        //                     separatingEdge2B = edge2B;
-        //                     minEdgeVsEdgeSeparatingAxisPolyhedron2Space = separatingAxisPolyhedron2Space;
-        //                 }
-        //             }
-        //         }
-        //
-        //         if (separatingAxisFound) {
-        //             break;
-        //         }
-        //     }
-        //
-        //     if (separatingAxisFound) {
-        //         continue;
-        //     }
-        //
-        //     // Here we know the shapes are overlapping on a given minimum separating axis.
-        //     // Now, we will clip the shapes along this axis to find the contact points
-        //
-        //     assert(minPenetrationDepth > f32(0.0));
-        //
-        //     // If the minimum separating axis is a face normal
-        //     if (isMinPenetrationFaceNormal) {
-        //
-        //         // Compute the contact points between two faces of two convex polyhedra.
-        //         bool contactsFound = computePolyhedronVsPolyhedronFaceContactPoints(
-        //             isMinPenetrationFaceNormalPolyhedronOne, polyhedronOne, polyhedronTwo, polyhedronOneToTwo, polyhedronTwoToOne, minFaceIndex, batch, i);
-        //
-        //         // There should be clipping points here. If it is not the case, it might be
-        //         // because of a numerical issue
-        //         if (!contactsFound) {
-        //
-        //             lastFrameCollisionData.satIsAxisFacePolyhedron1 = isMinPenetrationFaceNormalPolyhedronOne;
-        //             lastFrameCollisionData.satIsAxisFacePolyhedron2 = !isMinPenetrationFaceNormalPolyhedronOne;
-        //             lastFrameCollisionData.satMinAxisFaceIndex = minFaceIndex;
-        //
-        //             // Return no collision
-        //             continue;
-        //         }
-        //
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
-        //         lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
-        //         lastFrameCollisionData.SATMinAxisFaceIndex = minFaceIndex;
-        //     } else { // If we have an edge vs edge contact
-        //
-        //         // If we need to report contacts
-        //         if (data.ReportContacts) {
-        //
-        //             // Compute the closest points between the two edges (in the local-space of poylhedron 2)
-        //             glm::vec3 closestPointPolyhedron1Edge, closestPointPolyhedron2Edge;
-        //             computeClosestPointBetweenTwoSegments(
-        //                 separatingEdge1A, separatingEdge1B, separatingEdge2A, separatingEdge2B, closestPointPolyhedron1Edge, closestPointPolyhedron2Edge);
-        //
-        //             // Compute the contact point on polyhedron 1 edge in the local-space of polyhedron 1
-        //             glm::vec3 closestPointPolyhedron1EdgeLocalSpace = polyhedronTwoToOne * closestPointPolyhedron1Edge;
-        //
-        //             // Compute the world normal
-        //             glm::vec3 normalWorld =
-        //                 data.ShapeTwoToWorldTransform.Rotation) * minEdgeVsEdgeSeparatingAxisPolyhedron2Space;
-        //
-        //             // Compute smooth triangle mesh contact if one of the two collision shapes is a triangle
-        //             TriangleShape::computeSmoothTriangleMeshContact(batch.ShapeOne,
-        //                                                             batch.ShapeTwo,
-        //                                                             closestPointPolyhedron1EdgeLocalSpace,
-        //                                                             closestPointPolyhedron2Edge,
-        //                                                             batch.Shape1ToWorldTransform,
-        //                                                             batch.Shape2ToWorldTransform,
-        //                                                             minPenetrationDepth,
-        //                                                             normalWorld);
-        //
-        //             // Create the contact point
-        //             batch.addContactPoint(i, normalWorld, minPenetrationDepth, closestPointPolyhedron1EdgeLocalSpace, closestPointPolyhedron2Edge);
-        //         }
-        //
-        //         lastFrameCollisionData->SATIsAxisFacePolyhedron1 = false;
-        //         lastFrameCollisionData->SATIsAxisFacePolyhedron2 = false;
-        //         lastFrameCollisionData->SATMinEdge1Index = minSeparatingEdge1Index;
-        //         lastFrameCollisionData->SATMinEdge2Index = minSeparatingEdge2Index;
-        //     }
-        //
-        //     data.IsColliding = true;
-        //     collisionDetected = true;
-        // }
-        //
+
+        for (size_t i = batchStartIndex; i < batchStartIndex + batchItemsCount; ++i) {
+            NarrowPhaseData &data = batch.Data[i];
+
+            VASSERT(
+                data.ShapeOne.GetType() == CollisionShapeType::ConvexPolyhedron && data.ShapeTwo.GetType() == CollisionShapeType::ConvexPolyhedron,
+                "SATAlgorithm::PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck only supports Convex Polyhedron vs Convex Polyhedron collision checks.");
+            VASSERT(data.ContactPointCount == 0, "Contact points should be cleared before performing collision checks.");
+
+            const auto *polyhedronOne = static_cast<const ConvexPolyhedronShape *>(&data.ShapeOne);
+            const auto *polyhedronTwo = static_cast<const ConvexPolyhedronShape *>(&data.ShapeTwo);
+
+            const TransformComponent polyhedronOneToTwo = data.ShapeTwoToWorldTransform.Inverse() * data.ShapeOneToWorldTransform;
+            const TransformComponent polyhedronTwoToOne = polyhedronOneToTwo.Inverse();
+
+            f32 minPenetrationDepth = std::numeric_limits<f32>::max();
+            size_t minFaceIndex = 0;
+            bool isMinPenetrationFaceNormal = false;
+            bool isMinPenetrationFaceNormalPolyhedronOne = false;
+            size_t minSeparatingEdgeOneIndex = 0;
+            size_t minSeparatingEdgeTwoIndex = 0;
+            glm::vec3 separatingEdgeOneVertexOne;
+            glm::vec3 separatingEdgeOneVertexTwo;
+            glm::vec3 separatingEdgeTwoVertexOne;
+            glm::vec3 separatingEdgeTwoVertexTwo;
+            glm::vec3 minEdgeVsEdgeSeparatingAxisInPolyhedronTwoSpace;
+
+            const bool isShapeOneTriangle = polyhedronOne->GetName() == CollisionShapeName::Triangle;
+
+            LastFrameCollisionData &lastFrameCollisionData = data.LastFrameCollisionData;
+
+            if (lastFrameCollisionData.IsValid && lastFrameCollisionData.WasUsingSATAlgorithm) {
+                // We perform temporal coherence, we check if there is still an overlapping along the previous minimum separating
+                // axis. If it is the case, we directly report the collision without executing the whole SAT algorithm again. If
+                // the shapes are still separated along this axis, we directly exit with no collision.
+
+                // If the previous separating axis (or axis with minimum penetration depth)
+                // was a face normal of polyhedron 1
+                if (lastFrameCollisionData.SATIsAxisFacePolyhedronOne) {
+
+                    const f32 penetrationDepth = testSingleFaceDirectionPolyhedronVsPolyhedron(
+                        *polyhedronOne, *polyhedronTwo, polyhedronOneToTwo, lastFrameCollisionData.SATMinAxisFaceIndex);
+
+                    // If the previous axis was a separating axis and is still a separating axis in this frame
+                    if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
+
+                        // Return no collision without running the whole SAT algorithm
+                        continue;
+                    }
+
+                    // The two shapes were overlapping in the previous frame and still seem to overlap in this one
+                    if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > 0.0f) {
+
+                        minPenetrationDepth = penetrationDepth;
+                        minFaceIndex = lastFrameCollisionData.SATMinAxisFaceIndex;
+                        isMinPenetrationFaceNormal = true;
+                        isMinPenetrationFaceNormalPolyhedronOne = true;
+
+                        // Compute the contact points between two faces of two convex polyhedra.
+                        if (computePolyhedronVsPolyhedronFaceContactPoints(isMinPenetrationFaceNormalPolyhedronOne,
+                                                                           polyhedronOne,
+                                                                           polyhedronTwo,
+                                                                           polyhedronOneToTwo,
+                                                                           polyhedronTwoToOne,
+                                                                           minFaceIndex,
+                                                                           batch,
+                                                                           i)) {
+
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
+                            lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(minFaceIndex);
+
+                            // The shapes are still overlapping in the previous axis (the contact manifold is not empty).
+                            // Therefore, we can return without running the whole SAT algorithm
+                            data.IsColliding = true;
+                            collisionDetected = true;
+                            continue;
+                        }
+
+                        // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
+                    }
+                } else if (lastFrameCollisionData.SATIsAxisFacePolyhedronTwo) { // If the previous separating axis (or axis with minimum penetration depth)
+                                                                                // was a face normal of polyhedron 2
+
+                    f32 penetrationDepth = testSingleFaceDirectionPolyhedronVsPolyhedron(
+                        *polyhedronTwo, *polyhedronOne, polyhedronTwoToOne, lastFrameCollisionData.SATMinAxisFaceIndex);
+
+                    // If the previous axis was a separating axis and is still a separating axis in this frame
+                    if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
+
+                        // Return no collision without running the whole SAT algorithm
+                        continue;
+                    }
+
+                    // The two shapes were overlapping in the previous frame and still seem to overlap in this one
+                    if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > 0.0f) {
+
+                        minPenetrationDepth = penetrationDepth;
+                        minFaceIndex = lastFrameCollisionData.SATMinAxisFaceIndex;
+                        isMinPenetrationFaceNormal = true;
+                        isMinPenetrationFaceNormalPolyhedronOne = false;
+
+                        // Compute the contact points between two faces of two convex polyhedra.
+                        if (computePolyhedronVsPolyhedronFaceContactPoints(isMinPenetrationFaceNormalPolyhedronOne,
+                                                                           polyhedronOne,
+                                                                           polyhedronTwo,
+                                                                           polyhedronOneToTwo,
+                                                                           polyhedronTwoToOne,
+                                                                           minFaceIndex,
+                                                                           batch,
+                                                                           i)) {
+
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
+                            lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(minFaceIndex);
+
+                            // The shapes are still overlapping in the previous axis (the contact manifold is not empty).
+                            // Therefore, we can return without running the whole SAT algorithm
+                            data.IsColliding = true;
+                            collisionDetected = true;
+
+                            continue;
+                        }
+
+                        // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
+                    }
+                } else { // If the previous separating axis (or axis with minimum penetration depth) was the cross product of two edges
+
+                    const HalfEdgeMesh::Edge &edge1 = polyhedronOne->GetHalfEdge(lastFrameCollisionData.SATMinEdgeOneIndex);
+                    const HalfEdgeMesh::Edge &edge2 = polyhedronTwo->GetHalfEdge(lastFrameCollisionData.SATMinEdgeTwoIndex);
+
+                    const glm::vec3 edge1A = polyhedronOneToTwo * polyhedronOne->GetVertexPosition(edge1.StartVertexIndex);
+                    const glm::vec3 edge1B =
+                        polyhedronOneToTwo * polyhedronOne->GetVertexPosition(polyhedronOne->GetHalfEdge(edge1.NextEdgeIndex).StartVertexIndex);
+                    const glm::vec3 edge1Direction = edge1B - edge1A;
+                    const glm::vec3 edge2A = polyhedronTwo->GetVertexPosition(edge2.StartVertexIndex);
+                    const glm::vec3 edge2B = polyhedronTwo->GetVertexPosition(polyhedronTwo->GetHalfEdge(edge2.NextEdgeIndex).StartVertexIndex);
+                    const glm::vec3 edge2Direction = edge2B - edge2A;
+
+                    // If the two edges build a minkowski face (and the cross product is
+                    // therefore a candidate for separating axis
+                    if (testEdgesBuildMinkowskiFace(*polyhedronOne, edge1, *polyhedronTwo, edge2, polyhedronOneToTwo)) {
+
+                        glm::vec3 separatingAxisPolyhedron2Space;
+
+                        // Compute the penetration depth along the previous axis
+                        const glm::vec3 polyhedron1Centroid = polyhedronOneToTwo * polyhedronOne->GetCentroid();
+                        f32 penetrationDepth = computeDistanceBetweenEdges(edge1A,
+                                                                           edge2A,
+                                                                           polyhedron1Centroid,
+                                                                           polyhedronTwo->GetCentroid(),
+                                                                           edge1Direction,
+                                                                           edge2Direction,
+                                                                           isShapeOneTriangle,
+                                                                           separatingAxisPolyhedron2Space);
+
+                        // If the shapes were not overlapping in the previous frame and are still not
+                        // overlapping in the current one
+                        if (!lastFrameCollisionData.WasColliding && penetrationDepth <= 0.0f) {
+
+                            // We have found a separating axis without running the whole SAT algorithm
+                            continue;
+                        }
+
+                        // If the shapes were overlapping on the previous axis and still seem to overlap in this frame
+                        if (lastFrameCollisionData.WasColliding && _clipWithPreviousAxisIfStillColliding && penetrationDepth > 0.0f &&
+                            penetrationDepth < std::numeric_limits<f32>::max()) {
+
+                            // Compute the closest points between the two edges (in the local-space of polyhedron 2)
+                            glm::vec3 closestPointPolyhedron1Edge, closestPointPolyhedron2Edge;
+                            ComputeClosestPointBetweenTwoSegments(edge1A, edge1B, edge2A, edge2B, closestPointPolyhedron1Edge, closestPointPolyhedron2Edge);
+
+                            // Here we try to project the closest point on edge1 onto the segment of edge 2 to see if
+                            // the projected point falls onto the segment. We also try to project the closest point
+                            // on edge 2 to see if it falls onto the segment of edge 1. If one of the point does not
+                            // fall onto the opposite segment, it means the edges are not colliding (the contact manifold
+                            // is empty). Therefore, we need to run the whole SAT algorithm again.
+                            const glm::vec3 vec1 = closestPointPolyhedron1Edge - edge2A;
+                            const glm::vec3 vec2 = closestPointPolyhedron2Edge - edge1A;
+                            const f32 edge1LengthSquare = glm::length2(edge1Direction);
+                            const f32 edge2LengthSquare = glm::length2(edge2Direction);
+                            f32 t1 = glm::dot(vec1, edge2Direction) / edge2LengthSquare;
+                            f32 t2 = glm::dot(vec2, edge1Direction) / edge1LengthSquare;
+
+                            if (t1 >= 0.0f && t1 <= 1.0f && t2 >= 0.0f && t2 <= 1.0f) {
+
+                                // If we need to report contact points
+                                if (data.ReportContacts) {
+
+                                    // Compute the contact point on polyhedron 1 edge in the local-space of polyhedron 1
+                                    glm::vec3 closestPointPolyhedron1EdgeLocalSpace = polyhedronTwoToOne * closestPointPolyhedron1Edge;
+
+                                    // Compute the world normal
+                                    glm::vec3 normalWorld = data.ShapeTwoToWorldTransform.Rotation * separatingAxisPolyhedron2Space;
+
+                                    // Compute smooth triangle mesh contact if one of the two collision shapes is a triangle
+                                    TriangleShape::ComputeSmoothTriangleMeshContact(&data.ShapeOne,
+                                                                                    &data.ShapeTwo,
+                                                                                    closestPointPolyhedron1EdgeLocalSpace,
+                                                                                    closestPointPolyhedron2Edge,
+                                                                                    data.ShapeOneToWorldTransform,
+                                                                                    data.ShapeTwoToWorldTransform,
+                                                                                    penetrationDepth,
+                                                                                    normalWorld);
+
+                                    // Create the contact point
+                                    batch.AddContactPoint(i, normalWorld, penetrationDepth, closestPointPolyhedron1EdgeLocalSpace, closestPointPolyhedron2Edge);
+                                }
+
+                                // The shapes are overlapping on the previous axis (the contact manifold is not empty). Therefore
+                                // we return without running the whole SAT algorithm
+                                data.IsColliding = true;
+                                collisionDetected = true;
+
+                                continue;
+                            }
+
+                            // The contact manifold is empty. Therefore, we have to run the whole SAT algorithm again
+                        }
+                    }
+                }
+            }
+
+            minPenetrationDepth = std::numeric_limits<f32>::max();
+            isMinPenetrationFaceNormal = false;
+
+            // Test all the face normals of the polyhedron 1 for separating axis
+            size_t faceIndex1;
+            f32 penetrationDepth1 = testFacesDirectionPolyhedronVsPolyhedron(*polyhedronOne, *polyhedronTwo, polyhedronOneToTwo, faceIndex1);
+
+            if (penetrationDepth1 <= 0.0f) {
+                lastFrameCollisionData.SATIsAxisFacePolyhedronOne = true;
+                lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = false;
+                lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(faceIndex1);
+
+                // We have found a separating axis
+                continue;
+            }
+
+            // Test all the face normals of the polyhedron 2 for separating axis
+            size_t faceIndex2;
+            f32 penetrationDepth2 = testFacesDirectionPolyhedronVsPolyhedron(*polyhedronTwo, *polyhedronOne, polyhedronTwoToOne, faceIndex2);
+
+            if (penetrationDepth2 <= 0.0f) {
+                lastFrameCollisionData.SATIsAxisFacePolyhedronOne = false;
+                lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = true;
+                lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(faceIndex2);
+
+                // We have found a separating axis
+                continue;
+            }
+
+            // Here we know that we have found penetration along both axis of a face of polyhedronOne and a face of
+            // polyhedronTwo. If the two penetration depths are almost the same, we need to make sure we always prefer
+            // one axis to the other for consistency between frames. This is to prevent the contact manifolds to switch
+            // from one reference axis to the other for a face to face resting contact for instance. This is better for
+            // stability. To do this, we use a relative and absolute bias to move penetrationDepth2 a little bit to the right.
+            // Now if:
+            //  penetrationDepth1 < penetrationDepth2: Nothing happens and we use axis of polygon 1
+            //  penetrationDepth1 ~ penetrationDepth2: Until penetrationDepth2 becomes significantly less than penetrationDepth1 we still use axis of polygon 1
+            //  penetrationDepth1 >> penetrationDepth2: penetrationDepth2 is now significantly less than penetrationDepth1 and we use polygon 2 axis
+            if (penetrationDepth1 < penetrationDepth2 * SEPARATING_AXIS_RELATIVE_TOLERANCE + SEPARATING_AXIS_ABSOLUTE_TOLERANCE) {
+
+                // We use penetration axis of polygon 1
+                isMinPenetrationFaceNormal = true;
+                minPenetrationDepth = std::min(penetrationDepth1, penetrationDepth2);
+                minFaceIndex = faceIndex1;
+                isMinPenetrationFaceNormalPolyhedronOne = true;
+            } else {
+
+                // We use penetration axis of polygon 2
+                isMinPenetrationFaceNormal = true;
+                minPenetrationDepth = std::min(penetrationDepth1, penetrationDepth2);
+                minFaceIndex = faceIndex2;
+                isMinPenetrationFaceNormalPolyhedronOne = false;
+            }
+
+            bool separatingAxisFound = false;
+
+            // Test the cross products of edges of polyhedron 1 with edges of polyhedron 2 for separating axis
+            for (size_t i = 0; i < polyhedronOne->GetHalfEdgesCount(); i += 2) {
+
+                // Get an edge of polyhedron 1
+                const HalfEdgeMesh::Edge &edge1 = polyhedronOne->GetHalfEdge(i);
+
+                const glm::vec3 edge1A = polyhedronOneToTwo * polyhedronOne->GetVertexPosition(edge1.StartVertexIndex);
+                const glm::vec3 edge1B =
+                    polyhedronOneToTwo * polyhedronOne->GetVertexPosition(polyhedronOne->GetHalfEdge(edge1.NextEdgeIndex).StartVertexIndex);
+                const glm::vec3 edge1Direction = edge1B - edge1A;
+
+                for (size_t j = 0; j < polyhedronTwo->GetHalfEdgesCount(); j += 2) {
+
+                    // Get an edge of polyhedron 2
+                    const HalfEdgeMesh::Edge &edge2 = polyhedronTwo->GetHalfEdge(j);
+
+                    const glm::vec3 edge2A = polyhedronTwo->GetVertexPosition(edge2.StartVertexIndex);
+                    const glm::vec3 edge2B = polyhedronTwo->GetVertexPosition(polyhedronTwo->GetHalfEdge(edge2.NextEdgeIndex).StartVertexIndex);
+                    const glm::vec3 edge2Direction = edge2B - edge2A;
+
+                    // If the two edges build a minkowski face (and the cross product is therefore a candidate for separating axis
+                    if (testEdgesBuildMinkowskiFace(*polyhedronOne, edge1, *polyhedronTwo, edge2, polyhedronOneToTwo)) {
+
+                        glm::vec3 separatingAxisPolyhedron2Space;
+
+                        // Compute the penetration depth
+                        const glm::vec3 polyhedron1Centroid = polyhedronOneToTwo * polyhedronOne->GetCentroid();
+                        f32 penetrationDepth = computeDistanceBetweenEdges(edge1A,
+                                                                           edge2A,
+                                                                           polyhedron1Centroid,
+                                                                           polyhedronTwo->GetCentroid(),
+                                                                           edge1Direction,
+                                                                           edge2Direction,
+                                                                           isShapeOneTriangle,
+                                                                           separatingAxisPolyhedron2Space);
+
+                        if (penetrationDepth <= 0.0f) {
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronOne = false;
+                            lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = false;
+                            lastFrameCollisionData.SATMinEdgeOneIndex = static_cast<u8>(i);
+                            lastFrameCollisionData.SATMinEdgeTwoIndex = static_cast<u8>(j);
+
+                            // We have found a separating axis
+                            separatingAxisFound = true;
+
+                            break;
+                        }
+
+                        // If the current minimum penetration depth is along a face normal axis (isMinPenetrationFaceNormal=true) and we have found a new
+                        // smaller penetration depth along an edge-edge cross-product axis we want to favor the face normal axis because contact manifolds
+                        // between faces have more contact points and therefore more stable than the single contact point of an edge-edge collision. It means
+                        // that if the new minimum penetration depth from the edge-edge contact is only a little bit smaller than the current
+                        // minPenetrationDepth (from a face contact), we favor the face contact and do not generate an edge-edge contact. However, if the new
+                        // penetration depth from the edge-edge contact is really smaller than the current one, we generate an edge-edge contact. To do this, we
+                        // use a relative and absolute bias to increase a little bit the new penetration depth from the edge-edge contact during the comparison
+                        // test
+                        if ((isMinPenetrationFaceNormal &&
+                             penetrationDepth * SEPARATING_AXIS_RELATIVE_TOLERANCE + SEPARATING_AXIS_ABSOLUTE_TOLERANCE < minPenetrationDepth) ||
+                            (!isMinPenetrationFaceNormal && penetrationDepth < minPenetrationDepth)) {
+
+                            minPenetrationDepth = penetrationDepth;
+                            isMinPenetrationFaceNormalPolyhedronOne = false;
+                            isMinPenetrationFaceNormal = false;
+                            minSeparatingEdgeOneIndex = i;
+                            minSeparatingEdgeTwoIndex = j;
+                            separatingEdgeOneVertexOne = edge1A;
+                            separatingEdgeOneVertexTwo = edge1B;
+                            separatingEdgeTwoVertexOne = edge2A;
+                            separatingEdgeTwoVertexTwo = edge2B;
+                            minEdgeVsEdgeSeparatingAxisInPolyhedronTwoSpace = separatingAxisPolyhedron2Space;
+                        }
+                    }
+                }
+
+                if (separatingAxisFound) {
+                    break;
+                }
+            }
+
+            if (separatingAxisFound) {
+                continue;
+            }
+
+            // Here we know the shapes are overlapping on a given minimum separating axis.
+            // Now, we will clip the shapes along this axis to find the contact points
+
+            VASSERT(minPenetrationDepth > 0.0f, "minPenetrationDepth must be greater than 0.0f");
+
+            // If the minimum separating axis is a face normal
+            if (isMinPenetrationFaceNormal) {
+
+                // Compute the contact points between two faces of two convex polyhedra.
+                bool contactsFound = computePolyhedronVsPolyhedronFaceContactPoints(
+                    isMinPenetrationFaceNormalPolyhedronOne, polyhedronOne, polyhedronTwo, polyhedronOneToTwo, polyhedronTwoToOne, minFaceIndex, batch, i);
+
+                // There should be clipping points here. If it is not the case, it might be
+                // because of a numerical issue
+                if (!contactsFound) {
+
+                    lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
+                    lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
+                    lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(minFaceIndex);
+
+                    // Return no collision
+                    continue;
+                }
+
+                lastFrameCollisionData.SATIsAxisFacePolyhedronOne = isMinPenetrationFaceNormalPolyhedronOne;
+                lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = !isMinPenetrationFaceNormalPolyhedronOne;
+                lastFrameCollisionData.SATMinAxisFaceIndex = static_cast<u8>(minFaceIndex);
+            } else { // If we have an edge vs edge contact
+
+                // If we need to report contacts
+                if (data.ReportContacts) {
+                    // Compute the closest points between the two edges (in the local-space of polyhedron 2)
+                    glm::vec3 closestPointPolyhedron1Edge, closestPointPolyhedron2Edge;
+
+                    ComputeClosestPointBetweenTwoSegments(separatingEdgeOneVertexOne,
+                                                          separatingEdgeOneVertexTwo,
+                                                          separatingEdgeTwoVertexOne,
+                                                          separatingEdgeTwoVertexTwo,
+                                                          closestPointPolyhedron1Edge,
+                                                          closestPointPolyhedron2Edge);
+
+                    // Compute the contact point on polyhedron 1 edge in the local-space of polyhedron 1
+                    glm::vec3 closestPointPolyhedron1EdgeLocalSpace = polyhedronTwoToOne * closestPointPolyhedron1Edge;
+
+                    // Compute the world normal
+                    glm::vec3 normalWorld = data.ShapeTwoToWorldTransform.Rotation * minEdgeVsEdgeSeparatingAxisInPolyhedronTwoSpace;
+
+                    // Compute smooth triangle mesh contact if one of the two collision shapes is a triangle
+                    TriangleShape::ComputeSmoothTriangleMeshContact(&data.ShapeOne,
+                                                                    &data.ShapeTwo,
+                                                                    closestPointPolyhedron1EdgeLocalSpace,
+                                                                    closestPointPolyhedron2Edge,
+                                                                    data.ShapeOneToWorldTransform,
+                                                                    data.ShapeTwoToWorldTransform,
+                                                                    minPenetrationDepth,
+                                                                    normalWorld);
+
+                    // Create the contact point
+                    batch.AddContactPoint(i, normalWorld, minPenetrationDepth, closestPointPolyhedron1EdgeLocalSpace, closestPointPolyhedron2Edge);
+                }
+
+                lastFrameCollisionData.SATIsAxisFacePolyhedronOne = false;
+                lastFrameCollisionData.SATIsAxisFacePolyhedronTwo = false;
+                lastFrameCollisionData.SATMinEdgeOneIndex = static_cast<u8>(minSeparatingEdgeOneIndex);
+                lastFrameCollisionData.SATMinEdgeTwoIndex = static_cast<u8>(minSeparatingEdgeTwoIndex);
+            }
+
+            data.IsColliding = true;
+            collisionDetected = true;
+        }
+
         return collisionDetected;
+    }
+
+    bool SATAlgorithm::ComputeCapsulePolyhedronFaceContactPoints(size_t referenceFaceIndex,
+                                                                 f32 capsuleRadius,
+                                                                 const ConvexPolyhedronShape &polyhedron,
+                                                                 f32 penetrationDepth,
+                                                                 const TransformComponent &polyhedronToCapsuleTransform,
+                                                                 glm::vec3 &normalWorld,
+                                                                 const glm::vec3 &separatingAxisCapsuleSpace,
+                                                                 const glm::vec3 &capsuleSegAPolyhedronSpace,
+                                                                 const glm::vec3 &capsuleSegBPolyhedronSpace,
+                                                                 NarrowPhaseDataBatch &batch,
+                                                                 size_t batchIndex,
+                                                                 bool isShapeOneCapsule) const {
+        NarrowPhaseData &data = batch.Data[batchIndex];
+        const HalfEdgeMesh::Face &face = polyhedron.GetFace(referenceFaceIndex);
+
+        // Get the face normal
+        glm::vec3 faceNormal = polyhedron.GetFaceNormal(referenceFaceIndex);
+
+        size_t firstEdgeIndex = face.EdgeIndex;
+        size_t edgeIndex = firstEdgeIndex;
+
+        std::vector<glm::vec3> planesPoints;
+        std::vector<glm::vec3> planesNormals;
+        planesPoints.reserve(2);
+        planesNormals.reserve(2);
+
+        // For each adjacent edge of the separating face of the polyhedron
+        do {
+
+            const HalfEdgeMesh::Edge &edge = polyhedron.GetHalfEdge(edgeIndex);
+            const HalfEdgeMesh::Edge &twinEdge = polyhedron.GetHalfEdge(edge.TwinEdgeIndex);
+
+            // Compute the edge vertices and edge direction
+            glm::vec3 edgeV1 = polyhedron.GetVertexPosition(edge.StartVertexIndex);
+            glm::vec3 edgeV2 = polyhedron.GetVertexPosition(twinEdge.StartVertexIndex);
+            glm::vec3 edgeDirection = edgeV2 - edgeV1;
+
+            // Compute the normal of the clipping plane for this edge
+            // The clipping plane is perpendicular to the edge direction and the reference face normal
+            glm::vec3 clipPlaneNormal = glm::cross(faceNormal, edgeDirection);
+
+            // Construct a clipping plane for each adjacent edge of the separating face of the polyhedron
+            planesPoints.push_back(polyhedron.GetVertexPosition(edge.StartVertexIndex));
+            planesNormals.push_back(clipPlaneNormal);
+
+            edgeIndex = edge.NextEdgeIndex;
+
+        } while (edgeIndex != firstEdgeIndex);
+
+        // First we clip the inner segment of the capsule with the four planes of the adjacent faces
+        std::vector<glm::vec3> clipSegment = ClipSegmentWithPlanes(capsuleSegAPolyhedronSpace, capsuleSegBPolyhedronSpace, planesPoints, planesNormals);
+
+        // Project the two clipped points into the polyhedron face
+        const glm::vec3 delta = faceNormal * (penetrationDepth - capsuleRadius);
+
+        bool contactFound = false;
+
+        // For each of the two clipped points
+        for (size_t i = 0; i < clipSegment.size(); i++) {
+
+            // Compute the penetration depth of the two clipped points (to filter out the points that does not correspond to the penetration depth)
+            const f32 clipPointPenDepth = glm::dot(planesPoints[0] - clipSegment[i], faceNormal);
+
+            // If the clipped point is one that produce this penetration depth, we keep it
+            if (clipPointPenDepth > penetrationDepth - capsuleRadius - f32(0.001)) {
+
+                if (!contactFound) {
+                    batch.ResetContactPoints(batchIndex);
+                }
+
+                contactFound = true;
+
+                glm::vec3 contactPointPolyhedron = clipSegment[i] + delta;
+
+                // Project the clipped point into the capsule bounds
+                glm::vec3 contactPointCapsule = (polyhedronToCapsuleTransform * clipSegment[i]) - separatingAxisCapsuleSpace * capsuleRadius;
+
+                // Compute smooth triangle mesh contact if one of the two collision shapes is a triangle
+                TriangleShape::ComputeSmoothTriangleMeshContact(&data.ShapeOne,
+                                                                &data.ShapeTwo,
+                                                                isShapeOneCapsule ? contactPointCapsule : contactPointPolyhedron,
+                                                                isShapeOneCapsule ? contactPointPolyhedron : contactPointCapsule,
+                                                                data.ShapeOneToWorldTransform,
+                                                                data.ShapeTwoToWorldTransform,
+                                                                penetrationDepth,
+                                                                normalWorld);
+
+                // Create the contact point
+                batch.AddContactPoint(batchIndex,
+                                      normalWorld,
+                                      penetrationDepth,
+                                      isShapeOneCapsule ? contactPointCapsule : contactPointPolyhedron,
+                                      isShapeOneCapsule ? contactPointPolyhedron : contactPointCapsule);
+            }
+        }
+
+        return contactFound;
     }
 
     bool SATAlgorithm::testEdgesBuildMinkowskiFace(const ConvexPolyhedronShape &polyhedronOne,
@@ -874,19 +975,120 @@ namespace Vulkyrie {
                                                                       size_t minFaceIndex,
                                                                       NarrowPhaseDataBatch &batch,
                                                                       size_t batchIndex) const {
+        const ConvexPolyhedronShape *referencePolyhedron;
+        const ConvexPolyhedronShape *incidentPolyhedron;
 
-        bool collisionDetected = false;
+        const TransformComponent &referenceToIncidentTransform = isMinPenetrationFaceNormalPolyhedronOne ? polyhedronOneToTwo : polyhedronTwoToOne;
+        const TransformComponent &incidentToReferenceTransform = isMinPenetrationFaceNormalPolyhedronOne ? polyhedronTwoToOne : polyhedronOneToTwo;
 
-        (void)isMinPenetrationFaceNormalPolyhedronOne;
-        (void)polyhedronOne;
-        (void)polyhedronTwo;
-        (void)polyhedronOneToTwo;
-        (void)polyhedronTwoToOne;
-        (void)minFaceIndex;
-        (void)batch;
-        (void)batchIndex;
+        if (isMinPenetrationFaceNormalPolyhedronOne) {
+            referencePolyhedron = polyhedronOne;
+            incidentPolyhedron = polyhedronTwo;
+        } else {
+            referencePolyhedron = polyhedronTwo;
+            incidentPolyhedron = polyhedronOne;
+        }
 
-        return collisionDetected;
+        const glm::vec3 axisReferenceSpace = referencePolyhedron->GetFaceNormal(minFaceIndex);
+        const glm::vec3 axisIncidentSpace = referenceToIncidentTransform.Rotation * axisReferenceSpace;
+
+        NarrowPhaseData &data = batch.Data[batchIndex];
+
+        const glm::vec3 contactNormal = isMinPenetrationFaceNormalPolyhedronOne ? data.ShapeOneToWorldTransform.Rotation * axisReferenceSpace
+                                                                                : -(data.ShapeTwoToWorldTransform.Rotation * axisReferenceSpace);
+
+        const HalfEdgeMesh::Face &referenceFace = referencePolyhedron->GetFace(minFaceIndex);
+        size_t incidentFaceIndex = incidentPolyhedron->FindMostAntiParallelFaceIndex(axisIncidentSpace);
+        const HalfEdgeMesh::Face &incidentFace = incidentPolyhedron->GetFace(incidentFaceIndex);
+
+        const size_t incidentFaceVerticesCount = incidentFace.FaceVertices.size();
+        const size_t maxElementsCount = incidentFaceVerticesCount * 2 * referenceFace.FaceVertices.size();
+
+        std::vector<glm::vec3> tempVerticesOne;
+        std::vector<glm::vec3> tempVerticesTwo;
+        tempVerticesOne.reserve(maxElementsCount);
+        tempVerticesTwo.reserve(maxElementsCount);
+
+        for (size_t i = 0; i < incidentFaceVerticesCount; i++) {
+            const glm::vec3 faceVertexIncidentSpace = incidentPolyhedron->GetVertexPosition(incidentFace.FaceVertices[i]);
+            tempVerticesOne.push_back(incidentToReferenceTransform * faceVertexIncidentSpace);
+        }
+
+        const size_t firstEdgeIndex = referenceFace.EdgeIndex;
+        bool areVerticesOneInput = false;
+        size_t outputVerticesCount;
+        size_t currentEdgeIndex;
+
+        const HalfEdgeMesh::Edge *currentEdge = &(referencePolyhedron->GetHalfEdge(firstEdgeIndex));
+        glm::vec3 edgeStartVertex = referencePolyhedron->GetVertexPosition(currentEdge->StartVertexIndex);
+
+        do {
+            areVerticesOneInput = !areVerticesOneInput;
+
+            const HalfEdgeMesh::Edge *nextEdge = &(referencePolyhedron->GetHalfEdge(currentEdge->NextEdgeIndex));
+
+            const glm::vec3 edgeEndVertex = referencePolyhedron->GetVertexPosition(nextEdge->StartVertexIndex);
+            const glm::vec3 edgeDirection = edgeEndVertex - edgeStartVertex;
+
+            const glm::vec3 planeNormal = glm::cross(axisReferenceSpace, edgeDirection);
+
+            VASSERT((areVerticesOneInput && tempVerticesOne.size() > 0) || !areVerticesOneInput, "There should be input vertices to clip.");
+            VASSERT((!areVerticesOneInput && tempVerticesTwo.size() > 0) || areVerticesOneInput, "There should be input vertices to clip.");
+
+            clipPolygonWithPlane(
+                areVerticesOneInput ? tempVerticesOne : tempVerticesTwo, edgeStartVertex, planeNormal, areVerticesOneInput ? tempVerticesTwo : tempVerticesOne);
+
+            currentEdgeIndex = currentEdge->NextEdgeIndex;
+            currentEdge = nextEdge;
+            edgeStartVertex = edgeEndVertex;
+
+            if (areVerticesOneInput) {
+                tempVerticesOne.clear();
+                outputVerticesCount = tempVerticesTwo.size();
+            } else {
+                tempVerticesTwo.clear();
+                outputVerticesCount = tempVerticesOne.size();
+            }
+        } while (currentEdgeIndex != firstEdgeIndex && outputVerticesCount > 0);
+
+        std::vector<glm::vec3> &clippedPolygonVertices = areVerticesOneInput ? tempVerticesTwo : tempVerticesOne;
+        const glm::vec3 referenceFaceVertex = referencePolyhedron->GetVertexPosition(referencePolyhedron->GetHalfEdge(firstEdgeIndex).StartVertexIndex);
+
+        bool contactPointsFound = false;
+
+        for (size_t i = 0; i < clippedPolygonVertices.size(); ++i) {
+            const f32 penetrationDepth = glm::dot(referenceFaceVertex - clippedPolygonVertices[i], axisReferenceSpace);
+
+            if (penetrationDepth > 0.0f) {
+                contactPointsFound = true;
+
+                if (data.ReportContacts) {
+                    glm::vec3 outContactNormal = contactNormal;
+
+                    glm::vec3 contactPointIncidentPolyhedron = referenceToIncidentTransform * clippedPolygonVertices[i];
+
+                    glm::vec3 contactPointReferencePolyhedron = ProjectPointOntoPlane(clippedPolygonVertices[i], axisReferenceSpace, referenceFaceVertex);
+
+                    TriangleShape::ComputeSmoothTriangleMeshContact(
+                        &data.ShapeOne,
+                        &data.ShapeTwo,
+                        isMinPenetrationFaceNormalPolyhedronOne ? contactPointReferencePolyhedron : contactPointIncidentPolyhedron,
+                        isMinPenetrationFaceNormalPolyhedronOne ? contactPointIncidentPolyhedron : contactPointReferencePolyhedron,
+                        data.ShapeOneToWorldTransform,
+                        data.ShapeTwoToWorldTransform,
+                        penetrationDepth,
+                        outContactNormal);
+
+                    batch.AddContactPoint(batchIndex,
+                                          outContactNormal,
+                                          penetrationDepth,
+                                          isMinPenetrationFaceNormalPolyhedronOne ? contactPointReferencePolyhedron : contactPointIncidentPolyhedron,
+                                          isMinPenetrationFaceNormalPolyhedronOne ? contactPointIncidentPolyhedron : contactPointReferencePolyhedron);
+                }
+            }
+        }
+
+        return contactPointsFound;
     }
 
 } // namespace Vulkyrie

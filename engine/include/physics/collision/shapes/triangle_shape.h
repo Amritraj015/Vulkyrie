@@ -235,9 +235,16 @@ namespace Vulkyrie {
             return _halfEdgeStructure.GetHalfEdge(edgeIndex);
         }
 
+        /** @brief Get all half-edges of the triangle shape.
+         * @returns A const reference to a vector containing all `HalfEdgeMesh::Edge` instances of the shape.
+         */
+        [[nodiscard]] VE_INLINE const std::vector<HalfEdgeMesh::Edge> &GetHalfEdges() const override {
+            return _halfEdgeStructure.GetHalfEdges();
+        }
+
         /** @brief Returns the local-space support point in the given direction, ignoring the collision margin.
          * The support point is the vertex with the largest projection onto the direction vector.
-         * @param direction The query direction in local space. Does not need to be normalised.
+         * @param direction The query direction in local space. Does not need to be normalized.
          * @returns The vertex position furthest along the given direction.
          */
         [[nodiscard]] VE_INLINE virtual glm::vec3 GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const override {

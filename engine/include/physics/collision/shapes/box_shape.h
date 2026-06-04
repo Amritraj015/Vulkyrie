@@ -208,6 +208,13 @@ namespace Vulkyrie {
             return _boxShapeHalfEdgeMesh.GetHalfEdge(edgeIndex);
         }
 
+        /** @brief Get all half-edges of the box shape.
+         * @returns A const reference to a vector containing all `HalfEdgeMesh::Edge` instances of the shape.
+         */
+        [[nodiscard]] VE_INLINE const std::vector<HalfEdgeMesh::Edge> &GetHalfEdges() const override {
+            return _boxShapeHalfEdgeMesh.GetHalfEdges();
+        }
+
         /** @brief Get a vertex of the box shape by index.
          * @param vertexIndex The index of the vertex to retrieve. The valid range is from 0 to GetVerticesCount() - 1.
          * @returns A const reference to the `HalfEdgeMesh::Vertex` at the given index.
