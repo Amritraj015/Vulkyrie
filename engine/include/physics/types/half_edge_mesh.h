@@ -145,6 +145,10 @@ namespace Vulkyrie {
             return _edges[edgeIndex];
         }
 
+        [[nodiscard]] VE_INLINE const std::vector<HalfEdgeMesh::Edge> &GetHalfEdges() const {
+            return _edges;
+        }
+
         /** @brief Get a vertex by index.
          * @param vertexIndex The index of the vertex to retrieve.
          * @returns A const reference to the vertex at the given index.

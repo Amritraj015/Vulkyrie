@@ -87,7 +87,7 @@ namespace Vulkyrie {
                                                                glm::vec3 &localContactPointShapeTwo,
                                                                const TransformComponent &shapeOneToWorld,
                                                                const TransformComponent &shapeTwoToWorld,
-                                                               f32 penetrationDepth,
+                                                               const f32 penetrationDepth,
                                                                glm::vec3 &outSmoothVertexNormal) {
             VASSERT(shapeOne->GetName() == CollisionShapeName::Triangle || shapeTwo->GetName() == CollisionShapeName::Triangle,
                     "At least one of the shapes must be a triangle shape to compute smooth triangle mesh contact.");
@@ -364,8 +364,8 @@ namespace Vulkyrie {
         void computeSmoothMeshContact(glm::vec3 localContactPointTriangle,
                                       const TransformComponent &triangleShapeToWorldTransform,
                                       const TransformComponent &worldToOtherShapeTransform,
-                                      f32 penetrationDepth,
-                                      bool isTriangleShape1,
+                                      const f32 penetrationDepth,
+                                      const bool isTriangleShape1,
                                       glm::vec3 &outNewLocalContactPointOtherShape,
                                       glm::vec3 &outSmoothWorldContactTriangleNormal) const;
     };

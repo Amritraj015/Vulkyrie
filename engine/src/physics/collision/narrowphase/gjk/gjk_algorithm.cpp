@@ -44,8 +44,8 @@ namespace Vulkyrie {
             // ===== Setup Coordinate Transformations =====
 
             // GJK operates in the local space of object A for numerical stability
-            const TransformComponent &transformOne = data.ShapeOneWorldTransform;
-            const TransformComponent &transformTwo = data.ShapeTwoWorldTransform;
+            const TransformComponent &transformOne = data.ShapeOneToWorldTransform;
+            const TransformComponent &transformTwo = data.ShapeTwoToWorldTransform;
 
             // Compute transformation from world space to object A's local space
             const TransformComponent transformOneInverse = transformOne.Inverse();
@@ -69,7 +69,7 @@ namespace Vulkyrie {
             // ===== Initialize Simplex and Frame Coherence =====
 
             VoronoiSimplex simplex; // Simplex structure to track closest feature
-            LastFrameCollisionData &lastFrameData = data.LastFrameCollisionInfo;
+            LastFrameCollisionData &lastFrameData = data.LastFrameCollisionData;
 
             // Initial search direction 'v' points from origin toward closest point on Minkowski difference
             glm::vec3 v;

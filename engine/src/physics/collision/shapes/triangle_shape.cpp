@@ -60,8 +60,8 @@ namespace Vulkyrie {
     void TriangleShape::computeSmoothMeshContact(glm::vec3 localContactPointTriangle,
                                                  const TransformComponent &triangleShapeToWorldTransform,
                                                  const TransformComponent &worldToOtherShapeTransform,
-                                                 f32 penetrationDepth,
-                                                 bool isTriangleShape1,
+                                                 const f32 penetrationDepth,
+                                                 const bool isTriangleShape1,
                                                  glm::vec3 &outNewLocalContactPointOtherShape,
                                                  glm::vec3 &outSmoothWorldContactTriangleNormal) const {
 

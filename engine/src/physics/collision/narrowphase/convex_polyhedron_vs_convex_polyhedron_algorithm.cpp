@@ -16,7 +16,7 @@ namespace Vulkyrie {
         const bool collisionDetected = satAlgorithm.PerformConvexPolyhedronVsConvexPolyhedronCollisionCheck(batch, batchStartIndex, batchItemsCount);
 
         for (size_t i = batchStartIndex; i < batchStartIndex + batchItemsCount; ++i) {
-            LastFrameCollisionData &lastFrameCollisionData = batch.Data[i].LastFrameCollisionInfo;
+            LastFrameCollisionData &lastFrameCollisionData = batch.Data[i].LastFrameCollisionData;
 
             lastFrameCollisionData.WasUsingGJKAlgorithm = false;
             lastFrameCollisionData.WasUsingSATAlgorithm = true;

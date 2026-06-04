@@ -80,6 +80,8 @@ namespace Vulkyrie {
          */
         virtual const HalfEdgeMesh::Edge &GetHalfEdge(size_t edgeIndex) const = 0;
 
+        virtual const std::vector<HalfEdgeMesh::Edge> &GetHalfEdges() const = 0;
+
         /** @brief Get a vertex of the convex polyhedron shape by index.
          * @param vertexIndex The index of the vertex to retrieve. The valid range is from 0 to GetVerticesCount() - 1.
          * @returns A const reference to the `HalfEdgeMesh::Vertex` at the given index.

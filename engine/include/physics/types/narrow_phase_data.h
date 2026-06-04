@@ -16,12 +16,12 @@ namespace Vulkyrie {
                         LastFrameCollisionData &lastFrameCollisionInfo,
                         CollisionShape &shapeOne,
                         CollisionShape &shapeTwo,
-                        const TransformComponent &shapeOneWorldTransform,
-                        const TransformComponent &shapeTwoWorldTransform,
+                        const TransformComponent &shapeOneToWorldTransform,
+                        const TransformComponent &shapeTwoToWorldTransform,
                         bool reportContacts)
-            : ShapeOneWorldTransform(shapeOneWorldTransform)
-            , ShapeTwoWorldTransform(shapeTwoWorldTransform)
-            , LastFrameCollisionInfo(lastFrameCollisionInfo)
+            : ShapeOneToWorldTransform(shapeOneToWorldTransform)
+            , ShapeTwoToWorldTransform(shapeTwoToWorldTransform)
+            , LastFrameCollisionData(lastFrameCollisionInfo)
             , ColliderOneEntity(colliderOneEntity)
             , ColliderTwoEntity(colliderTwoEntity)
             , ShapeOne(shapeOne)
@@ -35,9 +35,9 @@ namespace Vulkyrie {
         ~NarrowPhaseData() = default;
 
         ContactPointData ContactPoints[MAX_CONTACT_POINTS_PER_PAIR_IN_NARROW_PHASE];
-        TransformComponent ShapeOneWorldTransform;
-        TransformComponent ShapeTwoWorldTransform;
-        LastFrameCollisionData &LastFrameCollisionInfo;
+        TransformComponent ShapeOneToWorldTransform;
+        TransformComponent ShapeTwoToWorldTransform;
+        LastFrameCollisionData &LastFrameCollisionData;
         Entity ColliderOneEntity;
         Entity ColliderTwoEntity;
         CollisionShape &ShapeOne;

@@ -22,11 +22,10 @@ namespace Vulkyrie {
 
             const f32 sphereRadius = sphereShape->GetRadius();
             const f32 capsuleRadius = capsuleShape->GetRadius();
-            const f32 capsuleHeight = capsuleShape->GetHeight();
 
             // Get the world transforms for both shapes.
-            const TransformComponent &sphereWorldTransform = isShapeOneSphere ? data.ShapeOneWorldTransform : data.ShapeTwoWorldTransform;
-            const TransformComponent &capsuleWorldTransform = isShapeOneSphere ? data.ShapeTwoWorldTransform : data.ShapeOneWorldTransform;
+            const TransformComponent &sphereWorldTransform = isShapeOneSphere ? data.ShapeOneToWorldTransform : data.ShapeTwoToWorldTransform;
+            const TransformComponent &capsuleWorldTransform = isShapeOneSphere ? data.ShapeTwoToWorldTransform : data.ShapeOneToWorldTransform;
 
             // Transform the sphere center into the capsule's local space.
             const TransformComponent worldToCapsuleTransform = capsuleWorldTransform.Inverse();
@@ -35,7 +34,7 @@ namespace Vulkyrie {
             const glm::vec3 sphereCenter = sphereToCapsuleLocalSpace.Position;
 
             // Compute the end-points of the capsule's inner segment (along the Y axis in local space).
-            const f32 halfCapsuleHeight = capsuleHeight * 0.5f;
+            const f32 halfCapsuleHeight = capsuleShape->GetHalfHeight();
             const glm::vec3 capsuleSegmentStart(0.0f, -halfCapsuleHeight, 0.0f);
             const glm::vec3 capsuleSegmentEnd(0.0f, halfCapsuleHeight, 0.0f);
 

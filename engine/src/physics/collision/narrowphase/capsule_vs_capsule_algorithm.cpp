@@ -14,23 +14,21 @@ namespace Vulkyrie {
             VASSERT(!data.IsColliding, "Collision state should be false before performing collision checks.");
 
             // Get the transform from capsule 1 local-space to capsule 2 local-space.
-            const TransformComponent capsuleOneToTwoTransform = data.ShapeTwoWorldTransform.Inverse() * data.ShapeOneWorldTransform;
+            const TransformComponent capsuleOneToTwoTransform = data.ShapeTwoToWorldTransform.Inverse() * data.ShapeOneToWorldTransform;
 
             const auto *capsuleOne = static_cast<const CapsuleShape *>(&data.ShapeOne);
             const auto *capsuleTwo = static_cast<const CapsuleShape *>(&data.ShapeTwo);
 
             const f32 capsuleOneRadius = capsuleOne->GetRadius();
-            const f32 capsuleOneHeight = capsuleOne->GetHeight();
             const f32 capsuleTwoRadius = capsuleTwo->GetRadius();
-            const f32 capsuleTwoHeight = capsuleTwo->GetHeight();
 
             // Compute the end-points of the inner segment of capsule 1 in capsule 2's local space.
-            const f32 capsuleOneHalfHeight = capsuleOneHeight * 0.5f;
+            const f32 capsuleOneHalfHeight = capsuleOne->GetHalfHeight();
             const glm::vec3 capsuleOneSegmentStart = capsuleOneToTwoTransform * glm::vec3(0.0f, -capsuleOneHalfHeight, 0.0f);
             const glm::vec3 capsuleOneSegmentEnd = capsuleOneToTwoTransform * glm::vec3(0.0f, capsuleOneHalfHeight, 0.0f);
 
             // Compute the end-points of the inner segment of capsule 2 in its own local space.
-            const f32 capsuleTwoHalfHeight = capsuleTwoHeight * 0.5f;
+            const f32 capsuleTwoHalfHeight = capsuleTwo->GetHalfHeight();
             const glm::vec3 capsuleTwoSegmentStart(0.0f, -capsuleTwoHalfHeight, 0.0f);
             const glm::vec3 capsuleTwoSegmentEnd(0.0f, capsuleTwoHalfHeight, 0.0f);
 
@@ -107,7 +105,7 @@ namespace Vulkyrie {
 
                         const f32 penetrationDepth = radiusSum - std::sqrt(segmentDistanceSquared);
 
-                        const glm::vec3 contactNormal = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpaceNormalized;
+                        const glm::vec3 contactNormal = data.ShapeTwoToWorldTransform.Rotation * normalCapsuleTwoSpaceNormalized;
 
                         batch.AddContactPoint(i, contactNormal, penetrationDepth, contactPointACapsuleOneLocal, contactPointACapsuleTwoLocal);
                         batch.AddContactPoint(i, contactNormal, penetrationDepth, contactPointBCapsuleOneLocal, contactPointBCapsuleTwoLocal);
@@ -148,7 +146,7 @@ namespace Vulkyrie {
                             capsuleOneToTwoTransform.Inverse() * (closestPointCapsuleOneSegment + closestPointSegmentOneToTwo * capsuleOneRadius);
                         const glm::vec3 contactPointCapsuleTwoLocal = closestPointCapsuleTwoSegment - closestPointSegmentOneToTwo * capsuleTwoRadius;
 
-                        const glm::vec3 normalWorld = data.ShapeTwoWorldTransform.Rotation * closestPointSegmentOneToTwo;
+                        const glm::vec3 normalWorld = data.ShapeTwoToWorldTransform.Rotation * closestPointSegmentOneToTwo;
 
                         const f32 penetrationDepth = std::max(radiusSum - closestPointsDistance, VE_MACHINE_EPSILON);
 
@@ -169,7 +167,7 @@ namespace Vulkyrie {
                                 capsuleOneToTwoTransform.Inverse() * (closestPointCapsuleOneSegment + normalCapsuleTwoSpace * capsuleOneRadius);
                             const glm::vec3 contactPointCapsuleTwoLocal = closestPointCapsuleTwoSegment - normalCapsuleTwoSpace * capsuleTwoRadius;
 
-                            const glm::vec3 contactNormal = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpace;
+                            const glm::vec3 contactNormal = data.ShapeTwoToWorldTransform.Rotation * normalCapsuleTwoSpace;
 
                             batch.AddContactPoint(i, contactNormal, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
 
@@ -182,7 +180,7 @@ namespace Vulkyrie {
                                 capsuleOneToTwoTransform.Inverse() * (closestPointCapsuleOneSegment + normalCapsuleTwoSpace * capsuleOneRadius);
                             const glm::vec3 contactPointCapsuleTwoLocal = closestPointCapsuleTwoSegment - normalCapsuleTwoSpace * capsuleTwoRadius;
 
-                            const glm::vec3 contactNormal = data.ShapeTwoWorldTransform.Rotation * normalCapsuleTwoSpace;
+                            const glm::vec3 contactNormal = data.ShapeTwoToWorldTransform.Rotation * normalCapsuleTwoSpace;
 
                             batch.AddContactPoint(i, contactNormal, radiusSum, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
                         }

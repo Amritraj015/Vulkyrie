@@ -52,6 +52,12 @@ namespace Vulkyrie {
             return _halfHeight + _halfHeight;
         }
 
+        /** @brief Get the half-height of the capsule shape, which is half of the distance between the centers of the two hemispherical end caps.
+         * @returns The half-height of the capsule shape. */
+        [[nodiscard]] VE_INLINE f32 GetHalfHeight() const {
+            return _halfHeight;
+        }
+
         /** @brief Set the height of the capsule shape.
          * @param height The new height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. Must be a
          * positive value. */

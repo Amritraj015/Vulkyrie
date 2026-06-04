@@ -16,8 +16,8 @@ namespace Vulkyrie {
             VASSERT(!data.IsColliding, "Collision state should be false before performing collision checks.");
 
             // Get world transforms for both shapes.
-            const TransformComponent &shapeOneTransform = data.ShapeOneWorldTransform;
-            const TransformComponent &shapeTwoTransform = data.ShapeTwoWorldTransform;
+            const TransformComponent &shapeOneTransform = data.ShapeOneToWorldTransform;
+            const TransformComponent &shapeTwoTransform = data.ShapeTwoToWorldTransform;
 
             // Compute the vector between sphere centers and its squared length.
             glm::vec3 vectorBetweenCenters = shapeTwoTransform.Position - shapeOneTransform.Position;

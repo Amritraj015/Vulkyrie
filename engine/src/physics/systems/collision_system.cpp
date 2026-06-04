@@ -956,8 +956,8 @@ namespace Vulkyrie {
             // Update the last-frame collision state for every entry in the batch unconditionally,
             // so that pairs which stop colliding are correctly marked as non-colliding next frame.
             if (updateLastFrameData) {
-                data.LastFrameCollisionInfo.WasColliding = data.IsColliding;
-                data.LastFrameCollisionInfo.IsValid = true;
+                data.LastFrameCollisionData.WasColliding = data.IsColliding;
+                data.LastFrameCollisionData.IsValid = true;
             }
 
             if (data.IsColliding) {
