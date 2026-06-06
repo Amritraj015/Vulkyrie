@@ -23,12 +23,15 @@ namespace Vulkyrie {
                         (shapeTwo->GetType() == CollisionShapeType::Sphere && shapeOne->GetType() == CollisionShapeType::ConvexPolyhedron),
                     "SATAlgorithm::PerformSphereVsConvexPolyhedronCollisionCheck only supports Sphere vs Convex Polyhedron collision checks.");
 
+            // Resolve which shape is the sphere and which is the polyhedron regardless of the pair order.
             const auto *sphereShape = static_cast<const SphereShape *>(isShapeOneSphere ? shapeOne : shapeTwo);
             const auto *polyhedronShape = static_cast<const ConvexPolyhedronShape *>(isShapeOneSphere ? shapeTwo : shapeOne);
 
             const TransformComponent &sphereToWorldTransform = isShapeOneSphere ? data.ShapeOneToWorldTransform : data.ShapeTwoToWorldTransform;
             const TransformComponent &polyhedronToWorldTransform = isShapeOneSphere ? data.ShapeTwoToWorldTransform : data.ShapeOneToWorldTransform;
 
+            // Transform the sphere center into polyhedron local space so all per-face tests can be done
+            // without repeatedly applying the world transform inside the loop.
             const TransformComponent worldToPolyhedronTransform = polyhedronToWorldTransform.Inverse();
             const TransformComponent sphereToPolyhedronTransform = worldToPolyhedronTransform * sphereToWorldTransform;
 
@@ -38,6 +41,8 @@ namespace Vulkyrie {
             size_t minFaceIndex = 0;
             bool noContact = false;
 
+            // Test every face normal as a candidate separating axis.
+            // A non-positive penetration depth means this face normal separates the shapes — early out immediately.
             for (size_t f = 0; f < polyhedronShape->GetFacesCount(); ++f) {
                 f32 penetrationDepth = computePolyhedronFaceVsSpherePenetrationDepth(f, *polyhedronShape, *sphereShape, sphereCenter);
 
@@ -56,12 +61,20 @@ namespace Vulkyrie {
                 continue;
             }
 
+            // All face normals show penetration — the shapes are overlapping. Build contact information.
             if (data.ReportContacts) {
                 const glm::vec3 minFaceNormal = polyhedronShape->GetFaceNormal(minFaceIndex);
                 const glm::vec3 minFaceNormalWorld = polyhedronToWorldTransform.Rotation * minFaceNormal;
 
-                glm::vec3 contactPointSphereLocal = sphereToWorldTransform.Inverse().Rotation * (-minFaceNormal * sphereShape->GetRadius());
+                // Contact point on the sphere surface in sphere local space: move from center by radius in the
+                // direction of the face normal (the face normal points into the sphere at the contact).
+                glm::vec3 contactPointSphereLocal = sphereToWorldTransform.Inverse().Rotation * (-minFaceNormalWorld * sphereShape->GetRadius());
+
+                // Contact point on the polyhedron surface in polyhedron local space: move inward from the sphere
+                // center by the amount the sphere protrudes past the face.
                 glm::vec3 contactPointPolyhedronLocal = sphereCenter + minFaceNormal * (minPenetrationDepth - sphereShape->GetRadius());
+
+                // The contact normal points from the polyhedron toward the sphere (i.e. toward shape one when shape one is the sphere).
                 glm::vec3 contactNormal = isShapeOneSphere ? -minFaceNormalWorld : minFaceNormalWorld;
 
                 TriangleShape::ComputeSmoothTriangleMeshContact(&data.ShapeOne,
@@ -96,6 +109,7 @@ namespace Vulkyrie {
                     (data.ShapeTwo.GetType() == CollisionShapeType::Capsule && data.ShapeOne.GetType() == CollisionShapeType::ConvexPolyhedron),
                 "SATAlgorithm::PerformCapsuleVsConvexPolyhedronCollisionCheck only supports Capsule vs Convex Polyhedron collision checks.");
 
+        // Resolve which shape is the capsule and which is the polyhedron regardless of the pair order.
         const bool isShapeOneCapsule = data.ShapeOne.GetType() == CollisionShapeType::Capsule;
         const auto *capsuleShape = static_cast<const CapsuleShape *>(isShapeOneCapsule ? &data.ShapeOne : &data.ShapeTwo);
         const auto *polyhedronShape = static_cast<const ConvexPolyhedronShape *>(isShapeOneCapsule ? &data.ShapeTwo : &data.ShapeOne);
@@ -104,6 +118,7 @@ namespace Vulkyrie {
         const TransformComponent &polyhedronToWorld = isShapeOneCapsule ? data.ShapeTwoToWorldTransform : data.ShapeOneToWorldTransform;
         const TransformComponent polyhedronToCapsule = capsuleToWorld.Inverse() * polyhedronToWorld;
 
+        // The capsule inner segment lies along the Y axis in capsule local space.
         const glm::vec3 capsuleSegmentStart(0.0f, -capsuleShape->GetHalfHeight(), 0.0f);
         const glm::vec3 capsuleSegmentEnd(0.0f, capsuleShape->GetHalfHeight(), 0.0f);
         const glm::vec3 capsuleSegmentAxis = capsuleSegmentEnd - capsuleSegmentStart;
@@ -115,6 +130,8 @@ namespace Vulkyrie {
         glm::vec3 separatingPolyhedronEdgeVertexOne;
         glm::vec3 separatingPolyhedronEdgeVertexTwo;
 
+        // Test every face normal as a candidate separating axis.
+        // A non-positive penetration depth means this face normal separates the shapes — early out immediately.
         for (size_t f = 0; f < polyhedronShape->GetFacesCount(); ++f) {
             glm::vec3 outFaceNormalCapsuleSpace;
 
@@ -133,7 +150,11 @@ namespace Vulkyrie {
             }
         }
 
-        for (const HalfEdgeMesh::Edge &edge : polyhedronShape->GetHalfEdges()) {
+        // Test each unique polyhedron edge against the capsule inner segment. Iterate with step 2 to visit
+        // only one half-edge per geometric edge and avoid testing each edge twice via its twin.
+        // The Gauss Map test filters out edge pairs whose cross product cannot be a separating axis.
+        for (size_t e = 0; e < polyhedronShape->GetHalfEdgesCount(); e += 2) {
+            const HalfEdgeMesh::Edge &edge = polyhedronShape->GetHalfEdge(e);
             const glm::vec3 edgeVertexOne = polyhedronShape->GetVertexPosition(edge.StartVertexIndex);
             const glm::vec3 edgeVertexTwo = polyhedronShape->GetVertexPosition(polyhedronShape->GetHalfEdge(edge.NextEdgeIndex).StartVertexIndex);
 
@@ -163,11 +184,14 @@ namespace Vulkyrie {
             }
         }
 
+        // No separating axis found — the shapes are overlapping. Convert the capsule segment endpoints to
+        // polyhedron local space and the separating axis (which is in capsule space) to world space.
         const TransformComponent capsuleToPolyhedron = polyhedronToCapsule.Inverse();
         const glm::vec3 capsuleSegmentStartPolyhedronSpace = capsuleToPolyhedron * capsuleSegmentStart;
         const glm::vec3 capsuleSegmentEndPolyhedronSpace = capsuleToPolyhedron * capsuleSegmentEnd;
-        glm::vec3 contactNormal = polyhedronToWorld.Rotation * separatingAxisCapsuleSpace;
+        glm::vec3 contactNormal = capsuleToWorld.Rotation * separatingAxisCapsuleSpace;
 
+        // The contact normal must point from shape two toward shape one.
         if (isShapeOneCapsule) {
             contactNormal = -contactNormal;
         }
@@ -677,7 +701,7 @@ namespace Vulkyrie {
         NarrowPhaseData &data = batch.Data[batchIndex];
         const HalfEdgeMesh::Face &face = polyhedron.GetFace(referenceFaceIndex);
 
-        // Get the face normal
+        // Get the face normal.
         glm::vec3 faceNormal = polyhedron.GetFaceNormal(referenceFaceIndex);
 
         size_t firstEdgeIndex = face.EdgeIndex;
@@ -688,22 +712,23 @@ namespace Vulkyrie {
         planesPoints.reserve(2);
         planesNormals.reserve(2);
 
-        // For each adjacent edge of the separating face of the polyhedron
+        // Build one clipping plane per edge of the reference face. Each plane passes through the edge's start
+        // vertex and has a normal perpendicular to both the edge direction and the reference face normal, so it
+        // cuts off the region outside that edge's lateral boundary.
         do {
 
             const HalfEdgeMesh::Edge &edge = polyhedron.GetHalfEdge(edgeIndex);
             const HalfEdgeMesh::Edge &twinEdge = polyhedron.GetHalfEdge(edge.TwinEdgeIndex);
 
-            // Compute the edge vertices and edge direction
+            // Compute the edge vertices and edge direction.
             glm::vec3 edgeV1 = polyhedron.GetVertexPosition(edge.StartVertexIndex);
             glm::vec3 edgeV2 = polyhedron.GetVertexPosition(twinEdge.StartVertexIndex);
             glm::vec3 edgeDirection = edgeV2 - edgeV1;
 
-            // Compute the normal of the clipping plane for this edge
-            // The clipping plane is perpendicular to the edge direction and the reference face normal
+            // The clipping plane normal is perpendicular to the edge direction and the reference face normal,
+            // so it points inward (toward the interior of the reference face).
             glm::vec3 clipPlaneNormal = glm::cross(faceNormal, edgeDirection);
 
-            // Construct a clipping plane for each adjacent edge of the separating face of the polyhedron
             planesPoints.push_back(polyhedron.GetVertexPosition(edge.StartVertexIndex));
             planesNormals.push_back(clipPlaneNormal);
 
@@ -711,21 +736,24 @@ namespace Vulkyrie {
 
         } while (edgeIndex != firstEdgeIndex);
 
-        // First we clip the inner segment of the capsule with the four planes of the adjacent faces
+        // Clip the capsule inner segment against the lateral boundary planes of the reference face to obtain
+        // the portion of the segment that lies within the face's footprint.
         std::vector<glm::vec3> clipSegment = ClipSegmentWithPlanes(capsuleSegAPolyhedronSpace, capsuleSegBPolyhedronSpace, planesPoints, planesNormals);
 
-        // Project the two clipped points into the polyhedron face
+        // Offset to move a clipped point from its position on the capsule axis to its projection on the face.
         const glm::vec3 delta = faceNormal * (penetrationDepth - capsuleRadius);
 
         bool contactFound = false;
 
-        // For each of the two clipped points
+        // Keep only the clipped points whose penetration depth is consistent with the minimum depth for this
+        // separating axis. Points that are far from the face (e.g. endpoints outside the clipping region that
+        // were not fully trimmed) are discarded.
         for (size_t i = 0; i < clipSegment.size(); i++) {
 
-            // Compute the penetration depth of the two clipped points (to filter out the points that does not correspond to the penetration depth)
+            // Measure how far the clipped point is below the reference face plane.
             const f32 clipPointPenDepth = glm::dot(planesPoints[0] - clipSegment[i], faceNormal);
 
-            // If the clipped point is one that produce this penetration depth, we keep it
+            // Accept the point only if its depth matches the axis penetration depth (within a small tolerance).
             if (clipPointPenDepth > penetrationDepth - capsuleRadius - f32(0.001)) {
 
                 if (!contactFound) {
@@ -766,36 +794,43 @@ namespace Vulkyrie {
                                                    const ConvexPolyhedronShape &polyhedronTwo,
                                                    const HalfEdgeMesh::Edge &edgeTwo,
                                                    const TransformComponent &polyhedronOneToTwo) const {
+        // Fetch the outward face normals on either side of each edge and rotate them into a shared space
+        // (polyhedronTwo local space) so the Gauss Map test can compare them directly.
         const glm::vec3 a = polyhedronOneToTwo.Rotation * polyhedronOne.GetFaceNormal(edgeOne.FaceIndex);
         const glm::vec3 b = polyhedronOneToTwo.Rotation * polyhedronOne.GetFaceNormal(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).FaceIndex);
 
         const glm::vec3 c = polyhedronTwo.GetFaceNormal(edgeTwo.FaceIndex);
         const glm::vec3 d = polyhedronTwo.GetFaceNormal(polyhedronTwo.GetHalfEdge(edgeTwo.TwinEdgeIndex).FaceIndex);
 
-        // Compute b.cross(a) using the edge direction.
+        // Approximate b × a using the edge direction: for a half-edge, (vertex1 - vertex2) is proportional
+        // to the cross product of the two adjacent face normals, avoiding a full cross product computation.
         const glm::vec3 edgeOneVertexOne = polyhedronOne.GetVertexPosition(edgeOne.StartVertexIndex);
         const glm::vec3 edgeOneVertexTwo = polyhedronOne.GetVertexPosition(polyhedronOne.GetHalfEdge(edgeOne.TwinEdgeIndex).StartVertexIndex);
         const glm::vec3 bCrossA = polyhedronOneToTwo.Rotation * (edgeOneVertexOne - edgeOneVertexTwo);
 
-        // Compute d.cross(c) using the edge direction.
+        // Same approximation for d × c using edgeTwo's direction.
         const glm::vec3 edgeTwoVertexOne = polyhedronTwo.GetVertexPosition(edgeTwo.StartVertexIndex);
         const glm::vec3 edgeTwoVertexTwo = polyhedronTwo.GetVertexPosition(polyhedronTwo.GetHalfEdge(edgeTwo.TwinEdgeIndex).StartVertexIndex);
         const glm::vec3 dCrossC = edgeTwoVertexOne - edgeTwoVertexTwo;
 
-        // Test if the two arcs of the Gauss Map intersect (therefore forming a minkowski face)
-        // Note that we negate the normals of the second polyhedron because we are looking at the
-        // Gauss map of the minkowski difference of the polyhedrons.
+        // Negate the normals of the second polyhedron because we work with the Gauss map of the Minkowski
+        // difference (A - B), where B's Gauss map is reflected.
         return testGaussMapArcsIntersect(a, b, -c, -d, bCrossA, dCrossC);
     }
 
     bool SATAlgorithm::testGaussMapArcsIntersect(
         const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &d, const glm::vec3 &bCrossA, const glm::vec3 &dCrossC) const {
 
+        // Project each arc endpoint onto the great circle plane of the other arc.
+        // The four dot products tell us on which side of each great circle the opposite endpoints lie.
         const f32 cba = glm::dot(c, bCrossA);
         const f32 dba = glm::dot(d, bCrossA);
         const f32 adc = glm::dot(a, dCrossC);
         const f32 bdc = glm::dot(b, dCrossC);
 
+        // The arcs intersect if and only if C and D straddle arc AB's great circle (cba * dba < 0),
+        // A and B straddle arc CD's great circle (adc * bdc < 0), and the arcs lie on the same hemisphere
+        // (cba * bdc > 0) rather than being antipodal.
         return cba * dba < f32(0.0) && adc * bdc < f32(0.0) && cba * bdc > f32(0.0);
     }
 
@@ -975,6 +1010,7 @@ namespace Vulkyrie {
                                                                       size_t minFaceIndex,
                                                                       NarrowPhaseDataBatch &batch,
                                                                       size_t batchIndex) const {
+        // The reference polyhedron owns the minimum-penetration face normal; the incident polyhedron is clipped against it.
         const ConvexPolyhedronShape *referencePolyhedron;
         const ConvexPolyhedronShape *incidentPolyhedron;
 
@@ -994,26 +1030,36 @@ namespace Vulkyrie {
 
         NarrowPhaseData &data = batch.Data[batchIndex];
 
+        // The world-space contact normal points from the reference polyhedron toward the incident polyhedron
+        // (i.e. from shape one toward shape two when shape one is the reference).
         const glm::vec3 contactNormal = isMinPenetrationFaceNormalPolyhedronOne ? data.ShapeOneToWorldTransform.Rotation * axisReferenceSpace
                                                                                 : -(data.ShapeTwoToWorldTransform.Rotation * axisReferenceSpace);
 
         const HalfEdgeMesh::Face &referenceFace = referencePolyhedron->GetFace(minFaceIndex);
+
+        // Find the incident face: the face on the incident polyhedron most anti-parallel to the reference face normal.
         size_t incidentFaceIndex = incidentPolyhedron->FindMostAntiParallelFaceIndex(axisIncidentSpace);
         const HalfEdgeMesh::Face &incidentFace = incidentPolyhedron->GetFace(incidentFaceIndex);
 
         const size_t incidentFaceVerticesCount = incidentFace.FaceVertices.size();
         const size_t maxElementsCount = incidentFaceVerticesCount * 2 * referenceFace.FaceVertices.size();
 
+        // Two vertex buffers are ping-ponged during Sutherland-Hodgman clipping so that each clip pass reads
+        // from one and writes into the other without allocating a new vector per pass.
         std::vector<glm::vec3> tempVerticesOne;
         std::vector<glm::vec3> tempVerticesTwo;
         tempVerticesOne.reserve(maxElementsCount);
         tempVerticesTwo.reserve(maxElementsCount);
 
+        // Seed the clipping input with the incident face vertices transformed into reference local space.
         for (size_t i = 0; i < incidentFaceVerticesCount; i++) {
             const glm::vec3 faceVertexIncidentSpace = incidentPolyhedron->GetVertexPosition(incidentFace.FaceVertices[i]);
             tempVerticesOne.push_back(incidentToReferenceTransform * faceVertexIncidentSpace);
         }
 
+        // Clip the incident face polygon against each lateral side plane of the reference face in turn
+        // (Sutherland-Hodgman algorithm). Each side plane passes through one reference face edge and has
+        // a normal perpendicular to the edge direction and the reference face normal.
         const size_t firstEdgeIndex = referenceFace.EdgeIndex;
         bool areVerticesOneInput = false;
         size_t outputVerticesCount;
@@ -1051,11 +1097,14 @@ namespace Vulkyrie {
             }
         } while (currentEdgeIndex != firstEdgeIndex && outputVerticesCount > 0);
 
+        // After all clip passes, the surviving vertices are in whichever buffer was last written.
         std::vector<glm::vec3> &clippedPolygonVertices = areVerticesOneInput ? tempVerticesTwo : tempVerticesOne;
         const glm::vec3 referenceFaceVertex = referencePolyhedron->GetVertexPosition(referencePolyhedron->GetHalfEdge(firstEdgeIndex).StartVertexIndex);
 
         bool contactPointsFound = false;
 
+        // Keep only clipped vertices that lie on or below the reference face plane (penetrationDepth > 0).
+        // Vertices above the plane are outside the reference shape and do not correspond to real contacts.
         for (size_t i = 0; i < clippedPolygonVertices.size(); ++i) {
             const f32 penetrationDepth = glm::dot(referenceFaceVertex - clippedPolygonVertices[i], axisReferenceSpace);
 
