@@ -128,6 +128,16 @@ namespace Vulkyrie {
         return glm::length2(glm::cross(vectorOne, vectorTwo)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
     }
 
+    /** @brief Determines if two vectors are orthogonal by checking if the absolute value of their dot product is below a small threshold.
+     *
+     * @param vectorOne The first vector to compare.
+     * @param vectorTwo The second vector to compare.
+     * @returns True if the vectors are orthogonal (or nearly orthogonal), false otherwise.
+     */
+    [[nodiscard]] VE_INLINE bool AreOrthogonalVectors(const glm::vec3 &vectorOne, const glm::vec3 &vectorTwo) {
+        return std::abs(glm::dot(vectorOne, vectorTwo)) < 0.001f;
+    }
+
     /** @brief Computes the closest points between two line segments.
      *
      * Uses the parametric approach from "Real-Time Collision Detection" (Ericson, §5.1.9).
@@ -208,6 +218,17 @@ namespace Vulkyrie {
         closestPointSegmentTwo = segmentTwoStart + seg2Direction * t;
     }
 
+    /** @brief Clips a polygon against a single plane using the Sutherland-Hodgman algorithm.
+     *
+     * Iterates over each edge of the input polygon and retains vertices on the positive side of the plane
+     * (where dot(vertex - planePoint, planeNormal) >= 0). Edges that cross the plane boundary contribute
+     * the intersection point so the clipped polygon remains closed.
+     *
+     * @param polygonVertices The ordered list of vertices forming the input polygon.
+     * @param planePoint Any point on the clipping plane.
+     * @param planeNormal The outward normal of the clipping plane (need not be unit length).
+     * @param outClippedPolygonVertices Output: the vertices of the clipped polygon. Must be empty on entry.
+     */
     VE_INLINE void clipPolygonWithPlane(const std::vector<glm::vec3> &polygonVertices,
                                         const glm::vec3 &planePoint,
                                         const glm::vec3 &planeNormal,
@@ -269,10 +290,33 @@ namespace Vulkyrie {
         }
     }
 
+    /** @brief Projects a point onto a plane defined by a unit normal and a point on the plane.
+     *
+     * Computes P' = P - dot(n, P - Q) * n, where n is the unit plane normal and Q is the plane point.
+     * The result is the nearest point on the plane to the input point.
+     *
+     * @param point The point to project.
+     * @param unitPlaneNormal The unit normal of the plane. Must be normalized.
+     * @param planePoint Any point on the plane.
+     * @returns The projection of the point onto the plane.
+     */
     VE_INLINE glm::vec3 ProjectPointOntoPlane(const glm::vec3 &point, const glm::vec3 &unitPlaneNormal, const glm::vec3 &planePoint) {
         return point - glm::dot(unitPlaneNormal, point - planePoint) * unitPlaneNormal;
     }
 
+    /** @brief Clips a line segment against an ordered list of planes, returning the surviving portion.
+     *
+     * Applies each clipping plane in sequence, keeping only the part of the segment on the positive side
+     * (dot(vertex - planePoint, planeNormal) >= 0). Each step replaces the current segment with the
+     * clipped result before applying the next plane. Returns an empty vector if the segment is fully
+     * clipped away.
+     *
+     * @param segA The start point of the segment.
+     * @param segB The end point of the segment.
+     * @param planesPoints A point on each clipping plane. Must be the same size as planesNormals.
+     * @param planesNormals The outward normal of each clipping plane. Must be the same size as planesPoints.
+     * @returns The vertices of the clipped segment (0 or 2 points), or an empty vector if fully clipped.
+     */
     VE_INLINE std::vector<glm::vec3> ClipSegmentWithPlanes(const glm::vec3 &segA,
                                                            const glm::vec3 &segB,
                                                            const std::vector<glm::vec3> &planesPoints,
