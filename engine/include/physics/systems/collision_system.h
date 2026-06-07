@@ -62,6 +62,11 @@ namespace Vulkyrie {
             }
         }
 
+        VE_INLINE const AABB GetWorldAABB(const Collider *collider) const {
+            VASSERT(collider->GetBroadPhaseID() != AABB_TREE_NULL_NODE, "Invalid BroadPhaseID for collider.");
+            return _broadPhaseSystem.GetFatAABB(collider->GetBroadPhaseID());
+        }
+
         void RemoveCollider(Collider &collider);
         void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);

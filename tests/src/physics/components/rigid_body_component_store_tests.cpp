@@ -10,7 +10,7 @@ using namespace Vulkyrie;
 // ---------------------------------------------------------------------------
 
 // Creates a RigidBodyComponent with the given parameters
-static RigidBodyComponent makeRigidBodyComp(RigidBody *body, BodyType type = BodyType::DYNAMIC, const glm::vec3 &worldPos = glm::vec3(0.0f)) {
+static RigidBodyComponent makeRigidBodyComp(RigidBody *body, BodyType type = BodyType::Dynamic, const glm::vec3 &worldPos = glm::vec3(0.0f)) {
     return RigidBodyComponent{ body, type, worldPos };
 }
 
@@ -124,7 +124,7 @@ TEST_CASE("RigidBodyComponentStore - AddComponent initializes WorldPosition", "[
 
     Entity e = em.CreateEntity();
     glm::vec3 worldPos(10.0f, 20.0f, 30.0f);
-    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::DYNAMIC, worldPos), true);
+    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::Dynamic, worldPos), true);
 
     REQUIRE(store.GetWorldCenterOfMass(e) == worldPos);
 }
@@ -199,13 +199,13 @@ TEST_CASE("RigidBodyComponentStore - BodyType is correctly set on creation", "[e
     Entity eKinematic = em.CreateEntity();
     Entity eDynamic = em.CreateEntity();
 
-    store.AddComponent(eStatic, makeRigidBodyComp(nullptr, BodyType::STATIC), true);
-    store.AddComponent(eKinematic, makeRigidBodyComp(nullptr, BodyType::KINEMATIC), true);
-    store.AddComponent(eDynamic, makeRigidBodyComp(nullptr, BodyType::DYNAMIC), true);
+    store.AddComponent(eStatic, makeRigidBodyComp(nullptr, BodyType::Static), true);
+    store.AddComponent(eKinematic, makeRigidBodyComp(nullptr, BodyType::Kinematic), true);
+    store.AddComponent(eDynamic, makeRigidBodyComp(nullptr, BodyType::Dynamic), true);
 
-    REQUIRE(store.GetBodyType(eStatic) == BodyType::STATIC);
-    REQUIRE(store.GetBodyType(eKinematic) == BodyType::KINEMATIC);
-    REQUIRE(store.GetBodyType(eDynamic) == BodyType::DYNAMIC);
+    REQUIRE(store.GetBodyType(eStatic) == BodyType::Static);
+    REQUIRE(store.GetBodyType(eKinematic) == BodyType::Kinematic);
+    REQUIRE(store.GetBodyType(eDynamic) == BodyType::Dynamic);
 }
 
 TEST_CASE("RigidBodyComponentStore - SetBodyType changes body type", "[ecs][rigidbody]") {
@@ -213,13 +213,13 @@ TEST_CASE("RigidBodyComponentStore - SetBodyType changes body type", "[ecs][rigi
     RigidBodyComponentStore store;
 
     Entity e = em.CreateEntity();
-    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::DYNAMIC), true);
+    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::Dynamic), true);
 
-    store.SetBodyType(e, BodyType::STATIC);
-    REQUIRE(store.GetBodyType(e) == BodyType::STATIC);
+    store.SetBodyType(e, BodyType::Static);
+    REQUIRE(store.GetBodyType(e) == BodyType::Static);
 
-    store.SetBodyType(e, BodyType::KINEMATIC);
-    REQUIRE(store.GetBodyType(e) == BodyType::KINEMATIC);
+    store.SetBodyType(e, BodyType::Kinematic);
+    REQUIRE(store.GetBodyType(e) == BodyType::Kinematic);
 }
 
 // ===========================================================================================
@@ -491,7 +491,7 @@ TEST_CASE("RigidBodyComponentStore - SetInverseMass to zero for static bodies", 
     RigidBodyComponentStore store;
 
     Entity e = em.CreateEntity();
-    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::STATIC), true);
+    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::Static), true);
 
     store.SetInverseMass(e, 0.0f);
     REQUIRE(store.GetInverseMass(e) == 0.0f);
@@ -768,7 +768,7 @@ TEST_CASE("RigidBodyComponentStore - World center of mass initialized from World
 
     Entity e = em.CreateEntity();
     glm::vec3 worldPos(100.0f, 200.0f, 300.0f);
-    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::DYNAMIC, worldPos), true);
+    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::Dynamic, worldPos), true);
 
     REQUIRE(store.GetWorldCenterOfMass(e) == worldPos);
 }
@@ -1048,7 +1048,7 @@ TEST_CASE("RigidBodyComponentStore - SetActiveStatus preserves all component dat
     RigidBodyComponentStore store;
     Entity e = em.CreateEntity();
 
-    store.AddComponent(e, makeRigidBodyComp(rb.get(), BodyType::KINEMATIC, glm::vec3(10.0f, 20.0f, 30.0f)), true);
+    store.AddComponent(e, makeRigidBodyComp(rb.get(), BodyType::Kinematic, glm::vec3(10.0f, 20.0f, 30.0f)), true);
     store.SetMass(e, 5.0f);
     store.SetLinearVelocity(e, glm::vec3(1.0f, 2.0f, 3.0f));
     store.SetAngularVelocity(e, glm::vec3(0.1f, 0.2f, 0.3f));
@@ -1056,7 +1056,7 @@ TEST_CASE("RigidBodyComponentStore - SetActiveStatus preserves all component dat
     store.SetActiveStatus(e, false);
 
     REQUIRE(&store.GetRigidBody(e) == rb.get());
-    REQUIRE(store.GetBodyType(e) == BodyType::KINEMATIC);
+    REQUIRE(store.GetBodyType(e) == BodyType::Kinematic);
     REQUIRE(store.GetMass(e) == 5.0f);
     REQUIRE(store.GetLinearVelocity(e) == glm::vec3(1.0f, 2.0f, 3.0f));
     REQUIRE(store.GetAngularVelocity(e) == glm::vec3(0.1f, 0.2f, 0.3f));
@@ -1179,7 +1179,7 @@ TEST_CASE("RigidBodyComponentStore - Zero mass and inverse mass edge case", "[ec
     RigidBodyComponentStore store;
 
     Entity e = em.CreateEntity();
-    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::STATIC), true);
+    store.AddComponent(e, makeRigidBodyComp(nullptr, BodyType::Static), true);
 
     store.SetMass(e, 0.0f);
     store.SetInverseMass(e, 0.0f);
@@ -1238,21 +1238,21 @@ TEST_CASE("RigidBodyComponentStore - All BodyType values are supported", "[ecs][
     Entity eKinematic = em.CreateEntity();
     Entity eDynamic = em.CreateEntity();
 
-    store.AddComponent(eStatic, makeRigidBodyComp(nullptr, BodyType::STATIC), true);
-    store.AddComponent(eKinematic, makeRigidBodyComp(nullptr, BodyType::KINEMATIC), true);
-    store.AddComponent(eDynamic, makeRigidBodyComp(nullptr, BodyType::DYNAMIC), true);
+    store.AddComponent(eStatic, makeRigidBodyComp(nullptr, BodyType::Static), true);
+    store.AddComponent(eKinematic, makeRigidBodyComp(nullptr, BodyType::Kinematic), true);
+    store.AddComponent(eDynamic, makeRigidBodyComp(nullptr, BodyType::Dynamic), true);
 
-    REQUIRE(store.GetBodyType(eStatic) == BodyType::STATIC);
-    REQUIRE(store.GetBodyType(eKinematic) == BodyType::KINEMATIC);
-    REQUIRE(store.GetBodyType(eDynamic) == BodyType::DYNAMIC);
+    REQUIRE(store.GetBodyType(eStatic) == BodyType::Static);
+    REQUIRE(store.GetBodyType(eKinematic) == BodyType::Kinematic);
+    REQUIRE(store.GetBodyType(eDynamic) == BodyType::Dynamic);
 
     // Test type transitions
-    store.SetBodyType(eDynamic, BodyType::STATIC);
-    REQUIRE(store.GetBodyType(eDynamic) == BodyType::STATIC);
+    store.SetBodyType(eDynamic, BodyType::Static);
+    REQUIRE(store.GetBodyType(eDynamic) == BodyType::Static);
 
-    store.SetBodyType(eStatic, BodyType::KINEMATIC);
-    REQUIRE(store.GetBodyType(eStatic) == BodyType::KINEMATIC);
+    store.SetBodyType(eStatic, BodyType::Kinematic);
+    REQUIRE(store.GetBodyType(eStatic) == BodyType::Kinematic);
 
-    store.SetBodyType(eKinematic, BodyType::DYNAMIC);
-    REQUIRE(store.GetBodyType(eKinematic) == BodyType::DYNAMIC);
+    store.SetBodyType(eKinematic, BodyType::Dynamic);
+    REQUIRE(store.GetBodyType(eKinematic) == BodyType::Dynamic);
 }

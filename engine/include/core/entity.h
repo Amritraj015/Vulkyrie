@@ -65,6 +65,7 @@ namespace Vulkyrie {
 } // namespace Vulkyrie
 
 namespace std {
+
     // Hash function for an Entity
     template <> struct hash<Vulkyrie::Entity> {
     public:
@@ -72,4 +73,5 @@ namespace std {
             return static_cast<size_t>(entity.GetID());
         }
     };
+
 } // namespace std

@@ -12,9 +12,19 @@
 
 namespace Vulkyrie {
 
+    class Joint;
+
     class PhysicsWorld {
     public:
         explicit PhysicsWorld(const PhysicsWorldSettings &settings);
+
+        PhysicsWorld(const PhysicsWorld &) = delete;
+        PhysicsWorld &operator=(const PhysicsWorld &) = delete;
+
+        PhysicsWorld(PhysicsWorld &&) = delete;
+        PhysicsWorld &operator=(PhysicsWorld &&) = delete;
+
+        ~PhysicsWorld() = default;
 
         /** @brief Provides access to the settings of the physics world, which include parameters such as gravity, time step, and other global
          * configurations that affect the behavior of the physics simulation. This method allows other parts of the physics system to query the current
@@ -91,7 +101,45 @@ namespace Vulkyrie {
             return _eventListener;
         }
 
+        [[nodiscard]] VE_INLINE AABB GetWorldAABB(const Collider &collider) const {
+            if (collider.GetBroadPhaseID() == AABB_TREE_NULL_NODE) {
+                return AABB();
+            }
+
+            return _collisionSystem.GetWorldAABB(&collider);
+        }
+
+        VE_INLINE void TestOverlap(Body &bodyOne, Body &bodyTwo) {
+            _collisionSystem.TestOverlap(bodyOne, bodyTwo);
+        }
+
+        VE_INLINE void TestOverlap(Body &body, OverlapCallback &callback) {
+            _collisionSystem.TestOverlap(body, callback);
+        }
+
+        VE_INLINE void TestOverlap(OverlapCallback &callback) {
+            _collisionSystem.TestOverlap(callback);
+        }
+
+        VE_INLINE void TestCollision(Body &bodyOne, Body &bodyTwo, CollisionCallback &callback) {
+            _collisionSystem.TestCollision(bodyOne, bodyTwo, callback);
+        }
+
+        VE_INLINE void TestCollision(Body &body, CollisionCallback &callback) {
+            _collisionSystem.TestCollision(body, callback);
+        }
+
+        VE_INLINE void TestCollision(CollisionCallback &callback) {
+            _collisionSystem.TestCollision(callback);
+        }
+
         void Update();
+        RigidBody &CreateRigidBody(const TransformComponent &transform);
+        RigidBody &GetRigidBody(size_t index);
+        const RigidBody &GetRigidBody(size_t index) const;
+        void DestroyRigidBody(RigidBody &body);
+
+        void DestroyJoint(Joint &joint);
 
         void SetActiveStatusForBody(Entity entity, bool disabled);
 
@@ -104,6 +152,7 @@ namespace Vulkyrie {
         RigidBodyComponentStore _rigidBodyComponentStore;
         ColliderComponentStore _colliderComponentStore;
         TransformComponentStore _transformComponentStore;
+        std::vector<RigidBody *> _rigidBodies;
 
         CollisionSystem _collisionSystem;
         DynamicsSystem _dynamicsSystem;

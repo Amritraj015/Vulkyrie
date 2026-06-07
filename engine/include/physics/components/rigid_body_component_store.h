@@ -7,7 +7,7 @@ namespace Vulkyrie {
     class RigidBody;
 
     /** @brief Body type classification used by rigid bodies. Mirrors the runtime Body semantics. */
-    enum class BodyType : i32 { STATIC, KINEMATIC, DYNAMIC };
+    enum class BodyType : i32 { Static, Kinematic, Dynamic };
 
     /** @brief Plain-data component passed to `RigidBodyComponentStore::AddComponent`.
      *

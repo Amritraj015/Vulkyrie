@@ -314,3 +314,206 @@ TEST_CASE("ComputeClosestPointBetweenTwoSegments - closest points clamped at seg
     REQUIRE(p2.x == Catch::Approx(0.0f).margin(1e-5f));
     REQUIRE(p2.y == Catch::Approx(0.0f).margin(1e-5f));
 }
+
+// ===========================================================================================
+// AreOrthogonalVectors
+// ===========================================================================================
+
+TEST_CASE("AreOrthogonalVectors - axis-aligned orthogonal vectors are orthogonal", "[core][utilities]") {
+    REQUIRE(AreOrthogonalVectors(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+    REQUIRE(AreOrthogonalVectors(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+    REQUIRE(AreOrthogonalVectors(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+}
+
+TEST_CASE("AreOrthogonalVectors - parallel vectors are not orthogonal", "[core][utilities]") {
+    REQUIRE_FALSE(AreOrthogonalVectors(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+    REQUIRE_FALSE(AreOrthogonalVectors(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f)));
+}
+
+TEST_CASE("AreOrthogonalVectors - diagonal vectors in orthogonal pair are orthogonal", "[core][utilities]") {
+    // (1,1,0)/sqrt(2) and (1,-1,0)/sqrt(2): dot = (1-1)/2 = 0.
+    REQUIRE(AreOrthogonalVectors(glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)),
+                                 glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f))));
+}
+
+TEST_CASE("AreOrthogonalVectors - clearly non-orthogonal vectors are rejected", "[core][utilities]") {
+    // dot((1,0,0),(0.6,0.8,0)) = 0.6 >> 0.001.
+    REQUIRE_FALSE(AreOrthogonalVectors(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.6f, 0.8f, 0.0f)));
+}
+
+TEST_CASE("AreOrthogonalVectors - zero vector is orthogonal to any vector (dot is zero)", "[core][utilities]") {
+    // dot(zero, v) = 0 < 0.001 → true.
+    REQUIRE(AreOrthogonalVectors(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 2.0f, 3.0f)));
+}
+
+// ===========================================================================================
+// ProjectPointOntoPlane
+// ===========================================================================================
+
+TEST_CASE("ProjectPointOntoPlane - point above XZ plane projects to foot on plane", "[core][utilities]") {
+    // Plane: Y=0 (normal=(0,1,0), point=(0,0,0)). Point (3,5,4) → projected (3,0,4).
+    glm::vec3 result = ProjectPointOntoPlane({3.0f, 5.0f, 4.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+    REQUIRE(result.x == Catch::Approx(3.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(4.0f));
+}
+
+TEST_CASE("ProjectPointOntoPlane - point below plane projects correctly", "[core][utilities]") {
+    // Plane: Y=0. Point (1,-3,2) → projected (1,0,2).
+    glm::vec3 result = ProjectPointOntoPlane({1.0f, -3.0f, 2.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+    REQUIRE(result.x == Catch::Approx(1.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(2.0f));
+}
+
+TEST_CASE("ProjectPointOntoPlane - point on the plane is unchanged", "[core][utilities]") {
+    glm::vec3 result = ProjectPointOntoPlane({2.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+    REQUIRE(result.x == Catch::Approx(2.0f));
+    REQUIRE(result.y == Catch::Approx(0.0f));
+    REQUIRE(result.z == Catch::Approx(5.0f));
+}
+
+TEST_CASE("ProjectPointOntoPlane - offset plane: point above projects to plane surface", "[core][utilities]") {
+    // Plane: Y=2 (normal=(0,1,0), point=(0,2,0)). Point (1,5,3) → projected (1,2,3).
+    glm::vec3 result = ProjectPointOntoPlane({1.0f, 5.0f, 3.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 2.0f, 0.0f});
+    REQUIRE(result.x == Catch::Approx(1.0f));
+    REQUIRE(result.y == Catch::Approx(2.0f));
+    REQUIRE(result.z == Catch::Approx(3.0f));
+}
+
+TEST_CASE("ProjectPointOntoPlane - tilted plane (normalized diagonal normal)", "[core][utilities]") {
+    // Plane: normal = (1,1,0)/sqrt(2), through origin. Point (2,0,0).
+    // distance = dot(n, point) = (2+0)/sqrt(2) = sqrt(2).
+    // projected = (2,0,0) - sqrt(2)*(1/sqrt(2),1/sqrt(2),0) = (2,0,0) - (1,1,0) = (1,-1,0).
+    glm::vec3 n = glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f));
+    glm::vec3 result = ProjectPointOntoPlane({2.0f, 0.0f, 0.0f}, n, {0.0f, 0.0f, 0.0f});
+    REQUIRE(result.x == Catch::Approx(1.0f).margin(1e-5f));
+    REQUIRE(result.y == Catch::Approx(-1.0f).margin(1e-5f));
+    REQUIRE(result.z == Catch::Approx(0.0f).margin(1e-5f));
+}
+
+// ===========================================================================================
+// clipPolygonWithPlane
+// ===========================================================================================
+
+TEST_CASE("clipPolygonWithPlane - unit square clipped by Y=0 keeps upper half", "[core][utilities]") {
+    // Square: [(-1,-1,0),(1,-1,0),(1,1,0),(-1,1,0)]. Clip by Y=0 (normal=(0,1,0), point=(0,0,0)).
+    // Expected: [(-1,0,0),(1,0,0),(1,1,0),(-1,1,0)].
+    const std::vector<glm::vec3> poly = {
+        {-1.0f, -1.0f, 0.0f},
+        { 1.0f, -1.0f, 0.0f},
+        { 1.0f,  1.0f, 0.0f},
+        {-1.0f,  1.0f, 0.0f},
+    };
+
+    std::vector<glm::vec3> clipped;
+    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+
+    REQUIRE(clipped.size() == 4);
+    // All resulting Y values must be >= 0.
+    for (const auto &v : clipped) {
+        REQUIRE(v.y >= Catch::Approx(0.0f).margin(1e-5f));
+    }
+}
+
+TEST_CASE("clipPolygonWithPlane - polygon entirely in front of plane is unchanged", "[core][utilities]") {
+    // Triangle fully above Y=0.
+    const std::vector<glm::vec3> poly = {
+        {0.0f, 1.0f, 0.0f},
+        {1.0f, 2.0f, 0.0f},
+        {-1.0f, 3.0f, 0.0f},
+    };
+
+    std::vector<glm::vec3> clipped;
+    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+
+    REQUIRE(clipped.size() == 3);
+}
+
+TEST_CASE("clipPolygonWithPlane - polygon entirely behind plane produces no output", "[core][utilities]") {
+    // Triangle fully below Y=0.
+    const std::vector<glm::vec3> poly = {
+        {0.0f, -1.0f, 0.0f},
+        {1.0f, -2.0f, 0.0f},
+        {-1.0f, -3.0f, 0.0f},
+    };
+
+    std::vector<glm::vec3> clipped;
+    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+
+    REQUIRE(clipped.empty());
+}
+
+TEST_CASE("clipPolygonWithPlane - single vertex on plane boundary included in output", "[core][utilities]") {
+    // Triangle with one vertex exactly on Y=0 and the others above.
+    const std::vector<glm::vec3> poly = {
+        { 0.0f, 0.0f, 0.0f}, // on the plane
+        { 1.0f, 1.0f, 0.0f},
+        {-1.0f, 1.0f, 0.0f},
+    };
+
+    std::vector<glm::vec3> clipped;
+    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+
+    REQUIRE(clipped.size() == 3);
+}
+
+// ===========================================================================================
+// ClipSegmentWithPlanes
+// ===========================================================================================
+
+TEST_CASE("ClipSegmentWithPlanes - segment fully inside all planes is returned unchanged", "[core][utilities]") {
+    // Segment from (-0.5,0,0) to (0.5,0,0). Clip against X > -1 and X < 1 (two planes).
+    const std::vector<glm::vec3> points = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+    const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
+
+    auto result = ClipSegmentWithPlanes({-0.5f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, points, normals);
+
+    REQUIRE(result.size() == 2);
+    REQUIRE(result[0].x == Catch::Approx(-0.5f).margin(1e-5f));
+    REQUIRE(result[1].x == Catch::Approx(0.5f).margin(1e-5f));
+}
+
+TEST_CASE("ClipSegmentWithPlanes - segment fully outside a single plane is clipped to empty", "[core][utilities]") {
+    // Segment from (2,0,0) to (3,0,0) is fully behind plane X=0 with inward normal (-1,0,0).
+    // Plane point (0,0,0), normal (-1,0,0): half-space is X <= 0. Segment entirely at X > 0 → clipped.
+    const std::vector<glm::vec3> points = {{0.0f, 0.0f, 0.0f}};
+    const std::vector<glm::vec3> normals = {{-1.0f, 0.0f, 0.0f}};
+
+    auto result = ClipSegmentWithPlanes({2.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals);
+
+    REQUIRE(result.empty());
+}
+
+TEST_CASE("ClipSegmentWithPlanes - segment crossing a single plane clips one end", "[core][utilities]") {
+    // Segment from (-1,0,0) to (1,0,0). Clip by X >= 0 (plane point (0,0,0), normal (1,0,0)).
+    // Expected: [(0,0,0),(1,0,0)].
+    const std::vector<glm::vec3> points = {{0.0f, 0.0f, 0.0f}};
+    const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}};
+
+    auto result = ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, points, normals);
+
+    REQUIRE(result.size() == 2);
+    REQUIRE(result[0].x == Catch::Approx(0.0f).margin(1e-5f));
+    REQUIRE(result[1].x == Catch::Approx(1.0f).margin(1e-5f));
+}
+
+TEST_CASE("ClipSegmentWithPlanes - segment clipped to a sub-interval by two opposing planes", "[core][utilities]") {
+    // Segment from (-3,0,0) to (3,0,0). Clip to X in [-1,1].
+    const std::vector<glm::vec3> points = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+    const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
+
+    auto result = ClipSegmentWithPlanes({-3.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals);
+
+    REQUIRE(result.size() == 2);
+    REQUIRE(result[0].x == Catch::Approx(-1.0f).margin(1e-5f));
+    REQUIRE(result[1].x == Catch::Approx(1.0f).margin(1e-5f));
+}
+
+TEST_CASE("ClipSegmentWithPlanes - no planes leaves segment unchanged", "[core][utilities]") {
+    auto result = ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {}, {});
+
+    REQUIRE(result.size() == 2);
+    REQUIRE(result[0].x == Catch::Approx(-1.0f));
+    REQUIRE(result[1].x == Catch::Approx(1.0f));
+}

@@ -28,7 +28,7 @@ namespace Vulkyrie {
 
         // If the body is static, we need to update the constrained position and orientation to match the new transform,
         // since static bodies do not have velocities and their position and orientation are effectively "locked" in place.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::Static == GetBodyType()) {
             rigidBodyComponentStore.SetConstrainedPosition(_entity, transform.Position);
             rigidBodyComponentStore.SetConstrainedOrientation(_entity, transform.Rotation);
         }
@@ -48,7 +48,7 @@ namespace Vulkyrie {
         RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         rigidBodyComponentStore.SetMass(_entity, mass);
 
-        if (BodyType::DYNAMIC == GetBodyType()) {
+        if (BodyType::Dynamic == GetBodyType()) {
             if (mass > 0.0f) {
                 // For a dynamic body with positive mass, the inverse mass is simply 1 / mass.
                 rigidBodyComponentStore.SetInverseMass(_entity, 1.0f / mass);
@@ -62,7 +62,7 @@ namespace Vulkyrie {
     void RigidBody::SetLinearVelocity(const glm::vec3 &velocity) {
         // If this is a static body, it should not have its velocity changed,
         // so we can skip setting the velocity and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::Static == GetBodyType()) {
             return;
         }
 
@@ -78,7 +78,7 @@ namespace Vulkyrie {
     void RigidBody::SetAngularVelocity(const glm::vec3 &angularVelocity) {
         // If this is a static body, it should not have its angular velocity changed,
         // so we can skip setting the angular velocity and return early.
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::Static == GetBodyType()) {
             return;
         }
 
@@ -98,7 +98,7 @@ namespace Vulkyrie {
         rigidBodyComponentStore.SetLocalInertiaTensor(_entity, localInertiaTensor);
 
         // If this is a dynamic body, we need to update the inverse mass and inverse inertia tensor in the component store as well.
-        if (BodyType::DYNAMIC == GetBodyType()) {
+        if (BodyType::Dynamic == GetBodyType()) {
             rigidBodyComponentStore.SetInverseLocalInertiaTensor(_entity,
                                                                  glm::vec3(localInertiaTensor.x > 0.0f ? 1.0f / localInertiaTensor.x : 0.0f,
                                                                            localInertiaTensor.y > 0.0f ? 1.0f / localInertiaTensor.y : 0.0f,
@@ -122,7 +122,7 @@ namespace Vulkyrie {
         // The angular velocity remains unchanged, but the linear velocity needs to be updated based on the change in the center of mass position and the
         // current angular velocity of the body.
         // The formula for adjusting the linear velocity is: newLinearVelocity = oldLinearVelocity + cross(angularVelocity, newCenterOfMass - oldCenterOfMass)
-        if (BodyType::DYNAMIC == GetBodyType()) {
+        if (BodyType::Dynamic == GetBodyType()) {
             glm::vec3 linearVelocity = rigidBodyComponentStore.GetLinearVelocity(_entity);
             const glm::vec3 angularVelocity = rigidBodyComponentStore.GetAngularVelocity(_entity);
             linearVelocity += glm::cross(angularVelocity, newCenterOfMass - oldCenterOfMass);
@@ -285,7 +285,7 @@ namespace Vulkyrie {
         RigidBodyComponentStore &rigidBodyComponentStore = _physicsWorld.GetRigidBodyComponentStore();
         rigidBodyComponentStore.SetBodyType(_entity, bodyType);
 
-        if (BodyType::STATIC == bodyType) {
+        if (BodyType::Static == bodyType) {
             rigidBodyComponentStore.SetLinearVelocity(_entity, glm::vec3(0));
             rigidBodyComponentStore.SetAngularVelocity(_entity, glm::vec3(0));
 
@@ -294,7 +294,7 @@ namespace Vulkyrie {
             rigidBodyComponentStore.SetConstrainedOrientation(_entity, transform.Rotation);
         }
 
-        if (BodyType::STATIC == bodyType || BodyType::KINEMATIC == bodyType) {
+        if (BodyType::Static == bodyType || BodyType::Kinematic == bodyType) {
             rigidBodyComponentStore.SetInverseMass(_entity, 0.0f);
             rigidBodyComponentStore.SetInverseLocalInertiaTensor(_entity, glm::vec3(0));
             rigidBodyComponentStore.SetInverseWorldInertiaTensor(_entity, glm::mat3(0));
@@ -314,11 +314,11 @@ namespace Vulkyrie {
                                                                            localInertiaTensor.z > 0.0f ? 1.0f / localInertiaTensor.z : 0.0f));
         }
 
-        _physicsWorld.SetActiveStatusForBody(_entity, BodyType::STATIC != bodyType);
+        _physicsWorld.SetActiveStatusForBody(_entity, BodyType::Static != bodyType);
 
         SetIsSleeping(false);
 
-        if (BodyType::STATIC == bodyType) {
+        if (BodyType::Static == bodyType) {
             checkForDisabledOverlappingPairs();
         }
 
@@ -334,7 +334,7 @@ namespace Vulkyrie {
             return;
         }
 
-        if (GetBodyType() == BodyType::STATIC) {
+        if (GetBodyType() == BodyType::Static) {
             return;
         }
 
@@ -378,7 +378,7 @@ namespace Vulkyrie {
     void RigidBody::ApplyWorldForceAtCenterOfMass(const glm::vec3 &force) {
         // If this not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::DYNAMIC != GetBodyType()) {
+        if (BodyType::Dynamic != GetBodyType()) {
             return;
         }
 
@@ -404,7 +404,7 @@ namespace Vulkyrie {
     void RigidBody::ApplyWorldForceAtLocalPoint(const glm::vec3 &force, const glm::vec3 &localPoint) {
         // If this is not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::DYNAMIC != GetBodyType()) {
+        if (BodyType::Dynamic != GetBodyType()) {
             return;
         }
 
@@ -440,7 +440,7 @@ namespace Vulkyrie {
     void RigidBody::ApplyWorldForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &worldPoint) {
         // If this is not a dynamic body, it should not have forces applied to it,
         // so we can skip applying the force and return early.
-        if (BodyType::DYNAMIC != GetBodyType()) {
+        if (BodyType::Dynamic != GetBodyType()) {
             return;
         }
 
@@ -475,7 +475,7 @@ namespace Vulkyrie {
     void RigidBody::ApplyWorldTorque(const glm::vec3 &torque) {
         // If this is not a dynamic body, it should not have torques applied to it,
         // so we can skip applying the torque and return early.
-        if (BodyType::DYNAMIC != GetBodyType()) {
+        if (BodyType::Dynamic != GetBodyType()) {
             return;
         }
 
@@ -494,7 +494,7 @@ namespace Vulkyrie {
 
     void RigidBody::ResetForce() {
         // If the body is not dynamic, it should not have forces applied to it, so we can skip resetting.
-        if (BodyType::DYNAMIC != GetBodyType()) return;
+        if (BodyType::Dynamic != GetBodyType()) return;
 
         // Else reset the accumulated force to zero for the next simulation step.
         _physicsWorld.GetRigidBodyComponentStore().SetExternalForce(_entity, glm::vec3(0.0f));
@@ -502,7 +502,7 @@ namespace Vulkyrie {
 
     void RigidBody::ResetTorque() {
         // If the body is not dynamic, it should not have torques applied to it, so we can skip resetting.
-        if (BodyType::DYNAMIC != GetBodyType()) return;
+        if (BodyType::Dynamic != GetBodyType()) return;
 
         // Else reset the accumulated torque to zero for the next simulation step.
         _physicsWorld.GetRigidBodyComponentStore().SetExternalTorque(_entity, glm::vec3(0.0f));
@@ -510,7 +510,7 @@ namespace Vulkyrie {
 
     void RigidBody::SetCanSleep(bool canSleep) {
         // If this is a static body, it should not be able to sleep or wake up since it's always inactive,
-        if (BodyType::STATIC == GetBodyType()) {
+        if (BodyType::Static == GetBodyType()) {
             return;
         }
 

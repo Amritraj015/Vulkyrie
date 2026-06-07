@@ -1,4 +1,5 @@
 #include "physics/physics_world.h"
+#include "physics/body/rigid_body.h"
 
 namespace Vulkyrie {
 
@@ -15,6 +16,59 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::Update() {
+    }
+
+    RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
+        Entity entity = _entityManager.CreateEntity();
+
+        _transformComponentStore.AddComponent(entity, transform, true);
+
+        auto *rigidBody = new RigidBody(entity, *this);
+
+        VASSERT(nullptr != rigidBody, "Could not create RigidBody.");
+
+        BodyComponent bodyComponent(rigidBody);
+        _bodyComponentStore.AddComponent(entity, bodyComponent, true);
+
+        RigidBodyComponent rigidBodyComponent(rigidBody, BodyType::Dynamic, transform.Position);
+        _rigidBodyComponentStore.AddComponent(entity, rigidBodyComponent, true);
+
+        _rigidBodies.push_back(rigidBody);
+
+        return *rigidBody;
+    }
+
+    RigidBody &PhysicsWorld::GetRigidBody(size_t index) {
+        VASSERT(index < _rigidBodies.size(), "Rigid Body index out of bounds");
+
+        return *_rigidBodies[index];
+    }
+
+    const RigidBody &PhysicsWorld::GetRigidBody(size_t index) const {
+        VASSERT(index < _rigidBodies.size(), "Rigid Body index out of bounds");
+
+        return *_rigidBodies[index];
+    }
+
+    void PhysicsWorld::DestroyRigidBody(RigidBody &body) {
+        body.RemoveAllColliders();
+
+        const Entity entity = body.GetEntity();
+        const std::vector<Entity> &jointEntities = _rigidBodyComponentStore.GetJoints(entity);
+
+        // TODO: Finish this.
+        if (jointEntities.size() > 0) {
+            // DestroyJoint()
+        }
+
+        _bodyComponentStore.RemoveComponent(entity);
+        _rigidBodyComponentStore.RemoveComponent(entity);
+        _transformComponentStore.RemoveComponent(entity);
+        _entityManager.DestroyEntity(entity);
+
+        std::erase(_rigidBodies, &body);
+
+        delete &body;
     }
 
     void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
