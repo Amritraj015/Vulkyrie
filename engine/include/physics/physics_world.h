@@ -13,6 +13,7 @@
 namespace Vulkyrie {
 
     class Joint;
+    struct JointInfo;
 
     class PhysicsWorld {
     public:
@@ -24,15 +25,15 @@ namespace Vulkyrie {
         PhysicsWorld(PhysicsWorld &&) = delete;
         PhysicsWorld &operator=(PhysicsWorld &&) = delete;
 
-        ~PhysicsWorld() = default;
+        ~PhysicsWorld();
 
         /** @brief Provides access to the settings of the physics world, which include parameters such as gravity, time step, and other global
          * configurations that affect the behavior of the physics simulation. This method allows other parts of the physics system to query the current
          * settings and adjust their behavior accordingly during simulation updates.
          * @returns A reference to the PhysicsWorldSettings that contains the configuration parameters for the physics world. */
-        [[nodiscard]] VE_INLINE const PhysicsWorldSettings &GetSettings() const {
-            return _settings;
-        }
+        // [[nodiscard]] VE_INLINE const PhysicsWorldSettings &GetSettings() const {
+        //     return _settings;
+        // }
 
         /** @brief Provides access to the EntityManager, which manages the creation and destruction of entities in the physics world. The EntityManager is
          * responsible for generating unique entity identifiers, tracking entity lifetimes, and providing an interface for creating and destroying entities.
@@ -85,20 +86,104 @@ namespace Vulkyrie {
             return _collisionSystem;
         }
 
+        [[nodiscard]] VE_INLINE const std::string &GetWorldName() const {
+            return _settings.Name;
+        }
+
+        [[nodiscard]] VE_INLINE u16 GetVelocitySolverIterations() const {
+            return _settings.VelocitySolverIterations;
+        }
+
+        VE_INLINE void SetVelocitySolverIterations(u16 iterations) {
+            VTRACE("PhysicsWorld: {} - Updating VelocitySolverIterations from {} to {}.", GetWorldName(), _settings.VelocitySolverIterations, iterations);
+
+            _settings.VelocitySolverIterations = iterations;
+        }
+
+        [[nodiscard]] VE_INLINE u16 GetPositionSolverIterations() const {
+            return _settings.PositionSolverIterations;
+        }
+
+        VE_INLINE void SetPositionSolverIterations(u16 iterations) {
+            VTRACE("PhysicsWorld: {} - Updating PositionSolverIterations from {} to {}.", GetWorldName(), _settings.PositionSolverIterations, iterations);
+
+            _settings.PositionSolverIterations = iterations;
+        }
+
+        // void SetContactsPositionCorrectionTechnique(ContactsPositionCorrectionTechnique technique);
+
         [[nodiscard]] VE_INLINE bool IsGravityEnabled() const {
             return _gravityEnabled;
         }
 
         VE_INLINE void SetGravityEnabled(bool enabled) {
+            VTRACE("PhysicsWorld: {} - Updating GravityEnabled from {} to {}.", GetWorldName(), _gravityEnabled, enabled);
+
             _gravityEnabled = enabled;
         }
 
-        [[nodiscard]] VE_INLINE bool IsDebugRenderingEnabled() const {
-            return _enableDebugRendering;
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetGravity() const {
+            return _settings.Gravity;
+        }
+
+        VE_INLINE void SetGravity(glm::vec3 gravity) {
+            VTRACE("PhysicsWorld: {} - Updating Gravity from {} to {}.", GetWorldName(), _settings.Gravity, gravity);
+
+            _settings.Gravity = gravity;
+        }
+
+        [[nodiscard]] VE_INLINE bool IsSleepingEnabled() const {
+            return _settings.EnableSleeping;
+        }
+
+        void SetSleepingEnabled(bool enabled);
+
+        [[nodiscard]] VE_INLINE f32 GetSleepLinearVelocity() const {
+            return _settings.DefaultSleepLinearVelocity;
+        }
+
+        VE_INLINE void SetSleepLinearVelocity(f32 velocity) {
+            if (velocity >= 0.0f) {
+                VTRACE("PhysicsWorld: {} - Updating SleepLinearVelocity from {} to {}.", GetWorldName(), _settings.DefaultSleepLinearVelocity, velocity);
+
+                _settings.DefaultSleepLinearVelocity = velocity;
+            }
+        }
+
+        [[nodiscard]] VE_INLINE f32 GetSleepAngularVelocity() const {
+            return _settings.DefaultSleepAngularVelocity;
+        }
+
+        VE_INLINE void SetSleepAngularVelocity(f32 velocity) {
+            if (velocity >= 0.0f) {
+                VTRACE("PhysicsWorld: {} - Updating SleepAngularVelocity from {} to {}.", GetWorldName(), _settings.DefaultSleepAngularVelocity, velocity);
+
+                _settings.DefaultSleepAngularVelocity = velocity;
+            }
+        }
+
+        [[nodiscard]] VE_INLINE f32 GetTimeToSleep() const {
+            return _settings.TimeToSleep;
+        }
+
+        VE_INLINE void SetTimeToSleep(f32 timeToSleep) {
+            if (timeToSleep >= 0.0f) {
+                VTRACE("PhysicsWorld: {} - Updating TimeToSleep from {} to {}.", GetWorldName(), _settings.TimeToSleep, timeToSleep);
+
+                _settings.TimeToSleep = timeToSleep;
+            }
         }
 
         [[nodiscard]] VE_INLINE EventListener *GetEventListener() const {
             return _eventListener;
+        }
+
+        VE_INLINE void SetEventListener(EventListener *eventListener) {
+            _eventListener = eventListener;
+        }
+
+        [[nodiscard]] VE_INLINE bool IsDebugRenderingEnabled() const {
+            return _enableDebugRendering;
         }
 
         [[nodiscard]] VE_INLINE AABB GetWorldAABB(const Collider &collider) const {
@@ -133,12 +218,24 @@ namespace Vulkyrie {
             _collisionSystem.TestCollision(callback);
         }
 
+        [[nodiscard]] VE_INLINE RigidBody &GetRigidBody(size_t index) {
+            VASSERT(index < _rigidBodies.size(), "Rigid Body index out of bounds");
+
+            return *_rigidBodies[index];
+        }
+
+        [[nodiscard]] VE_INLINE const RigidBody &GetRigidBody(size_t index) const {
+            VASSERT(index < _rigidBodies.size(), "Rigid Body index out of bounds");
+
+            return *_rigidBodies[index];
+        }
+
         void Update();
         RigidBody &CreateRigidBody(const TransformComponent &transform);
-        RigidBody &GetRigidBody(size_t index);
-        const RigidBody &GetRigidBody(size_t index) const;
+
         void DestroyRigidBody(RigidBody &body);
 
+        Joint &CreateJoint(const JointInfo &jointInfo);
         void DestroyJoint(Joint &joint);
 
         void SetActiveStatusForBody(Entity entity, bool disabled);
@@ -159,6 +256,15 @@ namespace Vulkyrie {
 
         EventListener *_eventListener;
         bool _enableDebugRendering;
+
+        void setJointStatus(Entity jointEntity, bool enabled);
+        void solveContactsAndConstraints(Timestep timeStep);
+        void solvePositionCorrection();
+        void computeIslands();
+        void createIslands();
+        void updateSleepingBodies(Timestep timeStep);
+        void addJointToBodies(Entity bodyOne, Entity bodyTwo, Entity joint);
+        void updateBodiesInverseWorldInertiaTensors();
     };
 
 } // namespace Vulkyrie

@@ -17,8 +17,8 @@ namespace Vulkyrie {
             VelocitySolverIterations = 6;
             PositionSolverIterations = 3;
             TimeToSleep = 1.0f;
-            // defaultSleepLinearVelocity = decimal(0.02);
-            // defaultSleepAngularVelocity = decimal(3.0) * (PI_RP3D / decimal(180.0));
+            DefaultSleepLinearVelocity = f32(0.02);
+            DefaultSleepAngularVelocity = f32(3.0) * (std::numbers::pi_v<f32> / f32(180.0));
             CosAngleSimilarContactManifold = f32(0.95);
         }
 
@@ -38,13 +38,13 @@ namespace Vulkyrie {
         /// Time (in seconds) that a body must stay still to be considered sleeping
         f32 TimeToSleep;
 
-        // /// A body with a linear velocity smaller than the sleep linear velocity (in m/s)
-        // /// might enter sleeping mode.
-        // f32 defaultSleepLinearVelocity;
+        /// A body with a linear velocity smaller than the sleep linear velocity (in m/s)
+        /// might enter sleeping mode.
+        f32 DefaultSleepLinearVelocity;
 
-        // /// A body with angular velocity smaller than the sleep angular velocity (in rad/s)
-        // /// might enter sleeping mode
-        // f32 defaultSleepAngularVelocity;
+        /// A body with angular velocity smaller than the sleep angular velocity (in rad/s)
+        /// might enter sleeping mode
+        f32 DefaultSleepAngularVelocity;
 
         /// This is used to test if two contact manifold are similar (same contact normal) in order to
         /// merge them. If the cosine of the angle between the normals of the two manifold are larger
