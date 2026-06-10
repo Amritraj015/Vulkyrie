@@ -256,7 +256,7 @@ namespace Vulkyrie {
         Joint &CreateJoint(const JointInfo &jointInfo);
         void DestroyJoint(Joint &joint);
 
-        void SetActiveStatusForBody(Entity entity, bool disabled);
+        void SetActiveStatusForBody(Entity entity, bool active);
 
     private:
         PhysicsWorldSettings _settings;

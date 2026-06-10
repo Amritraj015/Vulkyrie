@@ -12,9 +12,11 @@ namespace Vulkyrie {
         , _transformComponentStore()
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
+        , _eventListener(nullptr)
         , _sleepLinearVelocitySquared(_settings.DefaultSleepLinearVelocity * _settings.DefaultSleepLinearVelocity)
         , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)
-        , _gravityEnabled(true) {
+        , _gravityEnabled(true)
+        , _enableDebugRendering(false) {
     }
 
     PhysicsWorld::~PhysicsWorld() {
@@ -140,7 +142,7 @@ namespace Vulkyrie {
         for (size_t i = 0; i < _islands.GetTotalIslands(); ++i) {
             f32 minSleepTime = VE_DECIMAL_MAX;
 
-            for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++i) {
+            for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
                 const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
                 const size_t bodyIndex = _rigidBodyComponentStore.GetEntityIndex(bodyEntity);
 
@@ -150,7 +152,7 @@ namespace Vulkyrie {
                 const f32 angularVelocitySquared = glm::length2(_rigidBodyComponentStore.GetAngularVelocityAtIndex(bodyIndex));
                 const bool isAllowedToSleep = _rigidBodyComponentStore.CanSleepAtIndex(bodyIndex);
 
-                if (linearVelocitySquared > _sleepLinearVelocitySquared || angularVelocitySquared > _sleepAngularVelocitySquared || isAllowedToSleep) {
+                if (linearVelocitySquared > _sleepLinearVelocitySquared || angularVelocitySquared > _sleepAngularVelocitySquared || !isAllowedToSleep) {
                     _rigidBodyComponentStore.SetSleepTimeAtIndex(bodyIndex, f32(0.0));
                     minSleepTime = f32(0.0);
                 } else {
