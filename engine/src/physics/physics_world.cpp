@@ -39,7 +39,7 @@ namespace Vulkyrie {
         VASSERT(_colliderComponentStore.GetTotalComponentCount() == 0, "Collider Component Store must be empty.");
     }
 
-    void PhysicsWorld::Update() {
+    void PhysicsWorld::Update(Timestep timestep) {
     }
 
     RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
@@ -163,14 +163,8 @@ namespace Vulkyrie {
                 }
             }
 
-            // If the velocity of all the bodies of the island is under the
-            // sleeping velocity threshold for a period of time larger than
-            // the time required to become a sleeping body
             if (minSleepTime >= _settings.TimeToSleep) {
-
-                // Put all the bodies of the island to sleep
                 for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
-
                     const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
                     RigidBody &body = _rigidBodyComponentStore.GetRigidBody(bodyEntity);
                     body.SetIsSleeping(true);
@@ -190,16 +184,14 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::updateBodiesInverseWorldInertiaTensors() {
+        for (size_t i = 0; i < _rigidBodyComponentStore.GetActiveComponentCount(); i++) {
+            const Entity boydEntity = _rigidBodyComponentStore.GetEntityAtIndex(i);
+            const glm::mat3 orientation = glm::mat3_cast(_transformComponentStore.GetTransform(boydEntity).Rotation);
+            const glm::vec3 &localInertiaTensor = _rigidBodyComponentStore.GetInverseLocalInertiaTensorAtIndex(i);
+            glm::mat3 &worldInertiaTensor = _rigidBodyComponentStore.GetInverseWorldInertiaTensorAtIndex(i);
 
-        // const size_t componentCount = _rigidBodyComponentStore.GetActiveComponentCount();
-        // for (size_t i = 0; i < componentCount; i++) {
-        //     const Entity boydEntity = _rigidBodyComponentStore.GetEntityAtIndex(i);
-        //
-        //     const Matrix3x3 orientation = _transformComponentStore.GetTransform(boydEntity).Rotation.getMatrix();
-        //
-        //     RigidBody::ComputeWorldInertiaTensorInverse(
-        //         orientation, mRigidBodyComponents.mInverseInertiaTensorsLocal[i], mRigidBodyComponents.mInverseInertiaTensorsWorld[i]);
-        // }
+            RigidBody::ComputeWorldSpaceInertiaTensorInverse(orientation, localInertiaTensor, worldInertiaTensor);
+        }
     }
 
 } // namespace Vulkyrie

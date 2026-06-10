@@ -414,6 +414,24 @@ namespace Vulkyrie {
          * @param collider The collider to be removed from this rigid body. The collider must be currently attached to this body. */
         void RemoveCollider(Collider &collider) override;
 
+        static VE_INLINE void ComputeWorldSpaceInertiaTensorInverse(const glm::mat3 &orientation,
+                                                                    const glm::vec3 &inverseInertiaTensorLocal,
+                                                                    glm::mat3 &outInverseInertiaTensorWorld) {
+            outInverseInertiaTensorWorld[0][0] = orientation[0][0] * inverseInertiaTensorLocal.x;
+            outInverseInertiaTensorWorld[0][1] = orientation[1][0] * inverseInertiaTensorLocal.x;
+            outInverseInertiaTensorWorld[0][2] = orientation[2][0] * inverseInertiaTensorLocal.x;
+
+            outInverseInertiaTensorWorld[1][0] = orientation[0][1] * inverseInertiaTensorLocal.y;
+            outInverseInertiaTensorWorld[1][1] = orientation[1][1] * inverseInertiaTensorLocal.y;
+            outInverseInertiaTensorWorld[1][2] = orientation[2][1] * inverseInertiaTensorLocal.y;
+
+            outInverseInertiaTensorWorld[2][0] = orientation[0][2] * inverseInertiaTensorLocal.z;
+            outInverseInertiaTensorWorld[2][1] = orientation[1][2] * inverseInertiaTensorLocal.z;
+            outInverseInertiaTensorWorld[2][2] = orientation[2][2] * inverseInertiaTensorLocal.z;
+
+            outInverseInertiaTensorWorld = orientation * outInverseInertiaTensorWorld;
+        }
+
     private:
         void enableOverlappingPairs();
         void checkForDisabledOverlappingPairs();

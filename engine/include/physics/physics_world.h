@@ -163,6 +163,7 @@ namespace Vulkyrie {
                 VTRACE("PhysicsWorld: {} - Updating SleepLinearVelocity from {} to {}.", GetWorldName(), _settings.DefaultSleepLinearVelocity, velocity);
 
                 _settings.DefaultSleepLinearVelocity = velocity;
+                _sleepLinearVelocitySquared = velocity * velocity;
             }
         }
 
@@ -175,6 +176,7 @@ namespace Vulkyrie {
                 VTRACE("PhysicsWorld: {} - Updating SleepAngularVelocity from {} to {}.", GetWorldName(), _settings.DefaultSleepAngularVelocity, velocity);
 
                 _settings.DefaultSleepAngularVelocity = velocity;
+                _sleepAngularVelocitySquared = velocity * velocity;
             }
         }
 
@@ -246,7 +248,7 @@ namespace Vulkyrie {
             return *_rigidBodies[index];
         }
 
-        void Update();
+        void Update(Timestep timestep);
         RigidBody &CreateRigidBody(const TransformComponent &transform);
 
         void DestroyRigidBody(RigidBody &body);

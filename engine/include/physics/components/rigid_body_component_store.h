@@ -529,6 +529,18 @@ namespace Vulkyrie {
             return _localInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the local-space inertia tensor of the body associated with the specified index. The inertia tensor
+         * determines how the body resists rotational acceleration around each principal axis. For convenience, this is stored
+         * as a 3-component vector representing the diagonal elements of the inertia tensor matrix (assuming the tensor has been
+         * diagonalized to its principal axes).
+         * @param componentIndex The index of the component.
+         * @returns A const reference to the local inertia tensor (kg·m²) stored as a vec3. */
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetLocalInertiaTensorAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _localInertiaTensors.size(), "componentIndex out of bounds of _localInertiaTensors.");
+
+            return _localInertiaTensors[componentIndex];
+        }
+
         /** @brief Sets the local-space inertia tensor of the body associated with the specified entity. The entity must have a
          * RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -550,6 +562,16 @@ namespace Vulkyrie {
             return _inverseLocalInertiaTensors[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the inverse of the local-space inertia tensor of the body associated with the specified index.
+         * This is precomputed for performance. Components are zero for axes with infinite rotational inertia.
+         * @param componentIndex The index of the component.
+         * @returns A const reference to the inverse local inertia tensor (1/(kg·m²)) stored as a vec3. */
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetInverseLocalInertiaTensorAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _inverseLocalInertiaTensors.size(), "componentIndex out of bounds of _inverseLocalInertiaTensors.");
+
+            return _inverseLocalInertiaTensors[componentIndex];
+        }
+
         /** @brief Retrieves the inverse of the world-space inertia tensor of the body associated with the specified entity.
          * This is computed by rotating the local inverse inertia tensor into world space using the body's current orientation,
          * and is updated each simulation step. The entity must have a RigidBodyComponent associated with it.
@@ -567,8 +589,8 @@ namespace Vulkyrie {
          * valid and correspond to an active component in the store.
          * @param componentIndex The index of the component whose inverse world inertia tensor is to be retrieved. Must be less than the current size of the
          * store.
-         * @returns A const reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
-        [[nodiscard]] VE_INLINE const glm::mat3 &GetInverseWorldInertiaTensorAtIndex(size_t componentIndex) const {
+         * @returns A reference to the inverse world inertia tensor (1/(kg·m²)) as a 3x3 matrix. */
+        [[nodiscard]] VE_INLINE glm::mat3 &GetInverseWorldInertiaTensorAtIndex(size_t componentIndex) {
             VASSERT(componentIndex < _entities.size(), "Component index out of bounds.");
 
             return _inverseWorldInertiaTensors[componentIndex];
