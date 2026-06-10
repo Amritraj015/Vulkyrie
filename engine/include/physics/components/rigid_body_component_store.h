@@ -99,6 +99,17 @@ namespace Vulkyrie {
             return static_cast<bool>(_canSleepFlags[_entityToComponentIndex.find(bodyEntity)->second]);
         }
 
+        /** @brief Checks whether the body at a given index is allowed to enter a sleeping state. Bodies
+         * that can sleep will be deactivated by the physics engine when they remain at rest for a sufficient period, improving
+         * performance.
+         * @param componentIndex The component's index.
+         * @returns True if the body is allowed to sleep, false otherwise. */
+        [[nodiscard]] VE_INLINE bool CanSleepAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _canSleepFlags.size(), "componentIndex out of bounds for _canSleepFlags");
+
+            return static_cast<bool>(_canSleepFlags[componentIndex]);
+        }
+
         /** @brief Sets whether the body associated with the specified entity is allowed to enter a sleeping state. The entity
          * must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -141,6 +152,17 @@ namespace Vulkyrie {
             return _sleepTimes[_entityToComponentIndex.find(bodyEntity)->second];
         }
 
+        /** @brief Retrieves the amount of time (in seconds) that the body associated with the specified index has been
+         * in a resting state below the sleep threshold. The physics engine uses this value to determine when a body has been
+         * stationary long enough to transition into a sleeping state. The entity must have a RigidBodyComponent associated with it.
+         * @param componentIndex The component's index.
+         * @returns The sleep time in seconds. */
+        [[nodiscard]] VE_INLINE f32 GetSleepTimeAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _sleepTimes.size(), "componentIndex out of bounds for _sleepTimes.");
+
+            return _sleepTimes[componentIndex];
+        }
+
         /** @brief Sets the amount of time (in seconds) that the body associated with the specified entity has been in a
          * resting state. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -149,6 +171,16 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _sleepTimes[_entityToComponentIndex.find(bodyEntity)->second] = sleepTime;
+        }
+
+        /** @brief Sets the amount of time (in seconds) that the body associated with the specified index has been in a
+         * resting state. The entity must have a RigidBodyComponent associated with it.
+         * @param componentIndex The index of the component.
+         * @param sleepTime The sleep time in seconds. */
+        VE_INLINE void SetSleepTimeAtIndex(size_t componentIndex, f32 sleepTime) {
+            VASSERT(componentIndex < _sleepTimes.size(), "componentIndex out of bounds for _sleepTimes.");
+
+            _sleepTimes[componentIndex] = sleepTime;
         }
 
         /** @brief Retrieves the body type of the specified entity. The body type determines how the physics engine treats
@@ -161,6 +193,17 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             return _bodyTypes[_entityToComponentIndex.find(bodyEntity)->second];
+        }
+
+        /** @brief Retrieves the body type at the specified index. The body type determines how the physics engine treats
+         * the body during simulation: STATIC bodies are immovable, KINEMATIC bodies move according to user-defined velocities
+         * without being affected by forces, and DYNAMIC bodies respond to all forces and constraints.
+         * @param componentIndex The component's index.
+         * @returns The BodyType (STATIC, KINEMATIC, or DYNAMIC) of the specified entity. */
+        [[nodiscard]] VE_INLINE BodyType GetBodyTypeAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _bodyTypes.size(), "componentIndex out of bounds of _bodyTypes.");
+
+            return _bodyTypes[componentIndex];
         }
 
         /** @brief Sets the body type of the specified entity. The entity must have a RigidBodyComponent associated with it.
@@ -985,6 +1028,16 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _isInIslandFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(isInIsland);
+        }
+
+        /** @brief Sets whether the body associated with the specified index has been assigned to a simulation island.
+         * This is typically updated during the constraint solving phase.
+         * @param componentIndex The index of the component.
+         * @param isInIsland True to mark the body as assigned to an island, false otherwise. */
+        VE_INLINE void SetInIslandAtIndex(size_t componentIndex, bool isInIsland) {
+            VASSERT(componentIndex < _isInIslandFlags.size(), "Component index out of bounds.");
+
+            _isInIslandFlags[componentIndex] = static_cast<u8>(isInIsland);
         }
 
         /** @brief Sets the linear axis locking factors for the body associated with the specified entity. The entity must have a

@@ -57,6 +57,20 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
+// #if defined(VE_USE_DOUBLE_INSTEAD_OF_FLOAT)
+// typedef f64 decimal;
+// #else
+// typedef f32 decimal;
+// #endif
+//
+// typedef glm::qua<decimal, glm::defaultp> quat;
+// typedef glm::vec<2, decimal, glm::defaultp> vec2;
+// typedef glm::vec<3, decimal, glm::defaultp> vec3;
+// typedef glm::vec<4, decimal, glm::defaultp> vec4;
+// typedef glm::mat<2, 2, decimal, glm::defaultp> mat2;
+// typedef glm::mat<3, 3, decimal, glm::defaultp> mat3;
+// typedef glm::mat<4, 4, decimal, glm::defaultp> mat4;
+
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
 

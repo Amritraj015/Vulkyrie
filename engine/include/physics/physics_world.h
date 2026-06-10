@@ -1,5 +1,4 @@
 #pragma once
-
 #include "core/entity_manager.h"
 #include "physics/physics_world_settings.h"
 #include "physics/components/body_component_store.h"
@@ -8,12 +7,20 @@
 #include "physics/components/transform_component_store.h"
 #include "physics/physics_context.h"
 #include "physics/systems/collision_system.h"
+#include "physics/systems/constraint_solver_system.h"
+#include "physics/systems/contact_solver_system.h"
 #include "physics/systems/dynamics_system.h"
+#include "physics/types/islands.h"
 
 namespace Vulkyrie {
 
     class Joint;
     struct JointInfo;
+
+    enum class ContactsPositionCorrectionTechnique : i32 {
+        BaumgarteContacts,
+        SplitImpulses,
+    };
 
     class PhysicsWorld {
     public:
@@ -110,7 +117,16 @@ namespace Vulkyrie {
             _settings.PositionSolverIterations = iterations;
         }
 
-        // void SetContactsPositionCorrectionTechnique(ContactsPositionCorrectionTechnique technique);
+        VE_INLINE void SetContactsPositionCorrectionTechnique(ContactsPositionCorrectionTechnique technique) {
+            switch (technique) {
+                case ContactsPositionCorrectionTechnique::BaumgarteContacts:
+                    _contactSolverSystem.SetIsSplitImpulseActive(false);
+                    break;
+                case ContactsPositionCorrectionTechnique::SplitImpulses:
+                    _contactSolverSystem.SetIsSplitImpulseActive(true);
+                    break;
+            }
+        }
 
         [[nodiscard]] VE_INLINE bool IsGravityEnabled() const {
             return _gravityEnabled;
@@ -241,7 +257,6 @@ namespace Vulkyrie {
         void SetActiveStatusForBody(Entity entity, bool disabled);
 
     private:
-        bool _gravityEnabled;
         PhysicsWorldSettings _settings;
         PhysicsContext _context;
         EntityManager _entityManager;
@@ -252,15 +267,24 @@ namespace Vulkyrie {
         std::vector<RigidBody *> _rigidBodies;
 
         CollisionSystem _collisionSystem;
+        ConstraintSolverSystem _constraintSolverSystem;
         DynamicsSystem _dynamicsSystem;
+        ContactSolverSystem _contactSolverSystem;
+
+        Islands _islands;
+        std::vector<size_t> _processContactPairsOrderIslands;
 
         EventListener *_eventListener;
+
+        f32 _sleepLinearVelocitySquared;
+        f32 _sleepAngularVelocitySquared;
+
+        bool _gravityEnabled;
         bool _enableDebugRendering;
 
         void setJointStatus(Entity jointEntity, bool enabled);
         void solveContactsAndConstraints(Timestep timeStep);
         void solvePositionCorrection();
-        void computeIslands();
         void createIslands();
         void updateSleepingBodies(Timestep timeStep);
         void addJointToBodies(Entity bodyOne, Entity bodyTwo, Entity joint);

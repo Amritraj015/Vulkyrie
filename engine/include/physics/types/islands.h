@@ -21,19 +21,19 @@ namespace Vulkyrie {
      */
     struct Islands final {
     public:
-        /// For each island: index of the island's first contact manifold in the global manifold array.
+        /** @brief For each island: index of the island's first contact manifold in the global manifold array. */
         std::vector<size_t> ContactManifoldIndices;
 
-        /// For each island: total number of contact manifolds in the island.
+        /** @brief For each island: total number of contact manifolds in the island. */
         std::vector<size_t> TotalContactManifolds;
 
-        /// For each island: starting index into `BodyEntities` for this island's bodies.
+        /** @brief For each island: starting index into `BodyEntities` for this island's bodies. */
         std::vector<size_t> StartingBodyIndexForIsland;
 
-        /// For each island: total number of bodies belonging to the island.
+        /** @brief For each island: total number of bodies belonging to the island. */
         std::vector<size_t> TotalBodiesInIsland;
 
-        /// Flat array of all body entities across all islands, stored sequentially per island.
+        /** @brief Flat array of all body entities across all islands, stored sequentially per island. */
         std::vector<Entity> BodyEntities;
 
         /** @brief Constructs an `Islands` instance with sensible default capacity hints.
@@ -59,19 +59,28 @@ namespace Vulkyrie {
         /** @brief Default destructor. */
         ~Islands() = default;
 
-        /** @returns The number of islands created in the current frame. */
+        /**
+         * @brief Returns the number of islands created in the current frame.
+         * @returns The total island count for this frame.
+         */
         [[nodiscard]] VE_INLINE size_t GetTotalIslands() const {
             return ContactManifoldIndices.size();
         }
 
-        /** @returns The total number of body entities that were registered across all islands
-         *           during the previous frame. Used to size `BodyEntities` reservations. */
+        /**
+         * @brief Returns the total number of body entities registered across all islands during the previous frame.
+         * Used to size `BodyEntities` reservations.
+         * @returns Total body entity count from the previous frame.
+         */
         [[nodiscard]] VE_INLINE size_t GetTotalBodiesInIslandInLastFrame() const {
             return _totalBodyEntitiesInLastFrame;
         }
 
-        /** @returns The maximum number of bodies that any single island contained in the
-         *           previous frame. Useful for sizing per-island scratch buffers in solvers. */
+        /**
+         * @brief Returns the maximum number of bodies that any single island contained in the previous frame.
+         * Useful for sizing per-island scratch buffers in solvers.
+         * @returns Maximum per-island body count from the previous frame.
+         */
         [[nodiscard]] VE_INLINE size_t GetMaxBodiesInIslandInLastFrame() const {
             return _maxBodiesInIslandInLastFrame;
         }
@@ -94,7 +103,7 @@ namespace Vulkyrie {
          * running maximum-bodies-per-island counter for the island that was just closed.
          *
          * @param contactManifoldStartIndex Index of the first contact manifold that belongs
-         *                                  to this island in the global manifold array.
+         * to this island in the global manifold array.
          * @returns The zero-based index of the newly created island.
          */
         [[nodiscard]] VE_INLINE size_t AddIsland(size_t contactManifoldStartIndex) {
@@ -152,16 +161,16 @@ namespace Vulkyrie {
         }
 
     private:
-        /// Number of islands created in the previous frame; used to reserve `ContactManifoldIndices` et al.
+        /** @brief Number of islands created in the previous frame; used to reserve `ContactManifoldIndices` et al. */
         size_t _totalIslandsInLastFrame;
 
-        /// Total body entities registered in the previous frame; used to reserve `BodyEntities`.
+        /** @brief Total body entities registered in the previous frame; used to reserve `BodyEntities`. */
         size_t _totalBodyEntitiesInLastFrame;
 
-        /// Largest body count seen in any single island during the previous frame.
+        /** @brief Largest body count seen in any single island during the previous frame. */
         size_t _maxBodiesInIslandInLastFrame;
 
-        /// Running maximum body count for any single island in the current frame.
+        /** @brief Running maximum body count for any single island in the current frame. */
         size_t _maxBodiesInIslandInCurrentFrame;
     };
 

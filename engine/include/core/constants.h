@@ -11,4 +11,6 @@ namespace Vulkyrie {
      * precision limitations. */
     constexpr f32 VE_MACHINE_EPSILON = std::numeric_limits<f32>::epsilon();
 
+    constexpr f32 VE_DECIMAL_MAX = std::numeric_limits<f32>::max();
+
 } // namespace Vulkyrie

@@ -45,6 +45,8 @@ namespace Vulkyrie {
         };
 
     public:
+        void SetIsSplitImpulseActive(bool active);
+
     private:
         /// Beta value for the penetration depth position correction without split impulses
         static constexpr f32 BETA = 0.2f;

@@ -4,15 +4,17 @@
 namespace Vulkyrie {
 
     PhysicsWorld::PhysicsWorld(const PhysicsWorldSettings &settings)
-        : _gravityEnabled(true)
-        , _settings(settings)
+        : _settings(settings)
         , _entityManager()
         , _bodyComponentStore()
         , _rigidBodyComponentStore()
         , _colliderComponentStore()
         , _transformComponentStore()
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
-        , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity) {
+        , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
+        , _sleepLinearVelocitySquared(_settings.DefaultSleepLinearVelocity * _settings.DefaultSleepLinearVelocity)
+        , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)
+        , _gravityEnabled(true) {
     }
 
     PhysicsWorld::~PhysicsWorld() {
@@ -120,15 +122,61 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::solvePositionCorrection() {
-    }
-
-    void PhysicsWorld::computeIslands() {
+        for (size_t i = 0; i < _settings.PositionSolverIterations; ++i) {
+            _constraintSolverSystem.SolvePositionConstraints();
+        }
     }
 
     void PhysicsWorld::createIslands() {
+        // VASSERT(_processContactPairsOrderIslands.size() == 0, "_processContactPairsOrderIslands size must be 0.");
+        //
+        // const size_t totalRigidBodies = _rigidBodyComponentStore.GetTotalComponentCount();
+        // for (size_t i = 0; i < totalRigidBodies; ++i) {
+        //     _rigidBodyComponentStore.SetInIslandAtIndex(i, false);
+        // }
     }
 
     void PhysicsWorld::updateSleepingBodies(Timestep timeStep) {
+        for (size_t i = 0; i < _islands.GetTotalIslands(); ++i) {
+            f32 minSleepTime = VE_DECIMAL_MAX;
+
+            for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++i) {
+                const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
+                const size_t bodyIndex = _rigidBodyComponentStore.GetEntityIndex(bodyEntity);
+
+                if (_rigidBodyComponentStore.GetBodyTypeAtIndex(bodyIndex) == BodyType::Static) continue;
+
+                const f32 linearVelocitySquared = glm::length2(_rigidBodyComponentStore.GetLinearVelocityAtIndex(bodyIndex));
+                const f32 angularVelocitySquared = glm::length2(_rigidBodyComponentStore.GetAngularVelocityAtIndex(bodyIndex));
+                const bool isAllowedToSleep = _rigidBodyComponentStore.CanSleepAtIndex(bodyIndex);
+
+                if (linearVelocitySquared > _sleepLinearVelocitySquared || angularVelocitySquared > _sleepAngularVelocitySquared || isAllowedToSleep) {
+                    _rigidBodyComponentStore.SetSleepTimeAtIndex(bodyIndex, f32(0.0));
+                    minSleepTime = f32(0.0);
+                } else {
+                    const f32 newSleepTime = _rigidBodyComponentStore.GetSleepTimeAtIndex(bodyIndex) + timeStep.GetSeconds();
+                    _rigidBodyComponentStore.SetSleepTimeAtIndex(bodyIndex, newSleepTime);
+
+                    if (newSleepTime < minSleepTime) {
+                        minSleepTime = newSleepTime;
+                    }
+                }
+            }
+
+            // If the velocity of all the bodies of the island is under the
+            // sleeping velocity threshold for a period of time larger than
+            // the time required to become a sleeping body
+            if (minSleepTime >= _settings.TimeToSleep) {
+
+                // Put all the bodies of the island to sleep
+                for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
+
+                    const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
+                    RigidBody &body = _rigidBodyComponentStore.GetRigidBody(bodyEntity);
+                    body.SetIsSleeping(true);
+                }
+            }
+        }
     }
 
     void PhysicsWorld::addJointToBodies(Entity bodyOne, Entity bodyTwo, Entity joint) {
