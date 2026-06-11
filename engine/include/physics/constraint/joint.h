@@ -6,41 +6,37 @@
 namespace Vulkyrie {
 
     enum class JointType : i32 { Fixed, Hinge, BallAndSocket, Slider, Spring };
-    enum class JointsPositionCorrectionTechnique : i32 { BAUMGARTE_JOINTS, NON_LINEAR_GAUSS_SEIDEL };
+    enum class JointsPositionCorrectionTechnique : i32 { BaumgarteJoints, NonLinearGaussSeidel };
 
-    struct JointInfo {
+    struct JointData {
         RigidBody *BodyOne;
         RigidBody *BodyTwo;
         JointType Type;
         JointsPositionCorrectionTechnique PositionCorrectionTechnique;
         bool CollisionEnabled;
 
-        JointInfo(JointType jointType)
+        JointData(JointType jointType)
             : BodyOne(nullptr)
             , BodyTwo(nullptr)
             , Type(jointType)
-            , PositionCorrectionTechnique(JointsPositionCorrectionTechnique::NON_LINEAR_GAUSS_SEIDEL)
+            , PositionCorrectionTechnique(JointsPositionCorrectionTechnique::NonLinearGaussSeidel)
             , CollisionEnabled(true) {
         }
 
-        JointInfo(RigidBody *rigidBody1, RigidBody *rigidBody2, JointType constraintType)
+        JointData(RigidBody *rigidBody1, RigidBody *rigidBody2, JointType constraintType)
             : BodyOne(rigidBody1)
             , BodyTwo(rigidBody2)
             , Type(constraintType)
-            , PositionCorrectionTechnique(JointsPositionCorrectionTechnique::NON_LINEAR_GAUSS_SEIDEL)
+            , PositionCorrectionTechnique(JointsPositionCorrectionTechnique::NonLinearGaussSeidel)
             , CollisionEnabled(true) {
         }
     };
 
     class Joint {
     public:
-        Joint(Entity entity, const JointInfo &info, PhysicsWorld &physicsWorld);
+        Joint(Entity entity, PhysicsWorld &physicsWorld);
 
-        Joint(const Joint &) = delete;
-        Joint &operator=(const Joint &) = delete;
-
-        Joint(Joint &&) = delete;
-        Joint &operator=(Joint &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Joint);
 
         virtual ~Joint() = default;
 
@@ -50,7 +46,7 @@ namespace Vulkyrie {
 
         RigidBody *GetBodyOne() const;
         RigidBody *GetBodyTwo() const;
-        BodyType GetBodyOneType() const;
+        JointType GetJointType() const;
         bool CollisionEnabled() const;
 
         virtual glm::vec3 GetReactionForce(Timestep timestep) const = 0;
@@ -59,6 +55,8 @@ namespace Vulkyrie {
     protected:
         Entity _entity;
         PhysicsWorld &_physicsWorld;
+
+        void awakeBodies() const;
     };
 
 } // namespace Vulkyrie

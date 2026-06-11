@@ -49,13 +49,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of RigidBodyComponentStore. */
         RigidBodyComponentStore();
 
-        // Delete the copy constructor and copy assignment operator.
-        RigidBodyComponentStore(const RigidBodyComponentStore &) = delete;
-        RigidBodyComponentStore &operator=(const RigidBodyComponentStore &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        RigidBodyComponentStore(RigidBodyComponentStore &&) = delete;
-        RigidBodyComponentStore &operator=(RigidBodyComponentStore &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(RigidBodyComponentStore);
 
         /** @brief Destructor for RigidBodyComponentStore. */
         ~RigidBodyComponentStore() override = default;

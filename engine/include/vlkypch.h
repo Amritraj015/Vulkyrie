@@ -105,6 +105,18 @@ typedef double f64;
 #define VE_INLINE inline
 #endif
 
+#define VE_DELETE_COPY(type)                                                                                                                                   \
+    type(const type &) = delete;                                                                                                                               \
+    type &operator=(const type &) = delete
+
+#define VE_DELETE_MOVE(type)                                                                                                                                   \
+    type(type &&) = delete;                                                                                                                                    \
+    type &operator=(type &&) = delete
+
+#define VE_DELETE_MOVE_AND_COPY(type)                                                                                                                          \
+    VE_DELETE_COPY(type);                                                                                                                                      \
+    VE_DELETE_MOVE(type)
+
 /** @brief A scoped pointer type alias using std::unique_ptr.
  * @tparam T The type of the object being pointed to.
  */

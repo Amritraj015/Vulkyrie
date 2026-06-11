@@ -14,13 +14,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of ComponentStore. Initializes the active component count to zero. */
         ComponentStore();
 
-        // Delete the copy constructor and copy assignment operator.
-        ComponentStore(const ComponentStore &) = delete;
-        ComponentStore &operator=(const ComponentStore &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        ComponentStore(ComponentStore &&) = delete;
-        ComponentStore &operator=(ComponentStore &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(ComponentStore);
 
         /** @brief Virtual destructor for ComponentStore. Ensures proper cleanup of derived classes. */
         virtual ~ComponentStore() = default;
@@ -109,6 +103,13 @@ namespace Vulkyrie {
          */
         [[nodiscard]] VE_INLINE std::span<const Entity> GetActiveEntities() const {
             return { _entities.data(), _activeCount };
+        }
+
+        /** @brief Returns a contiguous view of the entities in this component store.
+         * @returns A span over the entities all entities in this component store.
+         */
+        [[nodiscard]] VE_INLINE std::span<const Entity> GetAllEntities() const {
+            return { _entities.data(), _entities.size() };
         }
 
         /** @brief Retrieves the entity associated with the component at the specified index in the component vector. The index must be a valid index within

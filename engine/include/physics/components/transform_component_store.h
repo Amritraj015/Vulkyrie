@@ -47,13 +47,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of TransformComponentStore. */
         TransformComponentStore();
 
-        // Delete the copy constructor and copy assignment operator.
-        TransformComponentStore(const TransformComponentStore &) = delete;
-        TransformComponentStore &operator=(const TransformComponentStore &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        TransformComponentStore(TransformComponentStore &&) = delete;
-        TransformComponentStore &operator=(TransformComponentStore &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(TransformComponentStore);
 
         /** @brief Destructor for TransformComponentStore. */
         ~TransformComponentStore() override = default;

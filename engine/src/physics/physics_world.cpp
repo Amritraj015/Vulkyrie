@@ -10,6 +10,7 @@ namespace Vulkyrie {
         , _rigidBodyComponentStore()
         , _colliderComponentStore()
         , _transformComponentStore()
+        , _jointComponentStore()
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
         , _eventListener(nullptr)
@@ -20,11 +21,10 @@ namespace Vulkyrie {
     }
 
     PhysicsWorld::~PhysicsWorld() {
-
-        // // Destroy all the joints that have not been removed
-        // for (auto &joint : _jointComponentStore.GetJointComponents()) {
-        //     destroyJoint(joint);
-        // }
+        // Destroy all the joints that have not been removed.
+        for (size_t i = 0; _jointComponentStore.GetTotalComponentCount(); ++i) {
+            DestroyJoint(_jointComponentStore.GetJointAtIndex(i));
+        }
 
         size_t index = _rigidBodies.size();
 
@@ -33,7 +33,7 @@ namespace Vulkyrie {
             DestroyRigidBody(*_rigidBodies[index]);
         }
 
-        // VASSERT(_jointComponentStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
+        VASSERT(_jointComponentStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
         VASSERT(_rigidBodies.size() == 0, "_rigidBodies size should be 0.");
         // VASSERT(mCollisionBodies.size() == 0, "");
         VASSERT(_bodyComponentStore.GetTotalComponentCount() == 0, "Body Component Store must be empty.");
@@ -84,7 +84,7 @@ namespace Vulkyrie {
 
         // TODO: Finish this.
         if (jointEntities.size() > 0) {
-            // DestroyJoint()
+            // DestroyJoint(_jointComponentStore.GetJoint(jointEntities[0]))
         }
 
         _bodyComponentStore.RemoveComponent(entity);

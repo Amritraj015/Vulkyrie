@@ -30,13 +30,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of BodyComponentStore. */
         BodyComponentStore();
 
-        // Delete the copy constructor and copy assignment operator.
-        BodyComponentStore(const BodyComponentStore &) = delete;
-        BodyComponentStore &operator=(const BodyComponentStore &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        BodyComponentStore(BodyComponentStore &&) = delete;
-        BodyComponentStore &operator=(BodyComponentStore &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(BodyComponentStore);
 
         /** @brief Destructor for BodyComponentStore. */
         ~BodyComponentStore() override = default;

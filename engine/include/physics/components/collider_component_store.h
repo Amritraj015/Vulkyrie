@@ -73,13 +73,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of ColliderComponentStore. */
         ColliderComponentStore();
 
-        // Delete the copy constructor and copy assignment operator.
-        ColliderComponentStore(const ColliderComponentStore &) = delete;
-        ColliderComponentStore &operator=(const ColliderComponentStore &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        ColliderComponentStore(ColliderComponentStore &&) = delete;
-        ColliderComponentStore &operator=(ColliderComponentStore &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(ColliderComponentStore);
 
         /** @brief Destructor for ColliderComponentStore. */
         ~ColliderComponentStore() override = default;
@@ -189,8 +183,8 @@ namespace Vulkyrie {
         }
 
         /** @brief Retrieves the broad-phase ID assigned to the specified collider entity. The broad-phase ID is used by the broad-phase collision
-         * detection system to track the collider's bounding volume. A value of AABB_TREE_NULL_NODE indicates the collider has not yet been registered with the broad phase.
-         * The entity must have a ColliderComponent associated with it.
+         * detection system to track the collider's bounding volume. A value of AABB_TREE_NULL_NODE indicates the collider has not yet been registered with the
+         * broad phase. The entity must have a ColliderComponent associated with it.
          * @param colliderEntity The entity of the collider whose broad-phase ID is to be retrieved.
          * @returns The broad-phase ID of the collider, or AABB_TREE_NULL_NODE if not yet registered. */
         [[nodiscard]] VE_INLINE u32 GetBroadPhaseID(Entity colliderEntity) const {

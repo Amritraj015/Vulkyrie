@@ -1,5 +1,7 @@
 #pragma once
+
 #include "core/entity_manager.h"
+#include "physics/components/joint_component_store.h"
 #include "physics/physics_world_settings.h"
 #include "physics/components/body_component_store.h"
 #include "physics/components/collider_component_store.h"
@@ -15,7 +17,7 @@
 namespace Vulkyrie {
 
     class Joint;
-    struct JointInfo;
+    struct JointData;
 
     enum class ContactsPositionCorrectionTechnique : i32 {
         BaumgarteContacts,
@@ -87,6 +89,10 @@ namespace Vulkyrie {
          * @returns A reference to the TransformComponentStore that manages the TransformComponents of entities in the physics world. */
         [[nodiscard]] VE_INLINE TransformComponentStore &GetTransformComponentStore() {
             return _transformComponentStore;
+        }
+
+        [[nodiscard]] VE_INLINE JointComponentStore &GetJointComponentStore() {
+            return _jointComponentStore;
         }
 
         [[nodiscard]] VE_INLINE CollisionSystem &GetCollisionSystem() {
@@ -253,8 +259,8 @@ namespace Vulkyrie {
 
         void DestroyRigidBody(RigidBody &body);
 
-        Joint &CreateJoint(const JointInfo &jointInfo);
-        void DestroyJoint(Joint &joint);
+        Joint &CreateJoint(const JointData &jointInfo);
+        void DestroyJoint(const Joint &joint);
 
         void SetActiveStatusForBody(Entity entity, bool active);
 
@@ -266,6 +272,7 @@ namespace Vulkyrie {
         RigidBodyComponentStore _rigidBodyComponentStore;
         ColliderComponentStore _colliderComponentStore;
         TransformComponentStore _transformComponentStore;
+        JointComponentStore _jointComponentStore;
         std::vector<RigidBody *> _rigidBodies;
 
         CollisionSystem _collisionSystem;
