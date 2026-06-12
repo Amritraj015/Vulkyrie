@@ -12,9 +12,6 @@ namespace Vulkyrie {
      * local space at creation time), and one using pre-computed local-space anchor points on each body for
      * cases where the body transforms are already known or the world-space anchor is not available. */
     struct BallAndSocketJointData : public JointData {
-        /** @brief True when the local-space anchor constructor was used; false when the world-space one was used. */
-        bool IsUsingLocalSpaceAnchors;
-
         /** @brief Shared anchor point expressed in world space. Only valid when IsUsingLocalSpaceAnchors is false. */
         glm::vec3 AnchorPointInWorldSpace;
 
@@ -24,6 +21,9 @@ namespace Vulkyrie {
         /** @brief Anchor point on body two expressed in body two's local space. Only valid when IsUsingLocalSpaceAnchors is true. */
         glm::vec3 AnchorPointInBodyTwoLocalSpace;
 
+        /** @brief True when the local-space anchor constructor was used; false when the world-space one was used. */
+        bool IsUsingLocalSpaceAnchors;
+
         /** @brief Constructs joint data with a single world-space anchor point.
          * The joint will compute the equivalent local-space anchor for each body using their current transforms at creation time.
          * @param rigidBodyOne Non-owning pointer to the first body.
@@ -31,8 +31,8 @@ namespace Vulkyrie {
          * @param anchorPointWorldSpace The anchor point shared by both bodies expressed in world space. */
         BallAndSocketJointData(RigidBody *rigidBodyOne, RigidBody *rigidBodyTwo, const glm::vec3 &anchorPointWorldSpace)
             : JointData(rigidBodyOne, rigidBodyTwo, JointType::BallAndSocket)
-            , IsUsingLocalSpaceAnchors(false)
-            , AnchorPointInWorldSpace(anchorPointWorldSpace) {
+            , AnchorPointInWorldSpace(anchorPointWorldSpace)
+            , IsUsingLocalSpaceAnchors(false) {
         }
 
         /** @brief Constructs joint data with pre-computed local-space anchor points on each body.
@@ -47,9 +47,9 @@ namespace Vulkyrie {
                                const glm::vec3 &anchorPointInBodyOneLocalSpace,
                                const glm::vec3 &anchorPointInBodyTwoLocalSpace)
             : JointData(rigidBodyOne, rigidBodyTwo, JointType::BallAndSocket)
-            , IsUsingLocalSpaceAnchors(true)
             , AnchorPointInBodyOneLocalSpace(anchorPointInBodyOneLocalSpace)
-            , AnchorPointInBodyTwoLocalSpace(anchorPointInBodyTwoLocalSpace) {
+            , AnchorPointInBodyTwoLocalSpace(anchorPointInBodyTwoLocalSpace)
+            , IsUsingLocalSpaceAnchors(true) {
         }
     };
 
@@ -115,9 +115,6 @@ namespace Vulkyrie {
         glm::vec3 GetReactionTorque(Timestep timestep) const override;
 
     private:
-        /** @brief Baumgarte stabilization coefficient used by the constraint solver for position correction. */
-        static constexpr f32 BETA = f32(0.2);
-
         /** @brief Zeroes the accumulated cone limit impulse and wakes both bodies.
          * Called whenever the cone limit parameters change to ensure the solver starts from a clean state. */
         void resetLimits();
