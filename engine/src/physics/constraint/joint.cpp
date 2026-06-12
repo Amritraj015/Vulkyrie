@@ -1,4 +1,6 @@
 #include "physics/constraint/joint.h"
+#include "physics/physics_world.h"
+#include "physics/body/rigid_body.h"
 
 namespace Vulkyrie {
 
@@ -29,11 +31,11 @@ namespace Vulkyrie {
         const Entity bodyOneEntity = _physicsWorld.GetJointComponentStore().GetBodyOneEntity(_entity);
         const Entity bodyTwoEntity = _physicsWorld.GetJointComponentStore().GetBodyTwoEntity(_entity);
 
-        // Get references to both bodies.
         RigidBody &rigidBodyOne = _physicsWorld.GetRigidBodyComponentStore().GetRigidBody(bodyOneEntity);
         RigidBody &rigidBodyTwo = _physicsWorld.GetRigidBodyComponentStore().GetRigidBody(bodyTwoEntity);
 
-        // Wake up both bodies.
+        // Waking the bodies ensures the solver picks them up on the next step even if they were
+        // put to sleep before this joint parameter change took effect.
         rigidBodyOne.SetIsSleeping(false);
         rigidBodyTwo.SetIsSleeping(false);
     }
