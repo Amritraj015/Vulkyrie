@@ -3,13 +3,15 @@
 #include "core/entity_manager.h"
 #include "physics/components/ball_and_socket_joint_component_store.h"
 #include "physics/components/fixed_joint_component_store.h"
+#include "physics/components/hinge_joint_component_store.h"
 #include "physics/components/joint_component_store.h"
-#include "physics/physics_world_settings.h"
 #include "physics/components/body_component_store.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
+#include "physics/components/slider_joint_component_store.h"
 #include "physics/components/transform_component_store.h"
 #include "physics/physics_context.h"
+#include "physics/physics_world_settings.h"
 #include "physics/systems/collision_system.h"
 #include "physics/systems/constraint_solver_system.h"
 #include "physics/systems/contact_solver_system.h"
@@ -99,6 +101,14 @@ namespace Vulkyrie {
 
         [[nodiscard]] VE_INLINE FixedJointComponentStore &GetFixedJointComponentStore() {
             return _fixedJointComponentStore;
+        }
+
+        [[nodiscard]] VE_INLINE HingeJointComponentStore &GetHingeJointComponentStore() {
+            return _hingeJointComponentStore;
+        }
+
+        [[nodiscard]] VE_INLINE SliderJointComponentStore &GetSliderJointComponentStore() {
+            return _sliderJointComponentStore;
         }
 
         [[nodiscard]] VE_INLINE JointComponentStore &GetJointComponentStore() {
@@ -284,6 +294,8 @@ namespace Vulkyrie {
         TransformComponentStore _transformComponentStore;
         BallAndSocketJointComponentStore _ballAndSocketJointStore;
         FixedJointComponentStore _fixedJointComponentStore;
+        HingeJointComponentStore _hingeJointComponentStore;
+        SliderJointComponentStore _sliderJointComponentStore;
         JointComponentStore _jointComponentStore;
         std::vector<RigidBody *> _rigidBodies;
 
