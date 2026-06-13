@@ -119,6 +119,10 @@ namespace Vulkyrie {
             return _collisionSystem;
         }
 
+        [[nodiscard]] VE_INLINE ConstraintSolverSystem &GetConstraintSolverSystem() {
+            return _constraintSolverSystem;
+        }
+
         [[nodiscard]] VE_INLINE const std::string &GetWorldName() const {
             return _settings.Name;
         }
