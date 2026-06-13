@@ -2,7 +2,7 @@
 
 namespace Vulkyrie {
 
-    HingeJoint::HingeJoint(Entity entity, PhysicsWorld &world, const HingeJointData &data)
+    HingeJoint::HingeJoint(Entity entity, PhysicsWorld &world, const HingeJointData &jointData)
         : Joint(entity, world) {
     }
 

@@ -27,6 +27,7 @@ namespace Vulkyrie {
         /** @brief True if the linear motor is active. */
         bool MotorEnabled;
 
+        /** @brief Constructs a SliderJointComponent with the given limit, motor, and speed settings. */
         SliderJointComponent(bool limitEnabled, bool motorEnabled, f32 lowerLimit, f32 upperLimit, f32 motorSpeed, f32 maxMotorForce)
             : LowerLimit(lowerLimit)
             , UpperLimit(upperLimit)
@@ -301,14 +302,14 @@ namespace Vulkyrie {
 
         /** @brief Returns a mutable reference to the effective inverse mass matrix K for the translational constraint.
          * @param jointEntity Must have a component. */
-        [[nodiscard]] VE_INLINE glm::mat3 &GetInverseMassTranslationMatrix(Entity jointEntity) {
+        [[nodiscard]] VE_INLINE glm::mat2 &GetInverseMassTranslationMatrix(Entity jointEntity) {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             return _inverseMassTranslationMatrices[_entityToComponentIndex.find(jointEntity)->second];
         }
 
         /** @brief Returns a mutable reference to the effective inverse mass matrix K for the translational constraint at the given index.
          * @param componentIndex Must be in bounds. */
-        [[nodiscard]] VE_INLINE glm::mat3 &GetInverseMassTranslationMatrixAtIndex(size_t componentIndex) {
+        [[nodiscard]] VE_INLINE glm::mat2 &GetInverseMassTranslationMatrixAtIndex(size_t componentIndex) {
             VASSERT(componentIndex < _inverseMassTranslationMatrices.size(), "componentIndex out of bounds of _inverseMassTranslationMatrices.");
             return _inverseMassTranslationMatrices[componentIndex];
         }
@@ -316,7 +317,7 @@ namespace Vulkyrie {
         /** @brief Sets the effective inverse mass matrix K for the translational constraint.
          * @param jointEntity Must have a component.
          * @param inverseMassMatrix The new translational inverse mass matrix. */
-        VE_INLINE void SetInverseMassTranslationMatrix(Entity jointEntity, const glm::mat3 &inverseMassMatrix) {
+        VE_INLINE void SetInverseMassTranslationMatrix(Entity jointEntity, const glm::mat2 &inverseMassMatrix) {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             _inverseMassTranslationMatrices[_entityToComponentIndex.find(jointEntity)->second] = inverseMassMatrix;
         }
@@ -324,7 +325,7 @@ namespace Vulkyrie {
         /** @brief Sets the effective inverse mass matrix K for the translational constraint at the given index.
          * @param componentIndex Must be in bounds.
          * @param inverseMassMatrix The new translational inverse mass matrix. */
-        VE_INLINE void SetInverseMassTranslationMatrixAtIndex(size_t componentIndex, const glm::mat3 &inverseMassMatrix) {
+        VE_INLINE void SetInverseMassTranslationMatrixAtIndex(size_t componentIndex, const glm::mat2 &inverseMassMatrix) {
             VASSERT(componentIndex < _inverseMassTranslationMatrices.size(), "componentIndex out of bounds of _inverseMassTranslationMatrices.");
             _inverseMassTranslationMatrices[componentIndex] = inverseMassMatrix;
         }
@@ -882,14 +883,14 @@ namespace Vulkyrie {
 
         /** @brief Returns true if the translation limits are enabled.
          * @param jointEntity Must have a component. */
-        [[nodiscard]] VE_INLINE bool GetIsLimitEnabled(Entity jointEntity) const {
+        [[nodiscard]] VE_INLINE bool IsLimitEnabled(Entity jointEntity) const {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             return static_cast<bool>(_limitEnabledFlags[_entityToComponentIndex.find(jointEntity)->second]);
         }
 
         /** @brief Returns true if the translation limits are enabled at the given index.
          * @param componentIndex Must be in bounds. */
-        [[nodiscard]] VE_INLINE bool GetIsLimitEnabledAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE bool IsLimitEnabledAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _limitEnabledFlags.size(), "componentIndex out of bounds of _limitEnabledFlags.");
             return static_cast<bool>(_limitEnabledFlags[componentIndex]);
         }
@@ -897,7 +898,7 @@ namespace Vulkyrie {
         /** @brief Sets whether the translation limits are enabled.
          * @param jointEntity Must have a component.
          * @param isLimitEnabled True to enable limits. */
-        VE_INLINE void SetIsLimitEnabled(Entity jointEntity, bool isLimitEnabled) {
+        VE_INLINE void SetLimitEnabledFlag(Entity jointEntity, bool isLimitEnabled) {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             _limitEnabledFlags[_entityToComponentIndex.find(jointEntity)->second] = static_cast<u8>(isLimitEnabled);
         }
@@ -905,7 +906,7 @@ namespace Vulkyrie {
         /** @brief Sets whether the translation limits are enabled at the given index.
          * @param componentIndex Must be in bounds.
          * @param isLimitEnabled True to enable limits. */
-        VE_INLINE void SetIsLimitEnabledAtIndex(size_t componentIndex, bool isLimitEnabled) {
+        VE_INLINE void SetLimitEnabledFlagAtIndex(size_t componentIndex, bool isLimitEnabled) {
             VASSERT(componentIndex < _limitEnabledFlags.size(), "componentIndex out of bounds of _limitEnabledFlags.");
             _limitEnabledFlags[componentIndex] = static_cast<u8>(isLimitEnabled);
         }
@@ -914,14 +915,14 @@ namespace Vulkyrie {
 
         /** @brief Returns true if the linear motor is enabled.
          * @param jointEntity Must have a component. */
-        [[nodiscard]] VE_INLINE bool GetIsMotorEnabled(Entity jointEntity) const {
+        [[nodiscard]] VE_INLINE bool IsMotorEnabled(Entity jointEntity) const {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             return static_cast<bool>(_motorEnabledFlags[_entityToComponentIndex.find(jointEntity)->second]);
         }
 
         /** @brief Returns true if the linear motor is enabled at the given index.
          * @param componentIndex Must be in bounds. */
-        [[nodiscard]] VE_INLINE bool GetIsMotorEnabledAtIndex(size_t componentIndex) const {
+        [[nodiscard]] VE_INLINE bool IsMotorEnabledAtIndex(size_t componentIndex) const {
             VASSERT(componentIndex < _motorEnabledFlags.size(), "componentIndex out of bounds of _motorEnabledFlags.");
             return static_cast<bool>(_motorEnabledFlags[componentIndex]);
         }
@@ -929,7 +930,7 @@ namespace Vulkyrie {
         /** @brief Sets whether the linear motor is enabled.
          * @param jointEntity Must have a component.
          * @param isMotorEnabled True to enable the motor. */
-        VE_INLINE void SetIsMotorEnabled(Entity jointEntity, bool isMotorEnabled) {
+        VE_INLINE void SetMotorEnabledFlag(Entity jointEntity, bool isMotorEnabled) {
             VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
             _motorEnabledFlags[_entityToComponentIndex.find(jointEntity)->second] = static_cast<u8>(isMotorEnabled);
         }
@@ -937,7 +938,7 @@ namespace Vulkyrie {
         /** @brief Sets whether the linear motor is enabled at the given index.
          * @param componentIndex Must be in bounds.
          * @param isMotorEnabled True to enable the motor. */
-        VE_INLINE void SetIsMotorEnabledAtIndex(size_t componentIndex, bool isMotorEnabled) {
+        VE_INLINE void SetMotorEnabledFlagAtIndex(size_t componentIndex, bool isMotorEnabled) {
             VASSERT(componentIndex < _motorEnabledFlags.size(), "componentIndex out of bounds of _motorEnabledFlags.");
             _motorEnabledFlags[componentIndex] = static_cast<u8>(isMotorEnabled);
         }
@@ -1358,7 +1359,7 @@ namespace Vulkyrie {
         std::vector<glm::vec3> _impulseRotations;
 
         /** @brief Effective inverse mass matrices K for the 2-DOF translational constraint, computed each simulation step. */
-        std::vector<glm::mat3> _inverseMassTranslationMatrices;
+        std::vector<glm::mat2> _inverseMassTranslationMatrices;
 
         /** @brief Effective inverse mass matrices K for the 3-DOF rotational constraint, computed each simulation step. */
         std::vector<glm::mat3> _inverseMassRotationMatrices;

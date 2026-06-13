@@ -92,6 +92,9 @@ namespace Vulkyrie {
 
         if (active) {
             if (index != _activeCount) {
+                // New entry landed beyond the active zone (inactive entities exist between
+                // _activeCount and index). Swap it into _activeCount; swapComponents also
+                // updates _entityToComponentIndex for both affected entities.
                 swapComponents(index, _activeCount);
             } else {
                 _entityToComponentIndex[jointEntity] = index;

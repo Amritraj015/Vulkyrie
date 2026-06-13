@@ -69,8 +69,8 @@ namespace Vulkyrie {
          * each body's current transform. If local-space anchors are provided, they are stored directly.
          * @param entity The entity that identifies this joint in the component stores.
          * @param world Reference to the owning PhysicsWorld.
-         * @param data Initialisation data containing the body pointers and anchor point specification. */
-        FixedJoint(Entity entity, PhysicsWorld &world, const FixedJointData &data);
+         * @param jointData Initialisation data containing the body pointers and anchor point specification. */
+        FixedJoint(Entity entity, PhysicsWorld &world, const FixedJointData &jointData);
 
         VE_DELETE_MOVE_AND_COPY(FixedJoint);
 

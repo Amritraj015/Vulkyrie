@@ -140,7 +140,7 @@ namespace Vulkyrie {
 
     class HingeJoint final : public Joint {
     public:
-        HingeJoint(Entity entity, PhysicsWorld &world, const HingeJointData &data);
+        HingeJoint(Entity entity, PhysicsWorld &world, const HingeJointData &jointData);
 
         VE_DELETE_MOVE_AND_COPY(HingeJoint);
 

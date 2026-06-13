@@ -6,7 +6,7 @@
 
 namespace Vulkyrie {
 
-    FixedJoint::FixedJoint(Entity entity, PhysicsWorld &world, const FixedJointData &data)
+    FixedJoint::FixedJoint(Entity entity, PhysicsWorld &world, const FixedJointData &jointData)
         : Joint(entity, world) {
         glm::vec3 anchorPointInBodyOneLocalSpace;
         glm::vec3 anchorPointInBodyTwoLocalSpace;
@@ -14,19 +14,19 @@ namespace Vulkyrie {
         // Transforms are always fetched regardless of the anchor path because they are needed below
         // to compute the initial orientation difference, even when local-space anchors are provided.
         TransformComponentStore &transformStore = _physicsWorld.GetTransformComponentStore();
-        const TransformComponent &bodyOneTransform = transformStore.GetTransform(data.BodyOne->GetEntity());
-        const TransformComponent &bodyTwoTransform = transformStore.GetTransform(data.BodyTwo->GetEntity());
+        const TransformComponent &bodyOneTransform = transformStore.GetTransform(jointData.BodyOne->GetEntity());
+        const TransformComponent &bodyTwoTransform = transformStore.GetTransform(jointData.BodyTwo->GetEntity());
 
-        if (data.IsUsingLocalSpaceAnchors) {
+        if (jointData.IsUsingLocalSpaceAnchors) {
             // Local-space anchors were provided directly — store them as-is.
-            anchorPointInBodyOneLocalSpace = data.AnchorPointInBodyOneLocalSpace;
-            anchorPointInBodyTwoLocalSpace = data.AnchorPointInBodyTwoLocalSpace;
+            anchorPointInBodyOneLocalSpace = jointData.AnchorPointInBodyOneLocalSpace;
+            anchorPointInBodyTwoLocalSpace = jointData.AnchorPointInBodyTwoLocalSpace;
         } else {
             // Convert the world-space anchor to each body's local space using the full inverse
             // transform (rotation + translation). Using only the rotation quaternion would produce
             // wrong results for bodies not centred at the world origin.
-            anchorPointInBodyOneLocalSpace = bodyOneTransform.Inverse() * data.AnchorPointInWorldSpace;
-            anchorPointInBodyTwoLocalSpace = bodyTwoTransform.Inverse() * data.AnchorPointInWorldSpace;
+            anchorPointInBodyOneLocalSpace = bodyOneTransform.Inverse() * jointData.AnchorPointInWorldSpace;
+            anchorPointInBodyTwoLocalSpace = bodyTwoTransform.Inverse() * jointData.AnchorPointInWorldSpace;
         }
 
         FixedJointComponentStore &fixedJointStore = _physicsWorld.GetFixedJointComponentStore();
