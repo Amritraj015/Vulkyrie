@@ -506,6 +506,40 @@ namespace Vulkyrie {
             _inverseMassMatrixConeLimits[componentIndex] = inverseMassMatrix;
         }
 
+        /** @brief Retrieves the cross product of the cone limit axes (axis1 x axis2) in world space for the specified entity.
+         * This vector forms the angular Jacobian axis for the cone limit constraint and is recomputed each simulation step.
+         * @param jointEntity The entity whose cone limit axes cross product is to be retrieved. Must have a component.
+         * @returns Const reference to the world-space cross product (axis1 x axis2) used in the cone limit Jacobian. */
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConeLimitAxesCrossProduct(Entity jointEntity) const {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            return _coneLimitAxesCrossProducts[_entityToComponentIndex.find(jointEntity)->second];
+        }
+
+        /** @brief Retrieves the cross product of the cone limit axes (axis1 x axis2) in world space at the given component index.
+         * This vector forms the angular Jacobian axis for the cone limit constraint and is recomputed each simulation step.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @returns Const reference to the world-space cross product (axis1 x axis2) used in the cone limit Jacobian. */
+        [[nodiscard]] VE_INLINE const glm::vec3 &GetConeLimitAxesCrossProductAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _coneLimitAxesCrossProducts.size(), "componentIndex out of bounds of _coneLimitAxesCrossProducts.");
+            return _coneLimitAxesCrossProducts[componentIndex];
+        }
+
+        /** @brief Sets the cross product of the cone limit axes (axis1 x axis2) in world space for the specified entity.
+         * @param jointEntity The entity whose cone limit axes cross product is to be set. Must have a component.
+         * @param crossProduct The new world-space cross product (axis1 x axis2) for the cone limit Jacobian. */
+        VE_INLINE void SetConeLimitAxesCrossProduct(Entity jointEntity, const glm::vec3 &crossProduct) {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            _coneLimitAxesCrossProducts[_entityToComponentIndex.find(jointEntity)->second] = crossProduct;
+        }
+
+        /** @brief Sets the cross product of the cone limit axes (axis1 x axis2) in world space at the given component index.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @param crossProduct The new world-space cross product (axis1 x axis2) for the cone limit Jacobian. */
+        VE_INLINE void SetConeLimitAxesCrossProductAtIndex(size_t componentIndex, const glm::vec3 &crossProduct) {
+            VASSERT(componentIndex < _coneLimitAxesCrossProducts.size(), "componentIndex out of bounds of _coneLimitAxesCrossProducts.");
+            _coneLimitAxesCrossProducts[componentIndex] = crossProduct;
+        }
+
     protected:
         /** @brief Swaps all parallel data arrays at the two given indices and updates the entity-to-index map accordingly.
          * @param indexA Index of the first component to swap.
@@ -565,7 +599,7 @@ namespace Vulkyrie {
         std::vector<u8> _coneLimitViolatedFlags;
 
         /** @brief Cross products of the cone limit axes (axis1 x axis2) in world space, cached each step for use in the cone limit Jacobian. */
-        std::vector<glm::vec3> _coneLimitAxisOneCrossTwoProducts;
+        std::vector<glm::vec3> _coneLimitAxesCrossProducts;
     };
 
 } // namespace Vulkyrie

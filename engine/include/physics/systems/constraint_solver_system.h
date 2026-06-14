@@ -11,28 +11,37 @@
 
 namespace Vulkyrie {
 
-    struct ConstraintSolverData {
-        Vulkyrie::Timestep Timestep;
-        bool EnableWarmStartup;
-        RigidBodyComponentStore &RigidBodyStore;
-        JointComponentStore &JointStore;
-    };
-
     class ConstraintSolverSystem final {
     public:
-        ~ConstraintSolverSystem() = default;
+        ConstraintSolverSystem(PhysicsWorld &world,
+                               RigidBodyComponentStore &rigidBodyStore,
+                               TransformComponentStore &transformStore,
+                               JointComponentStore &jointStore,
+                               BallAndSocketJointComponentStore &ballAndSocketJointStore,
+                               FixedJointComponentStore &fixedJointStore,
+                               HingeJointComponentStore &hingeJointStore,
+                               SliderJointComponentStore &sliderJointStore);
 
-        void SolvePositionConstraints();
+        VE_DELETE_MOVE_AND_COPY(ConstraintSolverSystem);
+
+        ~ConstraintSolverSystem() = default;
 
         [[nodiscard]] VE_INLINE f32 ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation) {
             return _hingeJointSolverSystem.ComputeCurrentHingeAngle(jointEntity, bodyOneOrientation, bodyTwoOrientation);
         }
 
+        void Initialize(Timestep timestep);
+        void SolveVelocityConstraints(Timestep timestep);
+        void SolvePositionConstraints();
+
     private:
+        static constexpr f32 BETA = f32(0.2);
+
         BallAndSocketJointSolverSystem _ballAndSocketJointSolverSystem;
         FixedJointSolverSystem _fixedJointSolverSystem;
         HingeJointSolverSystem _hingeJointSolverSystem;
         SliderJointSolverSystem _sliderJointSolverSystem;
+        bool _enableWarmStartup;
     };
 
 } // namespace Vulkyrie

@@ -6,13 +6,15 @@ namespace Vulkyrie {
     PhysicsWorld::PhysicsWorld(const PhysicsWorldSettings &settings)
         : _settings(settings)
         , _entityManager()
-        , _bodyComponentStore()
-        , _rigidBodyComponentStore()
-        , _colliderComponentStore()
-        , _transformComponentStore()
-        , _jointComponentStore()
+        , _bodyStore()
+        , _rigidBodyStore()
+        , _colliderStore()
+        , _transformStore()
+        , _jointStore()
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
+        , _constraintSolverSystem(*this, _rigidBodyStore, _transformStore, _jointStore, _basJointStore, _fixedJointStore, _hingeJointStore, _sliderJointStore)
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
+        , _contactSolverSystem()
         , _eventListener(nullptr)
         , _sleepLinearVelocitySquared(_settings.DefaultSleepLinearVelocity * _settings.DefaultSleepLinearVelocity)
         , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)
@@ -22,8 +24,8 @@ namespace Vulkyrie {
 
     PhysicsWorld::~PhysicsWorld() {
         // Destroy all the joints that have not been removed.
-        for (size_t i = 0; _jointComponentStore.GetTotalComponentCount(); ++i) {
-            DestroyJoint(_jointComponentStore.GetJointAtIndex(i));
+        for (size_t i = 0; _jointStore.GetTotalComponentCount(); ++i) {
+            DestroyJoint(_jointStore.GetJointAtIndex(i));
         }
 
         size_t index = _rigidBodies.size();
@@ -33,12 +35,12 @@ namespace Vulkyrie {
             DestroyRigidBody(*_rigidBodies[index]);
         }
 
-        VASSERT(_jointComponentStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
+        VASSERT(_jointStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
         VASSERT(_rigidBodies.size() == 0, "_rigidBodies size should be 0.");
         // VASSERT(mCollisionBodies.size() == 0, "");
-        VASSERT(_bodyComponentStore.GetTotalComponentCount() == 0, "Body Component Store must be empty.");
-        VASSERT(_transformComponentStore.GetTotalComponentCount() == 0, "Transform Component Store must be empty.");
-        VASSERT(_colliderComponentStore.GetTotalComponentCount() == 0, "Collider Component Store must be empty.");
+        VASSERT(_bodyStore.GetTotalComponentCount() == 0, "Body Component Store must be empty.");
+        VASSERT(_transformStore.GetTotalComponentCount() == 0, "Transform Component Store must be empty.");
+        VASSERT(_colliderStore.GetTotalComponentCount() == 0, "Collider Component Store must be empty.");
     }
 
     void PhysicsWorld::Update(Timestep timestep) {
@@ -47,17 +49,17 @@ namespace Vulkyrie {
     RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
         Entity entity = _entityManager.CreateEntity();
 
-        _transformComponentStore.AddComponent(entity, transform, true);
+        _transformStore.AddComponent(entity, transform, true);
 
         auto *rigidBody = new RigidBody(entity, *this);
 
         VASSERT(nullptr != rigidBody, "Could not create RigidBody.");
 
         BodyComponent bodyComponent(rigidBody);
-        _bodyComponentStore.AddComponent(entity, bodyComponent, true);
+        _bodyStore.AddComponent(entity, bodyComponent, true);
 
         RigidBodyComponent rigidBodyComponent(rigidBody, BodyType::Dynamic, transform.Position);
-        _rigidBodyComponentStore.AddComponent(entity, rigidBodyComponent, true);
+        _rigidBodyStore.AddComponent(entity, rigidBodyComponent, true);
 
         _rigidBodies.push_back(rigidBody);
 
@@ -80,16 +82,16 @@ namespace Vulkyrie {
         body.RemoveAllColliders();
 
         const Entity entity = body.GetEntity();
-        const std::vector<Entity> &jointEntities = _rigidBodyComponentStore.GetJoints(entity);
+        const std::vector<Entity> &jointEntities = _rigidBodyStore.GetJoints(entity);
 
         // TODO: Finish this.
         if (jointEntities.size() > 0) {
             // DestroyJoint(_jointComponentStore.GetJoint(jointEntities[0]))
         }
 
-        _bodyComponentStore.RemoveComponent(entity);
-        _rigidBodyComponentStore.RemoveComponent(entity);
-        _transformComponentStore.RemoveComponent(entity);
+        _bodyStore.RemoveComponent(entity);
+        _rigidBodyStore.RemoveComponent(entity);
+        _transformStore.RemoveComponent(entity);
         _entityManager.DestroyEntity(entity);
 
         std::erase(_rigidBodies, &body);
@@ -98,7 +100,7 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
-        const bool isCurrentlyActive = !_bodyComponentStore.IsDisabled(entity);
+        const bool isCurrentlyActive = !_bodyStore.IsDisabled(entity);
 
         // If the body is already in the desired active state, we can skip changing it and return early.
         if (active == isCurrentlyActive) {
@@ -106,14 +108,14 @@ namespace Vulkyrie {
         }
 
         // Else, activate or deactivate the body from all component stores.
-        _bodyComponentStore.SetActiveStatus(entity, active);
-        _transformComponentStore.SetActiveStatus(entity, active);
-        _rigidBodyComponentStore.SetActiveStatus(entity, active);
+        _bodyStore.SetActiveStatus(entity, active);
+        _transformStore.SetActiveStatus(entity, active);
+        _rigidBodyStore.SetActiveStatus(entity, active);
 
-        const std::vector<Entity> &colliderEntities = _bodyComponentStore.GetColliders(entity);
+        const std::vector<Entity> &colliderEntities = _bodyStore.GetColliders(entity);
 
         for (Entity colliderEntity : colliderEntities) {
-            _colliderComponentStore.SetActiveStatus(colliderEntity, active);
+            _colliderStore.SetActiveStatus(colliderEntity, active);
         }
     }
 
@@ -144,20 +146,20 @@ namespace Vulkyrie {
 
             for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
                 const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
-                const size_t bodyIndex = _rigidBodyComponentStore.GetEntityIndex(bodyEntity);
+                const size_t bodyIndex = _rigidBodyStore.GetEntityIndex(bodyEntity);
 
-                if (_rigidBodyComponentStore.GetBodyTypeAtIndex(bodyIndex) == BodyType::Static) continue;
+                if (_rigidBodyStore.GetBodyTypeAtIndex(bodyIndex) == BodyType::Static) continue;
 
-                const f32 linearVelocitySquared = glm::length2(_rigidBodyComponentStore.GetLinearVelocityAtIndex(bodyIndex));
-                const f32 angularVelocitySquared = glm::length2(_rigidBodyComponentStore.GetAngularVelocityAtIndex(bodyIndex));
-                const bool isAllowedToSleep = _rigidBodyComponentStore.CanSleepAtIndex(bodyIndex);
+                const f32 linearVelocitySquared = glm::length2(_rigidBodyStore.GetLinearVelocityAtIndex(bodyIndex));
+                const f32 angularVelocitySquared = glm::length2(_rigidBodyStore.GetAngularVelocityAtIndex(bodyIndex));
+                const bool isAllowedToSleep = _rigidBodyStore.CanSleepAtIndex(bodyIndex);
 
                 if (linearVelocitySquared > _sleepLinearVelocitySquared || angularVelocitySquared > _sleepAngularVelocitySquared || !isAllowedToSleep) {
-                    _rigidBodyComponentStore.SetSleepTimeAtIndex(bodyIndex, f32(0.0));
+                    _rigidBodyStore.SetSleepTimeAtIndex(bodyIndex, f32(0.0));
                     minSleepTime = f32(0.0);
                 } else {
-                    const f32 newSleepTime = _rigidBodyComponentStore.GetSleepTimeAtIndex(bodyIndex) + timeStep.GetSeconds();
-                    _rigidBodyComponentStore.SetSleepTimeAtIndex(bodyIndex, newSleepTime);
+                    const f32 newSleepTime = _rigidBodyStore.GetSleepTimeAtIndex(bodyIndex) + timeStep.GetSeconds();
+                    _rigidBodyStore.SetSleepTimeAtIndex(bodyIndex, newSleepTime);
 
                     if (newSleepTime < minSleepTime) {
                         minSleepTime = newSleepTime;
@@ -168,7 +170,7 @@ namespace Vulkyrie {
             if (minSleepTime >= _settings.TimeToSleep) {
                 for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
                     const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
-                    RigidBody &body = _rigidBodyComponentStore.GetRigidBody(bodyEntity);
+                    RigidBody &body = _rigidBodyStore.GetRigidBody(bodyEntity);
                     body.SetIsSleeping(true);
                 }
             }
@@ -176,21 +178,21 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::addJointToBodies(Entity bodyOne, Entity bodyTwo, Entity joint) {
-        _rigidBodyComponentStore.AddJointToBody(bodyOne, joint);
+        _rigidBodyStore.AddJointToBody(bodyOne, joint);
 
         VTRACE("PhysicsWorld: {} - Adding Joint {} to Body {}.", GetWorldName(), joint.GetID(), bodyOne.GetID());
 
-        _rigidBodyComponentStore.AddJointToBody(bodyTwo, joint);
+        _rigidBodyStore.AddJointToBody(bodyTwo, joint);
 
         VTRACE("PhysicsWorld: {} - Adding Joint {} to Body {}.", GetWorldName(), joint.GetID(), bodyTwo.GetID());
     }
 
     void PhysicsWorld::updateBodiesInverseWorldInertiaTensors() {
-        for (size_t i = 0; i < _rigidBodyComponentStore.GetActiveComponentCount(); i++) {
-            const Entity boydEntity = _rigidBodyComponentStore.GetEntityAtIndex(i);
-            const glm::mat3 orientation = glm::mat3_cast(_transformComponentStore.GetTransform(boydEntity).Rotation);
-            const glm::vec3 &localInertiaTensor = _rigidBodyComponentStore.GetInverseLocalInertiaTensorAtIndex(i);
-            glm::mat3 &worldInertiaTensor = _rigidBodyComponentStore.GetInverseWorldInertiaTensorAtIndex(i);
+        for (size_t i = 0; i < _rigidBodyStore.GetActiveComponentCount(); i++) {
+            const Entity boydEntity = _rigidBodyStore.GetEntityAtIndex(i);
+            const glm::mat3 orientation = glm::mat3_cast(_transformStore.GetTransform(boydEntity).Rotation);
+            const glm::vec3 &localInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(i);
+            glm::mat3 &worldInertiaTensor = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(i);
 
             RigidBody::ComputeWorldSpaceInertiaTensorInverse(orientation, localInertiaTensor, worldInertiaTensor);
         }
