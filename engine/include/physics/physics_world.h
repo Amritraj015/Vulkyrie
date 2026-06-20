@@ -116,10 +116,10 @@ namespace Vulkyrie {
         VE_INLINE void SetContactsPositionCorrectionTechnique(ContactsPositionCorrectionTechnique technique) {
             switch (technique) {
                 case ContactsPositionCorrectionTechnique::BaumgarteContacts:
-                    _contactSolverSystem.SetIsSplitImpulseActive(false);
+                    _contactSolverSystem.SetSplitImpulseActiveFlag(false);
                     break;
                 case ContactsPositionCorrectionTechnique::SplitImpulses:
-                    _contactSolverSystem.SetIsSplitImpulseActive(true);
+                    _contactSolverSystem.SetSplitImpulseActiveFlag(true);
                     break;
             }
         }

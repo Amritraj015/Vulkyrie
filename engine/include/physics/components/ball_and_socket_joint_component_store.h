@@ -540,6 +540,70 @@ namespace Vulkyrie {
             _coneLimitAxesCrossProducts[componentIndex] = crossProduct;
         }
 
+        /** @brief Retrieves the Baumgarte position-correction bias scalar for the cone limit constraint of the specified entity.
+         * @param jointEntity The entity whose cone limit bias is to be retrieved. Must have a component.
+         * @returns The scalar bias value for the cone limit constraint. */
+        [[nodiscard]] VE_INLINE f32 GetConeLimitBias(Entity jointEntity) const {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            return _coneLimitBiases[_entityToComponentIndex.find(jointEntity)->second];
+        }
+
+        /** @brief Retrieves the Baumgarte position-correction bias scalar for the cone limit constraint at the given component index.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @returns The scalar bias value for the cone limit constraint. */
+        [[nodiscard]] VE_INLINE f32 GetConeLimitBiasAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _coneLimitBiases.size(), "componentIndex out of bounds of _coneLimitBiases.");
+            return _coneLimitBiases[componentIndex];
+        }
+
+        /** @brief Sets the Baumgarte position-correction bias scalar for the cone limit constraint of the specified entity.
+         * @param jointEntity The entity whose cone limit bias is to be set. Must have a component.
+         * @param bias The new scalar bias value for the cone limit constraint. */
+        VE_INLINE void SetConeLimitBias(Entity jointEntity, f32 bias) {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            _coneLimitBiases[_entityToComponentIndex.find(jointEntity)->second] = bias;
+        }
+
+        /** @brief Sets the Baumgarte position-correction bias scalar for the cone limit constraint at the given component index.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @param bias The new scalar bias value for the cone limit constraint. */
+        VE_INLINE void SetConeLimitBiasAtIndex(size_t componentIndex, f32 bias) {
+            VASSERT(componentIndex < _coneLimitBiases.size(), "componentIndex out of bounds of _coneLimitBiases.");
+            _coneLimitBiases[componentIndex] = bias;
+        }
+
+        /** @brief Returns whether the cone limit is currently violated for the specified entity.
+         * @param jointEntity The entity to query. Must have a component.
+         * @returns True if the cone limit is violated, false otherwise. */
+        [[nodiscard]] VE_INLINE bool ConeLimitViolated(Entity jointEntity) const {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            return static_cast<bool>(_coneLimitViolatedFlags[_entityToComponentIndex.find(jointEntity)->second]);
+        }
+
+        /** @brief Returns whether the cone limit is currently violated at the given component index.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @returns True if the cone limit is violated, false otherwise. */
+        [[nodiscard]] VE_INLINE bool ConeLimitViolatedAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _coneLimitViolatedFlags.size(), "componentIndex out of bounds of _coneLimitViolatedFlags.");
+            return static_cast<bool>(_coneLimitViolatedFlags[componentIndex]);
+        }
+
+        /** @brief Sets the cone limit violated flag for the specified entity.
+         * @param jointEntity The entity whose cone limit violated flag is to be set. Must have a component.
+         * @param isViolated True if the cone limit is currently being violated and enforced, false otherwise. */
+        VE_INLINE void SetConeLimitViolatedFlag(Entity jointEntity, bool isViolated) {
+            VASSERT(HasComponent(jointEntity), "No joints registered for entity.");
+            _coneLimitViolatedFlags[_entityToComponentIndex.find(jointEntity)->second] = static_cast<u8>(isViolated);
+        }
+
+        /** @brief Sets the cone limit violated flag at the given component index.
+         * @param componentIndex Index into the parallel arrays. Must be in bounds.
+         * @param isViolated True if the cone limit is currently being violated and enforced, false otherwise. */
+        VE_INLINE void SetConeLimitViolatedFlagAtIndex(size_t componentIndex, bool isViolated) {
+            VASSERT(componentIndex < _coneLimitViolatedFlags.size(), "componentIndex out of bounds of _coneLimitViolatedFlags.");
+            _coneLimitViolatedFlags[componentIndex] = static_cast<u8>(isViolated);
+        }
+
     protected:
         /** @brief Swaps all parallel data arrays at the two given indices and updates the entity-to-index map accordingly.
          * @param indexA Index of the first component to swap.

@@ -24,10 +24,10 @@ namespace Vulkyrie {
         _sliderJointSolverSystem.SetWarmStartFlag(_enableWarmStartup);
 
         const f32 biasFactor = BETA / timestep.GetSeconds();
-        _ballAndSocketJointSolverSystem.InitializeBeforeSolve(biasFactor);
-        _fixedJointSolverSystem.InitializeBeforeSolve(biasFactor);
-        _hingeJointSolverSystem.InitializeBeforeSolve(biasFactor);
-        _sliderJointSolverSystem.InitializeBeforeSolve(biasFactor);
+        _ballAndSocketJointSolverSystem.InitializeBeforeSolving(biasFactor);
+        _fixedJointSolverSystem.InitializeBeforeSolving(biasFactor);
+        _hingeJointSolverSystem.InitializeBeforeSolving(biasFactor);
+        _sliderJointSolverSystem.InitializeBeforeSolving(biasFactor);
 
         if (_enableWarmStartup) {
             _ballAndSocketJointSolverSystem.WarmStart();

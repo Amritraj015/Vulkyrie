@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/entity.h"
 
 namespace Vulkyrie {
@@ -48,13 +49,7 @@ namespace Vulkyrie {
             , _maxBodiesInIslandInCurrentFrame(0) {
         }
 
-        // Delete the copy constructor and the copy assignment operator.
-        Islands(const Islands &) = delete;
-        Islands &operator=(const Islands &) = delete;
-
-        // Delete the move constructor and the move assignment operator.
-        Islands(Islands &&) = delete;
-        Islands &operator=(Islands &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Islands);
 
         /** @brief Default destructor. */
         ~Islands() = default;

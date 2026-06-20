@@ -389,4 +389,8 @@ namespace Vulkyrie {
         return outputVertices;
     }
 
+    [[nodiscard]] VE_INLINE glm::mat3 SkewSymmetric(const glm::vec3 &v) {
+        return glm::mat3(0.0f, v.z, -v.y, -v.z, 0.0f, v.x, v.y, -v.x, 0.0f);
+    }
+
 } // namespace Vulkyrie

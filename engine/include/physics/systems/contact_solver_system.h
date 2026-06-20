@@ -1,16 +1,25 @@
 #pragma once
 
+#include "vlkypch.h"
+#include "core/time_step.h"
+#include "physics/components/body_component_store.h"
+#include "physics/components/collider_component_store.h"
+#include "physics/components/rigid_body_component_store.h"
 #include "physics/types/contact_manifold.h"
 #include "physics/types/contact_point.h"
+#include "physics/types/islands.h"
+#include "physics/types/material.h"
 
 namespace Vulkyrie {
+
+    class PhysicsWorld;
 
     class ContactSolverSystem {
         struct ContactPointSolver {
             ContactPoint *ExternalPoint;
             glm::vec3 Normal;
-            glm::vec3 BodyOneCenterToContactPointVector;
-            glm::vec3 BodyTwoCenterToContactPointVector;
+            glm::vec3 R1;
+            glm::vec3 R2;
             f32 PenetrationDepth;
             f32 RestitutionBias;
             f32 PenetrationImpulse;
@@ -45,16 +54,52 @@ namespace Vulkyrie {
         };
 
     public:
-        void SetIsSplitImpulseActive(bool active);
+        ContactSolverSystem(PhysicsWorld &world,
+                            Islands &islands,
+                            BodyComponentStore &bodyStore,
+                            RigidBodyComponentStore &rigidBodyStore,
+                            ColliderComponentStore &colliderStore,
+                            f32 &restitutionVelocityThreshold);
+
+        VE_DELETE_MOVE_AND_COPY(ContactSolverSystem);
+
+        ~ContactSolverSystem() = default;
+
+        void Initialize(std::vector<ContactManifold> *contactManifolds, std::vector<ContactPoint> *contactPoints);
+        void InitializeForIsland(size_t islandIndex);
+        void StoreImpulses();
+        void Solve(Timestep timestep);
+        void Reset();
+        bool IsSplitImpulseActive() const;
+        void SetSplitImpulseActiveFlag(bool active);
 
     private:
-        /// Beta value for the penetration depth position correction without split impulses
-        static constexpr f32 BETA = 0.2f;
+        static constexpr f32 BETA = f32(0.2);
+        static constexpr f32 BETA_SPLIT_IMPULSE = f32(0.2);
+        static constexpr f32 SLOP = f32(0.01);
 
-        /// Beta value for the penetration depth position correction with split impulses
-        static constexpr f32 BETA_SPLIT_IMPULSE = 0.2f;
+        std::vector<ContactManifoldSolver> _contactConstraints;
+        std::vector<ContactPointSolver> _contactPoints;
 
-        /// Slop distance (allowed penetration distance between bodies)
-        static constexpr f32 SLOP = 0.01f;
+        PhysicsWorld &_physicsWorld;
+        f32 &_restitutionVelocityThreshold;
+        Islands &_islands;
+
+        std::vector<ContactManifold> *_allContactManifolds;
+        std::vector<ContactPoint> *_allContactPoints;
+
+        BodyComponentStore &_bodyStore;
+        RigidBodyComponentStore &_rigidBodyStore;
+        ColliderComponentStore &_colliderStore;
+
+        size_t _totalContactPoints;
+        size_t _totalContactManifolds;
+        // Timestep _timestep;
+        bool _splitImpulseActive;
+
+        f32 computeMixedRestitutionFactor(const Material &material1, const Material &material2) const;
+        f32 computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const;
+        void computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const;
+        void warmStart();
     };
 } // namespace Vulkyrie

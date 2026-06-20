@@ -24,7 +24,7 @@ namespace Vulkyrie {
             _enableWarmStart = enableWarmStart;
         }
 
-        void InitializeBeforeSolve(f32 biasFactor);
+        void InitializeBeforeSolving(f32 biasFactor);
         void WarmStart();
         void SolveVelocityConstraint();
         void SolvePositionConstraint();
