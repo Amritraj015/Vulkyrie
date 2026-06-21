@@ -113,13 +113,13 @@ namespace Vulkyrie {
 
     private:
         /** @brief Store that holds collider components; used to update local-to-world transforms in UpdateStates(). */
-        ColliderComponentStore &_colliderComponentStore;
+        ColliderComponentStore &_colliderStore;
 
         /** @brief Store that holds all rigid body state: velocities, masses, inertia tensors, constrained values, etc. */
-        RigidBodyComponentStore &_rigidBodyComponentStore;
+        RigidBodyComponentStore &_rigidBodyStore;
 
         /** @brief Store that holds the position/rotation transform for each body entity. */
-        TransformComponentStore &_transformComponentStore;
+        TransformComponentStore &_transformStore;
 
         /** @brief World-level gravity toggle; when false the gravity step in IntegrateVelocities() is skipped entirely. */
         bool &_enableGravity;

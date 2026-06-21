@@ -4,9 +4,9 @@
 namespace Vulkyrie {
 
     DynamicsSystem::DynamicsSystem(PhysicsWorld &physicsWorld, bool &enableGravity, glm::vec3 &gravity)
-        : _colliderComponentStore(physicsWorld.GetColliderComponentStore())
-        , _rigidBodyComponentStore(physicsWorld.GetRigidBodyComponentStore())
-        , _transformComponentStore(physicsWorld.GetTransformComponentStore())
+        : _colliderStore(physicsWorld.GetColliderComponentStore())
+        , _rigidBodyStore(physicsWorld.GetRigidBodyComponentStore())
+        , _transformStore(physicsWorld.GetTransformComponentStore())
         , _enableGravity(enableGravity)
         , _gravity(gravity) {
     }
@@ -24,19 +24,19 @@ namespace Vulkyrie {
         // velocity so that penetration is resolved through position correction rather than by
         // altering the primary velocity state.
         const f32 splitImpulseFactor = isSplitImpulseActive ? f32(1.0) : f32(0.0);
-        const size_t activeBodyCount = _rigidBodyComponentStore.GetActiveComponentCount();
+        const size_t activeBodyCount = _rigidBodyStore.GetActiveComponentCount();
 
         for (size_t i = 0; i < activeBodyCount; ++i) {
             // Start from the post-solver constrained velocities and optionally add split-impulse correction.
-            glm::vec3 newLinearVelocity = _rigidBodyComponentStore.GetConstrainedLinearVelocityAtIndex(i);
-            glm::vec3 newAngularVelocity = _rigidBodyComponentStore.GetConstrainedAngularVelocityAtIndex(i);
+            glm::vec3 newLinearVelocity = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(i);
+            glm::vec3 newAngularVelocity = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(i);
 
-            newLinearVelocity += splitImpulseFactor * _rigidBodyComponentStore.GetSplitLinearVelocityAtIndex(i);
-            newAngularVelocity += splitImpulseFactor * _rigidBodyComponentStore.GetSplitAngularVelocityAtIndex(i);
+            newLinearVelocity += splitImpulseFactor * _rigidBodyStore.GetSplitLinearVelocityAtIndex(i);
+            newAngularVelocity += splitImpulseFactor * _rigidBodyStore.GetSplitAngularVelocityAtIndex(i);
 
             // Read the pre-step position and orientation (committed by the previous step's UpdateStates).
-            const glm::vec3 currentPosition = _rigidBodyComponentStore.GetWorldCenterOfMassAtIndex(i);
-            const glm::quat currentOrientation = _transformComponentStore.GetTransform(_rigidBodyComponentStore.GetEntityAtIndex(i)).Rotation;
+            const glm::vec3 currentPosition = _rigidBodyStore.GetWorldCenterOfMassAtIndex(i);
+            const glm::quat currentOrientation = _transformStore.GetTransform(_rigidBodyStore.GetEntityAtIndex(i)).Rotation;
 
             // Integrate position: p' = p + v * dt.
             const glm::vec3 newPosition = currentPosition + newLinearVelocity * timeStep.GetSeconds();
@@ -46,8 +46,8 @@ namespace Vulkyrie {
             const glm::quat newOrientation =
                 glm::normalize(currentOrientation + 0.5F * glm::quat(0.0F, newAngularVelocity) * currentOrientation * timeStep.GetSeconds());
 
-            _rigidBodyComponentStore.SetConstrainedPositionAtIndex(i, newPosition);
-            _rigidBodyComponentStore.SetConstrainedOrientationAtIndex(i, newOrientation);
+            _rigidBodyStore.SetConstrainedPositionAtIndex(i, newPosition);
+            _rigidBodyStore.SetConstrainedOrientationAtIndex(i, newOrientation);
         }
     }
 
@@ -72,41 +72,40 @@ namespace Vulkyrie {
         ResetSplitVelocities();
 
         const f32 dt = timeStep.GetSeconds();
-        const size_t activeComponentCount = _rigidBodyComponentStore.GetActiveComponentCount();
+        const size_t activeComponentCount = _rigidBodyStore.GetActiveComponentCount();
 
         for (size_t i = 0; i < activeComponentCount; ++i) {
-            VASSERT(_rigidBodyComponentStore.GetSplitLinearVelocityAtIndex(i) == glm::vec3(0.0F),
+            VASSERT(_rigidBodyStore.GetSplitLinearVelocityAtIndex(i) == glm::vec3(0.0F),
                     "Split linear velocity was not reset to zero before integrating velocities.");
-            VASSERT(_rigidBodyComponentStore.GetSplitAngularVelocityAtIndex(i) == glm::vec3(0.0F),
+            VASSERT(_rigidBodyStore.GetSplitAngularVelocityAtIndex(i) == glm::vec3(0.0F),
                     "Split angular velocity was not reset to zero before integrating velocities.");
 
             // Stage 1 — integrate external forces and torques.
             // v' = v + dt * (1/m) * lockFactor * F
-            glm::vec3 newLinearVelocity = _rigidBodyComponentStore.GetLinearVelocityAtIndex(i) +
-                                          dt * _rigidBodyComponentStore.GetInverseMassAtIndex(i) * _rigidBodyComponentStore.GetLinearLockAxisFactorAtIndex(i) *
-                                              _rigidBodyComponentStore.GetExternalForceAtIndex(i);
+            glm::vec3 newLinearVelocity = _rigidBodyStore.GetLinearVelocityAtIndex(i) + dt * _rigidBodyStore.GetInverseMassAtIndex(i) *
+                                                                                            _rigidBodyStore.GetLinearLockAxisFactorAtIndex(i) *
+                                                                                            _rigidBodyStore.GetExternalForceAtIndex(i);
 
             // ω' = ω + dt * lockFactor * I⁻¹ * τ
-            glm::vec3 newAngularVelocity =
-                _rigidBodyComponentStore.GetAngularVelocityAtIndex(i) +
-                dt * _rigidBodyComponentStore.GetAngularLockAxisFactorAtIndex(i) *
-                    (_rigidBodyComponentStore.GetInverseWorldInertiaTensorAtIndex(i) * _rigidBodyComponentStore.GetExternalTorqueAtIndex(i));
+            glm::vec3 newAngularVelocity = _rigidBodyStore.GetAngularVelocityAtIndex(i) +
+                                           dt * _rigidBodyStore.GetAngularLockAxisFactorAtIndex(i) *
+                                               (_rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(i) * _rigidBodyStore.GetExternalTorqueAtIndex(i));
 
             // Stage 2 — apply gravity.
             // Because gravity is a uniform acceleration (F = mg), the mass terms cancel:
             // Δv = dt * (1/m) * lockFactor * (m * g) = dt * lockFactor * g.
-            if (_enableGravity && _rigidBodyComponentStore.IsGravityEnabledAtIndex(i)) {
-                newLinearVelocity += dt * _rigidBodyComponentStore.GetLinearLockAxisFactorAtIndex(i) * _gravity;
+            if (_enableGravity && _rigidBodyStore.IsGravityEnabledAtIndex(i)) {
+                newLinearVelocity += dt * _rigidBodyStore.GetLinearLockAxisFactorAtIndex(i) * _gravity;
             }
 
             // Stage 3 — apply velocity damping.
             // Exact solution: v(t+dt) = v(t) * e^(-c*dt).
             // Padé approximant (first-order): e^(-c*dt) ≈ 1 / (1 + c*dt).
-            newLinearVelocity *= f32(1.0) / (f32(1.0) + _rigidBodyComponentStore.GetLinearDampingAtIndex(i) * dt);
-            newAngularVelocity *= f32(1.0) / (f32(1.0) + _rigidBodyComponentStore.GetAngularDampingAtIndex(i) * dt);
+            newLinearVelocity *= f32(1.0) / (f32(1.0) + _rigidBodyStore.GetLinearDampingAtIndex(i) * dt);
+            newAngularVelocity *= f32(1.0) / (f32(1.0) + _rigidBodyStore.GetAngularDampingAtIndex(i) * dt);
 
-            _rigidBodyComponentStore.SetConstrainedLinearVelocityAtIndex(i, newLinearVelocity);
-            _rigidBodyComponentStore.SetConstrainedAngularVelocityAtIndex(i, newAngularVelocity);
+            _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(i, newLinearVelocity);
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(i, newAngularVelocity);
         }
     }
 
@@ -122,26 +121,26 @@ namespace Vulkyrie {
     // Collider update (per active collider):
     //   localToWorld = bodyTransform * localToBodyTransform
     void DynamicsSystem::UpdateStates() {
-        const size_t activeBodyCount = _rigidBodyComponentStore.GetActiveComponentCount();
+        const size_t activeBodyCount = _rigidBodyStore.GetActiveComponentCount();
 
         for (size_t i = 0; i < activeBodyCount; ++i) {
             // Update the linear and angular velocities of the body to match the constrained velocities computed by the constraint solver.
-            _rigidBodyComponentStore.SetLinearVelocityAtIndex(i, _rigidBodyComponentStore.GetConstrainedLinearVelocityAtIndex(i));
-            _rigidBodyComponentStore.SetAngularVelocityAtIndex(i, _rigidBodyComponentStore.GetConstrainedAngularVelocityAtIndex(i));
+            _rigidBodyStore.SetLinearVelocityAtIndex(i, _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(i));
+            _rigidBodyStore.SetAngularVelocityAtIndex(i, _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(i));
 
             // Update the world center of mass of the body to match the constrained position computed by the constraint solver.
             // This ensures that any rendering or other systems that rely on the world center of mass will reflect the
             // position changes caused by constraints such as contacts and joints.
-            _rigidBodyComponentStore.SetWorldCenterOfMassAtIndex(i, _rigidBodyComponentStore.GetConstrainedPositionAtIndex(i));
+            _rigidBodyStore.SetWorldCenterOfMassAtIndex(i, _rigidBodyStore.GetConstrainedPositionAtIndex(i));
 
             // Update the transform component of the body to match the constrained orientation and world center of mass.
             // This ensures that the body's visual representation will reflect the orientation changes caused by constraints
             // such as contacts and joints, and that the position of the transform will be consistent with the position of the center of mass.
-            const glm::quat &constrainedOrientation = _rigidBodyComponentStore.GetConstrainedOrientationAtIndex(i);
-            TransformComponent &transform = _transformComponentStore.GetTransform(_rigidBodyComponentStore.GetEntityAtIndex(i));
+            const glm::quat &constrainedOrientation = _rigidBodyStore.GetConstrainedOrientationAtIndex(i);
+            TransformComponent &transform = _transformStore.GetTransform(_rigidBodyStore.GetEntityAtIndex(i));
 
-            const glm::vec3 &centerOfMassWorld = _rigidBodyComponentStore.GetWorldCenterOfMassAtIndex(i);
-            const glm::vec3 &centerOfMassLocal = _rigidBodyComponentStore.GetLocalCenterOfMassAtIndex(i);
+            const glm::vec3 &centerOfMassWorld = _rigidBodyStore.GetWorldCenterOfMassAtIndex(i);
+            const glm::vec3 &centerOfMassLocal = _rigidBodyStore.GetLocalCenterOfMassAtIndex(i);
 
             transform.Rotation = glm::normalize(constrainedOrientation);
             transform.Position = centerOfMassWorld - transform.Rotation * centerOfMassLocal;
@@ -149,24 +148,24 @@ namespace Vulkyrie {
 
         // Update the local-to-world transforms of all colliders based on the updated transforms of their associated bodies.
         // This ensures that the colliders will be correctly positioned and oriented for collision detection and response in the next simulation step.
-        const size_t activeColliderComponentCount = _colliderComponentStore.GetActiveComponentCount();
+        const size_t activeColliderComponentCount = _colliderStore.GetActiveComponentCount();
 
         for (size_t i = 0; i < activeColliderComponentCount; i++) {
-            const Entity bodyEntity = _colliderComponentStore.GetBodyEntityAtIndex(i);
-            const TransformComponent transform = _transformComponentStore.GetTransform(bodyEntity) * _colliderComponentStore.GetLocalToBodyTransformAtIndex(i);
+            const Entity bodyEntity = _colliderStore.GetBodyEntityAtIndex(i);
+            const TransformComponent transform = _transformStore.GetTransform(bodyEntity) * _colliderStore.GetLocalToBodyTransformAtIndex(i);
 
-            _colliderComponentStore.SetLocalToWorldTransformAtIndex(i, transform);
+            _colliderStore.SetLocalToWorldTransformAtIndex(i, transform);
         }
     }
 
     // Clears external forces and torques on all rigid bodies (active and inactive) so that forces
     // applied during a step do not persist into subsequent steps unless explicitly reapplied.
     void DynamicsSystem::ResetForcesAndTorques() {
-        const size_t totalComponentCount = _rigidBodyComponentStore.GetTotalComponentCount();
+        const size_t totalComponentCount = _rigidBodyStore.GetTotalComponentCount();
 
         for (size_t i = 0; i < totalComponentCount; ++i) {
-            _rigidBodyComponentStore.SetExternalForceAtIndex(i, glm::vec3(0.0F));
-            _rigidBodyComponentStore.SetExternalTorqueAtIndex(i, glm::vec3(0.0F));
+            _rigidBodyStore.SetExternalForceAtIndex(i, glm::vec3(0.0F));
+            _rigidBodyStore.SetExternalTorqueAtIndex(i, glm::vec3(0.0F));
         }
     }
 
@@ -176,11 +175,11 @@ namespace Vulkyrie {
     // so that split impulses written by the previous step's solver do not carry over.
     // Called automatically at the start of IntegrateVelocities().
     void DynamicsSystem::ResetSplitVelocities() {
-        const size_t activeComponentCount = _rigidBodyComponentStore.GetActiveComponentCount();
+        const size_t activeComponentCount = _rigidBodyStore.GetActiveComponentCount();
 
         for (size_t i = 0; i < activeComponentCount; ++i) {
-            _rigidBodyComponentStore.SetSplitLinearVelocityAtIndex(i, glm::vec3(0.0F));
-            _rigidBodyComponentStore.SetSplitAngularVelocityAtIndex(i, glm::vec3(0.0F));
+            _rigidBodyStore.SetSplitLinearVelocityAtIndex(i, glm::vec3(0.0F));
+            _rigidBodyStore.SetSplitAngularVelocityAtIndex(i, glm::vec3(0.0F));
         }
     }
 

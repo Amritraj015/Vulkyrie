@@ -12,14 +12,14 @@ namespace Vulkyrie {
         , _transformStore()
         , _jointStore()
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
-        , _constraintSolverSystem(*this, _rigidBodyStore, _transformStore, _jointStore, _basJointStore, _fixedJointStore, _hingeJointStore, _sliderJointStore)
+        , _constraintSolverSystem(*this)
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
-        , _contactSolverSystem()
+        , _contactSolverSystem(_islands, _bodyStore, _rigidBodyStore, _colliderStore, _settings.RestitutionCoefficient)
         , _eventListener(nullptr)
         , _sleepLinearVelocitySquared(_settings.DefaultSleepLinearVelocity * _settings.DefaultSleepLinearVelocity)
         , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)
         , _gravityEnabled(true)
-        , _enableDebugRendering(false) {
+        , _enableWarmStartup(true) {
     }
 
     PhysicsWorld::~PhysicsWorld() {
@@ -44,6 +44,7 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::Update(Timestep timestep) {
+        (void)timestep;
     }
 
     RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
@@ -120,9 +121,12 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::setJointStatus(Entity jointEntity, bool enabled) {
+        (void)jointEntity;
+        (void)enabled;
     }
 
     void PhysicsWorld::solveContactsAndConstraints(Timestep timeStep) {
+        (void)timeStep;
     }
 
     void PhysicsWorld::solvePositionCorrection() {

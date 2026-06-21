@@ -18,6 +18,7 @@
 #include "physics/systems/contact_solver_system.h"
 #include "physics/systems/dynamics_system.h"
 #include "physics/types/islands.h"
+#include <glm/gtx/string_cast.hpp>
 
 namespace Vulkyrie {
 
@@ -37,9 +38,13 @@ namespace Vulkyrie {
 
         ~PhysicsWorld();
 
-        // [[nodiscard]] VE_INLINE const PhysicsWorldSettings &GetSettings() const {
-        //     return _settings;
-        // }
+        VE_INLINE void SetWarmStartupFlag(bool enableWarmStartup) {
+            _enableWarmStartup = enableWarmStartup;
+        }
+
+        [[nodiscard]] VE_INLINE const PhysicsWorldSettings &GetSettings() const {
+            return _settings;
+        }
 
         [[nodiscard]] VE_INLINE EntityManager &GetEntityManager() {
             return _entityManager;
@@ -139,7 +144,7 @@ namespace Vulkyrie {
         }
 
         VE_INLINE void SetGravity(glm::vec3 gravity) {
-            VTRACE("PhysicsWorld: {} - Updating Gravity from {} to {}.", GetWorldName(), _settings.Gravity, gravity);
+            VTRACE("PhysicsWorld: {} - Updating Gravity from {} to {}.", GetWorldName(), glm::to_string(_settings.Gravity), glm::to_string(gravity));
 
             _settings.Gravity = gravity;
         }
@@ -196,9 +201,9 @@ namespace Vulkyrie {
             _eventListener = eventListener;
         }
 
-        [[nodiscard]] VE_INLINE bool IsDebugRenderingEnabled() const {
-            return _enableDebugRendering;
-        }
+        // [[nodiscard]] VE_INLINE bool IsDebugRenderingEnabled() const {
+        //     return _enableDebugRendering;
+        // }
 
         [[nodiscard]] VE_INLINE AABB GetWorldAABB(const Collider &collider) const {
             if (collider.GetBroadPhaseID() == AABB_TREE_NULL_NODE) {
@@ -285,6 +290,7 @@ namespace Vulkyrie {
         f32 _sleepAngularVelocitySquared;
 
         bool _gravityEnabled;
+        bool _enableWarmStartup;
         // bool _enableDebugRendering;
 
         void setJointStatus(Entity jointEntity, bool enabled);

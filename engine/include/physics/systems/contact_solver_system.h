@@ -12,8 +12,6 @@
 
 namespace Vulkyrie {
 
-    class PhysicsWorld;
-
     class ContactSolverSystem {
         struct ContactPointSolver {
             ContactPoint *ExternalPoint;
@@ -54,8 +52,7 @@ namespace Vulkyrie {
         };
 
     public:
-        ContactSolverSystem(PhysicsWorld &world,
-                            Islands &islands,
+        ContactSolverSystem(Islands &islands,
                             BodyComponentStore &bodyStore,
                             RigidBodyComponentStore &rigidBodyStore,
                             ColliderComponentStore &colliderStore,
@@ -81,7 +78,6 @@ namespace Vulkyrie {
         std::vector<ContactManifoldSolver> _contactConstraints;
         std::vector<ContactPointSolver> _contactPoints;
 
-        PhysicsWorld &_physicsWorld;
         f32 &_restitutionVelocityThreshold;
         Islands &_islands;
 

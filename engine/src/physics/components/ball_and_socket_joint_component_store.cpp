@@ -19,7 +19,7 @@ namespace Vulkyrie {
         _inverseMassMatrixConeLimits.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _coneLimitBiases.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
         _coneLimitViolatedFlags.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
-        _coneLimitAxisOneCrossTwoProducts.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
+        _coneLimitAxesCrossProducts.reserve(INITIAL_COMPONENT_RESERVATION_COUNT);
     }
 
     void BallAndSocketJointComponentStore::AddComponent(Entity jointEntity, const BallAndSocketJointComponent &component, bool active) {
@@ -44,7 +44,7 @@ namespace Vulkyrie {
         _inverseMassMatrixConeLimits.emplace_back(0.0f);
         _coneLimitBiases.emplace_back(0.0f);
         _coneLimitViolatedFlags.emplace_back(static_cast<u8>(false));
-        _coneLimitAxisOneCrossTwoProducts.emplace_back(0.0f, 0.0f, 0.0f);
+        _coneLimitAxesCrossProducts.emplace_back(0.0f, 0.0f, 0.0f);
         _entities.push_back(jointEntity);
 
         if (active) {
@@ -84,7 +84,7 @@ namespace Vulkyrie {
         std::swap(_inverseMassMatrixConeLimits[indexA], _inverseMassMatrixConeLimits[indexB]);
         std::swap(_coneLimitBiases[indexA], _coneLimitBiases[indexB]);
         std::swap(_coneLimitViolatedFlags[indexA], _coneLimitViolatedFlags[indexB]);
-        std::swap(_coneLimitAxisOneCrossTwoProducts[indexA], _coneLimitAxisOneCrossTwoProducts[indexB]);
+        std::swap(_coneLimitAxesCrossProducts[indexA], _coneLimitAxesCrossProducts[indexB]);
         std::swap(_entities[indexA], _entities[indexB]);
 
         _entityToComponentIndex[_entities[indexA]] = indexA;
@@ -110,7 +110,7 @@ namespace Vulkyrie {
         _inverseMassMatrixConeLimits.pop_back();
         _coneLimitBiases.pop_back();
         _coneLimitViolatedFlags.pop_back();
-        _coneLimitAxisOneCrossTwoProducts.pop_back();
+        _coneLimitAxesCrossProducts.pop_back();
         _entities.pop_back();
     }
 

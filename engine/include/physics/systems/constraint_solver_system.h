@@ -6,21 +6,12 @@
 #include "physics/systems/fixed_joint_solver_system.h"
 #include "physics/systems/hinge_joint_solver_system.h"
 #include "physics/systems/slider_joint_solver_system.h"
-#include "physics/components/joint_component_store.h"
-#include "physics/components/rigid_body_component_store.h"
 
 namespace Vulkyrie {
 
     class ConstraintSolverSystem final {
     public:
-        ConstraintSolverSystem(PhysicsWorld &world,
-                               RigidBodyComponentStore &rigidBodyStore,
-                               TransformComponentStore &transformStore,
-                               JointComponentStore &jointStore,
-                               BallAndSocketJointComponentStore &ballAndSocketJointStore,
-                               FixedJointComponentStore &fixedJointStore,
-                               HingeJointComponentStore &hingeJointStore,
-                               SliderJointComponentStore &sliderJointStore);
+        ConstraintSolverSystem(PhysicsWorld &world, bool &enableWarmStartup);
 
         VE_DELETE_MOVE_AND_COPY(ConstraintSolverSystem);
 
@@ -41,7 +32,7 @@ namespace Vulkyrie {
         FixedJointSolverSystem _fixedJointSolverSystem;
         HingeJointSolverSystem _hingeJointSolverSystem;
         SliderJointSolverSystem _sliderJointSolverSystem;
-        bool _enableWarmStartup;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie

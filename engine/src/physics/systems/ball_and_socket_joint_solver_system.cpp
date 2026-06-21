@@ -1,20 +1,16 @@
 #include "physics/systems/ball_and_socket_joint_solver_system.h"
-#include "physics/body/rigid_body.h"
+#include "physics/physics_world.h"
+// #include "physics/body/rigid_body.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie {
 
-    BallAndSocketJointSolverSystem::BallAndSocketJointSolverSystem(PhysicsWorld &world,
-                                                                   RigidBodyComponentStore &rigidBodyStore,
-                                                                   TransformComponentStore &transformStore,
-                                                                   JointComponentStore &jointStore,
-                                                                   BallAndSocketJointComponentStore &basStore)
-        : _physicsWorld(world)
-        , _rigidBodyStore(rigidBodyStore)
-        , _transformStore(transformStore)
-        , _jointStore(jointStore)
-        , _basStore(basStore)
-        , _enableWarmStart(true) {
+    BallAndSocketJointSolverSystem::BallAndSocketJointSolverSystem(PhysicsWorld &world, bool &enableWarmStartup)
+        : _rigidBodyStore(world.GetRigidBodyComponentStore())
+        , _transformStore(world.GetTransformComponentStore())
+        , _jointStore(world.GetJointComponentStore())
+        , _basStore(world.GetBallAndSocketJointComponentStore())
+        , _enableWarmStartup(enableWarmStartup) {
     }
 
     void BallAndSocketJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
@@ -118,7 +114,7 @@ namespace Vulkyrie {
                 }
             }
 
-            if (!_enableWarmStart) {
+            if (!_enableWarmStartup) {
                 _basStore.SetImpulseAtIndex(i, glm::vec3(0.0f));
             }
         }

@@ -10,19 +10,11 @@ namespace Vulkyrie {
 
     class FixedJointSolverSystem {
     public:
-        FixedJointSolverSystem(PhysicsWorld &world,
-                               RigidBodyComponentStore &rigidBodyStore,
-                               TransformComponentStore &transformStore,
-                               JointComponentStore &jointStore,
-                               FixedJointComponentStore &fixedJointStore);
+        explicit FixedJointSolverSystem(PhysicsWorld &world, bool &enableWarmStartup);
 
         VE_DELETE_MOVE_AND_COPY(FixedJointSolverSystem);
 
         ~FixedJointSolverSystem() = default;
-
-        VE_INLINE void SetWarmStartFlag(bool enableWarmStart) {
-            _enableWarmStart = enableWarmStart;
-        }
 
         void InitializeBeforeSolving(f32 biasFactor);
         void WarmStart();
@@ -30,12 +22,11 @@ namespace Vulkyrie {
         void SolvePositionConstraint();
 
     private:
-        PhysicsWorld &_physicsWorld;
         RigidBodyComponentStore &_rigidBodyStore;
         TransformComponentStore &_transformStore;
         JointComponentStore &_jointStore;
         FixedJointComponentStore &_fixedJointStore;
-        bool _enableWarmStart;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie

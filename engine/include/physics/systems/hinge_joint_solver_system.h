@@ -10,19 +10,11 @@ namespace Vulkyrie {
 
     class HingeJointSolverSystem {
     public:
-        HingeJointSolverSystem(PhysicsWorld &world,
-                               RigidBodyComponentStore &rigidBodyStore,
-                               TransformComponentStore &transformStore,
-                               JointComponentStore &jointStore,
-                               HingeJointComponentStore &hingeJointStore);
+        explicit HingeJointSolverSystem(PhysicsWorld &world, bool &enableWarmStartup);
 
         VE_DELETE_MOVE_AND_COPY(HingeJointSolverSystem);
 
         ~HingeJointSolverSystem() = default;
-
-        VE_INLINE void SetWarmStartFlag(bool enableWarmStart) {
-            _enableWarmStart = enableWarmStart;
-        }
 
         void InitializeBeforeSolving(f32 biasFactor);
         void WarmStart();
@@ -34,12 +26,11 @@ namespace Vulkyrie {
         f32 ComputeCorrespondingAngleNearLimits(f32 inputAngle, f32 lowerLimitAngle, f32 upperLimitAngle) const;
 
     private:
-        PhysicsWorld &_physicsWorld;
         RigidBodyComponentStore &_rigidBodyStore;
         TransformComponentStore &_transformStore;
         JointComponentStore &_jointStore;
         HingeJointComponentStore &_hingeJointStore;
-        bool _enableWarmStart;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie

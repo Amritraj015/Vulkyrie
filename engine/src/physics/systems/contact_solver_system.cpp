@@ -2,14 +2,12 @@
 
 namespace Vulkyrie {
 
-    ContactSolverSystem::ContactSolverSystem(PhysicsWorld &world,
-                                             Islands &islands,
+    ContactSolverSystem::ContactSolverSystem(Islands &islands,
                                              BodyComponentStore &bodyStore,
                                              RigidBodyComponentStore &rigidBodyStore,
                                              ColliderComponentStore &colliderStore,
                                              f32 &restitutionVelocityThreshold)
-        : _physicsWorld(world)
-        , _restitutionVelocityThreshold(restitutionVelocityThreshold)
+        : _restitutionVelocityThreshold(restitutionVelocityThreshold)
         , _islands(islands)
         , _allContactManifolds(nullptr)
         , _allContactPoints(nullptr)

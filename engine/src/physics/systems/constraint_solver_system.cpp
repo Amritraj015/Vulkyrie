@@ -2,27 +2,15 @@
 
 namespace Vulkyrie {
 
-    ConstraintSolverSystem::ConstraintSolverSystem(PhysicsWorld &world,
-                                                   RigidBodyComponentStore &rigidBodyStore,
-                                                   TransformComponentStore &transformStore,
-                                                   JointComponentStore &jointStore,
-                                                   BallAndSocketJointComponentStore &ballAndSocketJointStore,
-                                                   FixedJointComponentStore &fixedJointStore,
-                                                   HingeJointComponentStore &hingeJointStore,
-                                                   SliderJointComponentStore &sliderJointStore)
-        : _ballAndSocketJointSolverSystem(world, rigidBodyStore, transformStore, jointStore, ballAndSocketJointStore)
-        , _fixedJointSolverSystem(world, rigidBodyStore, transformStore, jointStore, fixedJointStore)
-        , _hingeJointSolverSystem(world, rigidBodyStore, transformStore, jointStore, hingeJointStore)
-        , _sliderJointSolverSystem(world, rigidBodyStore, transformStore, jointStore, sliderJointStore)
-        , _enableWarmStartup(true) {
+    ConstraintSolverSystem::ConstraintSolverSystem(PhysicsWorld &world, bool &enableWarmStartup)
+        : _ballAndSocketJointSolverSystem(world, enableWarmStartup)
+        , _fixedJointSolverSystem(world, enableWarmStartup)
+        , _hingeJointSolverSystem(world, enableWarmStartup)
+        , _sliderJointSolverSystem(world, enableWarmStartup)
+        , _enableWarmStartup(enableWarmStartup) {
     }
 
     void ConstraintSolverSystem::Initialize(Timestep timestep) {
-        _ballAndSocketJointSolverSystem.SetWarmStartFlag(_enableWarmStartup);
-        _fixedJointSolverSystem.SetWarmStartFlag(_enableWarmStartup);
-        _hingeJointSolverSystem.SetWarmStartFlag(_enableWarmStartup);
-        _sliderJointSolverSystem.SetWarmStartFlag(_enableWarmStartup);
-
         const f32 biasFactor = BETA / timestep.GetSeconds();
         _ballAndSocketJointSolverSystem.InitializeBeforeSolving(biasFactor);
         _fixedJointSolverSystem.InitializeBeforeSolving(biasFactor);

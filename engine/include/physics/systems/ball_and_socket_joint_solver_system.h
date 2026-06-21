@@ -10,11 +10,7 @@ namespace Vulkyrie {
 
     class BallAndSocketJointSolverSystem final {
     public:
-        BallAndSocketJointSolverSystem(PhysicsWorld &world,
-                                       RigidBodyComponentStore &rigidBodyStore,
-                                       TransformComponentStore &transformStore,
-                                       JointComponentStore &jointStore,
-                                       BallAndSocketJointComponentStore &basStore);
+        explicit BallAndSocketJointSolverSystem(PhysicsWorld &world, bool &enableWarmStartup);
 
         VE_DELETE_MOVE_AND_COPY(BallAndSocketJointSolverSystem);
 
@@ -25,22 +21,17 @@ namespace Vulkyrie {
             return std::acos(glm::dot(coneLimitWorldAxisBodyOne, coneLimitWorldAxisBodyTwo));
         }
 
-        VE_INLINE void SetWarmStartFlag(bool enableWarmStart) {
-            _enableWarmStart = enableWarmStart;
-        }
-
         void InitializeBeforeSolving(f32 biasFactor);
         void WarmStart();
         void SolveVelocityConstraint();
         void SolvePositionConstraint();
 
     private:
-        PhysicsWorld &_physicsWorld;
         RigidBodyComponentStore &_rigidBodyStore;
         TransformComponentStore &_transformStore;
         JointComponentStore &_jointStore;
         BallAndSocketJointComponentStore &_basStore;
-        bool _enableWarmStart;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie

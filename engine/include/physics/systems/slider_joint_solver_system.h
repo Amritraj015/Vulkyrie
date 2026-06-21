@@ -10,19 +10,11 @@ namespace Vulkyrie {
 
     class SliderJointSolverSystem {
     public:
-        SliderJointSolverSystem(PhysicsWorld &world,
-                                RigidBodyComponentStore &rigidBodyComponents,
-                                TransformComponentStore &transformComponents,
-                                JointComponentStore &jointComponents,
-                                SliderJointComponentStore &sliderJointComponents);
+        explicit SliderJointSolverSystem(PhysicsWorld &world, bool &enableWarmStartup);
 
         VE_DELETE_MOVE_AND_COPY(SliderJointSolverSystem);
 
         ~SliderJointSolverSystem() = default;
-
-        VE_INLINE void SetWarmStartFlag(bool enableWarmStart) {
-            _enableWarmStart = enableWarmStart;
-        }
 
         void InitializeBeforeSolving(f32 biasFactor);
         void WarmStart();
@@ -30,12 +22,11 @@ namespace Vulkyrie {
         void SolvePositionConstraint();
 
     private:
-        PhysicsWorld &_physicsWorld;
         RigidBodyComponentStore &_rigidBodyStore;
         TransformComponentStore &_transformStore;
         JointComponentStore &_jointStore;
         SliderJointComponentStore &_sliderJointStore;
-        bool _enableWarmStart;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie
