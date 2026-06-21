@@ -389,8 +389,42 @@ namespace Vulkyrie {
         return outputVertices;
     }
 
+    /** @brief Computes the 3x3 skew-symmetric (cross-product) matrix for a vector v.
+     *
+     * The resulting matrix S satisfies S * w == v x w for any vector w, allowing
+     * cross products to be expressed as matrix multiplications. This is used in
+     * constraint solvers to build the angular block of the Jacobian: the lever-arm
+     * term J_w = -S(r) maps angular velocity to the constraint velocity, and
+     * S(r)^T * I^-1 * S(r) appears in the effective mass matrix K = J * M^-1 * J^T.
+     *
+     * @param v The vector from which to build the skew-symmetric matrix.
+     * @returns The 3x3 skew-symmetric matrix S(v) such that S(v) * w == v x w. */
     [[nodiscard]] VE_INLINE glm::mat3 SkewSymmetric(const glm::vec3 &v) {
         return glm::mat3(0.0f, v.z, -v.y, -v.z, 0.0f, v.x, v.y, -v.x, 0.0f);
+    }
+
+    /** @brief Computes the inverse of a 3x3 matrix using a pre-computed determinant.
+     *
+     * Equivalent to glm::inverse(m) but avoids recomputing the determinant internally.
+     * Use this when the determinant has already been computed (e.g. for a near-zero
+     * check), so the value is not paid for twice.
+     *
+     * @param m The matrix to invert. Must be non-singular (determinant != 0).
+     * @param determinant The pre-computed determinant of m.
+     * @returns The inverse of m. */
+    [[nodiscard]] VE_INLINE glm::mat3 InverseMat3(const glm::mat3 &m, f32 determinant) {
+        const f32 invDet = f32(1.0) / determinant;
+        glm::mat3 inv;
+        inv[0][0] = +(m[1][1] * m[2][2] - m[2][1] * m[1][2]) * invDet;
+        inv[1][0] = -(m[1][0] * m[2][2] - m[2][0] * m[1][2]) * invDet;
+        inv[2][0] = +(m[1][0] * m[2][1] - m[2][0] * m[1][1]) * invDet;
+        inv[0][1] = -(m[0][1] * m[2][2] - m[2][1] * m[0][2]) * invDet;
+        inv[1][1] = +(m[0][0] * m[2][2] - m[2][0] * m[0][2]) * invDet;
+        inv[2][1] = -(m[0][0] * m[2][1] - m[2][0] * m[0][1]) * invDet;
+        inv[0][2] = +(m[0][1] * m[1][2] - m[1][1] * m[0][2]) * invDet;
+        inv[1][2] = -(m[0][0] * m[1][2] - m[1][0] * m[0][2]) * invDet;
+        inv[2][2] = +(m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invDet;
+        return inv;
     }
 
 } // namespace Vulkyrie

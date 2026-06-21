@@ -91,15 +91,15 @@ namespace Vulkyrie {
          * @param lastFrameInfo Cached collision info from the previous frame, used by warm-starting algorithms.
          */
         VE_INLINE void AddNarrowPhaseTest(u64 pairID,
-                                                Entity colliderOne,
-                                                Entity colliderTwo,
-                                                CollisionShape &shapeOne,
-                                                CollisionShape &shapeTwo,
-                                                const TransformComponent &shapeOneTransform,
-                                                const TransformComponent &shapeTwoTransform,
-                                                NarrowPhaseAlgorithm narrowPhaseAlgorithm,
-                                                bool reportContacts,
-                                                LastFrameCollisionData &lastFrameInfo) {
+                                          Entity colliderOne,
+                                          Entity colliderTwo,
+                                          CollisionShape &shapeOne,
+                                          CollisionShape &shapeTwo,
+                                          const TransformComponent &shapeOneTransform,
+                                          const TransformComponent &shapeTwoTransform,
+                                          NarrowPhaseAlgorithm narrowPhaseAlgorithm,
+                                          bool reportContacts,
+                                          LastFrameCollisionData &lastFrameInfo) {
             switch (narrowPhaseAlgorithm) {
                 case NarrowPhaseAlgorithm::SphereVsSphere:
                     _sphereVsSphereBatch.AddNarrowPhaseData(
@@ -128,6 +128,15 @@ namespace Vulkyrie {
                 default:
                     VASSERT(false, "Unsupported narrow-phase algorithm.");
             }
+        }
+
+        VE_INLINE void Dispose() {
+            _sphereVsSphereBatch.Dispose();
+            _sphereVsCapsuleBatch.Dispose();
+            _capsuleVsCapsuleBatch.Dispose();
+            _sphereVsConvexPolyhedronBatch.Dispose();
+            _capsuleVsConvexPolyhedronBatch.Dispose();
+            _convexPolyhedronVsConvexPolyhedronBatch.Dispose();
         }
 
     private:

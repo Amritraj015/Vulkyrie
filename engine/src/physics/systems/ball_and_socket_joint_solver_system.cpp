@@ -18,47 +18,110 @@ namespace Vulkyrie {
     }
 
     void BallAndSocketJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
-        // for (size_t i = 0; _basStore.GetActiveComponentCount(); ++i) {
-        //     const Entity jointEntity = _basStore.GetEntityAtIndex(i);
-        //     const size_t entityIndex = _jointStore.GetEntityIndex(jointEntity);
-        //
-        //     const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(entityIndex);
-        //     const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(entityIndex);
-        //
-        //     VASSERT(!_rigidBodyStore.IsDisabled(bodyOneEntity) || !_rigidBodyStore.IsDisabled(bodyTwoEntity), "Both bodies must be active.");
-        //
-        //     const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-        //     const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
-        //
-        //     _basStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex));
-        //     _basStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex));
-        //
-        //     const TransformComponent &bodyOneTransform = _transformStore.GetTransform(bodyOneEntity);
-        //     const TransformComponent &bodyTwoTransform = _transformStore.GetTransform(bodyTwoEntity);
-        //
-        //     const glm::vec3 &localAnchorPointOnBodyOne = _basStore.GetLocalSpaceAnchorPointOnBodyOneAtIndex(i);
-        //     const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
-        //     const glm::vec3 newVecOne = bodyOneTransform.Rotation * (localAnchorPointOnBodyOne - localCenterOfMassBodyOne);
-        //
-        //     const glm::vec3 &localAnchorPointOnBodyTwo = _basStore.GetLocalSpaceAnchorPointOnBodyTwoAtIndex(i);
-        //     const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
-        //     const glm::vec3 newVecTwo = bodyTwoTransform.Rotation * (localAnchorPointOnBodyTwo - localCenterOfMassBodyTwo);
-        //
-        //     _basStore.SetR1WorldAtIndex(i, newVecOne);
-        //     _basStore.SetR2WorldAtIndex(i, newVecTwo);
-        //
-        //     const glm::vec3 &r1World = _basStore.GetR1WorldAtIndex(i);
-        //     const glm::vec3 &r2World = _basStore.GetR2WorldAtIndex(i);
-        //     const glm::mat3 skewSymmetricMatrixU1 = SkewSymmetric(r1World);
-        //     const glm::mat3 skewSymmetricMatrixU2 = SkewSymmetric(r2World);
-        //
-        //     const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
-        //     const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
-        //     const f32 totalInverseMass = bodyOneInverseMass + bodyTwoInverseMass;
-        //
-        //     const glm::mat3 &inertiaTensorBodyOne = _basStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
-        //     const glm::mat3 &inertiaTensorBodyTwo = _basStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
-        // }
+        for (size_t i = 0; i < _basStore.GetActiveComponentCount(); ++i) {
+            const Entity jointEntity = _basStore.GetEntityAtIndex(i);
+            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
+
+            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
+            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
+
+            VASSERT(!_rigidBodyStore.IsDisabled(bodyOneEntity) || !_rigidBodyStore.IsDisabled(bodyTwoEntity), "Both bodies must be active.");
+
+            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
+            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+
+            _basStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex));
+            _basStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex));
+
+            const TransformComponent &bodyOneTransform = _transformStore.GetTransform(bodyOneEntity);
+            const TransformComponent &bodyTwoTransform = _transformStore.GetTransform(bodyTwoEntity);
+
+            const glm::vec3 &localAnchorPointOnBodyOne = _basStore.GetLocalSpaceAnchorPointOnBodyOneAtIndex(i);
+            const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
+            const glm::vec3 newVecOne = bodyOneTransform.Rotation * (localAnchorPointOnBodyOne - localCenterOfMassBodyOne);
+
+            const glm::vec3 &localAnchorPointOnBodyTwo = _basStore.GetLocalSpaceAnchorPointOnBodyTwoAtIndex(i);
+            const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
+            const glm::vec3 newVecTwo = bodyTwoTransform.Rotation * (localAnchorPointOnBodyTwo - localCenterOfMassBodyTwo);
+
+            _basStore.SetR1WorldAtIndex(i, newVecOne);
+            _basStore.SetR2WorldAtIndex(i, newVecTwo);
+
+            const glm::vec3 &r1World = _basStore.GetR1WorldAtIndex(i);
+            const glm::vec3 &r2World = _basStore.GetR2WorldAtIndex(i);
+            const glm::mat3 skewSymmetricMatrixU1 = SkewSymmetric(r1World);
+            const glm::mat3 skewSymmetricMatrixU2 = SkewSymmetric(r2World);
+
+            const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
+            const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
+            const f32 totalInverseMass = bodyOneInverseMass + bodyTwoInverseMass;
+
+            const glm::mat3 &inertiaTensorBodyOne = _basStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
+            const glm::mat3 &inertiaTensorBodyTwo = _basStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
+
+            const glm::mat3 massMatrix = glm::mat3(glm::vec3(totalInverseMass, 0, 0), //
+                                                   glm::vec3(0, totalInverseMass, 0), //
+                                                   glm::vec3(0, 0, totalInverseMass)  //
+                                                   ) +
+                                         skewSymmetricMatrixU1 * inertiaTensorBodyOne * glm::transpose(skewSymmetricMatrixU1) +
+                                         skewSymmetricMatrixU2 * inertiaTensorBodyTwo * glm::transpose(skewSymmetricMatrixU2);
+
+            _basStore.SetInverseMassMatrixAtIndex(i, glm::mat3(0));
+            const f32 massMatrixDeterminant = glm::determinant(massMatrix);
+
+            if (VE_MACHINE_EPSILON < std::abs(massMatrixDeterminant)) {
+                if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
+                    BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
+                    _basStore.SetInverseMassMatrixAtIndex(i, InverseMat3(massMatrix, massMatrixDeterminant));
+                }
+            }
+
+            const glm::vec3 &x1 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyOneIndex);
+            const glm::vec3 &x2 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyTwoIndex);
+
+            _basStore.SetBiasVectorAtIndex(i, glm::vec3(0.0f));
+
+            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                _basStore.SetBiasVectorAtIndex(i, biasFactor * (x2 + r2World - x1 - r1World));
+            }
+
+            const glm::vec3 r1WorldUnit = glm::normalize(r1World);
+            const glm::vec3 r2WorldUnit = glm::normalize(r2World);
+            _basStore.SetConeLimitAxesCrossProductAtIndex(i, glm::cross(r1WorldUnit, -r2WorldUnit));
+
+            const f32 coneAngle = ComputeCurrentConeHalfAngle(r1WorldUnit, -r2WorldUnit);
+            const f32 coneLimitError = _basStore.GetConeLimitHalfAngleAtIndex(i) - coneAngle;
+
+            const bool oldConeLimitViolated = _basStore.ConeLimitViolatedAtIndex(i);
+            const bool coneLimitViolated = coneLimitError < 0;
+            _basStore.SetConeLimitViolatedFlagAtIndex(i, coneLimitViolated);
+
+            if (!coneLimitViolated || coneLimitViolated != oldConeLimitViolated) {
+                _basStore.SetConeLimitImpulseAtIndex(i, f32(0.0f));
+            }
+
+            if (_basStore.ConeLimitEnabledAtIndex(i)) {
+                // Compute the inverse of the mass matrix K=JM^-1J^t for the cone limit
+                const glm::vec3 coneLimitAxisCrossProduct = _basStore.GetConeLimitAxesCrossProductAtIndex(i);
+
+                f32 inverseMassMatrixConeLimit = glm::dot(coneLimitAxisCrossProduct, inertiaTensorBodyOne * coneLimitAxisCrossProduct) +
+                                                 glm::dot(coneLimitAxisCrossProduct, inertiaTensorBodyTwo * coneLimitAxisCrossProduct);
+                inverseMassMatrixConeLimit = (inverseMassMatrixConeLimit > f32(0.0)) ? f32(1.0) / inverseMassMatrixConeLimit : f32(0.0);
+
+                _basStore.SetInverseMassMatrixConeLimitAtIndex(i, inverseMassMatrixConeLimit);
+
+                // Compute the bias "b" of the lower limit constraint.
+                if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                    _basStore.SetConeLimitBiasAtIndex(i, biasFactor * coneLimitError);
+                } else {
+                    _basStore.SetConeLimitBiasAtIndex(i, f32(0.0f));
+                }
+            }
+
+            if (!_enableWarmStart) {
+                _basStore.SetImpulseAtIndex(i, glm::vec3(0.0f));
+            }
+        }
     }
 
     void BallAndSocketJointSolverSystem::WarmStart() {

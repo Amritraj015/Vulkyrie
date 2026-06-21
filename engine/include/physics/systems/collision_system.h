@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/pair.h"
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
@@ -23,13 +24,7 @@ namespace Vulkyrie {
     public:
         explicit CollisionSystem(PhysicsWorld &physicsWorld, HalfEdgeMesh &triangleHalfEdgeMesh);
 
-        // Delete the copy constructor and copy assignment operator.
-        CollisionSystem(const CollisionSystem &) = delete;
-        CollisionSystem &operator=(const CollisionSystem &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        CollisionSystem(CollisionSystem &&) = delete;
-        CollisionSystem &operator=(CollisionSystem &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(CollisionSystem);
 
         /** @brief Default destructor for CollisionSystem. */
         ~CollisionSystem() = default;
@@ -72,6 +67,7 @@ namespace Vulkyrie {
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);
         void ReportContactsAndTriggers();
         void ComputeCollisions();
+        void CreateContacts();
 
         void TestOverlap(Body &bodyOne, Body &bodyTwo);
         void TestOverlap(Body &body, OverlapCallback &callback);
@@ -116,8 +112,8 @@ namespace Vulkyrie {
 
         HalfEdgeMesh &_triangleHalfEdgeMesh;
 
-        u32 _previousPotentialContactManifoldsCount;
-        u32 _previousPotentialContactPointsCount;
+        size_t _previousPotentialContactManifoldsCount;
+        size_t _previousPotentialContactPointsCount;
 
         void computeBroadPhase();
         void computeMiddlePhase(NarrowPhaseInput &batches, bool reportContacts, bool isWorldQuery);
@@ -155,7 +151,6 @@ namespace Vulkyrie {
         void reducePotentialContactManifolds(std::vector<ContactPair> &contactPairs,
                                              std::vector<ContactManifoldData> &potentialContactManifolds,
                                              const std::vector<ContactPointData> &potentialContactPoints) const;
-        void createContacts();
         void addContactPairsToBodies();
         void computeMapPreviousContactPairs();
         void computeLostContactPairs();

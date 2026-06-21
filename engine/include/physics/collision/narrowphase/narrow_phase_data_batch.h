@@ -67,6 +67,8 @@ namespace Vulkyrie {
                     delete &data.ShapeTwo;
                 }
             }
+
+            Data.clear();
         }
     };
 

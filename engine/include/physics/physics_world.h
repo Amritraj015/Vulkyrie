@@ -285,7 +285,7 @@ namespace Vulkyrie {
         f32 _sleepAngularVelocitySquared;
 
         bool _gravityEnabled;
-        bool _enableDebugRendering;
+        // bool _enableDebugRendering;
 
         void setJointStatus(Entity jointEntity, bool enabled);
         void solveContactsAndConstraints(Timestep timeStep);

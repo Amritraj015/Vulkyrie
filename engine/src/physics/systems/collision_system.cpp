@@ -116,6 +116,38 @@ namespace Vulkyrie {
         computeNarrowPhase();
     }
 
+    // TODO: Implement this.
+    void CollisionSystem::CreateContacts() {
+        // _currentContactManifolds->reserve(_currentContactPairs->size());
+        // _currentContactPoints->reserve(_currentContactManifolds->size());
+        //
+        // for(size_t i = 0; i < todo; ++i) {
+        //
+        // }
+        //
+        // // Initialize the current contacts with the contacts from the previous frame (for warm starting)
+        // initContactsWithPreviousOnes();
+        //
+        // // Compute the lost contacts (contact pairs that were colliding in previous frame but not in this one)
+        // computeLostContactPairs();
+        //
+        // _previousContactPoints->clear();
+        // _previousContactManifolds->clear();
+        // _previousContactPairs->clear();
+        //
+        // _previousPotentialContactManifoldsCount = _potentialContactManifolds.capacity();
+        // _previousPotentialContactPointsCount = _potentialContactPoints.capacity();
+        //
+        // // Reset the potential contacts
+        // _potentialContactManifolds.clear();
+        // _potentialContactPoints.clear();
+        //
+        // // Compute the map from contact pairs ids to contact pair for the next frame
+        // computeMapPreviousContactPairs();
+        //
+        // _narrowPhaseInput.Dispose();
+    }
+
     void CollisionSystem::TestOverlap(Body &bodyOne, Body &bodyTwo) {
         // Compute broad-phase collision detection to generate potential collision pairs.
         computeBroadPhase();
@@ -1270,12 +1302,6 @@ namespace Vulkyrie {
                 removeDuplicatedContactPointsInManifold(manifoldData, potentialContactPoints);
             }
         }
-    }
-
-    // TODO: Implement this.
-    void CollisionSystem::createContacts() {
-        // _currentContactManifolds->reserve(_currentContactPairs->size());
-        // _currentContactPoints->reserve(_currentContactManifolds->size());
     }
 
     void CollisionSystem::addContactPairsToBodies() {
