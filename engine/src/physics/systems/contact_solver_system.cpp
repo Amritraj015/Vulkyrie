@@ -1,19 +1,16 @@
 #include "physics/systems/contact_solver_system.h"
+#include "physics/physics_world.h"
 
 namespace Vulkyrie {
 
-    ContactSolverSystem::ContactSolverSystem(Islands &islands,
-                                             BodyComponentStore &bodyStore,
-                                             RigidBodyComponentStore &rigidBodyStore,
-                                             ColliderComponentStore &colliderStore,
-                                             f32 &restitutionVelocityThreshold)
+    ContactSolverSystem::ContactSolverSystem(PhysicsWorld &world, Islands &islands, f32 &restitutionVelocityThreshold)
         : _restitutionVelocityThreshold(restitutionVelocityThreshold)
         , _islands(islands)
         , _allContactManifolds(nullptr)
         , _allContactPoints(nullptr)
-        , _bodyStore(bodyStore)
-        , _rigidBodyStore(rigidBodyStore)
-        , _colliderStore(colliderStore)
+        , _bodyStore(world.GetBodyComponentStore())
+        , _rigidBodyStore(world.GetRigidBodyComponentStore())
+        , _colliderStore(world.GetColliderComponentStore())
         , _totalContactPoints(0)
         , _totalContactManifolds(0)
         , _splitImpulseActive(true) {

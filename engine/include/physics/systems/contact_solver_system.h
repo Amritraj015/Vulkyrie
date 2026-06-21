@@ -12,6 +12,8 @@
 
 namespace Vulkyrie {
 
+    class PhysicsWorld;
+
     class ContactSolverSystem {
         struct ContactPointSolver {
             ContactPoint *ExternalPoint;
@@ -52,11 +54,7 @@ namespace Vulkyrie {
         };
 
     public:
-        ContactSolverSystem(Islands &islands,
-                            BodyComponentStore &bodyStore,
-                            RigidBodyComponentStore &rigidBodyStore,
-                            ColliderComponentStore &colliderStore,
-                            f32 &restitutionVelocityThreshold);
+        explicit ContactSolverSystem(PhysicsWorld &world, Islands &islands, f32 &restitutionVelocityThreshold);
 
         VE_DELETE_MOVE_AND_COPY(ContactSolverSystem);
 
