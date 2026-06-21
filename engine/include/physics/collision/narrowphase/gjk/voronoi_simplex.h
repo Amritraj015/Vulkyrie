@@ -32,13 +32,7 @@ namespace Vulkyrie {
          */
         VoronoiSimplex();
 
-        // Delete the copy constructor and the copy assignment operator.
-        VoronoiSimplex(const VoronoiSimplex &) = delete;
-        VoronoiSimplex &operator=(const VoronoiSimplex &) = delete;
-
-        // Delete the move constructor and the move assignment operator.
-        VoronoiSimplex(VoronoiSimplex &&) = delete;
-        VoronoiSimplex &operator=(VoronoiSimplex &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(VoronoiSimplex);
 
         /**
          * @brief Destructor for VoronoiSimplex.
@@ -284,7 +278,8 @@ namespace Vulkyrie {
          * @param[out] bitsUsedPoints Bitmask indicating which vertices are used
          * @param[out] barycentricCoordsABC Barycentric coordinates of the closest point
          */
-        void computeClosestPointOnTriangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, i32 &bitsUsedPoints, glm::vec3 &barycentricCoordsABC) const;
+        void
+        computeClosestPointOnTriangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, i32 &bitsUsedPoints, glm::vec3 &barycentricCoordsABC) const;
 
         /**
          * @brief Computes the point on a tetrahedron closest to the origin.

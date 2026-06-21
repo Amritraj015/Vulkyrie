@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/collision_shape.h"
 #include "physics/collision/shapes/triangle_shape.h"
 
@@ -17,13 +18,7 @@ namespace Vulkyrie {
          */
         ConcaveShape(CollisionShapeName name, const glm::vec3 &scale);
 
-        // Delete the copy constructor and operator.
-        ConcaveShape(const ConcaveShape &) = delete;
-        ConcaveShape &operator=(const ConcaveShape &) = delete;
-
-        // Delete the move constructor and operator.
-        ConcaveShape(ConcaveShape &&) = delete;
-        ConcaveShape &operator=(ConcaveShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(ConcaveShape);
 
         /** @brief Default destructor. */
         virtual ~ConcaveShape() override = default;

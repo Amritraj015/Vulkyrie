@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "renderer/renderer_context.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,11 +20,7 @@ namespace Vulkyrie {
          */
         OpenGLRendererContext(void *windowHandle);
 
-        OpenGLRendererContext(const OpenGLRendererContext &) = delete;
-        OpenGLRendererContext &operator=(const OpenGLRendererContext &) = delete;
-
-        OpenGLRendererContext(OpenGLRendererContext &&) = delete;
-        OpenGLRendererContext &operator=(OpenGLRendererContext &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(OpenGLRendererContext);
 
         ~OpenGLRendererContext() override;
 

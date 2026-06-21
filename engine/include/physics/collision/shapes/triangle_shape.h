@@ -57,13 +57,7 @@ namespace Vulkyrie {
          */
         explicit TriangleShape(const glm::vec3 vertices[3], u32 shapeID, HalfEdgeMesh &halfEdgeStructure);
 
-        // Delete the copy constructor and operator.
-        TriangleShape(const TriangleShape &) = delete;
-        TriangleShape &operator=(const TriangleShape &) = delete;
-
-        // Delete the move constructor and operator.
-        TriangleShape(TriangleShape &&) = delete;
-        TriangleShape &operator=(TriangleShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(TriangleShape);
 
         /** @brief Default destructor for TriangleShape. */
         virtual ~TriangleShape() override = default;

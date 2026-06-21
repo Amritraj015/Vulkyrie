@@ -1,8 +1,9 @@
 #pragma once
 
+#include "vlkypch.h"
+#include "core/asserts.h"
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/frame_graph_types.h"
-#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -14,11 +15,7 @@ namespace Vulkyrie {
         FrameGraphPassConcept() = default;
         virtual ~FrameGraphPassConcept() = default;
 
-        FrameGraphPassConcept(const FrameGraphPassConcept &) = delete;
-        FrameGraphPassConcept &operator=(const FrameGraphPassConcept &) = delete;
-
-        FrameGraphPassConcept(FrameGraphPassConcept &&) noexcept = delete;
-        FrameGraphPassConcept &operator=(FrameGraphPassConcept &&) noexcept = delete;
+        VE_DELETE_MOVE_AND_COPY(FrameGraphPassConcept);
 
         virtual void operator()(void *) = 0;
     };
@@ -55,8 +52,7 @@ namespace Vulkyrie {
         friend class FrameGraph;
 
     public:
-        PassNode(const PassNode &) = delete;
-        PassNode &operator=(const PassNode &) = delete;
+        VE_DELETE_COPY(PassNode);
 
         PassNode(PassNode &&) = default;
         PassNode &operator=(PassNode &&) = delete;

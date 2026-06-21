@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/convex_polyhedron_shape.h"
 #include "physics/physics_context.h"
 
@@ -19,13 +20,7 @@ namespace Vulkyrie {
          */
         BoxShape(const glm::vec3 &halfExtents, PhysicsContext &context);
 
-        // Delete the copy constructor and the copy assignment operator.
-        BoxShape(const BoxShape &) = delete;
-        BoxShape &operator=(const BoxShape &) = delete;
-
-        // Delete the move constructor and the move assignment operator.
-        BoxShape(BoxShape &&) = delete;
-        BoxShape &operator=(BoxShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(BoxShape);
 
         /** @brief Destructor for the BoxShape class. */
         ~BoxShape() override = default;

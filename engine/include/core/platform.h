@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/window_props.h"
 #include "core/status_codes.h"
 #include "events/event.h"
@@ -9,12 +10,7 @@ namespace Vulkyrie {
 
     class Platform {
     public:
-        // Deleted copy constructor and assignment operator to prevent copies.
-        Platform(const Platform &) = delete;
-        Platform &operator=(const Platform &) = delete;
-
-        Platform(Platform &&) = delete;
-        Platform &operator=(Platform &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Platform);
 
         /** @brief Constructs a new Window with the given properties.
          * @param windowProps The properties for the window.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/time_step.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"
@@ -33,13 +34,7 @@ namespace Vulkyrie {
          */
         DynamicsSystem(PhysicsWorld &physicsWorld, bool &enableGravity, glm::vec3 &gravity);
 
-        // Delete the copy constructor and copy assignment operator.
-        DynamicsSystem(const DynamicsSystem &) = delete;
-        DynamicsSystem &operator=(const DynamicsSystem &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        DynamicsSystem(DynamicsSystem &&) = delete;
-        DynamicsSystem &operator=(DynamicsSystem &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(DynamicsSystem);
 
         /** @brief Default destructor for DynamicsSystem. */
         ~DynamicsSystem() = default;

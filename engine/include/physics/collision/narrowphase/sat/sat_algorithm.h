@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/narrowphase/narrow_phase_data_batch.h"
 #include "physics/collision/shapes/capsule_shape.h"
 #include "physics/collision/shapes/convex_polyhedron_shape.h"
@@ -31,13 +32,7 @@ namespace Vulkyrie {
          * and false when querying discrete collision tests where the true minimum axis is always required. */
         SATAlgorithm(bool clipWithPreviousAxisIfStillColliding);
 
-        // Delete the copy constructor and copy assignment operator.
-        SATAlgorithm(const SATAlgorithm &) = delete;
-        SATAlgorithm &operator=(const SATAlgorithm &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        SATAlgorithm(SATAlgorithm &&) = delete;
-        SATAlgorithm &operator=(SATAlgorithm &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(SATAlgorithm);
 
         /** @brief Default destructor. */
         ~SATAlgorithm() = default;

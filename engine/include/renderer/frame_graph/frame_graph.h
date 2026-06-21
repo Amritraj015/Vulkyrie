@@ -18,11 +18,7 @@ namespace Vulkyrie {
         FrameGraph() = default;
         ~FrameGraph() = default;
 
-        FrameGraph(const FrameGraph &) = delete;
-        FrameGraph &operator=(const FrameGraph &) = delete;
-
-        FrameGraph(FrameGraph &&) = delete;
-        FrameGraph &operator=(FrameGraph &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(FrameGraph);
 
         /** @brief Builder class provides an interface for defining the operations of a rendering pass within the frame graph. It allows users to create
          * resources, register read and write accesses to resources, and specify side effects for the pass. The Builder is used within the context of
@@ -32,13 +28,10 @@ namespace Vulkyrie {
 
         public:
             Builder() = delete;
+
+            VE_DELETE_MOVE_AND_COPY(Builder);
+
             ~Builder() = default;
-
-            Builder(const Builder &) = delete;
-            Builder &operator=(const Builder &) = delete;
-
-            Builder(Builder &&) = delete;
-            Builder &operator=(Builder &&) = delete;
 
             /** @brief Creates a new resource in the frame graph with the specified name and descriptor, and returns its ResourceID.
              * @tparam T The type of the resource backend, which must satisfy the FrameGraphResourceBackend concept.

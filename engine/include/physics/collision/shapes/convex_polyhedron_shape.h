@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/convex_shape.h"
 #include "physics/types/half_edge_mesh.h"
 
@@ -19,13 +20,7 @@ namespace Vulkyrie {
          */
         explicit ConvexPolyhedronShape(CollisionShapeName name, f32 margin = 0.0f, u32 id = 0);
 
-        // Delete the copy constructor and operator.
-        ConvexPolyhedronShape(const ConvexPolyhedronShape &) = delete;
-        ConvexPolyhedronShape &operator=(const ConvexPolyhedronShape &) = delete;
-
-        // Delete the move constructor and operator.
-        ConvexPolyhedronShape(ConvexPolyhedronShape &&) = delete;
-        ConvexPolyhedronShape &operator=(ConvexPolyhedronShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(ConvexPolyhedronShape);
 
         /** @brief Destructor for the ConvexPolyhedronShape class. */
         virtual ~ConvexPolyhedronShape() override = default;

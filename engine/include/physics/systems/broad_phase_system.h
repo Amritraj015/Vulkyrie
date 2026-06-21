@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/pair.h"
 #include "physics/collision/broadphase/dynamic_aabb_tree.h"
 #include "physics/components/collider_component_store.h"
@@ -27,13 +28,7 @@ namespace Vulkyrie {
          * @param physicsWorld The physics world that this broad phase system belongs to. */
         explicit BroadPhaseSystem(PhysicsWorld &physicsWorld);
 
-        // Delete the copy constructor and copy assignment operator.
-        BroadPhaseSystem(const BroadPhaseSystem &) = delete;
-        BroadPhaseSystem &operator=(const BroadPhaseSystem &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        BroadPhaseSystem(BroadPhaseSystem &&) = delete;
-        BroadPhaseSystem &operator=(BroadPhaseSystem &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(BroadPhaseSystem);
 
         /** @brief Destructor for BroadPhaseSystem. */
         ~BroadPhaseSystem() = default;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/types/contact_point.h"
 #include "physics/types/contact_pair.h"
 #include "physics/types/contact_manifold.h"
@@ -15,13 +16,7 @@ namespace Vulkyrie {
         /** @brief Default constructor for CollisionCallback. */
         CollisionCallback() = default;
 
-        // Delete the copy constructor and copy assignment operator.
-        CollisionCallback(const CollisionCallback &) = delete;
-        CollisionCallback &operator=(const CollisionCallback &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        CollisionCallback(CollisionCallback &&) = delete;
-        CollisionCallback &operator=(CollisionCallback &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(CollisionCallback);
 
         /** @brief Default destructor for CollisionCallback. */
         virtual ~CollisionCallback() = default;
@@ -80,8 +75,7 @@ namespace Vulkyrie {
             ContactPair &operator=(const ContactPair &contactPair) = delete;
 
             // Delete the move constructor and move assignment operator.
-            ContactPair(ContactPair &&) = delete;
-            ContactPair &operator=(ContactPair &&) = delete;
+            VE_DELETE_MOVE(ContactPair);
 
             /** @brief Default destructor for ContactPair. */
             ~ContactPair() = default;
@@ -140,13 +134,7 @@ namespace Vulkyrie {
                  std::vector<Vulkyrie::ContactPair> &lostContactPairs,
                  PhysicsWorld &world);
 
-            // Delete the copy constructor and copy assignment operator.
-            Data(const Data &) = delete;
-            Data &operator=(const Data &) = delete;
-
-            // Delete the move constructor and move assignment operator.
-            Data(Data &&) = delete;
-            Data &operator=(Data &&) = delete;
+            VE_DELETE_MOVE_AND_COPY(Data);
 
             /** @brief Default destructor for Data. */
             ~Data() = default;

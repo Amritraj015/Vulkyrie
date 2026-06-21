@@ -13,8 +13,7 @@ namespace Vulkyrie {
         friend class FrameGraph;
 
     public:
-        ResourceNode(const ResourceNode &) = delete;
-        ResourceNode &operator=(const ResourceNode &) = delete;
+        VE_DELETE_COPY(ResourceNode);
 
         ResourceNode(ResourceNode &&) = default;
         ResourceNode &operator=(ResourceNode &&) = delete;

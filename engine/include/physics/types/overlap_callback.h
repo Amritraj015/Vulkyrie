@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/types/contact_pair.h"
 
 namespace Vulkyrie {
@@ -8,11 +9,7 @@ namespace Vulkyrie {
     public:
         OverlapCallback() = default;
 
-        OverlapCallback(const OverlapCallback &) = delete;
-        OverlapCallback &operator=(const OverlapCallback &) = delete;
-
-        OverlapCallback(OverlapCallback &&) = delete;
-        OverlapCallback &operator=(OverlapCallback &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(OverlapCallback);
 
         virtual ~OverlapCallback() = default;
 
@@ -20,11 +17,7 @@ namespace Vulkyrie {
         public:
             Data(std::vector<ContactPair> &contactPairs, std::vector<ContactPair> &lostContactPairs, bool reportTriggersOnly);
 
-            Data(const Data &) = delete;
-            Data &operator=(const Data &) = delete;
-
-            Data(Data &&) = delete;
-            Data &operator=(Data &&) = delete;
+            VE_DELETE_MOVE_AND_COPY(Data);
 
             ~Data() = default;
 

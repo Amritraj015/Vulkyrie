@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/convex_shape.h"
 
 namespace Vulkyrie {
@@ -14,13 +15,7 @@ namespace Vulkyrie {
          * @param radius The radius of the sphere. Must be positive. */
         SphereShape(f32 radius);
 
-        // Delete the copy constructor and the copy assignment operator.
-        SphereShape(const SphereShape &) = delete;
-        SphereShape &operator=(const SphereShape &) = delete;
-
-        // Delete the move constructor and the move assignment operator.
-        SphereShape(SphereShape &&) = delete;
-        SphereShape &operator=(SphereShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(SphereShape);
 
         ~SphereShape() override = default;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/body/body.h"
 
 namespace Vulkyrie {
@@ -20,15 +21,7 @@ namespace Vulkyrie {
          * response. */
         RigidBody(Entity entity, PhysicsWorld &physicsWorld);
 
-        // Delete the copy constructor and the copy assignment operator to prevent copying of RigidBody instances,
-        // as they are meant to be unique entities within the physics world and should not be duplicated.
-        RigidBody(const RigidBody &) = delete;
-        RigidBody &operator=(const RigidBody &) = delete;
-
-        // Delete the move constructor and the move assignment operator to prevent moving of RigidBody instances,
-        // as they are tightly coupled with their entity and physics world, and moving them could lead to dangling references and other issues.
-        RigidBody(RigidBody &&) = delete;
-        RigidBody &operator=(RigidBody &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(RigidBody);
 
         /** @brief Default destructor for Body. */
         ~RigidBody() override = default;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/convex_shape.h"
 
 namespace Vulkyrie {
@@ -16,13 +17,7 @@ namespace Vulkyrie {
          * value. */
         CapsuleShape(f32 radius, f32 height);
 
-        // Delete the copy constructor and the copy assignment operator to prevent copying of CapsuleShape instances.
-        CapsuleShape(const CapsuleShape &) = delete;
-        CapsuleShape &operator=(const CapsuleShape &) = delete;
-
-        // Delete the move constructor and the move assignment operator to prevent moving of CapsuleShape instances.
-        CapsuleShape(CapsuleShape &&) = delete;
-        CapsuleShape &operator=(CapsuleShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(CapsuleShape);
 
         /** @brief Destructor for the CapsuleShape class. */
         ~CapsuleShape() override = default;

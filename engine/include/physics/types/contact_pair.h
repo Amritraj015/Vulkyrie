@@ -95,8 +95,7 @@ namespace Vulkyrie {
             , IsTrigger(isTrigger) {
         }
 
-        ContactPair(const ContactPair &) = delete;
-        ContactPair &operator=(const ContactPair &) = delete;
+        VE_DELETE_COPY(ContactPair);
 
         ContactPair(ContactPair &&) = default;
         ContactPair &operator=(ContactPair &&) = delete;

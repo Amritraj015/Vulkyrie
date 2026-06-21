@@ -18,11 +18,7 @@ namespace Vulkyrie {
     public:
         RendererContext(GraphicsAPI api);
 
-        RendererContext(const RendererContext &) = delete;
-        RendererContext &operator=(const RendererContext &) = delete;
-
-        RendererContext(RendererContext &&) = delete;
-        RendererContext &operator=(RendererContext &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(RendererContext);
 
         virtual ~RendererContext() = default;
 

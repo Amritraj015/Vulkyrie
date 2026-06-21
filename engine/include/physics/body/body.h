@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/entity.h"
 #include "physics/physics_world.h"
 #include "physics/collision/shapes/collision_shape.h"
@@ -20,15 +21,7 @@ namespace Vulkyrie {
          * @param physicsWorld The physics world that this body belongs to. The body will interact with this world for collision detection and response. */
         Body(Entity entity, PhysicsWorld &physicsWorld);
 
-        // Delete the copy constructor and the copy assignment operator to prevent copying of Body instances,
-        // as they are meant to be unique entities within the physics world and should not be duplicated.
-        Body(const Body &) = delete;
-        Body &operator=(const Body &) = delete;
-
-        // Delete the move constructor and the move assignment operator to prevent moving of Body instances,
-        // as they are tightly coupled with their entity and physics world, and moving them could lead to dangling references and other issues.
-        Body(Body &&) = delete;
-        Body &operator=(Body &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Body);
 
         /** @brief Default destructor for Body. */
         virtual ~Body() = default;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/platform.h"
 #include "core/window_props.h"
 #include <glad/glad.h>
@@ -9,6 +10,9 @@ namespace Vulkyrie {
     class VulkyrieGLFWPlatform final : public Platform {
     public:
         VulkyrieGLFWPlatform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
+
+        VE_DELETE_MOVE_AND_COPY(VulkyrieGLFWPlatform);
+
         ~VulkyrieGLFWPlatform() override;
 
         [[nodiscard]] StatusCode CreateWindow() override;

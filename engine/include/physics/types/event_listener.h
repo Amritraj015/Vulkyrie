@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/types/collision_callback.h"
 #include "physics/types/overlap_callback.h"
 
@@ -9,11 +10,7 @@ namespace Vulkyrie {
     public:
         EventListener() = default;
 
-        EventListener(const EventListener &) = delete;
-        EventListener &operator=(const EventListener &) = delete;
-
-        EventListener(EventListener &&) = delete;
-        EventListener &operator=(EventListener &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(EventListener);
 
         virtual ~EventListener() override = default;
 

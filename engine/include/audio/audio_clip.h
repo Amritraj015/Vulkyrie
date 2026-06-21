@@ -19,13 +19,10 @@ namespace Vulkyrie {
         /** @brief Default constructor for AudioClip. Initializes an empty audio clip. */
         AudioClip() = default;
 
-        // Delete the move constructor and move assignment operator.
         AudioClip(AudioClip &&other) noexcept;
         AudioClip &operator=(AudioClip &&other) noexcept;
 
-        // Delete the copy constructor and copy assignment operator.
-        AudioClip(const AudioClip &) = delete;
-        AudioClip &operator=(const AudioClip &) = delete;
+        VE_DELETE_COPY(AudioClip);
 
         /** @brief Cleans up the audio clip by deleting the underlying resources associated with this clip. */
         ~AudioClip();

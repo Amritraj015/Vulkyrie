@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "renderer/frame_graph/frame_graph_traits.h"
 #include "renderer/frame_graph/frame_graph_types.h"
 #include "renderer/frame_graph/resource_node.h"
@@ -17,13 +18,13 @@ namespace Vulkyrie {
 
     public:
         ResourceEntry() = delete;
-        ~ResourceEntry() = default;
 
-        ResourceEntry(const ResourceEntry &) = delete;
-        ResourceEntry &operator=(const ResourceEntry &) = delete;
+        VE_DELETE_COPY(ResourceEntry);
 
         ResourceEntry(ResourceEntry &&) = default;
         ResourceEntry &operator=(ResourceEntry &&) = delete;
+
+        ~ResourceEntry() = default;
 
         /** @brief Creates the resource associated with this entry using the provided allocator.
          * This method will only be executed for Transient resources, as Persistent resources are expected to be created and managed externally.

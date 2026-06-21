@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/types/narrow_phase_algorithm.h"
 #include "physics/collision/narrowphase/capsule_vs_capsule_algorithm.h"
 #include "physics/collision/narrowphase/capsule_vs_convex_polyhedron_algorithm.h"
@@ -22,13 +23,7 @@ namespace Vulkyrie {
         /** @brief Constructs the CollisionDispatch, initializing the collision matrix with the appropriate algorithms. */
         CollisionDispatch();
 
-        // Delete the copy constructor and copy assignment operator.
-        CollisionDispatch(const CollisionDispatch &) = delete;
-        CollisionDispatch &operator=(const CollisionDispatch &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        CollisionDispatch(CollisionDispatch &&) = delete;
-        CollisionDispatch &operator=(CollisionDispatch &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(CollisionDispatch);
 
         /** @brief Default destructor for CollisionDispatch. */
         ~CollisionDispatch() = default;

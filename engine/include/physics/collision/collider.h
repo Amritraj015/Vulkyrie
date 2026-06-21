@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/entity.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/collision/shapes/collision_shape.h"
@@ -25,13 +26,7 @@ namespace Vulkyrie {
          * @param body The body to which this collider is attached. The collider will use the body's transform for movement and transformation. */
         Collider(Entity entity, Body &body);
 
-        // Delete the copy constructor and the copy assignment operator to prevent copying of Collider instances.
-        Collider(const Collider &) = delete;
-        Collider &operator=(const Collider &) = delete;
-
-        // Delete the move constructor and the move assignment operator to prevent moving of Collider instances.
-        Collider(Collider &&) = delete;
-        Collider &operator=(Collider &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Collider);
 
         /** @brief Default destructor for Collider. */
         ~Collider() = default;

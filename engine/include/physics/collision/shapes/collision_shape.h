@@ -19,13 +19,7 @@ namespace Vulkyrie {
          */
         explicit CollisionShape(CollisionShapeType type, CollisionShapeName name, u32 id = 0);
 
-        // Delete the copy constructor and operator.
-        CollisionShape(const CollisionShape &) = delete;
-        CollisionShape &operator=(const CollisionShape &) = delete;
-
-        // Delete the move constructor and operator.
-        CollisionShape(CollisionShape &&) = delete;
-        CollisionShape &operator=(CollisionShape &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(CollisionShape);
 
         /** Virtual destructor to allow proper cleanup of derived classes. */
         virtual ~CollisionShape() = default;

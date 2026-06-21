@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/collision_shape.h"
 
 namespace Vulkyrie {
@@ -20,16 +21,10 @@ namespace Vulkyrie {
          */
         explicit ConvexShape(CollisionShapeType type, CollisionShapeName name, f32 margin = 0.0f, u32 id = 0);
 
+        VE_DELETE_MOVE_AND_COPY(ConvexShape);
+
         /** @brief Virtual destructor for the ConvexShape class. */
         virtual ~ConvexShape() = default;
-
-        // Delete the copy constructor and operator.
-        ConvexShape(const ConvexShape &) = delete;
-        ConvexShape &operator=(const ConvexShape &) = delete;
-
-        // Delete the move constructor and operator.
-        ConvexShape(ConvexShape &&) = delete;
-        ConvexShape &operator=(ConvexShape &&) = delete;
 
         /** @brief Get the margin of the convex shape.
          * @returns The margin of the convex shape, which is a positive value that provides a buffer around the shape for collision detection purposes. A

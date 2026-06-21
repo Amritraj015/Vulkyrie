@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/shapes/convex_polyhedron_shape.h"
 #include "physics/types/convex_mesh.h"
 
@@ -9,11 +10,7 @@ namespace Vulkyrie {
     // public:
     //     ConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scale = glm::vec3(1.0f));
     //
-    //     ConvexMeshShape(const ConvexMeshShape &) = delete;
-    //     ConvexMeshShape &operator=(const ConvexMeshShape &) = delete;
-    //
-    //     ConvexMeshShape(ConvexMeshShape &&) = delete;
-    //     ConvexMeshShape &operator=(ConvexMeshShape &&) = delete;
+    //     VE_DELETE_MOVE_AND_COPY(ConvexMeshShape);
     //
     //     ~ConvexMeshShape() override = default;
     //

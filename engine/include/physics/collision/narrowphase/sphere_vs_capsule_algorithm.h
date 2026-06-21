@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "physics/collision/narrowphase/narrow_phase_data_batch.h"
 
 namespace Vulkyrie {
@@ -9,13 +10,7 @@ namespace Vulkyrie {
         /** @brief Default constructor. */
         SphereVsCapsuleAlgorithm() = default;
 
-        // Delete the copy constructor and copy assignment operator.
-        SphereVsCapsuleAlgorithm(const SphereVsCapsuleAlgorithm &) = delete;
-        SphereVsCapsuleAlgorithm &operator=(const SphereVsCapsuleAlgorithm &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        SphereVsCapsuleAlgorithm(SphereVsCapsuleAlgorithm &&) = delete;
-        SphereVsCapsuleAlgorithm &operator=(SphereVsCapsuleAlgorithm &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(SphereVsCapsuleAlgorithm);
 
         /** @brief Default destructor. */
         ~SphereVsCapsuleAlgorithm() = default;

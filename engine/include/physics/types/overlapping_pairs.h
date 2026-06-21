@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/asserts.h"
 #include "core/entity.h"
 #include "core/pair.h"
@@ -251,13 +252,7 @@ namespace Vulkyrie {
                                   std::unordered_set<Pair<Entity, Entity>> &pairsThatCannotCollide,
                                   CollisionDispatch &collisionDispatch);
 
-        // Delete the copy constructor and copy assignment operator.
-        OverlappingPairs(const OverlappingPairs &) = delete;
-        OverlappingPairs &operator=(const OverlappingPairs &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        OverlappingPairs(OverlappingPairs &&) = delete;
-        OverlappingPairs &operator=(OverlappingPairs &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(OverlappingPairs);
 
         /** @brief Default destructor for OverlappingPairs. */
         ~OverlappingPairs();

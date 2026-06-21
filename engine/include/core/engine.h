@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "audio/audio_system.h"
 #include "core/application.h"
 #include "renderer/renderer.h"
@@ -16,11 +17,7 @@ namespace Vulkyrie {
         Engine(EngineConfig &config);
         ~Engine() = default;
 
-        Engine(const Engine &) = delete;
-        Engine &operator=(const Engine &) = delete;
-
-        Engine(Engine &&) = delete;
-        Engine &operator=(Engine &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(Engine);
 
         void RunApplication(Application &application);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "audio/audio_clip.h"
 #include "audio/audio_source.h"
 
@@ -12,13 +13,7 @@ namespace Vulkyrie {
         /** @brief Initializes the audio system. */
         AudioSystem();
 
-        // Delete the copy constructor and copy assignment operator.
-        AudioSystem(const AudioSystem &) = delete;
-        AudioSystem &operator=(const AudioSystem &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        AudioSystem(AudioSystem &&) = delete;
-        AudioSystem &operator=(AudioSystem &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(AudioSystem);
 
         /** @brief Cleans up the audio system and releases all resources. */
         ~AudioSystem();

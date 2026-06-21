@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/entity.h"
 
 namespace Vulkyrie {
@@ -98,8 +99,7 @@ namespace Vulkyrie {
             , IsAlreadyInIsland(false) {
         }
 
-        ContactManifold(const ContactManifold &) = delete;
-        ContactManifold &operator=(const ContactManifold &) = delete;
+        VE_DELETE_COPY(ContactManifold);
 
         ContactManifold(ContactManifold &&) = default;
         ContactManifold &operator=(ContactManifold &&) = delete;

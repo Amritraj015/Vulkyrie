@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/entity.h"
 
 namespace Vulkyrie {
@@ -11,13 +12,7 @@ namespace Vulkyrie {
         /** @brief Constructs an instance of EntityManager. */
         EntityManager() = default;
 
-        // Delete the copy constructor and copy assignment operator.
-        EntityManager(const EntityManager &) = delete;
-        EntityManager &operator=(const EntityManager &) = delete;
-
-        // Delete the move constructor and move assignment operator.
-        EntityManager(EntityManager &&) = delete;
-        EntityManager &operator=(EntityManager &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(EntityManager);
 
         /** @brief Creates a new entity and returns it.
          * @returns The newly created entity.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/asserts.h"
 #include "core/pair.h"
 #include "physics/physics_constants.h"
@@ -86,13 +87,7 @@ namespace Vulkyrie {
          * @param initialNodeCapacity The initial number of nodes to pre-allocate for the tree. */
         DynamicAABBTree(f32 inflationPercentage = AABB_TREE_DEFAULT_INFLATION_PERCENTAGE, size_t initialNodeCapacity = AABB_TREE_DEFAULT_INITIAL_NODE_CAPACITY);
 
-        // Delete the copy constructor and copy assignment operator to prevent accidental copying,
-        DynamicAABBTree(const DynamicAABBTree &) = delete;
-        DynamicAABBTree &operator=(const DynamicAABBTree &) = delete;
-
-        // Delete the move constructor and move assignment operator to prevent accidental moves.
-        DynamicAABBTree(DynamicAABBTree &&) = delete;
-        DynamicAABBTree &operator=(DynamicAABBTree &&) = delete;
+        VE_DELETE_MOVE_AND_COPY(DynamicAABBTree);
 
         /** @brief Destructor for the DynamicAABBTree class. */
         ~DynamicAABBTree() = default;
