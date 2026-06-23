@@ -199,10 +199,10 @@ namespace Vulkyrie {
 
         /** @brief Pointer to the pass node that creates this resource.
          * This is used for tracking dependencies and managing resource lifetimes within the frame graph. */
-        [[maybe_unused]] PassNode *_creator{ nullptr };
+        PassNode *_creator{ nullptr };
 
         /** @brief Pointer to the last pass node that uses this resource.
          * This is used for tracking dependencies and managing resource lifetimes within the frame graph. */
-        [[maybe_unused]] PassNode *_lastUsedBy{ nullptr };
+        PassNode *_lastUsedBy{ nullptr };
     };
 } // namespace Vulkyrie

@@ -407,22 +407,37 @@ namespace Vulkyrie {
          * @param collider The collider to be removed from this rigid body. The collider must be currently attached to this body. */
         void RemoveCollider(Collider &collider) override;
 
+        /** @brief Computes the world-space inverse inertia tensor from the body's orientation and its local-space inverse
+         * inertia tensor diagonal. The local inertia tensor for common shapes is diagonal, so it is stored as a vec3.
+         * The result is computed as R * diag(inverseInertiaTensorLocal) * Rᵀ, which is a symmetric matrix, so only
+         * six unique elements are evaluated.
+         * @param orientation The rotation matrix representing the body's current world-space orientation.
+         * @param inverseInertiaTensorLocal The diagonal of the inverse inertia tensor in local space.
+         * @param outInverseInertiaTensorWorld The resulting world-space inverse inertia tensor. */
         static VE_INLINE void ComputeWorldSpaceInertiaTensorInverse(const glm::mat3 &orientation,
                                                                     const glm::vec3 &inverseInertiaTensorLocal,
                                                                     glm::mat3 &outInverseInertiaTensorWorld) {
-            outInverseInertiaTensorWorld[0][0] = orientation[0][0] * inverseInertiaTensorLocal.x;
-            outInverseInertiaTensorWorld[0][1] = orientation[1][0] * inverseInertiaTensorLocal.x;
-            outInverseInertiaTensorWorld[0][2] = orientation[2][0] * inverseInertiaTensorLocal.x;
+            // M = R * diag(inv): scale each column of R by the corresponding inverse inertia value.
+            const glm::vec3 m0 = orientation[0] * inverseInertiaTensorLocal.x;
+            const glm::vec3 m1 = orientation[1] * inverseInertiaTensorLocal.y;
+            const glm::vec3 m2 = orientation[2] * inverseInertiaTensorLocal.z;
 
-            outInverseInertiaTensorWorld[1][0] = orientation[0][1] * inverseInertiaTensorLocal.y;
-            outInverseInertiaTensorWorld[1][1] = orientation[1][1] * inverseInertiaTensorLocal.y;
-            outInverseInertiaTensorWorld[1][2] = orientation[2][1] * inverseInertiaTensorLocal.y;
+            // Result = M * R^T = R * diag(inv) * R^T. The result is symmetric, so compute
+            // only 6 unique elements: result_{i,j} = sum_k m_k[i] * orientation[k][j].
+            outInverseInertiaTensorWorld[0][0] = m0[0] * orientation[0][0] + m1[0] * orientation[1][0] + m2[0] * orientation[2][0];
+            outInverseInertiaTensorWorld[1][1] = m0[1] * orientation[0][1] + m1[1] * orientation[1][1] + m2[1] * orientation[2][1];
+            outInverseInertiaTensorWorld[2][2] = m0[2] * orientation[0][2] + m1[2] * orientation[1][2] + m2[2] * orientation[2][2];
 
-            outInverseInertiaTensorWorld[2][0] = orientation[0][2] * inverseInertiaTensorLocal.z;
-            outInverseInertiaTensorWorld[2][1] = orientation[1][2] * inverseInertiaTensorLocal.z;
-            outInverseInertiaTensorWorld[2][2] = orientation[2][2] * inverseInertiaTensorLocal.z;
+            const float e01 = m0[0] * orientation[0][1] + m1[0] * orientation[1][1] + m2[0] * orientation[2][1];
+            const float e02 = m0[0] * orientation[0][2] + m1[0] * orientation[1][2] + m2[0] * orientation[2][2];
+            const float e12 = m0[1] * orientation[0][2] + m1[1] * orientation[1][2] + m2[1] * orientation[2][2];
 
-            outInverseInertiaTensorWorld = orientation * outInverseInertiaTensorWorld;
+            outInverseInertiaTensorWorld[1][0] = e01;
+            outInverseInertiaTensorWorld[0][1] = e01;
+            outInverseInertiaTensorWorld[2][0] = e02;
+            outInverseInertiaTensorWorld[0][2] = e02;
+            outInverseInertiaTensorWorld[2][1] = e12;
+            outInverseInertiaTensorWorld[1][2] = e12;
         }
 
     private:
