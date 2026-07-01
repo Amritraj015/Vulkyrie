@@ -80,13 +80,13 @@ namespace Vulkyrie {
             }
 
             // Get the world-space centres of mass, used to measure the current positional drift between the anchor points.
-            const glm::vec3 &x1 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyOneIndex);
-            const glm::vec3 &x2 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyTwoIndex);
+            const glm::vec3 &centerOfMassBodyOne = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyOneIndex);
+            const glm::vec3 &centerOfMassBodyTwo = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyTwoIndex);
 
             // Compute the Baumgarte bias "b" for the 3 translation constraints from the current anchor-point separation.
             _fixedJointStore.SetTranslationBiasAtIndex(i, glm::vec3(0));
             if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
-                _fixedJointStore.SetTranslationBiasAtIndex(i, biasFactor * (x2 + rTwoWorld - x1 - rOneWorld));
+                _fixedJointStore.SetTranslationBiasAtIndex(i, biasFactor * (centerOfMassBodyTwo + rTwoWorld - centerOfMassBodyOne - rOneWorld));
             }
 
             // Compute the mass matrix K=JM^-1J^t (3x3) for the 3 rotation constraints, then its inverse K^-1 (same guards as above).
@@ -186,16 +186,93 @@ namespace Vulkyrie {
     }
 
     void FixedJointSolverSystem::SolveVelocityConstraint() {
+        // For each fixed joint, apply sequential impulses that drive the relative velocity at the anchor to zero.
+        // The 3 translation constraints are solved first, then the 3 rotation constraints reuse the resulting
+        // velocities (Gauss-Seidel), so the joint converges over the solver's iterations.
         for (size_t i = 0; i < _fixedJointStore.GetActiveComponentCount(); ++i) {
-
             const Entity jointEntity = _fixedJointStore.GetEntityAtIndex(i);
             const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
+            // Get the two bodies constrained by this joint and their rigid-body component indices.
             const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
             const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
 
             const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
             const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+
+            const glm::vec3 &rOneWorld = _fixedJointStore.GetR1WorldAtIndex(i);
+            const glm::vec3 &rTwoWorld = _fixedJointStore.GetR2WorldAtIndex(i);
+
+            const f32 inverseMassBodyOne = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
+            const f32 inverseMassBodyTwo = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
+
+            const glm::mat3 &inertiaTensorBodyOne = _fixedJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
+            const glm::mat3 &inertiaTensorBodyTwo = _fixedJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
+
+            // Get the current constrained velocities of the bodies.
+            const glm::vec3 &linearVelocityBodyOne = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyOneIndex);
+            const glm::vec3 &linearVelocityBodyTwo = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyTwoIndex);
+            const glm::vec3 &angularVelocityBodyOne = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(bodyOneIndex);
+            const glm::vec3 &angularVelocityBodyTwo = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(bodyTwoIndex);
+
+            // --------------- Translation Constraints --------------- //
+
+            // Compute J*v for the 3 translation constraints (the relative velocity of the two anchor points).
+            const glm::vec3 JvTranslation =
+                linearVelocityBodyTwo + glm::cross(angularVelocityBodyTwo, rTwoWorld) - linearVelocityBodyOne - glm::cross(angularVelocityBodyOne, rOneWorld);
+
+            const glm::mat3 &inverseMassMatrixTranslation = _fixedJointStore.GetInverseMassTranslationMatrixAtIndex(i);
+
+            // Compute the Lagrange multiplier lambda and accumulate it into the total translation impulse.
+            const glm::vec3 deltaLambda = inverseMassMatrixTranslation * (-JvTranslation - _fixedJointStore.GetTranslationBiasAtIndex(i));
+            _fixedJointStore.SetImpulseTranslationAtIndex(i, _fixedJointStore.GetImpulseTranslationAtIndex(i) + deltaLambda);
+
+            // Compute the impulse P=J^T * lambda for body 1.
+            const glm::vec3 linearImpulseBodyOne = -deltaLambda;
+            glm::vec3 angularImpulseBodyOne = glm::cross(deltaLambda, rOneWorld);
+
+            // Apply the impulse to body 1. Only the linear velocity is committed here; the angular velocity is kept
+            // in a local and committed once after the rotation stage adds its contribution.
+            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+            const glm::vec3 newAngularVelocityBodyOne = angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne);
+            _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyOneIndex, newLinearVelocityBodyOne);
+
+            // Compute the impulse P=J^T * lambda for body 2 (its linear impulse is +deltaLambda, applied below).
+            const glm::vec3 angularImpulseBodyTwo = -glm::cross(deltaLambda, rTwoWorld);
+
+            // Apply the impulse to body 2 (linear velocity now; angular velocity committed after the rotation stage).
+            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearlockAxisFactorBodyTwo * deltaLambda;
+            const glm::vec3 newAngularVelocityBodyTwo = angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
+            _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
+
+            // --------------- Rotation Constraints --------------- //
+
+            // Compute J*v for the 3 rotation constraints (the relative angular velocity), using the post-translation velocities.
+            const glm::vec3 JvRotation = newAngularVelocityBodyTwo - newAngularVelocityBodyOne;
+
+            const glm::vec3 &biasRotation = _fixedJointStore.GetRotationBiasAtIndex(i);
+            const glm::mat3 &inverseMassMatrixRotation = _fixedJointStore.GetInverseMassRotationMatrixAtIndex(i);
+
+            // Compute the Lagrange multiplier lambda for the 3 rotation constraints and accumulate the total rotation impulse.
+            glm::vec3 deltaLambdaTwo = inverseMassMatrixRotation * (-JvRotation - biasRotation);
+            _fixedJointStore.SetImpulseRotationAtIndex(i, _fixedJointStore.GetImpulseRotationAtIndex(i) + deltaLambdaTwo);
+
+            // Compute the impulse P=J^T * lambda for the 3 rotation constraints for body 1 (body 2 uses +deltaLambdaTwo).
+            angularImpulseBodyOne = -deltaLambdaTwo;
+
+            // Add the rotation-stage impulse on top of the translation-stage angular velocities...
+            const glm::vec3 updatedAngularVelocityBodyOne =
+                newAngularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne);
+
+            const glm::vec3 updatedAngularVelocityBodyTwo = newAngularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * deltaLambdaTwo);
+
+            // ...and commit each body's final angular velocity once.
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyOneIndex, updatedAngularVelocityBodyOne);
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyTwoIndex, updatedAngularVelocityBodyTwo);
         }
     }
 
