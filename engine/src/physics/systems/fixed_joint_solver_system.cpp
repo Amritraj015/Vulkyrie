@@ -3,7 +3,6 @@
 #include "physics/body/rigid_body.h"
 #include "core/asserts.h"
 #include "core/utilities.h"
-#include <glm/matrix.hpp>
 
 namespace Vulkyrie {
 

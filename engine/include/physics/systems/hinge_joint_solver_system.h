@@ -21,16 +21,18 @@ namespace Vulkyrie {
         void SolveVelocityConstraint(Timestep timestep);
         void SolvePositionConstraint();
 
-        f32 ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation);
-        f32 ComputeNormalizedAngle(f32 angle) const;
-        f32 ComputeCorrespondingAngleNearLimits(f32 inputAngle, f32 lowerLimitAngle, f32 upperLimitAngle) const;
-
     private:
         RigidBodyComponentStore &_rigidBodyStore;
         TransformComponentStore &_transformStore;
         JointComponentStore &_jointStore;
         HingeJointComponentStore &_hingeJointStore;
         bool &_enableWarmStartup;
+
+        constexpr static f32 TWICE_PI = 2 * std::numbers::pi_v<f32>;
+
+        f32 computeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation);
+        f32 computeNormalizedAngle(f32 angle) const;
+        f32 computeCorrespondingAngleNearLimits(f32 inputAngle, f32 lowerLimitAngle, f32 upperLimitAngle) const;
     };
 
 } // namespace Vulkyrie
