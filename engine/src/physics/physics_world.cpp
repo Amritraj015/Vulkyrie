@@ -85,7 +85,6 @@ namespace Vulkyrie {
         const Entity entity = body.GetEntity();
         const std::vector<Entity> &jointEntities = _rigidBodyStore.GetJoints(entity);
 
-        // TODO: Finish this.
         if (jointEntities.size() > 0) {
             DestroyJoint(_jointStore.GetJoint(jointEntities[0]));
         }

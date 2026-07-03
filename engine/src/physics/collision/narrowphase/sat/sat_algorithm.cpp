@@ -1081,7 +1081,7 @@ namespace Vulkyrie {
             VASSERT((areVerticesOneInput && tempVerticesOne.size() > 0) || !areVerticesOneInput, "There should be input vertices to clip.");
             VASSERT((!areVerticesOneInput && tempVerticesTwo.size() > 0) || areVerticesOneInput, "There should be input vertices to clip.");
 
-            clipPolygonWithPlane(
+            ClipPolygonWithPlane(
                 areVerticesOneInput ? tempVerticesOne : tempVerticesTwo, edgeStartVertex, planeNormal, areVerticesOneInput ? tempVerticesTwo : tempVerticesOne);
 
             currentEdgeIndex = currentEdge->NextEdgeIndex;

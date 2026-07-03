@@ -1,5 +1,6 @@
 #include "physics/systems/hinge_joint_solver_system.h"
 #include "physics/physics_world.h"
+#include "core/utilities.h"
 
 namespace Vulkyrie {
 
@@ -40,12 +41,22 @@ namespace Vulkyrie {
             const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
             const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
 
-            // Compute the vector from each body's centre of mass to the anchor point, in world space (the lever arms r1, r2).
             const glm::vec3 rOneWorld = orientationBodyOne * (localAnchorPointBodyOne - localCenterOfMassBodyOne);
             const glm::vec3 rTwoWorld = orientationBodyTwo * (localAnchorPointBodyTwo - localCenterOfMassBodyTwo);
 
             _hingeJointStore.SetR1WorldAtIndex(i, rOneWorld);
             _hingeJointStore.SetR2WorldAtIndex(i, rTwoWorld);
+
+            const glm::vec3 a1 = glm::normalize(orientationBodyOne * _hingeJointStore.GetHingeAxisInBodyOneLocalSpaceAtIndex(i));
+            const glm::vec3 a2 = glm::normalize(orientationBodyTwo * _hingeJointStore.GetHingeAxisInBodyTwoLocalSpaceAtIndex(i));
+
+            _hingeJointStore.SetHingeAxisWorldSpaceAtIndex(i, a1);
+
+            const glm::vec3 b2 = GetOrthogonalUnitVector(a2);
+            const glm::vec3 c2 = glm::cross(a2, b2);
+
+            _hingeJointStore.SetB2CrossA1AtIndex(i, glm::cross(b2, a1));
+            _hingeJointStore.SetC2CrossA1AtIndex(i, glm::cross(c2, a1));
 
             // TODO: compute the hinge axis in world space (a1), the b2 x a1 / c2 x a1 vectors, the translation and
             // rotation bias terms, the inverse mass matrices for translation/rotation/limits/motor, the current hinge

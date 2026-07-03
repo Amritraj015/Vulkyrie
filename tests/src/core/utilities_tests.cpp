@@ -407,7 +407,7 @@ TEST_CASE("clipPolygonWithPlane - unit square clipped by Y=0 keeps upper half", 
     };
 
     std::vector<glm::vec3> clipped;
-    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+    ClipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
 
     REQUIRE(clipped.size() == 4);
     // All resulting Y values must be >= 0.
@@ -425,7 +425,7 @@ TEST_CASE("clipPolygonWithPlane - polygon entirely in front of plane is unchange
     };
 
     std::vector<glm::vec3> clipped;
-    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+    ClipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
 
     REQUIRE(clipped.size() == 3);
 }
@@ -439,7 +439,7 @@ TEST_CASE("clipPolygonWithPlane - polygon entirely behind plane produces no outp
     };
 
     std::vector<glm::vec3> clipped;
-    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+    ClipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
 
     REQUIRE(clipped.empty());
 }
@@ -453,7 +453,7 @@ TEST_CASE("clipPolygonWithPlane - single vertex on plane boundary included in ou
     };
 
     std::vector<glm::vec3> clipped;
-    clipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
+    ClipPolygonWithPlane(poly, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, clipped);
 
     REQUIRE(clipped.size() == 3);
 }

@@ -6,6 +6,8 @@
 
 namespace Vulkyrie {
 
+    enum class Axis : i32 { X, Y, Z };
+
     /** Reads the contents of a file at the given path and returns it as a string.
      * @param path The path to the file to read.
      * @returns The contents of the file as a string, or std::nullopt if an error occurred.
@@ -229,7 +231,7 @@ namespace Vulkyrie {
      * @param planeNormal The outward normal of the clipping plane (need not be unit length).
      * @param outClippedPolygonVertices Output: the vertices of the clipped polygon. Must be empty on entry.
      */
-    VE_INLINE void clipPolygonWithPlane(const std::vector<glm::vec3> &polygonVertices,
+    VE_INLINE void ClipPolygonWithPlane(const std::vector<glm::vec3> &polygonVertices,
                                         const glm::vec3 &planePoint,
                                         const glm::vec3 &planeNormal,
                                         std::vector<glm::vec3> &outClippedPolygonVertices) {
@@ -425,6 +427,52 @@ namespace Vulkyrie {
         inv[1][2] = -(m[0][0] * m[1][2] - m[1][0] * m[0][2]) * invDet;
         inv[2][2] = +(m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invDet;
         return inv;
+    }
+
+    /** @brief Determines which axis (X, Y, or Z) holds the smallest component value of a vector.
+     *
+     * Compares the components directly rather than their magnitude, so callers that want the axis
+     * of smallest magnitude must pass in the absolute value of the vector (e.g. via glm::abs).
+     * Ties are broken consistently but arbitrarily; any tied axis is a valid minimum.
+     *
+     * @param v The vector to inspect.
+     * @returns The axis holding the smallest component value.
+     */
+    [[nodiscard]] VE_INLINE Axis GetMinAxis(const glm::vec3 v) {
+        return (v.x < v.y ? (v.x < v.z ? Axis::X : Axis::Z) : (v.y < v.z ? Axis::Y : Axis::Z));
+    }
+
+    /** @brief Computes an arbitrary unit vector orthogonal to v.
+     *
+     * Zeroes out the component along the axis with the smallest magnitude and swaps/negates the
+     * other two; this is guaranteed to be orthogonal to v regardless of which axis is dropped
+     * (e.g. for the dropped X axis, dot((0, -z, y), (x, y, z)) == -yz + zy == 0). Dropping the
+     * smallest-magnitude axis keeps the normalization numerically stable: since that axis holds
+     * at most |v| / sqrt(3), the remaining two components account for at least 2/3 of |v|^2,
+     * keeping the divisor safely away from zero.
+     *
+     * @param v The vector to find an orthogonal vector for. Its length must be greater than VE_MACHINE_EPSILON.
+     * @returns A unit vector orthogonal to v.
+     */
+    [[nodiscard]] VE_INLINE glm::vec3 GetOrthogonalUnitVector(const glm::vec3 &v) {
+        VASSERT(glm::dot(v, v) > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON, "Length of the vector must be greater than VE_MACHINE_EPSILON.");
+
+        switch (GetMinAxis(glm::vec3(std::abs(v.x) , std::abs(v.y), std::abs(v.z)))) {
+            case Axis::X: {
+                const f32 invLen = glm::inversesqrt(v.y * v.y + v.z * v.z);
+                return {0.0f, -v.z * invLen, v.y * invLen};
+            }
+            case Axis::Y: {
+                const f32 invLen = glm::inversesqrt(v.x * v.x + v.z * v.z);
+                return {-v.z * invLen, 0.0f, v.x * invLen};
+            }
+            case Axis::Z: {
+                const f32 invLen = glm::inversesqrt(v.x * v.x + v.y * v.y);
+                return {-v.y * invLen, v.x * invLen, 0.0f};
+            }
+        }
+
+        std::unreachable();
     }
 
 } // namespace Vulkyrie
