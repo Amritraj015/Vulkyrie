@@ -1,5 +1,6 @@
 #include "physics/systems/hinge_joint_solver_system.h"
 #include "physics/physics_world.h"
+#include "physics/body/rigid_body.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie {
@@ -12,14 +13,13 @@ namespace Vulkyrie {
         , _enableWarmStartup(enableWarmStartup) {
     }
 
-    void HingeJointSolverSystem::InitializeBeforeSolving([[maybe_unused]] f32 biasFactor) {
-        // For each hinge joint, precompute the solver state that stays constant across every velocity-solver
-        // iteration of this step: the world-space inertia tensors and lever arms.
+    void HingeJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
+        // For each active hinge joint, precompute the solver state that stays constant across every
+        // velocity-solver iteration of this step: lever arms, mass matrices, and bias terms.
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
             const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
             const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
-            // Get the two bodies constrained by this joint and their rigid-body component indices.
             const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
             const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
 
@@ -28,7 +28,7 @@ namespace Vulkyrie {
             const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
             const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
 
-            // Cache the world-space inverse inertia tensors of both bodies for use in the mass matrices.
+            // Cache the world-space inverse inertia tensors of both bodies for use in the mass matrices below.
             _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex));
             _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex));
 
@@ -41,27 +41,160 @@ namespace Vulkyrie {
             const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
             const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
 
+            // Compute the lever arms (anchor point relative to center of mass) in world space.
             const glm::vec3 rOneWorld = orientationBodyOne * (localAnchorPointBodyOne - localCenterOfMassBodyOne);
             const glm::vec3 rTwoWorld = orientationBodyTwo * (localAnchorPointBodyTwo - localCenterOfMassBodyTwo);
 
             _hingeJointStore.SetR1WorldAtIndex(i, rOneWorld);
             _hingeJointStore.SetR2WorldAtIndex(i, rTwoWorld);
 
+            // Compute the hinge axis of each body in world space; a1 is the reference axis, a2 is only used
+            // to build the b2/c2 basis that spans the plane perpendicular to it.
             const glm::vec3 a1 = glm::normalize(orientationBodyOne * _hingeJointStore.GetHingeAxisInBodyOneLocalSpaceAtIndex(i));
             const glm::vec3 a2 = glm::normalize(orientationBodyTwo * _hingeJointStore.GetHingeAxisInBodyTwoLocalSpaceAtIndex(i));
 
             _hingeJointStore.SetHingeAxisWorldSpaceAtIndex(i, a1);
 
+            // b2 and c2 span the plane orthogonal to a2; the two rotation constraints keep a1 aligned with a2
+            // by driving dot(a1, b2) and dot(a1, c2) to zero, so their Jacobians are built from b2/c2 x a1.
             const glm::vec3 b2 = GetOrthogonalUnitVector(a2);
             const glm::vec3 c2 = glm::cross(a2, b2);
+            const glm::vec3 b2CrossA1 = glm::cross(b2, a1);
+            const glm::vec3 c2CrossA1 = glm::cross(c2, a1);
 
-            _hingeJointStore.SetB2CrossA1AtIndex(i, glm::cross(b2, a1));
-            _hingeJointStore.SetC2CrossA1AtIndex(i, glm::cross(c2, a1));
+            _hingeJointStore.SetB2CrossA1AtIndex(i, b2CrossA1);
+            _hingeJointStore.SetC2CrossA1AtIndex(i, c2CrossA1);
 
-            // TODO: compute the hinge axis in world space (a1), the b2 x a1 / c2 x a1 vectors, the translation and
-            // rotation bias terms, the inverse mass matrices for translation/rotation/limits/motor, the current hinge
-            // angle and limit-violation state, and reset the accumulated impulses when warm-starting is disabled
-            // (see ReactPhysics3D::initBeforeSolve).
+            // Compute the Baumgarte bias "b" for the 2 rotation constraints from the current axis misalignment.
+            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                _hingeJointStore.SetRotationBiasAtIndex(i, biasFactor * glm::vec2(glm::dot(a1, b2), glm::dot(a1, c2)));
+            } else {
+                _hingeJointStore.SetRotationBiasAtIndex(i, glm::vec2(0));
+            }
+
+            // Skew-symmetric matrices of the lever arms, used to express the angular block of the
+            // translation constraint's Jacobian as a matrix multiplication (see SkewSymmetric).
+            const glm::mat3 skewSymmetricMatrixU1 = SkewSymmetric(rOneWorld);
+            const glm::mat3 skewSymmetricMatrixU2 = SkewSymmetric(rTwoWorld);
+
+            const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
+            const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
+            const f32 totalInverseMass = bodyOneInverseMass + bodyTwoInverseMass;
+
+            const glm::mat3 &inertiaTensorBodyOne = _hingeJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
+            const glm::mat3 &inertiaTensorBodyTwo = _hingeJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
+
+            // Compute the mass matrix K = J*M^-1*J^t (3x3) for the 3 translation constraints, then its inverse.
+            const glm::mat3 massMatrix = glm::mat3(glm::vec3(totalInverseMass, 0, 0), //
+                                                   glm::vec3(0, totalInverseMass, 0), //
+                                                   glm::vec3(0, 0, totalInverseMass)  //
+                                                   ) +
+                                         skewSymmetricMatrixU1 * inertiaTensorBodyOne * glm::transpose(skewSymmetricMatrixU1) +
+                                         skewSymmetricMatrixU2 * inertiaTensorBodyTwo * glm::transpose(skewSymmetricMatrixU2);
+
+            _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, glm::mat3(0));
+            const f32 massMatrixDeterminant = glm::determinant(massMatrix);
+
+            // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic;
+            // a singular K means the constraint is degenerate and has no unique impulse solution this step.
+            if (VE_MACHINE_EPSILON < std::abs(massMatrixDeterminant)) {
+                if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
+                    BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
+                    _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat3(massMatrix, massMatrixDeterminant));
+                }
+            }
+
+            const glm::vec3 &x1 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyOneIndex);
+            const glm::vec3 &x2 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyTwoIndex);
+
+            // Compute the Baumgarte bias "b" for the 3 translation constraints from the current anchor-point
+            // separation (x2 + r2 should coincide with x1 + r1 when the constraint is satisfied).
+            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                _hingeJointStore.SetTranslationBiasAtIndex(i, biasFactor * (x2 + rTwoWorld - x1 - rOneWorld));
+            } else {
+                _hingeJointStore.SetTranslationBiasAtIndex(i, glm::vec3(0));
+            }
+
+            // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 rotation constraints, then its inverse.
+            const glm::vec3 i1B2CrossA1 = inertiaTensorBodyOne * b2CrossA1;
+            const glm::vec3 i1C2CrossA1 = inertiaTensorBodyOne * c2CrossA1;
+            const glm::vec3 i2B2CrossA1 = inertiaTensorBodyTwo * b2CrossA1;
+            const glm::vec3 i2C2CrossA1 = inertiaTensorBodyTwo * c2CrossA1;
+            const f32 el11 = glm::dot(b2CrossA1, i1B2CrossA1) + glm::dot(b2CrossA1, i2B2CrossA1);
+            const f32 el12 = glm::dot(b2CrossA1, i1C2CrossA1) + glm::dot(b2CrossA1, i2C2CrossA1);
+            const f32 el21 = glm::dot(c2CrossA1, i1B2CrossA1) + glm::dot(c2CrossA1, i2B2CrossA1);
+            const f32 el22 = glm::dot(c2CrossA1, i1C2CrossA1) + glm::dot(c2CrossA1, i2C2CrossA1);
+
+            // glm::mat2's 4-scalar constructor is column-major (col0, col1), so the middle two
+            // arguments are swapped from row-major reading order to build [[el11,el12],[el21,el22]].
+            const glm::mat2 matrixKRotation(el11, el21, el12, el22);
+            const f32 matrixKRotationDeterminant = glm::determinant(matrixKRotation);
+
+            _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat2(0));
+
+            // Same singular/non-dynamic guard as the translation mass matrix above.
+            if (VE_MACHINE_EPSILON < std::abs(matrixKRotationDeterminant)) {
+                if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
+                    BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
+                    _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat2(matrixKRotation, matrixKRotationDeterminant));
+                }
+            }
+
+            // If warm-starting is disabled, discard every impulse accumulated last step so this step's
+            // velocity solver starts from zero instead of re-applying stale impulses.
+            if (!_enableWarmStartup) {
+                _hingeJointStore.SetImpulseTranslationAtIndex(i, glm::vec3(0.0f));
+                _hingeJointStore.SetImpulseRotationAtIndex(i, glm::vec2(0.0f));
+                _hingeJointStore.SetImpulseLowerLimitAtIndex(i, 0.0f);
+                _hingeJointStore.SetImpulseUpperLimitAtIndex(i, 0.0f);
+                _hingeJointStore.SetImpulseMotorAtIndex(i, 0.0f);
+            }
+
+            // Determine whether the lower/upper limit constraints are currently violated. A limit's
+            // accumulated impulse is reset whenever it stops being violated or flips violation state,
+            // since a stale impulse from a different regime would bias the new solve.
+            const f32 hingeAngle = ComputeCurrentHingeAngle(jointEntity, orientationBodyOne, orientationBodyTwo);
+            const f32 lowerLimitError = hingeAngle - _hingeJointStore.GetLowerLimitAtIndex(i);
+            const f32 upperLimitError = _hingeJointStore.GetUpperLimitAtIndex(i) - hingeAngle;
+            const bool oldIsLowerLimitViolated = _hingeJointStore.GetIsLowerLimitViolatedAtIndex(i);
+            const bool isLowerLimitViolated = lowerLimitError <= 0;
+
+            _hingeJointStore.SetIsLowerLimitViolatedAtIndex(i, isLowerLimitViolated);
+            if (!isLowerLimitViolated || isLowerLimitViolated != oldIsLowerLimitViolated) {
+                _hingeJointStore.SetImpulseLowerLimitAtIndex(i, 0.0f);
+            }
+
+            const bool oldIsUpperLimitViolated = _hingeJointStore.GetIsUpperLimitViolatedAtIndex(i);
+            const bool isUpperLimitViolated = upperLimitError <= 0;
+
+            _hingeJointStore.SetIsUpperLimitViolatedAtIndex(i, isUpperLimitViolated);
+            if (!isUpperLimitViolated || isUpperLimitViolated != oldIsUpperLimitViolated) {
+                _hingeJointStore.SetImpulseUpperLimitAtIndex(i, 0.0f);
+            }
+
+            const bool limitEnabled = _hingeJointStore.IsLimitEnabledAtIndex(i);
+
+            // The motor and limit constraints share the same 1-DOF Jacobian (the hinge axis a1), so they
+            // share the same inverse mass matrix K^-1 = 1 / (a1 . I1*a1 + a1 . I2*a1). Only compute it when
+            // at least one of them can actually apply an impulse this step.
+            if (_hingeJointStore.IsMotorEnabledAtIndex(i) || (limitEnabled && (isLowerLimitViolated || isUpperLimitViolated))) {
+                const glm::vec3 &a1 = _hingeJointStore.GetHingeAxisWorldSpaceAtIndex(i);
+                f32 inverseMassMatrixLimitMotor = glm::dot(a1, inertiaTensorBodyOne * a1) + glm::dot(a1, inertiaTensorBodyTwo * a1);
+                inverseMassMatrixLimitMotor = (inverseMassMatrixLimitMotor > f32(0.0)) ? f32(1.0) / inverseMassMatrixLimitMotor : f32(0.0);
+
+                _hingeJointStore.SetInverseMassMatrixLimitMotorAtIndex(i, inverseMassMatrixLimitMotor);
+
+                if (limitEnabled) {
+                    // Compute the Baumgarte bias "b" for whichever limit constraint is active.
+                    if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                        _hingeJointStore.SetBiasLowerLimitAtIndex(i, biasFactor * lowerLimitError);
+                        _hingeJointStore.SetBiasUpperLimitAtIndex(i, biasFactor * upperLimitError);
+                    } else {
+                        _hingeJointStore.SetBiasLowerLimitAtIndex(i, 0.0f);
+                        _hingeJointStore.SetBiasUpperLimitAtIndex(i, 0.0f);
+                    }
+                }
+            }
         }
     }
 
@@ -146,19 +279,390 @@ namespace Vulkyrie {
     }
 
     void HingeJointSolverSystem::SolveVelocityConstraint(Timestep timestep) {
+        // Solve the hinge joint's constraints via sequential impulses, in the order limit -> motor ->
+        // rotation -> translation. Each block below both reads and (via Set...) writes the constrained
+        // velocities, and the *VelocityBody* references stay bound to the same storage slots for the
+        // whole iteration, so every later block observes the velocity changes made by the earlier ones -
+        // that ordering dependency is what makes this "sequential impulses" rather than one-shot impulses.
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
-            // TODO: solve the hinge joint's limit, motor, rotation and translation velocity constraints via
-            // sequential impulses, in that order (see ReactPhysics3D::solveVelocityConstraint).
+            const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
+            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
-            (void)timestep;
+            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
+            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
+
+            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
+            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+
+            const glm::vec3 &linearVelocityBodyOne = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyOneIndex);
+            const glm::vec3 &linearVelocityBodyTwo = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyTwoIndex);
+            const glm::vec3 &angularVelocityBodyOne = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(bodyOneIndex);
+            const glm::vec3 &angularVelocityBodyTwo = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(bodyTwoIndex);
+
+            const f32 inverseMassBodyOne = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
+            const f32 inverseMassBodyTwo = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
+
+            const glm::mat3 &inertiaTensorBodyOne = _hingeJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
+            const glm::mat3 &inertiaTensorBodyTwo = _hingeJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
+
+            const glm::vec3 &rOneWorld = _hingeJointStore.GetR1WorldAtIndex(i);
+            const glm::vec3 &rTwoWorld = _hingeJointStore.GetR2WorldAtIndex(i);
+
+            const glm::vec3 &a1 = _hingeJointStore.GetHingeAxisWorldSpaceAtIndex(i);
+
+            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
+
+            // Shared 1x1 inverse mass matrix for the limit and motor constraints (both are 1-DOF,
+            // driven by the same Jacobian a1), precomputed in InitializeBeforeSolving.
+            const f32 inverseMassMatrixLimitMotor = _hingeJointStore.GetInverseMassMatrixLimitMotorAtIndex(i);
+
+            // --------------- Limits Constraints --------------- //
+
+            if (_hingeJointStore.IsLimitEnabledAtIndex(i)) {
+                // Lower limit is a one-sided constraint (hingeAngle >= lowerLimit), so its accumulated
+                // impulse is clamped to stay non-negative; it can only push the angle up, never pull it down.
+                if (_hingeJointStore.GetIsLowerLimitViolatedAtIndex(i)) {
+                    const f32 JvLowerLimit = glm::dot(angularVelocityBodyTwo - angularVelocityBodyOne, a1);
+                    f32 deltaLambdaLower = inverseMassMatrixLimitMotor * (-JvLowerLimit - _hingeJointStore.GetBiasLowerLimitAtIndex(i));
+                    const f32 currentImpulseLowerLimit = _hingeJointStore.GetImpulseLowerLimitAtIndex(i);
+                    const f32 newImpulseLowerLimit = std::max(currentImpulseLowerLimit + deltaLambdaLower, f32(0.0));
+
+                    _hingeJointStore.SetImpulseLowerLimitAtIndex(i, newImpulseLowerLimit);
+                    // Re-derive deltaLambda from the clamped impulse so the velocity update below reflects
+                    // only the portion of the impulse that was actually applied, not the unclamped solve.
+                    deltaLambdaLower = newImpulseLowerLimit - currentImpulseLowerLimit;
+
+                    const glm::vec3 angularImpulseBodyOne = -deltaLambdaLower * a1;
+                    _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                        bodyOneIndex, angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne));
+
+                    const glm::vec3 angularImpulseBodyTwo = deltaLambdaLower * a1;
+                    _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                        bodyTwoIndex, angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo));
+                }
+
+                // Upper limit (hingeAngle <= upperLimit) is the mirror image of the lower limit: the
+                // Jacobian and impulse signs are flipped, but it's likewise clamped to stay non-negative.
+                if (_hingeJointStore.GetIsUpperLimitViolatedAtIndex(i)) {
+                    const f32 JvUpperLimit = -glm::dot(angularVelocityBodyTwo - angularVelocityBodyOne, a1);
+                    f32 deltaLambdaUpper = inverseMassMatrixLimitMotor * (-JvUpperLimit - _hingeJointStore.GetBiasUpperLimitAtIndex(i));
+                    const f32 currentImpulseUpperLimit = _hingeJointStore.GetImpulseUpperLimitAtIndex(i);
+                    const f32 newImpulseUpperLimit = std::max(currentImpulseUpperLimit + deltaLambdaUpper, f32(0.0));
+
+                    _hingeJointStore.SetImpulseUpperLimitAtIndex(i, newImpulseUpperLimit);
+                    deltaLambdaUpper = newImpulseUpperLimit - currentImpulseUpperLimit;
+
+                    const glm::vec3 angularImpulseBodyOne = deltaLambdaUpper * a1;
+                    _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                        bodyOneIndex, angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne));
+
+                    const glm::vec3 angularImpulseBodyTwo = -deltaLambdaUpper * a1;
+                    _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                        bodyTwoIndex, angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo));
+                }
+            }
+
+            // --------------- Motor --------------- //
+
+            if (_hingeJointStore.IsMotorEnabledAtIndex(i)) {
+                // The motor drives the relative angular velocity around a1 toward -motorSpeed, clamped to
+                // the torque the motor can exert in one timestep (impulse = torque * dt).
+                const f32 JvMotor = glm::dot(a1, angularVelocityBodyOne - angularVelocityBodyTwo);
+                const f32 maxMotorImpulse = _hingeJointStore.GetMaxMotorTorqueAtIndex(i) * timestep.GetSeconds();
+                f32 deltaLambdaMotor = inverseMassMatrixLimitMotor * (-JvMotor - _hingeJointStore.GetMotorSpeedAtIndex(i));
+                const f32 currentMotorImpulse = _hingeJointStore.GetImpulseMotorAtIndex(i);
+                const f32 newMotorImpulse = std::clamp(currentMotorImpulse + deltaLambdaMotor, -maxMotorImpulse, maxMotorImpulse);
+
+                _hingeJointStore.SetImpulseMotorAtIndex(i, newMotorImpulse);
+                deltaLambdaMotor = newMotorImpulse - currentMotorImpulse;
+
+                const glm::vec3 angularImpulseBodyOne = -deltaLambdaMotor * a1;
+                _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                    bodyOneIndex, angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne));
+
+                const glm::vec3 angularImpulseBodyTwo = deltaLambdaMotor * a1;
+                _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                    bodyTwoIndex, angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo));
+            }
+
+            // --------------- Joint Rotation Constraints --------------- //
+
+            // Keeps a1 aligned with a2 by driving dot(a1,b2) and dot(a1,c2) back to zero (2 equality
+            // constraints); b2CrossA1/c2CrossA1 are the precomputed Jacobian lever-arm terms.
+            const glm::vec3 &b2CrossA1 = _hingeJointStore.GetB2CrossA1AtIndex(i);
+            const glm::vec3 &c2CrossA1 = _hingeJointStore.GetC2CrossA1AtIndex(i);
+            const glm::vec2 JvRotation(-glm::dot(b2CrossA1, angularVelocityBodyOne) + glm::dot(b2CrossA1, angularVelocityBodyTwo),
+                                       -glm::dot(c2CrossA1, angularVelocityBodyOne) + glm::dot(c2CrossA1, angularVelocityBodyTwo));
+            glm::vec2 deltaLambdaRotation =
+                _hingeJointStore.GetInverseMassRotationMatrixAtIndex(i) * (-JvRotation - _hingeJointStore.GetRotationBiasAtIndex(i));
+
+            // Equality constraint: the impulse is applied and accumulated in full, with no clamping.
+            _hingeJointStore.SetImpulseRotationAtIndex(i, _hingeJointStore.GetImpulseRotationAtIndex(i) + deltaLambdaRotation);
+
+            glm::vec3 angularImpulseBodyOne = -b2CrossA1 * deltaLambdaRotation.x - c2CrossA1 * deltaLambdaRotation.y;
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                bodyOneIndex, angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne));
+
+            glm::vec3 angularImpulseBodyTwo = b2CrossA1 * deltaLambdaRotation.x + c2CrossA1 * deltaLambdaRotation.y;
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
+                bodyTwoIndex, angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo));
+
+            // --------------- Joint Translation Constraints --------------- //
+
+            // Keeps the two anchor points coincident (3 equality constraints): drives the relative
+            // velocity of the anchor points, v2 + w2 x r2 - v1 - w1 x r1, to zero.
+            const glm::vec3 JvTranslation =
+                linearVelocityBodyTwo + glm::cross(angularVelocityBodyTwo, rTwoWorld) - linearVelocityBodyOne - glm::cross(angularVelocityBodyOne, rOneWorld);
+            const glm::vec3 deltaLambdaTranslation =
+                _hingeJointStore.GetInverseMassTranslationMatrixAtIndex(i) * (-JvTranslation - _hingeJointStore.GetTranslationBiasAtIndex(i));
+            _hingeJointStore.SetImpulseTranslationAtIndex(i, _hingeJointStore.GetImpulseTranslationAtIndex(i) + deltaLambdaTranslation);
+
+            // Apply the impulse to body 1 (linear -P, angular r1 x P) and update its constrained velocities.
+            const glm::vec3 linearImpulseBodyOne = -deltaLambdaTranslation;
+            angularImpulseBodyOne = glm::cross(deltaLambdaTranslation, rOneWorld);
+            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+            const glm::vec3 newAngularVelocityBodyOne = angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne);
+            _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyOneIndex, newLinearVelocityBodyOne);
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyOneIndex, newAngularVelocityBodyOne);
+
+            // Apply the equal-and-opposite impulse to body 2 (linear +P, angular -r2 x P).
+            angularImpulseBodyTwo = -glm::cross(deltaLambdaTranslation, rTwoWorld);
+            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearlockAxisFactorBodyTwo * deltaLambdaTranslation;
+            const glm::vec3 newAngularVelocityBodyTwo = angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
+            _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
+            _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyTwoIndex, newAngularVelocityBodyTwo);
         }
     }
 
     void HingeJointSolverSystem::SolvePositionConstraint() {
+        // Non-linear Gauss-Seidel position correction: for each hinge joint, directly move the two bodies'
+        // positions and orientations to remove the drift that remains after the velocity solver - a violated
+        // angle limit, hinge axes that fell out of alignment, and anchor-point separation. Because the geometry
+        // changes as the bodies move, the lever arms, hinge-axis basis and mass matrices are recomputed here
+        // from the current state rather than reusing the cached solver values.
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
-            // TODO: apply non-linear Gauss-Seidel position correction for the hinge joint's limit, rotation and
-            // translation constraints, recomputing the lever arms and mass matrices from the current constrained
-            // orientations/positions (see ReactPhysics3D::solvePositionConstraint).
+            const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
+            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
+
+            // This solver only runs for joints configured to use non-linear Gauss-Seidel position correction.
+            if (JointsPositionCorrectionTechnique::NonLinearGaussSeidel != _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                continue;
+            }
+
+            // Get the two bodies constrained by this joint and their rigid-body component indices.
+            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
+            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
+
+            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
+            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+
+            // Get the constrained (in-progress) orientations; the references stay bound to the store's slots,
+            // so each constraint block below observes the orientation updates made by the earlier ones.
+            const glm::quat &orientationBodyOne = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyOneIndex);
+            const glm::quat &orientationBodyTwo = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyTwoIndex);
+
+            // Get the (inverse) local-space inertia tensors, used to rebuild the world-space inertia tensors below.
+            const glm::vec3 &bodyOneLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyOneIndex);
+            const glm::vec3 &bodyTwoLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyTwoIndex);
+
+            // Per-axis factors that zero out the correction on locked/frozen degrees of freedom.
+            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
+
+            // Recompute the world-space inverse inertia tensors from the current orientations, which have changed
+            // since InitializeBeforeSolving as earlier position-correction iterations rotated the bodies.
+            glm::mat3 bodyOneWorldInertiaTensor;
+            glm::mat3 bodyTwoWorldInertiaTensor;
+
+            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyOne), bodyOneLocalInertiaTensor, bodyOneWorldInertiaTensor);
+            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyTwo), bodyTwoLocalInertiaTensor, bodyTwoWorldInertiaTensor);
+
+            _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, bodyOneWorldInertiaTensor);
+            _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, bodyTwoWorldInertiaTensor);
+
+            // Recompute the world-space lever arms (centre of mass -> anchor point) from the current orientations.
+            const glm::vec3 rOneWorld =
+                orientationBodyOne * (_hingeJointStore.GetLocalSpaceAnchorPointOnBodyOneAtIndex(i) - _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex));
+            const glm::vec3 rTwoWorld =
+                orientationBodyTwo * (_hingeJointStore.GetLocalSpaceAnchorPointOnBodyTwoAtIndex(i) - _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex));
+
+            _hingeJointStore.SetR1WorldAtIndex(i, rOneWorld);
+            _hingeJointStore.SetR2WorldAtIndex(i, rTwoWorld);
+
+            // Recompute the world-space hinge axes and the b2/c2 basis spanning the plane orthogonal to a2;
+            // b2CrossA1 and c2CrossA1 are the Jacobian lever-arm terms of the two axis-alignment constraints
+            // (see InitializeBeforeSolving).
+            const glm::vec3 a1 = glm::normalize(orientationBodyOne * _hingeJointStore.GetHingeAxisInBodyOneLocalSpaceAtIndex(i));
+            const glm::vec3 a2 = glm::normalize(orientationBodyTwo * _hingeJointStore.GetHingeAxisInBodyTwoLocalSpaceAtIndex(i));
+            const glm::vec3 b2 = GetOrthogonalUnitVector(a2);
+            const glm::vec3 c2 = glm::cross(a2, b2);
+            const glm::vec3 b2CrossA1 = glm::cross(b2, a1);
+            const glm::vec3 c2CrossA1 = glm::cross(c2, a1);
+
+            _hingeJointStore.SetHingeAxisWorldSpaceAtIndex(i, a1);
+            _hingeJointStore.SetB2CrossA1AtIndex(i, b2CrossA1);
+            _hingeJointStore.SetC2CrossA1AtIndex(i, c2CrossA1);
+
+            // Re-evaluate the hinge angle and the limit-violation states from the current orientations.
+            const f32 hingeAngle = ComputeCurrentHingeAngle(jointEntity, orientationBodyOne, orientationBodyTwo);
+            const f32 lowerLimitError = hingeAngle - _hingeJointStore.GetLowerLimitAtIndex(i);
+            const f32 upperLimitError = _hingeJointStore.GetUpperLimitAtIndex(i) - hingeAngle;
+            const bool lowerLimitViolated = lowerLimitError <= 0;
+            const bool upperLimitViolated = upperLimitError <= 0;
+            _hingeJointStore.SetIsLowerLimitViolatedAtIndex(i, lowerLimitViolated);
+            _hingeJointStore.SetIsUpperLimitViolatedAtIndex(i, upperLimitViolated);
+
+            const glm::mat3 &worldSpaceInertiaTensorBodyOne = _hingeJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
+            const glm::mat3 &worldSpaceInertiaTensorBodyTwo = _hingeJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
+
+            // --------------- Limits Constraints --------------- //
+
+            if (_hingeJointStore.IsLimitEnabledAtIndex(i)) {
+                const f32 inverseMassMatrixLimitMotor = _hingeJointStore.GetInverseMassMatrixLimitMotorAtIndex(i);
+
+                // Refresh the stored 1-DOF limit mass matrix K^-1 = 1 / (a1 . I1*a1 + a1 . I2*a1) from the
+                // recomputed inertia tensors. Note the corrections below still use the value read above (from
+                // the previous solve); the refreshed value only takes effect on the next iteration.
+                if (lowerLimitViolated || upperLimitViolated) {
+                    const f32 temp = glm::dot(a1, worldSpaceInertiaTensorBodyOne * a1) + glm::dot(a1, worldSpaceInertiaTensorBodyTwo * a1);
+                    _hingeJointStore.SetInverseMassMatrixLimitMotorAtIndex(i, (inverseMassMatrixLimitMotor > f32(0.0)) ? f32(1.0) / temp : f32(0.0));
+                }
+
+                // The lower limit is violated: rotate the bodies in opposite directions around a1 by an amount
+                // proportional to the angle error to push the hinge angle back above the limit. Each orientation
+                // update integrates the pseudo angular velocity via the quaternion derivative q += 0.5 * (0,w) * q.
+                if (lowerLimitViolated) {
+                    const f32 lambdaLowerLimit = inverseMassMatrixLimitMotor * (-lowerLimitError);
+
+                    const glm::vec3 angularImpulseBodyOne = -lambdaLowerLimit * a1;
+                    const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBodyOne);
+                    const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
+                    _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyOneIndex, newOrientationBodyOne);
+
+                    const glm::vec3 angularImpulseBodyTwo = lambdaLowerLimit * a1;
+                    const glm::vec3 w2 = angularLockAxisFactorBodyTwo * (worldSpaceInertiaTensorBodyTwo * angularImpulseBodyTwo);
+                    const glm::quat newOrientationBodyTwo = glm::normalize(orientationBodyTwo + glm::quat(0, w2) * orientationBodyTwo * f32(0.5));
+                    _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, newOrientationBodyTwo);
+                }
+
+                // The upper limit is the mirror image of the lower limit: the correction signs are flipped so
+                // the bodies rotate the opposite way around a1 to bring the hinge angle back below the limit.
+                if (upperLimitViolated) {
+                    const f32 lambdaUpperLimit = inverseMassMatrixLimitMotor * (-upperLimitError);
+
+                    const glm::vec3 angularImpulseBody1 = lambdaUpperLimit * a1;
+                    const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBody1);
+                    const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
+                    _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyOneIndex, newOrientationBodyOne);
+
+                    const glm::vec3 angularImpulseBody2 = -lambdaUpperLimit * a1;
+                    const glm::vec3 w2 = angularLockAxisFactorBodyTwo * (worldSpaceInertiaTensorBodyTwo * angularImpulseBody2);
+                    const glm::quat newOrientationBodyTwo = glm::normalize(orientationBodyTwo + glm::quat(0, w2) * orientationBodyTwo * f32(0.5));
+                    _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, newOrientationBodyTwo);
+                }
+            }
+
+            // --------------- Rotation Constraints --------------- //
+
+            // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 rotation constraints, then its inverse.
+            const glm::vec3 I1B2CrossA1 = worldSpaceInertiaTensorBodyOne * b2CrossA1;
+            const glm::vec3 I1C2CrossA1 = worldSpaceInertiaTensorBodyOne * c2CrossA1;
+            const glm::vec3 I2B2CrossA1 = worldSpaceInertiaTensorBodyTwo * b2CrossA1;
+            const glm::vec3 I2C2CrossA1 = worldSpaceInertiaTensorBodyTwo * c2CrossA1;
+            const f32 el11 = glm::dot(b2CrossA1, I1B2CrossA1) + glm::dot(b2CrossA1, I2B2CrossA1);
+            const f32 el12 = glm::dot(b2CrossA1, I1C2CrossA1) + glm::dot(b2CrossA1, I2C2CrossA1);
+            const f32 el21 = glm::dot(c2CrossA1, I1B2CrossA1) + glm::dot(c2CrossA1, I2B2CrossA1);
+            const f32 el22 = glm::dot(c2CrossA1, I1C2CrossA1) + glm::dot(c2CrossA1, I2C2CrossA1);
+            // glm::mat2's 4-scalar constructor is column-major (col0, col1), so the middle two
+            // arguments are swapped from row-major reading order to build [[el11,el12],[el21,el22]].
+            const glm::mat2 matrixKRotation(el11, el21, el12, el22);
+
+            // Skip the correction entirely if the mass matrix is singular; for a fully non-dynamic body pair
+            // the inverse stays zeroed instead, which makes lambda - and thus the correction - zero below.
+            _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat2(0.0f));
+            f32 matrixDeterminant = glm::determinant(matrixKRotation);
+
+            if (VE_MACHINE_EPSILON < std::abs(matrixDeterminant)) {
+                if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
+                    BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
+                    _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat2(matrixKRotation, matrixDeterminant));
+                }
+
+                // The rotation error is the current misalignment of the hinge axes: dot(a1,b2) and dot(a1,c2)
+                // are both zero exactly when a1 is aligned with a2. Solve K * lambda = -C and rotate the two
+                // bodies in opposite directions to remove the error.
+                const glm::vec2 errorRotation = glm::vec2(glm::dot(a1, b2), glm::dot(a1, c2));
+                const glm::vec2 lambdaRotation = _hingeJointStore.GetInverseMassRotationMatrixAtIndex(i) * (-errorRotation);
+                const glm::vec3 angularImpulseBody1 = -b2CrossA1 * lambdaRotation.x - c2CrossA1 * lambdaRotation.y;
+                const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBody1);
+                const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
+                _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyOneIndex, newOrientationBodyOne);
+
+                const glm::vec3 angularImpulseBody2 = b2CrossA1 * lambdaRotation.x + c2CrossA1 * lambdaRotation.y;
+                const glm::vec3 w2 = angularLockAxisFactorBodyTwo * (worldSpaceInertiaTensorBodyTwo * angularImpulseBody2);
+                const glm::quat newOrientationBodyTwo = glm::normalize(orientationBodyTwo + glm::quat(0, w2) * orientationBodyTwo * f32(0.5));
+                _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, newOrientationBodyTwo);
+            }
+
+            // --------------- Translation Constraints --------------- //
+
+            // Skew-symmetric matrices so that a cross product r x v becomes the matrix product [r]x * v.
+            const glm::mat3 skewSymmetricMatrixU1 = SkewSymmetric(rOneWorld);
+            const glm::mat3 skewSymmetricMatrixU2 = SkewSymmetric(rTwoWorld);
+
+            const f32 inverseMassBodyOne = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
+            const f32 inverseMassBodyTwo = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
+            const f32 totalInverseMass = inverseMassBodyOne + inverseMassBodyTwo;
+
+            // Compute the mass matrix K = J*M^-1*J^t (3x3) for the 3 translation constraints, then its inverse.
+            const glm::mat3 massMatrix = glm::mat3(glm::vec3(totalInverseMass, 0, 0), //
+                                                   glm::vec3(0, totalInverseMass, 0), //
+                                                   glm::vec3(0, 0, totalInverseMass)  //
+                                                   ) +
+                                         skewSymmetricMatrixU1 * worldSpaceInertiaTensorBodyOne * glm::transpose(skewSymmetricMatrixU1) +
+                                         skewSymmetricMatrixU2 * worldSpaceInertiaTensorBodyTwo * glm::transpose(skewSymmetricMatrixU2);
+
+            // Same singular/non-dynamic guard as the rotation mass matrix above.
+            _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, glm::mat3(0.0f));
+            matrixDeterminant = glm::determinant(massMatrix);
+
+            if (VE_MACHINE_EPSILON < std::abs(matrixDeterminant)) {
+                if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
+                    BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
+                    _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat3(massMatrix, matrixDeterminant));
+                }
+
+                // Measure the current separation of the anchor points (the constraint error C) and solve
+                // K * lambda = -C for the corrective position impulse.
+                const glm::vec3 &x1 = _rigidBodyStore.GetConstrainedPositionAtIndex(bodyOneIndex);
+                const glm::vec3 &x2 = _rigidBodyStore.GetConstrainedPositionAtIndex(bodyTwoIndex);
+
+                const glm::vec3 errorTranslation = x2 + rTwoWorld - x1 - rOneWorld;
+                const glm::vec3 lambdaTranslation = _hingeJointStore.GetInverseMassTranslationMatrixAtIndex(i) * (-errorTranslation);
+
+                // Apply the impulse to body 1 (linear -P, angular r1 x P) as pseudo velocities, integrating its
+                // position directly and its orientation via the quaternion derivative q += 0.5 * (0,w) * q.
+                const glm::vec3 linearImpulseBodyOne = -lambdaTranslation;
+                const glm::vec3 angularImpulseBodyOne = glm::cross(lambdaTranslation, rOneWorld);
+                const glm::vec3 v1 = inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+                const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBodyOne);
+                const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
+                _rigidBodyStore.SetConstrainedPositionAtIndex(bodyOneIndex, x1 + v1);
+                _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyOneIndex, newOrientationBodyOne);
+
+                // Apply the equal-and-opposite impulse to body 2 (linear +P, angular -r2 x P).
+                const glm::vec3 angularImpulseBodyTwo = -glm::cross(lambdaTranslation, rTwoWorld);
+                const glm::vec3 v2 = inverseMassBodyTwo * linearlockAxisFactorBodyTwo * lambdaTranslation;
+                const glm::vec3 w2 = angularLockAxisFactorBodyTwo * (worldSpaceInertiaTensorBodyTwo * angularImpulseBodyTwo);
+                const glm::quat newOrientationBodyTwo = glm::normalize(orientationBodyTwo + glm::quat(0, w2) * orientationBodyTwo * f32(0.5));
+                _rigidBodyStore.SetConstrainedPositionAtIndex(bodyTwoIndex, x2 + v2);
+                _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, newOrientationBodyTwo);
+            }
         }
     }
 

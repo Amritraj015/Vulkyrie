@@ -415,6 +415,8 @@ namespace Vulkyrie {
      * @param determinant The pre-computed determinant of m.
      * @returns The inverse of m. */
     [[nodiscard]] VE_INLINE glm::mat3 InverseMat3(const glm::mat3 &m, f32 determinant) {
+        VASSERT(std::abs(determinant) > VE_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
+
         const f32 invDet = f32(1.0) / determinant;
         glm::mat3 inv;
         inv[0][0] = +(m[1][1] * m[2][2] - m[2][1] * m[1][2]) * invDet;
@@ -427,6 +429,24 @@ namespace Vulkyrie {
         inv[1][2] = -(m[0][0] * m[1][2] - m[1][0] * m[0][2]) * invDet;
         inv[2][2] = +(m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invDet;
         return inv;
+    }
+
+    /** @brief Computes the inverse of a 2x2 matrix using a pre-computed determinant.
+     *
+     * Equivalent to glm::inverse(m) but avoids recomputing the determinant internally.
+     * Use this when the determinant has already been computed (e.g. for a near-zero
+     * check), so the value is not paid for twice.
+     *
+     * @param m The matrix to invert. Must be non-singular (determinant != 0).
+     * @param determinant The pre-computed determinant of m.
+     * @returns The inverse of m. */
+    [[nodiscard]] VE_INLINE glm::mat2 InverseMat2(const glm::mat2 &m, f32 determinant) {
+        VASSERT(std::abs(determinant) > VE_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
+
+        const f32 invDet = f32(1.0) / determinant;
+
+        // Column-major: build the scaled adjugate directly, one component at a time.
+        return glm::mat2(m[1][1] * invDet, -m[0][1] * invDet, -m[1][0] * invDet, m[0][0] * invDet);
     }
 
     /** @brief Determines which axis (X, Y, or Z) holds the smallest component value of a vector.
@@ -457,18 +477,18 @@ namespace Vulkyrie {
     [[nodiscard]] VE_INLINE glm::vec3 GetOrthogonalUnitVector(const glm::vec3 &v) {
         VASSERT(glm::dot(v, v) > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON, "Length of the vector must be greater than VE_MACHINE_EPSILON.");
 
-        switch (GetMinAxis(glm::vec3(std::abs(v.x) , std::abs(v.y), std::abs(v.z)))) {
+        switch (GetMinAxis(glm::vec3(std::abs(v.x), std::abs(v.y), std::abs(v.z)))) {
             case Axis::X: {
                 const f32 invLen = glm::inversesqrt(v.y * v.y + v.z * v.z);
-                return {0.0f, -v.z * invLen, v.y * invLen};
+                return { 0.0f, -v.z * invLen, v.y * invLen };
             }
             case Axis::Y: {
                 const f32 invLen = glm::inversesqrt(v.x * v.x + v.z * v.z);
-                return {-v.z * invLen, 0.0f, v.x * invLen};
+                return { -v.z * invLen, 0.0f, v.x * invLen };
             }
             case Axis::Z: {
                 const f32 invLen = glm::inversesqrt(v.x * v.x + v.y * v.y);
-                return {-v.y * invLen, v.x * invLen, 0.0f};
+                return { -v.y * invLen, v.x * invLen, 0.0f };
             }
         }
 
