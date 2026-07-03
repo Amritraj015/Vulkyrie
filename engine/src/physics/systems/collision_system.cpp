@@ -12,7 +12,7 @@ namespace Vulkyrie {
         , _colliderComponentStore(_physicsWorld.GetColliderComponentStore())
         , _rigidBodyComponentStore(_physicsWorld.GetRigidBodyComponentStore())
         , _collisionDispatch()
-        , _overlappingPairs(physicsWorld, _nonCollidablePairs, _collisionDispatch)
+        , _overlappingPairs(physicsWorld, _collisionDispatch)
         , _broadPhaseSystem(physicsWorld)
         , _narrowPhaseInput()
         , _triangleHalfEdgeMesh(triangleHalfEdgeMesh) {

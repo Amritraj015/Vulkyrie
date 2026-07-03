@@ -248,9 +248,7 @@ namespace Vulkyrie {
          * @param pairsThatCannotCollide Set of body-entity pairs excluded from all collision.
          * @param collisionDispatch      Dispatch table mapping shape-type pairs to narrow-phase algorithms.
          */
-        explicit OverlappingPairs(PhysicsWorld &physicsWorld,
-                                  std::unordered_set<Pair<Entity, Entity>> &pairsThatCannotCollide,
-                                  CollisionDispatch &collisionDispatch);
+        explicit OverlappingPairs(PhysicsWorld &physicsWorld, CollisionDispatch &collisionDispatch);
 
         VE_DELETE_MOVE_AND_COPY(OverlappingPairs);
 
@@ -434,7 +432,6 @@ namespace Vulkyrie {
         ColliderComponentStore &_colliderComponentStore;
         RigidBodyComponentStore &_rigidBodyComponentStore;
         CollisionDispatch &_collisionDispatch;
-        [[maybe_unused]] std::unordered_set<Pair<Entity, Entity>> &_pairsThatCannotCollide;
 
         void removeDisabledConvexPairWithIndex(size_t pairIndex, bool removeFromColliders);
         void removeDisabledConcavePairWithIndex(size_t pairIndex, bool removeFromColliders);

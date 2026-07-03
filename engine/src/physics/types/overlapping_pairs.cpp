@@ -3,14 +3,11 @@
 
 namespace Vulkyrie {
 
-    OverlappingPairs::OverlappingPairs(PhysicsWorld &physicsWorld,
-                                       std::unordered_set<Pair<Entity, Entity>> &pairsThatCannotCollide,
-                                       CollisionDispatch &collisionDispatch)
+    OverlappingPairs::OverlappingPairs(PhysicsWorld &physicsWorld, CollisionDispatch &collisionDispatch)
         : _bodyComponentStore(physicsWorld.GetBodyComponentStore())
         , _colliderComponentStore(physicsWorld.GetColliderComponentStore())
         , _rigidBodyComponentStore(physicsWorld.GetRigidBodyComponentStore())
-        , _collisionDispatch(collisionDispatch)
-        , _pairsThatCannotCollide(pairsThatCannotCollide) {
+        , _collisionDispatch(collisionDispatch) {
     }
 
     OverlappingPairs::~OverlappingPairs() {

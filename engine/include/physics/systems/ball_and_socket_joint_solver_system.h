@@ -37,8 +37,7 @@ namespace Vulkyrie {
          * @param coneLimitWorldAxisBodyOne The world-space cone axis of body one (typically the unit r1 vector).
          * @param coneLimitWorldAxisBodyTwo The world-space cone axis of body two (typically the unit -r2 vector).
          * @returns The angle (in radians) between the two axes, i.e. the current half-angle of the swing cone. */
-        [[nodiscard]] VE_INLINE static f32 ComputeCurrentConeHalfAngle([[maybe_unused]] glm::vec3 coneLimitWorldAxisBodyOne,
-                                                                       [[maybe_unused]] glm::vec3 coneLimitWorldAxisBodyTwo) {
+        [[nodiscard]] VE_INLINE static f32 ComputeCurrentConeHalfAngle(glm::vec3 coneLimitWorldAxisBodyOne, glm::vec3 coneLimitWorldAxisBodyTwo) {
             return std::acos(glm::dot(coneLimitWorldAxisBodyOne, coneLimitWorldAxisBodyTwo));
         }
 

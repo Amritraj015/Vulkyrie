@@ -22,11 +22,11 @@ namespace Vulkyrie {
         void SolvePositionConstraint();
 
     private:
-        [[maybe_unused]] RigidBodyComponentStore &_rigidBodyStore;
-        [[maybe_unused]] TransformComponentStore &_transformStore;
-        [[maybe_unused]] JointComponentStore &_jointStore;
-        [[maybe_unused]] SliderJointComponentStore &_sliderJointStore;
-        [[maybe_unused]] bool &_enableWarmStartup;
+        RigidBodyComponentStore &_rigidBodyStore;
+        TransformComponentStore &_transformStore;
+        JointComponentStore &_jointStore;
+        SliderJointComponentStore &_sliderJointStore;
+        bool &_enableWarmStartup;
     };
 
 } // namespace Vulkyrie
