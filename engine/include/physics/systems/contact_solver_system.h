@@ -76,7 +76,7 @@ namespace Vulkyrie {
         std::vector<ContactManifoldSolver> _contactConstraints;
         std::vector<ContactPointSolver> _contactPoints;
 
-        f32 &_restitutionVelocityThreshold;
+        [[maybe_unused]] f32 &_restitutionVelocityThreshold;
         Islands &_islands;
 
         std::vector<ContactManifold> *_allContactManifolds;
@@ -88,8 +88,7 @@ namespace Vulkyrie {
 
         size_t _totalContactPoints;
         size_t _totalContactManifolds;
-        // Timestep _timestep;
-        bool _splitImpulseActive;
+        [[maybe_unused]] bool _splitImpulseActive;
 
         f32 computeMixedRestitutionFactor(const Material &material1, const Material &material2) const;
         f32 computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const;

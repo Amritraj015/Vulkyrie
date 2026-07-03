@@ -11,7 +11,7 @@ namespace Vulkyrie {
         , _enableWarmStartup(enableWarmStartup) {
     }
 
-    void HingeJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
+    void HingeJointSolverSystem::InitializeBeforeSolving([[maybe_unused]] f32 biasFactor) {
         // For each hinge joint, precompute the solver state that stays constant across every velocity-solver
         // iteration of this step: the world-space inertia tensors and lever arms.
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
@@ -138,6 +138,8 @@ namespace Vulkyrie {
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
             // TODO: solve the hinge joint's limit, motor, rotation and translation velocity constraints via
             // sequential impulses, in that order (see ReactPhysics3D::solveVelocityConstraint).
+
+            (void)timestep;
         }
     }
 
@@ -149,7 +151,7 @@ namespace Vulkyrie {
         }
     }
 
-    f32 HingeJointSolverSystem::computeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation) {
+    f32 HingeJointSolverSystem::ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation) {
         f32 hingeAngle;
 
         // Compute the current orientation difference between the two bodies

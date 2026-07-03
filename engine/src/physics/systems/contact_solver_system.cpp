@@ -40,29 +40,17 @@ namespace Vulkyrie {
     }
 
     void ContactSolverSystem::InitializeForIsland(size_t islandIndex) {
+        // TODO: Implement this.
+        (void)islandIndex;
     }
 
     void ContactSolverSystem::StoreImpulses() {
-        // size_t contactPointIndex = 0;
-        //
-        // for (size_t c = 0; c < _totalContactManifolds; ++c) {
-        //     for (size_t i = 0; i < _contactConstraints.size(); ++i) {
-        //         _contactPoints[contactPointIndex].ExternalPoint->SetPenetrationImpulse(_contactPoints[contactPointIndex].PenetrationImpulse);
-        //
-        //         contactPointIndex++;
-        //     }
-        //
-        //     ContactManifold *externalContactManifold = _contactConstraints[c].ExternalContactManifold;
-        //
-        //     externalContactManifold->FrictionImpulseOne = _contactConstraints[c].FrictionOneImpulse;
-        //     externalContactManifold->FrictionImpulseTwo = _contactConstraints[c].FrictionTwoImpulse;
-        //     externalContactManifold->FrictionTwistImpulse = _contactConstraints[c].FrictionTwistImpulse;
-        //     externalContactManifold->FrictionVectorOne = _contactConstraints[c].FrictionVectorOne;
-        //     externalContactManifold->FrictionVectorTwo = _contactConstraints[c].FrictionVectorTwo;
-        // }
+        // TODO: Implement this.
     }
 
     void ContactSolverSystem::Solve(Timestep timestep) {
+        // TODO: Implement this.
+        (void)timestep;
     }
 
     void ContactSolverSystem::Reset() {
@@ -76,21 +64,40 @@ namespace Vulkyrie {
     }
 
     bool ContactSolverSystem::IsSplitImpulseActive() const {
+        // TODO: Implement this.
+        return false;
     }
 
     void ContactSolverSystem::SetSplitImpulseActiveFlag(bool active) {
+        // TODO: Implement this.
+        (void)active;
     }
 
     f32 ContactSolverSystem::computeMixedRestitutionFactor(const Material &material1, const Material &material2) const {
+        // TODO: Implement this.
+
+        (void)material1;
+        (void)material2;
+        return f32(0);
     }
 
     f32 ContactSolverSystem::computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const {
+        // TODO: Implement this.
+
+        (void)material1;
+        (void)material2;
+        return f32(0);
     }
 
     void ContactSolverSystem::computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const {
+        // TODO: Implement this.
+
+        (void)deltaVelocity;
+        (void)contactPoint;
     }
 
     void ContactSolverSystem::warmStart() {
+        // TODO: Implement this.
     }
 
 } // namespace Vulkyrie

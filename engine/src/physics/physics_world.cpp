@@ -87,7 +87,7 @@ namespace Vulkyrie {
 
         // TODO: Finish this.
         if (jointEntities.size() > 0) {
-            // DestroyJoint(_jointComponentStore.GetJoint(jointEntities[0]))
+            DestroyJoint(_jointStore.GetJoint(jointEntities[0]));
         }
 
         _bodyStore.RemoveComponent(entity);
@@ -99,6 +99,55 @@ namespace Vulkyrie {
 
         delete &body;
     }
+
+    // Joint &CreateJoint(const JointData &jointInfo);
+    void PhysicsWorld::DestroyJoint(const Joint &joint) {
+        RigidBody *bodyOne = joint.GetBodyOne();
+        RigidBody *bodyTwo = joint.GetBodyTwo();
+
+        // If the collision between the two bodies of the constraint was disabled
+        if (!joint.CollisionEnabled()) {
+
+            // Remove the pair of bodies from the set of body pairs that cannot collide with each other
+            _collisionSystem.RemoveNonCollidablePair(bodyOne->GetEntity(), bodyTwo->GetEntity());
+        }
+
+        // Wake up the two bodies of the joint
+        bodyOne->SetIsSleeping(false);
+        bodyTwo->SetIsSleeping(false);
+
+        // Remove the joint from the joint array of the bodies involved in the joint
+        _rigidBodyStore.RemoveJointFromBody(bodyOne->GetEntity(), joint.GetEntity());
+        _rigidBodyStore.RemoveJointFromBody(bodyTwo->GetEntity(), joint.GetEntity());
+
+        Entity jointEntity = joint.GetEntity();
+
+        // Destroy the corresponding entity and its components
+        _jointStore.RemoveComponent(jointEntity);
+
+        if (_basJointStore.HasComponent(jointEntity)) {
+            _basJointStore.RemoveComponent(jointEntity);
+        }
+
+        if (_fixedJointStore.HasComponent(jointEntity)) {
+            _fixedJointStore.RemoveComponent(jointEntity);
+        }
+
+        if (_hingeJointStore.HasComponent(jointEntity)) {
+            _hingeJointStore.RemoveComponent(jointEntity);
+        }
+
+        if (_sliderJointStore.HasComponent(jointEntity)) {
+            _sliderJointStore.RemoveComponent(jointEntity);
+        }
+
+        _entityManager.DestroyEntity(jointEntity);
+
+        // Call the destructor of the joint
+        delete &joint;
+    }
+
+    // void SetActiveStatusForBody(Entity entity, bool active);
 
     void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
         const bool isCurrentlyActive = !_bodyStore.IsDisabled(entity);
