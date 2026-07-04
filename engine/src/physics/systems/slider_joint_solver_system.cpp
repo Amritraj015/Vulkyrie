@@ -485,10 +485,17 @@ namespace Vulkyrie {
     }
 
     void SliderJointSolverSystem::SolvePositionConstraint() {
+        // One non-linear Gauss-Seidel (NGS) position-correction sweep per active slider joint. Unlike the
+        // velocity solver, this corrects position/orientation directly rather than through velocities, and is
+        // invoked multiple times per step (see PhysicsWorld::solvePositionCorrection) - so every quantity that
+        // depends on orientation must be re-derived here from the *current* constrained orientation on every
+        // call, rather than reusing values cached during InitializeBeforeSolving/SolveVelocityConstraint.
         for (size_t i = 0; i < _sliderJointStore.GetActiveComponentCount(); ++i) {
             const Entity jointEntity = _sliderJointStore.GetEntityAtIndex(i);
             const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
+            // Position correction technique is a per-joint setting, so joints that don't use NGS are skipped
+            // individually here rather than aborting the whole sweep.
             if (JointsPositionCorrectionTechnique::NonLinearGaussSeidel != _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
                 continue;
             }
@@ -504,6 +511,9 @@ namespace Vulkyrie {
             const glm::quat &q1 = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyOneIndex);
             const glm::quat &q2 = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyTwoIndex);
 
+            // Recompute the world-space inverse inertia tensors from the current orientation - by the time
+            // this runs, the bodies have already been integrated forward (and, on later NGS iterations,
+            // corrected further), so the tensors cached earlier in the step no longer reflect the true orientation.
             const glm::vec3 &bodyOneLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyOneIndex);
             const glm::vec3 &bodyTwoLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyTwoIndex);
 
@@ -525,10 +535,27 @@ namespace Vulkyrie {
             const f32 inverseMassBody2 = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
             const f32 sumInverseMass = inverseMassBody1 + inverseMassBody2;
 
-            const glm::vec3 &r1 = _sliderJointStore.GetR1WorldAtIndex(i);
-            const glm::vec3 &r2 = _sliderJointStore.GetR2WorldAtIndex(i);
+            // Re-derive the lever arms (anchor point relative to center of mass) in world space from the
+            // current orientation, exactly as InitializeBeforeSolving does at the start of the step. This is
+            // essential here: by the time SolvePositionConstraint runs, the bodies have already integrated
+            // (and, across NGS iterations, been corrected) past the orientation R1World/R2World were cached
+            // for, so simply reusing those cached values would feed every Jacobian below a stale lever arm.
+            const glm::vec3 &localAnchorPointBodyOne = _sliderJointStore.GetLocalSpaceAnchorPointOnBodyOneAtIndex(i);
+            const glm::vec3 &localAnchorPointBodyTwo = _sliderJointStore.GetLocalSpaceAnchorPointOnBodyTwoAtIndex(i);
+            const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
+            const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
 
+            const glm::vec3 r1 = q1 * (localAnchorPointBodyOne - localCenterOfMassBodyOne);
+            const glm::vec3 r2 = q2 * (localAnchorPointBodyTwo - localCenterOfMassBodyTwo);
+            _sliderJointStore.SetR1WorldAtIndex(i, r1);
+            _sliderJointStore.SetR2WorldAtIndex(i, r2);
+
+            // u is the world-space separation between the anchor points (zero once the translation constraint
+            // is satisfied).
             const glm::vec3 u = x2 + r2 - x1 - r1;
+
+            // Refresh the slider axis and its orthogonal basis (n1/n2) from the current orientation too, for
+            // the same reason r1/r2 needed refreshing above.
             const glm::vec3 sliderAxisInWorldSpace = glm::normalize(q1 * _sliderJointStore.GetSliderAxisInBodyOneLocalSpaceAtIndex(i));
             _sliderJointStore.SetSliderAxisInWorldSpaceAtIndex(i, sliderAxisInWorldSpace);
 
@@ -538,6 +565,8 @@ namespace Vulkyrie {
             _sliderJointStore.SetN1AtIndex(i, n1);
             _sliderJointStore.SetN2AtIndex(i, n2);
 
+            // Re-check whether the lower/upper limit constraints (translation along the slider axis) are
+            // currently violated, using the freshly-updated anchor separation.
             const f32 uDotSliderAxis = glm::dot(u, sliderAxisInWorldSpace);
             const f32 lowerLimitError = uDotSliderAxis - _sliderJointStore.GetLowerLimit(jointEntity);
             const f32 upperLimitError = _sliderJointStore.GetUpperLimit(jointEntity) - uDotSliderAxis;
@@ -547,6 +576,7 @@ namespace Vulkyrie {
             _sliderJointStore.SetIsLowerLimitViolatedAtIndex(i, lowerLimitViolated);
             _sliderJointStore.SetIsUpperLimitViolatedAtIndex(i, upperLimitViolated);
 
+            // Precomputed Jacobian lever-arm terms, reused below by the Limits and Translation sections.
             const glm::vec3 r2CrossN1 = glm::cross(r2, n1);
             const glm::vec3 r2CrossN2 = glm::cross(r2, n2);
             const glm::vec3 r2CrossSliderAxis = glm::cross(r2, sliderAxisInWorldSpace);
@@ -567,15 +597,21 @@ namespace Vulkyrie {
             // --------------- Limits Constraints --------------- //
 
             if (_sliderJointStore.IsLimitEnabledAtIndex(i)) {
+                // Compute the inverse of the 1x1 mass matrix K = M1^-1 + M2^-1 + (angular terms) for the
+                // limit constraint, shared by whichever of the lower/upper checks below is violated.
                 if (lowerLimitViolated || upperLimitViolated) {
                     const f32 temp =
                         sumInverseMass + glm::dot(r1PlusUCrossSliderAxis, i1 * r1PlusUCrossSliderAxis) + glm::dot(r2CrossSliderAxis, i2 * r2CrossSliderAxis);
                     _sliderJointStore.SetInverseMassMatrixLimitAtIndex(i, temp > f32(0.0) ? f32(1.0) / temp : f32(0.0));
                 }
 
+                // Directly solve for the impulse that fully cancels the (already-negative) lower limit error -
+                // unlike the velocity solver, there's no running impulse to accumulate/clamp here, since
+                // position correction resolves the error in a single shot each NGS iteration.
                 if (lowerLimitViolated) {
                     const f32 lambdaLowerLimit = _sliderJointStore.GetInverseMassMatrixLimitAtIndex(i) * (-lowerLimitError);
 
+                    // Apply the correction P = J^T * lambda to body 1, and the equal-and-opposite correction to body 2.
                     const glm::vec3 linearImpulseBody1 = -lambdaLowerLimit * sliderAxisInWorldSpace;
                     const glm::vec3 angularImpulseBody1 = -lambdaLowerLimit * r1PlusUCrossSliderAxis;
                     const glm::vec3 v1 = inverseMassBody1 * linearLockAxisFactorBodyOne * linearImpulseBody1;
@@ -591,6 +627,7 @@ namespace Vulkyrie {
                     _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, glm::normalize(q2 + glm::quat(0, w2) * q2 * f32(0.5)));
                 }
 
+                // Mirrors the lower limit above with the Jacobian sign flipped.
                 if (upperLimitViolated) {
                     f32 lambdaUpperLimit = _sliderJointStore.GetInverseMassMatrixLimitAtIndex(i) * (-upperLimitError);
 
@@ -612,6 +649,7 @@ namespace Vulkyrie {
 
             // --------------- Rotation Constraints --------------- //
 
+            // Compute the mass matrix K = I1 + I2 (3x3) for the 3 rotation constraints, then its inverse.
             const glm::mat3 inverseMassRotationMatrix = i1 + i2;
             _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassRotationMatrix);
             f32 massMatrixRotationDeterminant = glm::determinant(inverseMassRotationMatrix);
@@ -622,6 +660,8 @@ namespace Vulkyrie {
                     _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(inverseMassRotationMatrix, massMatrixRotationDeterminant));
                 }
 
+                // Same small-angle orientation-error approximation the velocity solver's Baumgarte bias uses,
+                // but here it directly drives a one-shot position/orientation correction rather than a bias term.
                 const glm::quat qError = q2 * _sliderJointStore.GetInitialOrientationDifferenceInverseAtIndex(i) * glm::inverse(q1);
                 const glm::vec3 errorRotation = f32(2.0) * glm::vec3(qError.x, qError.y, qError.z);
                 const glm::vec3 lambdaRotation = _sliderJointStore.GetInverseMassRotationMatrixAtIndex(i) * (-errorRotation);
@@ -637,6 +677,7 @@ namespace Vulkyrie {
 
             // --------------- Translation Constraints --------------- //
 
+            // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 translation constraints, then its inverse.
             const glm::vec3 I1R1PlusUCrossN1 = i1 * r1PlusUCrossN1;
             const glm::vec3 I1R1PlusUCrossN2 = i1 * r1PlusUCrossN2;
             const glm::vec3 I2R2CrossN1 = i2 * r2CrossN1;
@@ -650,15 +691,19 @@ namespace Vulkyrie {
             _sliderJointStore.SetInverseMassTranslationMatrixAtIndex(i, glm::mat2(0));
             f32 matrixKTranslationDeterminant = glm::determinant(matrixKTranslation);
 
+            // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic.
             if (std::abs(matrixKTranslationDeterminant) > VE_MACHINE_EPSILON) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _sliderJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat2(matrixKTranslation, matrixKTranslationDeterminant));
                 }
 
+                // Position error for the 2 translation constraints: how far the anchor points have drifted
+                // off the slider axis, projected onto the n1/n2 plane.
                 const glm::vec2 translationError(glm::dot(u, n1), glm::dot(u, n2));
                 const glm::vec2 lambdaTranslation = _sliderJointStore.GetInverseMassTranslationMatrixAtIndex(i) * (-translationError);
 
+                // Apply the correction P = J^T * lambda to body 1, and the equal-and-opposite correction to body 2.
                 const glm::vec3 linearImpulseBody1 = -n1 * lambdaTranslation.x - n2 * lambdaTranslation.y;
                 const glm::vec3 angularImpulseBody1 = -r1PlusUCrossN1 * lambdaTranslation.x - r1PlusUCrossN2 * lambdaTranslation.y;
                 const glm::vec3 v1 = inverseMassBody1 * linearLockAxisFactorBodyOne * linearImpulseBody1;
