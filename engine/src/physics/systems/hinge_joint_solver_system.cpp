@@ -528,8 +528,7 @@ namespace Vulkyrie {
                 // Refresh the stored 1-DOF limit mass matrix K^-1 = 1 / (a1 . I1*a1 + a1 . I2*a1) from the
                 // recomputed inertia tensors. The corrections below still use the value read above (from the
                 // last InitializeBeforeSolving/SolvePositionConstraint call) rather than this refreshed one -
-                // that matches ReactPhysics3D's reference implementation, so treat it as inherited behavior
-                // rather than a bug to silently fix.
+                // that is intentional, so treat it as expected behavior rather than a bug to silently fix.
                 if (lowerLimitViolated || upperLimitViolated) {
                     const f32 temp = glm::dot(a1, worldSpaceInertiaTensorBodyOne * a1) + glm::dot(a1, worldSpaceInertiaTensorBodyTwo * a1);
                     _hingeJointStore.SetInverseMassMatrixLimitMotorAtIndex(i, (inverseMassMatrixLimitMotor > f32(0.0)) ? f32(1.0) / temp : f32(0.0));
