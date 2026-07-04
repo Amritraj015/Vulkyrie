@@ -67,13 +67,21 @@ namespace Vulkyrie {
             // to body 2's anchor - this is the standard slider-joint derivation.
             const glm::vec3 u = x2 + rTwoWorld - x1 - rOneWorld;
             const glm::vec3 r1PlusU = rOneWorld + u;
-            const glm::vec3 &r1PlusUCrossN1 = glm::cross(r1PlusU, n1);
-            const glm::vec3 &r1PlusUCrossN2 = glm::cross(r1PlusU, n2);
+            const glm::vec3 r1PlusUCrossN1 = glm::cross(r1PlusU, n1);
+            const glm::vec3 r1PlusUCrossN2 = glm::cross(r1PlusU, n2);
+            const glm::vec3 r1PlusUCrossSliderAxis = glm::cross(r1PlusU, sliderAxisInWorldSpace);
 
             // Precomputed Jacobian lever-arm terms, reused below and in WarmStart/SolveVelocityConstraint.
             _sliderJointStore.SetR1PlusUCrossN1AtIndex(i, r1PlusUCrossN1);
             _sliderJointStore.SetR1PlusUCrossN2AtIndex(i, r1PlusUCrossN2);
-            _sliderJointStore.SetR1PlusUCrossSliderAxisAtIndex(i, glm::cross(r1PlusU, sliderAxisInWorldSpace));
+            _sliderJointStore.SetR1PlusUCrossSliderAxisAtIndex(i, r1PlusUCrossSliderAxis);
+
+            const glm::vec3 r2CrossN1 = glm::cross(rTwoWorld, n1);
+            const glm::vec3 r2CrossN2 = glm::cross(rTwoWorld, n2);
+            const glm::vec3 r2CrossSliderAxis = glm::cross(rTwoWorld, sliderAxisInWorldSpace);
+            _sliderJointStore.SetR2CrossN1AtIndex(i, r2CrossN1);
+            _sliderJointStore.SetR2CrossN2AtIndex(i, r2CrossN2);
+            _sliderJointStore.SetR2CrossSliderAxisAtIndex(i, r2CrossSliderAxis);
 
             // Determine whether the lower/upper limit constraints (translation along the slider axis) are
             // currently violated. A limit's accumulated impulse is reset whenever it stops being violated or
@@ -115,13 +123,7 @@ namespace Vulkyrie {
 
             // The limit constraint shares its 1-DOF Jacobian (the slider axis) with the motor, but unlike the
             // motor its inverse mass matrix also has an angular component, so it's computed separately here.
-            // Note: r2CrossSliderAxis is read below before it is (re)computed further down this same iteration,
-            // so this uses the value from the previous call rather than the fresh one - that is intentional,
-            // so treat it as expected behavior rather than a bug to silently fix.
             if (_sliderJointStore.IsLimitEnabledAtIndex(i) && (lowerLimitViolated || upperLimitViolated)) {
-                const glm::vec3 &r2CrossSliderAxis = _sliderJointStore.GetR2CrossSliderAxisAtIndex(i);
-                const glm::vec3 &r1PlusUCrossSliderAxis = _sliderJointStore.GetR1PlusUCrossSliderAxisAtIndex(i);
-
                 const f32 temp =
                     sumInverseMass + glm::dot(r1PlusUCrossSliderAxis, i1 * r1PlusUCrossSliderAxis) + glm::dot(r2CrossSliderAxis, i2 * r2CrossSliderAxis);
                 _sliderJointStore.SetInverseMassMatrixLimitAtIndex(i, temp > f32(0.0) ? f32(1.0) / temp : f32(0.0));
@@ -140,16 +142,6 @@ namespace Vulkyrie {
                     _sliderJointStore.SetBiasUpperLimitAtIndex(i, f32(0.0));
                 }
             }
-
-            // Compute the remaining Jacobian lever-arm terms for body 2, now that r2CrossSliderAxis (read
-            // stale above) can safely be refreshed for the next call.
-            const glm::vec3 &r2 = _sliderJointStore.GetR2WorldAtIndex(i);
-            const glm::vec3 r2CrossN1 = glm::cross(r2, n1);
-            const glm::vec3 r2CrossN2 = glm::cross(r2, n2);
-            _sliderJointStore.SetR2CrossN1AtIndex(i, r2CrossN1);
-            _sliderJointStore.SetR2CrossN2AtIndex(i, r2CrossN2);
-
-            _sliderJointStore.SetR2CrossSliderAxisAtIndex(i, glm::cross(rTwoWorld, sliderAxisInWorldSpace));
 
             // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 translation constraints, then its inverse.
             const glm::vec3 I1R1PlusUCrossN1 = i1 * r1PlusUCrossN1;
@@ -177,19 +169,17 @@ namespace Vulkyrie {
                 }
             }
 
-            // Compute the mass matrix K = I1 + I2 (3x3) for the 3 rotation constraints, then its inverse.
-            // Note: unlike the translation matrix above, the store is not zeroed before this - if K is
-            // singular or both bodies are non-dynamic, the slot is left holding the raw (uninverted) K matrix
-            // rather than zero. SolveVelocityConstraint should account for this explicitly rather than assume
-            // a zero fallback.
-            const glm::mat3 inverseMassRotationMatrix = i1 + i2;
-            _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassRotationMatrix);
-            f32 massMatrixRotationDeterminant = glm::determinant(inverseMassRotationMatrix);
+            // Compute the mass matrix K = I1 + I2 (3x3) for the 3 rotation constraints, then its inverse,
+            // leaving it zeroed for a singular or fully non-dynamic body pair (same guards as the
+            // translation matrix above).
+            const glm::mat3 massMatrixRotation = i1 + i2;
+            _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
+            const f32 massMatrixRotationDeterminant = glm::determinant(massMatrixRotation);
 
             if (VE_MACHINE_EPSILON < std::abs(massMatrixRotationDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(inverseMassRotationMatrix, massMatrixRotationDeterminant));
+                    _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(massMatrixRotation, massMatrixRotationDeterminant));
                 }
             }
 
@@ -649,15 +639,16 @@ namespace Vulkyrie {
 
             // --------------- Rotation Constraints --------------- //
 
-            // Compute the mass matrix K = I1 + I2 (3x3) for the 3 rotation constraints, then its inverse.
-            const glm::mat3 inverseMassRotationMatrix = i1 + i2;
-            _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassRotationMatrix);
-            f32 massMatrixRotationDeterminant = glm::determinant(inverseMassRotationMatrix);
+            // Compute the mass matrix K = I1 + I2 (3x3) for the 3 rotation constraints, then its inverse,
+            // leaving it zeroed for a singular or fully non-dynamic body pair.
+            const glm::mat3 massMatrixRotation = i1 + i2;
+            _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
+            const f32 massMatrixRotationDeterminant = glm::determinant(massMatrixRotation);
 
             if (VE_MACHINE_EPSILON < std::abs(massMatrixRotationDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(inverseMassRotationMatrix, massMatrixRotationDeterminant));
+                    _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(massMatrixRotation, massMatrixRotationDeterminant));
                 }
 
                 // Same small-angle orientation-error approximation the velocity solver's Baumgarte bias uses,
@@ -692,7 +683,7 @@ namespace Vulkyrie {
             f32 matrixKTranslationDeterminant = glm::determinant(matrixKTranslation);
 
             // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic.
-            if (std::abs(matrixKTranslationDeterminant) > VE_MACHINE_EPSILON) {
+            if (VE_MACHINE_EPSILON < std::abs(matrixKTranslationDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _sliderJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat2(matrixKTranslation, matrixKTranslationDeterminant));

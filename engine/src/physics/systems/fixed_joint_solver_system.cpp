@@ -90,15 +90,16 @@ namespace Vulkyrie {
                 _fixedJointStore.SetTranslationBiasAtIndex(i, biasFactor * (centerOfMassBodyTwo + rTwoWorld - centerOfMassBodyOne - rOneWorld));
             }
 
-            // Compute the mass matrix K=JM^-1J^t (3x3) for the 3 rotation constraints, then its inverse K^-1 (same guards as above).
-            const glm::mat3 inverseMassRotationMatrix = inertiaTensorBodyOne + inertiaTensorBodyTwo;
-            _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassRotationMatrix);
+            // Compute the mass matrix K=JM^-1J^t (3x3) for the 3 rotation constraints, then its inverse K^-1,
+            // leaving it zeroed for a singular or fully non-dynamic body pair (same guards as above).
+            const glm::mat3 massMatrixRotation = inertiaTensorBodyOne + inertiaTensorBodyTwo;
+            _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
 
-            const f32 massMatrixRotationDeterminant = glm::determinant(_fixedJointStore.GetInverseMassRotationMatrixAtIndex(i));
+            const f32 massMatrixRotationDeterminant = glm::determinant(massMatrixRotation);
             if (VE_MACHINE_EPSILON < std::abs(massMatrixRotationDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(inverseMassRotationMatrix, massMatrixRotationDeterminant));
+                    _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(massMatrixRotation, massMatrixRotationDeterminant));
                 }
             }
 
@@ -403,14 +404,14 @@ namespace Vulkyrie {
             // Build the mass matrix K=JM^-1J^t (3x3) for the 3 rotation constraints. The relative-rotation Jacobian
             // is [-1, 1] on the two bodies' angular parts, so K reduces to the sum of their world-space inverse
             // inertia tensors. Invert it in place, leaving it zeroed for a singular or fully non-dynamic body pair.
-            const glm::mat3 inverseMassMatrix = bodyOneWorldInertiaTensor + bodyTwoWorldInertiaTensor;
-            _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassMatrix);
-            f32 massMatrixRotationDeterminant = glm::determinant(inverseMassMatrix);
+            const glm::mat3 massMatrixRotation = bodyOneWorldInertiaTensor + bodyTwoWorldInertiaTensor;
+            _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
+            const f32 massMatrixRotationDeterminant = glm::determinant(massMatrixRotation);
 
             if (VE_MACHINE_EPSILON < std::abs(massMatrixRotationDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(inverseMassMatrix, massMatrixRotationDeterminant));
+                    _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(massMatrixRotation, massMatrixRotationDeterminant));
                 }
 
                 // Measure the orientation drift away from the joint's rest orientation difference q0. A drift-free

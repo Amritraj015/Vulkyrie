@@ -34,11 +34,14 @@ namespace Vulkyrie {
         ~BallAndSocketJointSolverSystem() = default;
 
         /** @brief Computes the current cone half-angle between the two cone-limit axes in world space.
+         *
+         * The dot product is clamped to [-1, 1] before the acos: rounding on two unit vectors can push it
+         * slightly past +/-1 (common when the axes are nearly parallel), which would otherwise yield NaN.
          * @param coneLimitWorldAxisBodyOne The world-space cone axis of body one (typically the unit r1 vector).
          * @param coneLimitWorldAxisBodyTwo The world-space cone axis of body two (typically the unit -r2 vector).
          * @returns The angle (in radians) between the two axes, i.e. the current half-angle of the swing cone. */
         [[nodiscard]] VE_INLINE static f32 ComputeCurrentConeHalfAngle(glm::vec3 coneLimitWorldAxisBodyOne, glm::vec3 coneLimitWorldAxisBodyTwo) {
-            return std::acos(glm::dot(coneLimitWorldAxisBodyOne, coneLimitWorldAxisBodyTwo));
+            return std::acos(std::clamp(glm::dot(coneLimitWorldAxisBodyOne, coneLimitWorldAxisBodyTwo), f32(-1.0), f32(1.0)));
         }
 
         /** @brief Precomputes per-joint solver data for every active joint at the start of a simulation step.

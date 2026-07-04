@@ -116,6 +116,7 @@ namespace Vulkyrie {
 
             if (!_enableWarmStartup) {
                 _basStore.SetImpulseAtIndex(i, glm::vec3(0.0f));
+                _basStore.SetConeLimitImpulseAtIndex(i, f32(0.0));
             }
         }
     }
