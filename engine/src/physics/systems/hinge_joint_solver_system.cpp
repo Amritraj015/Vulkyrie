@@ -253,9 +253,9 @@ namespace Vulkyrie {
             angularImpulseBodyOne += motorImpulse;
 
             // Apply the impulse to body 1.
-            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearLockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
             const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
-            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearLockAxisFactorBodyOne * linearImpulseBodyOne;
             const glm::vec3 newAngularVelocityBodyOne = angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne);
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyOneIndex, newLinearVelocityBodyOne);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyOneIndex, newAngularVelocityBodyOne);
@@ -269,9 +269,9 @@ namespace Vulkyrie {
             angularImpulseBodyTwo += -motorImpulse;
 
             // Apply the impulse to body 2.
-            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
             const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
-            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearlockAxisFactorBodyTwo * impulseTranslation;
+            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearLockAxisFactorBodyTwo * impulseTranslation;
             const glm::vec3 newAngularVelocityBodyTwo = angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyTwoIndex, newAngularVelocityBodyTwo);
@@ -310,8 +310,8 @@ namespace Vulkyrie {
 
             const glm::vec3 &a1 = _hingeJointStore.GetHingeAxisWorldSpaceAtIndex(i);
 
-            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
-            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &linearLockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
             const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
             const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
 
@@ -423,14 +423,14 @@ namespace Vulkyrie {
             // Apply the impulse to body 1 (linear -P, angular r1 x P) and update its constrained velocities.
             const glm::vec3 linearImpulseBodyOne = -deltaLambdaTranslation;
             angularImpulseBodyOne = glm::cross(deltaLambdaTranslation, rOneWorld);
-            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+            const glm::vec3 newLinearVelocityBodyOne = linearVelocityBodyOne + inverseMassBodyOne * linearLockAxisFactorBodyOne * linearImpulseBodyOne;
             const glm::vec3 newAngularVelocityBodyOne = angularVelocityBodyOne + angularLockAxisFactorBodyOne * (inertiaTensorBodyOne * angularImpulseBodyOne);
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyOneIndex, newLinearVelocityBodyOne);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyOneIndex, newAngularVelocityBodyOne);
 
             // Apply the equal-and-opposite impulse to body 2 (linear +P, angular -r2 x P).
             angularImpulseBodyTwo = -glm::cross(deltaLambdaTranslation, rTwoWorld);
-            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearlockAxisFactorBodyTwo * deltaLambdaTranslation;
+            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearLockAxisFactorBodyTwo * deltaLambdaTranslation;
             const glm::vec3 newAngularVelocityBodyTwo = angularVelocityBodyTwo + angularLockAxisFactorBodyTwo * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyTwoIndex, newAngularVelocityBodyTwo);
@@ -469,8 +469,8 @@ namespace Vulkyrie {
             const glm::vec3 &bodyTwoLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyTwoIndex);
 
             // Per-axis factors that zero out the correction on locked/frozen degrees of freedom.
-            const glm::vec3 &linearlockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
-            const glm::vec3 &linearlockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &linearLockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
             const glm::vec3 &angularLockAxisFactorBodyOne = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex);
             const glm::vec3 &angularLockAxisFactorBodyTwo = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex);
 
@@ -650,7 +650,7 @@ namespace Vulkyrie {
                 // position directly and its orientation via the quaternion derivative q += 0.5 * (0,w) * q.
                 const glm::vec3 linearImpulseBodyOne = -lambdaTranslation;
                 const glm::vec3 angularImpulseBodyOne = glm::cross(lambdaTranslation, rOneWorld);
-                const glm::vec3 v1 = inverseMassBodyOne * linearlockAxisFactorBodyOne * linearImpulseBodyOne;
+                const glm::vec3 v1 = inverseMassBodyOne * linearLockAxisFactorBodyOne * linearImpulseBodyOne;
                 const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBodyOne);
                 const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
                 _rigidBodyStore.SetConstrainedPositionAtIndex(bodyOneIndex, x1 + v1);
@@ -658,7 +658,7 @@ namespace Vulkyrie {
 
                 // Apply the equal-and-opposite impulse to body 2 (linear +P, angular -r2 x P).
                 const glm::vec3 angularImpulseBodyTwo = -glm::cross(lambdaTranslation, rTwoWorld);
-                const glm::vec3 v2 = inverseMassBodyTwo * linearlockAxisFactorBodyTwo * lambdaTranslation;
+                const glm::vec3 v2 = inverseMassBodyTwo * linearLockAxisFactorBodyTwo * lambdaTranslation;
                 const glm::vec3 w2 = angularLockAxisFactorBodyTwo * (worldSpaceInertiaTensorBodyTwo * angularImpulseBodyTwo);
                 const glm::quat newOrientationBodyTwo = glm::normalize(orientationBodyTwo + glm::quat(0, w2) * orientationBodyTwo * f32(0.5));
                 _rigidBodyStore.SetConstrainedPositionAtIndex(bodyTwoIndex, x2 + v2);
