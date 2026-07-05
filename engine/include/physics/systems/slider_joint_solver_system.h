@@ -97,6 +97,18 @@ namespace Vulkyrie {
 
         /** @brief Reference to the world's warm-start toggle; when false, accumulated impulses are reset each step. */
         bool &_enableWarmStartup;
+
+        /** @brief Per-joint component indices resolved by InitializeBeforeSolving(). */
+        struct JointIndices {
+            size_t JointIndex;
+            size_t BodyOneIndex;
+            size_t BodyTwoIndex;
+        };
+
+        /** @brief Per-joint component indices, parallel to the joint store's active components. Resolved once
+         * per step by InitializeBeforeSolving() and reused by the other phases, so the per-iteration solver
+         * loops avoid repeating the entity-to-index hash lookups. Only valid for the current step. */
+        std::vector<JointIndices> _jointIndices;
     };
 
 } // namespace Vulkyrie

@@ -90,7 +90,19 @@ namespace Vulkyrie {
          * @param bodyOneOrientation The current orientation of body 1.
          * @param bodyTwoOrientation The current orientation of body 2.
          * @returns The current hinge angle in radians. */
-        f32 ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation);
+        [[nodiscard]] VE_INLINE f32 ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation) {
+            return ComputeCurrentHingeAngleAtIndex(_hingeJointStore.GetEntityIndex(jointEntity), bodyOneOrientation, bodyTwoOrientation);
+        }
+
+        /** @brief Computes the joint's current rotation angle around the hinge axis (see ComputeCurrentHingeAngle()).
+         *
+         * Index-based variant used by the solver loops, which already hold the component index and so avoid
+         * the entity-to-index hash lookup of the entity-based overload.
+         * @param jointComponentIndex The component index of the joint in the hinge joint store.
+         * @param bodyOneOrientation The current orientation of body 1.
+         * @param bodyTwoOrientation The current orientation of body 2.
+         * @returns The current hinge angle in radians. */
+        f32 ComputeCurrentHingeAngleAtIndex(size_t jointComponentIndex, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation);
 
     private:
         /** @brief A reference to RigidBodyComponentStore. */
@@ -107,6 +119,18 @@ namespace Vulkyrie {
 
         /** @brief Reference to the world's warm-start toggle; when false, accumulated impulses are reset each step. */
         bool &_enableWarmStartup;
+
+        /** @brief Per-joint component indices resolved by InitializeBeforeSolving(). */
+        struct JointIndices {
+            size_t JointIndex;
+            size_t BodyOneIndex;
+            size_t BodyTwoIndex;
+        };
+
+        /** @brief Per-joint component indices, parallel to the joint store's active components. Resolved once
+         * per step by InitializeBeforeSolving() and reused by the other phases, so the per-iteration solver
+         * loops avoid repeating the entity-to-index hash lookups. Only valid for the current step. */
+        std::vector<JointIndices> _jointIndices;
 
         /** @brief A full turn (2*pi), used when normalizing hinge angles. */
         constexpr static f32 TWICE_PI = 2 * std::numbers::pi_v<f32>;

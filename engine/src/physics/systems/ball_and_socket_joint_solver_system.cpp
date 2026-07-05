@@ -14,7 +14,10 @@ namespace Vulkyrie {
     }
 
     void BallAndSocketJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
-        for (size_t i = 0; i < _basStore.GetActiveComponentCount(); ++i) {
+        const size_t activeJointCount = _basStore.GetActiveComponentCount();
+        _jointIndices.resize(activeJointCount);
+
+        for (size_t i = 0; i < activeJointCount; ++i) {
             const Entity jointEntity = _basStore.GetEntityAtIndex(i);
             const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
@@ -26,34 +29,38 @@ namespace Vulkyrie {
             const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
             const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
 
-            _basStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex));
-            _basStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex));
+            // Resolve the entity-to-index hash lookups once per step; WarmStart and the solver phases run
+            // every iteration and read the cached indices instead of repeating them.
+            _jointIndices[i] = { jointIndex, bodyOneIndex, bodyTwoIndex };
+
+            const bool baumgartePositionCorrection =
+                JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex);
+
+            const glm::mat3 &inertiaTensorBodyOne = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex);
+            const glm::mat3 &inertiaTensorBodyTwo = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex);
+            _basStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, inertiaTensorBodyOne);
+            _basStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, inertiaTensorBodyTwo);
 
             const TransformComponent &bodyOneTransform = _transformStore.GetTransform(bodyOneEntity);
             const TransformComponent &bodyTwoTransform = _transformStore.GetTransform(bodyTwoEntity);
 
             const glm::vec3 &localAnchorPointOnBodyOne = _basStore.GetLocalSpaceAnchorPointOnBodyOneAtIndex(i);
             const glm::vec3 &localCenterOfMassBodyOne = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyOneIndex);
-            const glm::vec3 newVecOne = bodyOneTransform.Rotation * (localAnchorPointOnBodyOne - localCenterOfMassBodyOne);
+            const glm::vec3 rOneWorld = bodyOneTransform.Rotation * (localAnchorPointOnBodyOne - localCenterOfMassBodyOne);
 
             const glm::vec3 &localAnchorPointOnBodyTwo = _basStore.GetLocalSpaceAnchorPointOnBodyTwoAtIndex(i);
             const glm::vec3 &localCenterOfMassBodyTwo = _rigidBodyStore.GetLocalCenterOfMassAtIndex(bodyTwoIndex);
-            const glm::vec3 newVecTwo = bodyTwoTransform.Rotation * (localAnchorPointOnBodyTwo - localCenterOfMassBodyTwo);
+            const glm::vec3 rTwoWorld = bodyTwoTransform.Rotation * (localAnchorPointOnBodyTwo - localCenterOfMassBodyTwo);
 
-            _basStore.SetR1WorldAtIndex(i, newVecOne);
-            _basStore.SetR2WorldAtIndex(i, newVecTwo);
+            _basStore.SetR1WorldAtIndex(i, rOneWorld);
+            _basStore.SetR2WorldAtIndex(i, rTwoWorld);
 
-            const glm::vec3 &rOneWorld = _basStore.GetR1WorldAtIndex(i);
-            const glm::vec3 &rTwoWorld = _basStore.GetR2WorldAtIndex(i);
             const glm::mat3 skewSymmetricMatrixU1 = SkewSymmetric(rOneWorld);
             const glm::mat3 skewSymmetricMatrixU2 = SkewSymmetric(rTwoWorld);
 
             const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
             const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
             const f32 totalInverseMass = bodyOneInverseMass + bodyTwoInverseMass;
-
-            const glm::mat3 &inertiaTensorBodyOne = _basStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
-            const glm::mat3 &inertiaTensorBodyTwo = _basStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
 
             const glm::mat3 massMatrix = glm::mat3(glm::vec3(totalInverseMass, 0, 0), //
                                                    glm::vec3(0, totalInverseMass, 0), //
@@ -75,39 +82,40 @@ namespace Vulkyrie {
             const glm::vec3 &x1 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyOneIndex);
             const glm::vec3 &x2 = _rigidBodyStore.GetWorldCenterOfMassAtIndex(bodyTwoIndex);
 
-            _basStore.SetBiasVectorAtIndex(i, glm::vec3(0.0f));
-
-            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+            if (baumgartePositionCorrection) {
                 _basStore.SetBiasVectorAtIndex(i, biasFactor * (x2 + rTwoWorld - x1 - rOneWorld));
+            } else {
+                _basStore.SetBiasVectorAtIndex(i, glm::vec3(0.0f));
             }
 
-            const glm::vec3 rOneWorldUnit = glm::normalize(rOneWorld);
-            const glm::vec3 rTwoWorldUnit = glm::normalize(rTwoWorld);
-            _basStore.SetConeLimitAxesCrossProductAtIndex(i, glm::cross(rOneWorldUnit, -rTwoWorldUnit));
-
-            const f32 coneAngle = ComputeCurrentConeHalfAngle(rOneWorldUnit, -rTwoWorldUnit);
-            const f32 coneLimitError = _basStore.GetConeLimitHalfAngleAtIndex(i) - coneAngle;
-
-            const bool oldConeLimitViolated = _basStore.ConeLimitViolatedAtIndex(i);
-            const bool coneLimitViolated = coneLimitError < 0;
-            _basStore.SetConeLimitViolatedFlagAtIndex(i, coneLimitViolated);
-
-            if (!coneLimitViolated || coneLimitViolated != oldConeLimitViolated) {
-                _basStore.SetConeLimitImpulseAtIndex(i, f32(0.0f));
-            }
-
+            // All the cone-limit state (rotation axis, violation flag, mass matrix and bias) is only needed
+            // when the limit is enabled, so skip the normalizations and the acos entirely when it is not.
             if (_basStore.ConeLimitEnabledAtIndex(i)) {
-                // Compute the inverse of the mass matrix K=JM^-1J^t for the cone limit
-                const glm::vec3 coneLimitAxisCrossProduct = _basStore.GetConeLimitAxesCrossProductAtIndex(i);
+                const glm::vec3 rOneWorldUnit = glm::normalize(rOneWorld);
+                const glm::vec3 rTwoWorldUnit = glm::normalize(rTwoWorld);
+                const glm::vec3 coneLimitAxesCrossProduct = glm::cross(rOneWorldUnit, -rTwoWorldUnit);
+                _basStore.SetConeLimitAxesCrossProductAtIndex(i, coneLimitAxesCrossProduct);
 
-                f32 inverseMassMatrixConeLimit = glm::dot(coneLimitAxisCrossProduct, inertiaTensorBodyOne * coneLimitAxisCrossProduct) +
-                                                 glm::dot(coneLimitAxisCrossProduct, inertiaTensorBodyTwo * coneLimitAxisCrossProduct);
+                const f32 coneAngle = ComputeCurrentConeHalfAngle(rOneWorldUnit, -rTwoWorldUnit);
+                const f32 coneLimitError = _basStore.GetConeLimitHalfAngleAtIndex(i) - coneAngle;
+
+                const bool oldConeLimitViolated = _basStore.ConeLimitViolatedAtIndex(i);
+                const bool coneLimitViolated = coneLimitError < 0;
+                _basStore.SetConeLimitViolatedFlagAtIndex(i, coneLimitViolated);
+
+                if (!coneLimitViolated || coneLimitViolated != oldConeLimitViolated) {
+                    _basStore.SetConeLimitImpulseAtIndex(i, f32(0.0f));
+                }
+
+                // Compute the inverse of the mass matrix K=JM^-1J^t for the cone limit
+                f32 inverseMassMatrixConeLimit = glm::dot(coneLimitAxesCrossProduct, inertiaTensorBodyOne * coneLimitAxesCrossProduct) +
+                                                 glm::dot(coneLimitAxesCrossProduct, inertiaTensorBodyTwo * coneLimitAxesCrossProduct);
                 inverseMassMatrixConeLimit = (inverseMassMatrixConeLimit > f32(0.0)) ? f32(1.0) / inverseMassMatrixConeLimit : f32(0.0);
 
                 _basStore.SetInverseMassMatrixConeLimitAtIndex(i, inverseMassMatrixConeLimit);
 
                 // Compute the bias "b" of the lower limit constraint.
-                if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                if (baumgartePositionCorrection) {
                     _basStore.SetConeLimitBiasAtIndex(i, biasFactor * coneLimitError);
                 } else {
                     _basStore.SetConeLimitBiasAtIndex(i, f32(0.0f));
@@ -122,15 +130,11 @@ namespace Vulkyrie {
     }
 
     void BallAndSocketJointSolverSystem::WarmStart() {
+        VASSERT(_jointIndices.size() == _basStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before WarmStart().");
+
         for (size_t i = 0; i < _basStore.GetActiveComponentCount(); i++) {
-            const Entity jointEntity = _basStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
-
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             const glm::vec3 &rOneWorld = _basStore.GetR1WorldAtIndex(i);
             const glm::vec3 &rTwoWorld = _basStore.GetR2WorldAtIndex(i);
@@ -138,9 +142,11 @@ namespace Vulkyrie {
             const glm::mat3 &inertiaTensorBodyOne = _basStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
             const glm::mat3 &inertiaTensorBodyTwo = _basStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
 
+            const glm::vec3 &impulse = _basStore.GetImpulseAtIndex(i);
+
             // Compute the translational impulse P=J^T * lambda for body 1 (negated, opposing the constraint direction)
-            const glm::vec3 linearImpulseBodyOne = -_basStore.GetImpulseAtIndex(i);
-            glm::vec3 angularImpulseBodyOne = glm::cross(_basStore.GetImpulseAtIndex(i), rOneWorld);
+            const glm::vec3 linearImpulseBodyOne = -impulse;
+            glm::vec3 angularImpulseBodyOne = glm::cross(impulse, rOneWorld);
 
             // Compute the cone limit impulse vector and accumulate into body 1's angular impulse
             const glm::vec3 coneLimitImpulse = _basStore.GetConeLimitImpulseAtIndex(i) * _basStore.GetConeLimitAxesCrossProductAtIndex(i);
@@ -161,14 +167,13 @@ namespace Vulkyrie {
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(bodyOneIndex, newAngularVelocityBodyOne);
 
             // Compute the translational and cone limit impulse for body 2 (opposite direction)
-            glm::vec3 angularImpulseBodyTwo = -glm::cross(_basStore.GetImpulseAtIndex(i), rTwoWorld);
+            glm::vec3 angularImpulseBodyTwo = -glm::cross(impulse, rTwoWorld);
             angularImpulseBodyTwo += -coneLimitImpulse;
 
             // Apply the warm-start impulse to body 2
             const f32 inverseMassBodyTwo = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
             const glm::vec3 &linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
-            const glm::vec3 newLinearVelocityBodyTwo =
-                linearVelocityBodyTwo + inverseMassBodyTwo * linearLockAxisFactorBodyTwo * _basStore.GetImpulseAtIndex(i);
+            const glm::vec3 newLinearVelocityBodyTwo = linearVelocityBodyTwo + inverseMassBodyTwo * linearLockAxisFactorBodyTwo * impulse;
             const glm::vec3 newAngularVelocityBodyTwo =
                 angularVelocityBodyTwo + _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex) * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
@@ -177,15 +182,11 @@ namespace Vulkyrie {
     }
 
     void BallAndSocketJointSolverSystem::SolveVelocityConstraint() {
+        VASSERT(_jointIndices.size() == _basStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before SolveVelocityConstraint().");
+
         for (size_t i = 0; i < _basStore.GetActiveComponentCount(); ++i) {
-            const Entity jointEntity = _basStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
-
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             const glm::vec3 &bodyOneLinearVelocity = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyOneIndex);
             const glm::vec3 &bodyTwoLinearVelocity = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyTwoIndex);
@@ -234,7 +235,7 @@ namespace Vulkyrie {
                 bodyTwoLinearVelocity + glm::cross(bodyTwoAngularVelocity, rTwoWorld) - bodyOneLinearVelocity - glm::cross(bodyOneAngularVelocity, rOneWorld);
 
             // Compute the Lagrange multiplier delta and accumulate the total impulse
-            const glm::mat3 inverseMassMatrix = _basStore.GetInverseMassMatrixAtIndex(i);
+            const glm::mat3 &inverseMassMatrix = _basStore.GetInverseMassMatrixAtIndex(i);
             const glm::vec3 deltaLambda = inverseMassMatrix * (-jvTranslation - _basStore.GetBiasVectorAtIndex(i));
             _basStore.SetImpulseAtIndex(i, _basStore.GetImpulseAtIndex(i) + deltaLambda);
 
@@ -243,7 +244,7 @@ namespace Vulkyrie {
             const glm::vec3 angularImpulseBodyOne = glm::cross(deltaLambda, rOneWorld);
 
             const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
-            const glm::vec3 linearLockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
+            const glm::vec3 &linearLockAxisFactorBodyOne = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex);
             const glm::vec3 newLinearVelocityBodyOne = bodyOneLinearVelocity + bodyOneInverseMass * linearLockAxisFactorBodyOne * linearImpulseBodyOne;
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyOneIndex, newLinearVelocityBodyOne);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
@@ -253,7 +254,7 @@ namespace Vulkyrie {
             const glm::vec3 angularImpulseBodyTwo = glm::cross(-deltaLambda, rTwoWorld);
 
             const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
-            const glm::vec3 linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
+            const glm::vec3 &linearLockAxisFactorBodyTwo = _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex);
             const glm::vec3 newLinearVelocityBodyTwo = bodyTwoLinearVelocity + bodyTwoInverseMass * linearLockAxisFactorBodyTwo * deltaLambda;
             _rigidBodyStore.SetConstrainedLinearVelocityAtIndex(bodyTwoIndex, newLinearVelocityBodyTwo);
             _rigidBodyStore.SetConstrainedAngularVelocityAtIndex(
@@ -262,28 +263,23 @@ namespace Vulkyrie {
     }
 
     void BallAndSocketJointSolverSystem::SolvePositionConstraint() {
+        VASSERT(_jointIndices.size() == _basStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before SolvePositionConstraint().");
+
         for (size_t i = 0; i < _basStore.GetActiveComponentCount(); ++i) {
-            const Entity jointEntity = _basStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
+            const size_t jointIndex = _jointIndices[i].JointIndex;
 
             if (JointsPositionCorrectionTechnique::NonLinearGaussSeidel != _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
                 continue;
             }
 
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             const glm::quat &bodyOneOrientation = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyOneIndex);
             const glm::quat &bodyTwoOrientation = _rigidBodyStore.GetConstrainedOrientationAtIndex(bodyTwoIndex);
 
             const glm::vec3 &bodyOneLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyOneIndex);
             const glm::vec3 &bodyTwoLocalInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(bodyTwoIndex);
-
-            const glm::mat3 &inertiaTensorBodyOne = _basStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
-            const glm::mat3 &inertiaTensorBodyTwo = _basStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
 
             // Recompute the world-space inverse inertia tensors from the current constrained orientations,
             // since the orientations may have changed during previous position-solving iterations.
@@ -323,8 +319,8 @@ namespace Vulkyrie {
 
                 if (coneLimitViolated) {
                     // Compute the inverse of the mass matrix K=JM^-1J^t for the cone limit (1x1 matrix)
-                    f32 inverseMassMatrixConeLimit = glm::dot(coneLimitAxesCrossProduct, inertiaTensorBodyOne * coneLimitAxesCrossProduct) +
-                                                     glm::dot(coneLimitAxesCrossProduct, inertiaTensorBodyTwo * coneLimitAxesCrossProduct);
+                    f32 inverseMassMatrixConeLimit = glm::dot(coneLimitAxesCrossProduct, bodyOneWorldInertiaTensor * coneLimitAxesCrossProduct) +
+                                                     glm::dot(coneLimitAxesCrossProduct, bodyTwoWorldInertiaTensor * coneLimitAxesCrossProduct);
                     inverseMassMatrixConeLimit = inverseMassMatrixConeLimit > f32(0.0) ? f32(1.0) / inverseMassMatrixConeLimit : f32(0.0);
 
                     _basStore.SetInverseMassMatrixConeLimitAtIndex(i, inverseMassMatrixConeLimit);
@@ -334,13 +330,13 @@ namespace Vulkyrie {
 
                     // Compute the impulse P=J^T * lambda of body 1 and apply the pseudo-velocity to correct its orientation.
                     const glm::vec3 angularImpulseBodyOne = lambdaConeLimit * coneLimitAxesCrossProduct;
-                    const glm::vec3 w1 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex) * (inertiaTensorBodyOne * angularImpulseBodyOne);
+                    const glm::vec3 w1 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex) * (bodyOneWorldInertiaTensor * angularImpulseBodyOne);
                     const glm::quat q1 = glm::normalize(bodyOneOrientation + (glm::quat(0, w1) * bodyOneOrientation * f32(0.5)));
                     _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyOneIndex, q1);
 
                     // Compute the impulse P=J^T * lambda of body 2 and apply the pseudo-velocity to correct its orientation.
                     const glm::vec3 angularImpulseBodyTwo = -lambdaConeLimit * coneLimitAxesCrossProduct;
-                    const glm::vec3 w2 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex) * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
+                    const glm::vec3 w2 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex) * (bodyTwoWorldInertiaTensor * angularImpulseBodyTwo);
                     const glm::quat q2 = glm::normalize(bodyTwoOrientation + (glm::quat(0, w2) * bodyTwoOrientation * f32(0.5)));
                     _rigidBodyStore.SetConstrainedOrientationAtIndex(bodyTwoIndex, q2);
                 }
@@ -361,8 +357,8 @@ namespace Vulkyrie {
                                                    glm::vec3(0, inverseMassBodies, 0), //
                                                    glm::vec3(0, 0, inverseMassBodies)  //
                                                    ) +
-                                         skewSymmetricMatrixU1 * inertiaTensorBodyOne * glm::transpose(skewSymmetricMatrixU1) +
-                                         skewSymmetricMatrixU2 * inertiaTensorBodyTwo * glm::transpose(skewSymmetricMatrixU2);
+                                         skewSymmetricMatrixU1 * bodyOneWorldInertiaTensor * glm::transpose(skewSymmetricMatrixU1) +
+                                         skewSymmetricMatrixU2 * bodyTwoWorldInertiaTensor * glm::transpose(skewSymmetricMatrixU2);
 
             // Skip correction if the mass matrix is singular (degenerate configuration — no unique solution exists).
             const f32 massMatrixDeterminant = glm::determinant(massMatrix);
@@ -391,7 +387,7 @@ namespace Vulkyrie {
 
                     // Compute the pseudo velocity of body 1 and update its position and orientation.
                     const glm::vec3 v1 = inverseMassBodyOne * _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyOneIndex) * linearImpulseBodyOne;
-                    const glm::vec3 w1 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex) * (inertiaTensorBodyOne * angularImpulseBodyOne);
+                    const glm::vec3 w1 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyOneIndex) * (bodyOneWorldInertiaTensor * angularImpulseBodyOne);
                     const glm::quat q1 = glm::normalize(bodyOneOrientation + glm::quat(0, w1) * bodyOneOrientation * f32(0.5));
 
                     _rigidBodyStore.SetConstrainedPositionAtIndex(bodyOneIndex, x1 + v1);
@@ -402,7 +398,7 @@ namespace Vulkyrie {
 
                     // Compute the pseudo velocity of body 2 and update its position and orientation.
                     const glm::vec3 v2 = inverseMassBodyTwo * _rigidBodyStore.GetLinearLockAxisFactorAtIndex(bodyTwoIndex) * lambda;
-                    const glm::vec3 w2 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex) * (inertiaTensorBodyTwo * angularImpulseBodyTwo);
+                    const glm::vec3 w2 = _rigidBodyStore.GetAngularLockAxisFactorAtIndex(bodyTwoIndex) * (bodyTwoWorldInertiaTensor * angularImpulseBodyTwo);
                     const glm::quat q2 = glm::normalize(bodyTwoOrientation + glm::quat(0, w2) * bodyTwoOrientation * f32(0.5));
 
                     _rigidBodyStore.SetConstrainedPositionAtIndex(bodyTwoIndex, x2 + v2);

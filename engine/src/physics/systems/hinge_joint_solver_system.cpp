@@ -16,7 +16,10 @@ namespace Vulkyrie {
     void HingeJointSolverSystem::InitializeBeforeSolving(f32 biasFactor) {
         // For each active hinge joint, precompute the solver state that stays constant across every
         // velocity-solver iteration of this step: lever arms, mass matrices, and bias terms.
-        for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
+        const size_t activeJointCount = _hingeJointStore.GetActiveComponentCount();
+        _jointIndices.resize(activeJointCount);
+
+        for (size_t i = 0; i < activeJointCount; ++i) {
             const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
             const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
 
@@ -28,9 +31,18 @@ namespace Vulkyrie {
             const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
             const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
 
+            // Resolve the entity-to-index hash lookups once per step; WarmStart and the solver phases run
+            // every iteration and read the cached indices instead of repeating them.
+            _jointIndices[i] = { jointIndex, bodyOneIndex, bodyTwoIndex };
+
+            const bool baumgartePositionCorrection =
+                JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex);
+
             // Cache the world-space inverse inertia tensors of both bodies for use in the mass matrices below.
-            _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex));
-            _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex));
+            const glm::mat3 &inertiaTensorBodyOne = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyOneIndex);
+            const glm::mat3 &inertiaTensorBodyTwo = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(bodyTwoIndex);
+            _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, inertiaTensorBodyOne);
+            _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, inertiaTensorBodyTwo);
 
             const glm::quat &orientationBodyOne = _transformStore.GetTransform(bodyOneEntity).Rotation;
             const glm::quat &orientationBodyTwo = _transformStore.GetTransform(bodyTwoEntity).Rotation;
@@ -66,7 +78,7 @@ namespace Vulkyrie {
             _hingeJointStore.SetC2CrossA1AtIndex(i, c2CrossA1);
 
             // Compute the Baumgarte bias "b" for the 2 rotation constraints from the current axis misalignment.
-            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+            if (baumgartePositionCorrection) {
                 _hingeJointStore.SetRotationBiasAtIndex(i, biasFactor * glm::vec2(glm::dot(a1, b2), glm::dot(a1, c2)));
             } else {
                 _hingeJointStore.SetRotationBiasAtIndex(i, glm::vec2(0));
@@ -80,9 +92,6 @@ namespace Vulkyrie {
             const f32 bodyOneInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyOneIndex);
             const f32 bodyTwoInverseMass = _rigidBodyStore.GetInverseMassAtIndex(bodyTwoIndex);
             const f32 totalInverseMass = bodyOneInverseMass + bodyTwoInverseMass;
-
-            const glm::mat3 &inertiaTensorBodyOne = _hingeJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
-            const glm::mat3 &inertiaTensorBodyTwo = _hingeJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
 
             // Compute the mass matrix K = J*M^-1*J^t (3x3) for the 3 translation constraints, then its inverse.
             const glm::mat3 massMatrix = glm::mat3(glm::vec3(totalInverseMass, 0, 0), //
@@ -109,25 +118,24 @@ namespace Vulkyrie {
 
             // Compute the Baumgarte bias "b" for the 3 translation constraints from the current anchor-point
             // separation (x2 + r2 should coincide with x1 + r1 when the constraint is satisfied).
-            if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+            if (baumgartePositionCorrection) {
                 _hingeJointStore.SetTranslationBiasAtIndex(i, biasFactor * (x2 + rTwoWorld - x1 - rOneWorld));
             } else {
                 _hingeJointStore.SetTranslationBiasAtIndex(i, glm::vec3(0));
             }
 
             // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 rotation constraints, then its inverse.
+            // K is symmetric (el21 == el12) because the inverse inertia tensors are symmetric, so only three
+            // of the four elements need computing.
             const glm::vec3 i1B2CrossA1 = inertiaTensorBodyOne * b2CrossA1;
             const glm::vec3 i1C2CrossA1 = inertiaTensorBodyOne * c2CrossA1;
             const glm::vec3 i2B2CrossA1 = inertiaTensorBodyTwo * b2CrossA1;
             const glm::vec3 i2C2CrossA1 = inertiaTensorBodyTwo * c2CrossA1;
             const f32 el11 = glm::dot(b2CrossA1, i1B2CrossA1) + glm::dot(b2CrossA1, i2B2CrossA1);
             const f32 el12 = glm::dot(b2CrossA1, i1C2CrossA1) + glm::dot(b2CrossA1, i2C2CrossA1);
-            const f32 el21 = glm::dot(c2CrossA1, i1B2CrossA1) + glm::dot(c2CrossA1, i2B2CrossA1);
             const f32 el22 = glm::dot(c2CrossA1, i1C2CrossA1) + glm::dot(c2CrossA1, i2C2CrossA1);
 
-            // glm::mat2's 4-scalar constructor is column-major (col0, col1), so the middle two
-            // arguments are swapped from row-major reading order to build [[el11,el12],[el21,el22]].
-            const glm::mat2 matrixKRotation(el11, el21, el12, el22);
+            const glm::mat2 matrixKRotation(el11, el12, el12, el22);
             const f32 matrixKRotationDeterminant = glm::determinant(matrixKRotation);
 
             _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat2(0));
@@ -153,7 +161,7 @@ namespace Vulkyrie {
             // Determine whether the lower/upper limit constraints are currently violated. A limit's
             // accumulated impulse is reset whenever it stops being violated or flips violation state,
             // since a stale impulse from a different regime would bias the new solve.
-            const f32 hingeAngle = ComputeCurrentHingeAngle(jointEntity, orientationBodyOne, orientationBodyTwo);
+            const f32 hingeAngle = ComputeCurrentHingeAngleAtIndex(i, orientationBodyOne, orientationBodyTwo);
             const f32 lowerLimitError = hingeAngle - _hingeJointStore.GetLowerLimitAtIndex(i);
             const f32 upperLimitError = _hingeJointStore.GetUpperLimitAtIndex(i) - hingeAngle;
             const bool oldIsLowerLimitViolated = _hingeJointStore.GetIsLowerLimitViolatedAtIndex(i);
@@ -178,7 +186,6 @@ namespace Vulkyrie {
             // share the same inverse mass matrix K^-1 = 1 / (a1 . I1*a1 + a1 . I2*a1). Only compute it when
             // at least one of them can actually apply an impulse this step.
             if (_hingeJointStore.IsMotorEnabledAtIndex(i) || (limitEnabled && (isLowerLimitViolated || isUpperLimitViolated))) {
-                const glm::vec3 &a1 = _hingeJointStore.GetHingeAxisWorldSpaceAtIndex(i);
                 f32 inverseMassMatrixLimitMotor = glm::dot(a1, inertiaTensorBodyOne * a1) + glm::dot(a1, inertiaTensorBodyTwo * a1);
                 inverseMassMatrixLimitMotor = (inverseMassMatrixLimitMotor > f32(0.0)) ? f32(1.0) / inverseMassMatrixLimitMotor : f32(0.0);
 
@@ -186,7 +193,7 @@ namespace Vulkyrie {
 
                 if (limitEnabled) {
                     // Compute the Baumgarte bias "b" for whichever limit constraint is active.
-                    if (JointsPositionCorrectionTechnique::BaumgarteJoints == _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
+                    if (baumgartePositionCorrection) {
                         _hingeJointStore.SetBiasLowerLimitAtIndex(i, biasFactor * lowerLimitError);
                         _hingeJointStore.SetBiasUpperLimitAtIndex(i, biasFactor * upperLimitError);
                     } else {
@@ -201,15 +208,11 @@ namespace Vulkyrie {
     void HingeJointSolverSystem::WarmStart() {
         // Re-apply the impulses accumulated in the previous step as an initial guess, so the velocity solver
         // starts close to the solution and converges in fewer iterations. Body 1 receives -P and body 2 receives +P.
+        VASSERT(_jointIndices.size() == _hingeJointStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before WarmStart().");
+
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
-            const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
-
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             // Get the current constrained velocities of the bodies.
             const glm::vec3 &linearVelocityBodyOne = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyOneIndex);
@@ -284,15 +287,11 @@ namespace Vulkyrie {
         // velocities, and the *VelocityBody* references stay bound to the same storage slots for the
         // whole iteration, so every later block observes the velocity changes made by the earlier ones -
         // that ordering dependency is what makes this "sequential impulses" rather than one-shot impulses.
+        VASSERT(_jointIndices.size() == _hingeJointStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before SolveVelocityConstraint().");
+
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
-            const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
-
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             const glm::vec3 &linearVelocityBodyOne = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyOneIndex);
             const glm::vec3 &linearVelocityBodyTwo = _rigidBodyStore.GetConstrainedLinearVelocityAtIndex(bodyTwoIndex);
@@ -394,8 +393,8 @@ namespace Vulkyrie {
             // constraints); b2CrossA1/c2CrossA1 are the precomputed Jacobian lever-arm terms.
             const glm::vec3 &b2CrossA1 = _hingeJointStore.GetB2CrossA1AtIndex(i);
             const glm::vec3 &c2CrossA1 = _hingeJointStore.GetC2CrossA1AtIndex(i);
-            const glm::vec2 JvRotation(-glm::dot(b2CrossA1, angularVelocityBodyOne) + glm::dot(b2CrossA1, angularVelocityBodyTwo),
-                                       -glm::dot(c2CrossA1, angularVelocityBodyOne) + glm::dot(c2CrossA1, angularVelocityBodyTwo));
+            const glm::vec3 relativeAngularVelocity = angularVelocityBodyTwo - angularVelocityBodyOne;
+            const glm::vec2 JvRotation(glm::dot(b2CrossA1, relativeAngularVelocity), glm::dot(c2CrossA1, relativeAngularVelocity));
             glm::vec2 deltaLambdaRotation =
                 _hingeJointStore.GetInverseMassRotationMatrixAtIndex(i) * (-JvRotation - _hingeJointStore.GetRotationBiasAtIndex(i));
 
@@ -443,21 +442,18 @@ namespace Vulkyrie {
         // angle limit, hinge axes that fell out of alignment, and anchor-point separation. Because the geometry
         // changes as the bodies move, the lever arms, hinge-axis basis and mass matrices are recomputed here
         // from the current state rather than reusing the cached solver values.
+        VASSERT(_jointIndices.size() == _hingeJointStore.GetActiveComponentCount(), "InitializeBeforeSolving() must run before SolvePositionConstraint().");
+
         for (size_t i = 0; i < _hingeJointStore.GetActiveComponentCount(); ++i) {
-            const Entity jointEntity = _hingeJointStore.GetEntityAtIndex(i);
-            const size_t jointIndex = _jointStore.GetEntityIndex(jointEntity);
+            const size_t jointIndex = _jointIndices[i].JointIndex;
 
             // This solver only runs for joints configured to use non-linear Gauss-Seidel position correction.
             if (JointsPositionCorrectionTechnique::NonLinearGaussSeidel != _jointStore.GetJointsPositionCorrectionTechniqueAtIndex(jointIndex)) {
                 continue;
             }
 
-            // Get the two bodies constrained by this joint and their rigid-body component indices.
-            const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
-            const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
-
-            const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
-            const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);
+            const size_t bodyOneIndex = _jointIndices[i].BodyOneIndex;
+            const size_t bodyTwoIndex = _jointIndices[i].BodyTwoIndex;
 
             // Get the constrained (in-progress) orientations; the references stay bound to the store's slots,
             // so each constraint block below observes the orientation updates made by the earlier ones.
@@ -476,14 +472,14 @@ namespace Vulkyrie {
 
             // Recompute the world-space inverse inertia tensors from the current orientations, which have changed
             // since InitializeBeforeSolving as earlier position-correction iterations rotated the bodies.
-            glm::mat3 bodyOneWorldInertiaTensor;
-            glm::mat3 bodyTwoWorldInertiaTensor;
+            glm::mat3 worldSpaceInertiaTensorBodyOne;
+            glm::mat3 worldSpaceInertiaTensorBodyTwo;
 
-            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyOne), bodyOneLocalInertiaTensor, bodyOneWorldInertiaTensor);
-            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyTwo), bodyTwoLocalInertiaTensor, bodyTwoWorldInertiaTensor);
+            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyOne), bodyOneLocalInertiaTensor, worldSpaceInertiaTensorBodyOne);
+            RigidBody::ComputeWorldSpaceInertiaTensorInverse(glm::mat3_cast(orientationBodyTwo), bodyTwoLocalInertiaTensor, worldSpaceInertiaTensorBodyTwo);
 
-            _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, bodyOneWorldInertiaTensor);
-            _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, bodyTwoWorldInertiaTensor);
+            _hingeJointStore.SetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i, worldSpaceInertiaTensorBodyOne);
+            _hingeJointStore.SetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i, worldSpaceInertiaTensorBodyTwo);
 
             // Recompute the world-space lever arms (centre of mass -> anchor point) from the current orientations.
             const glm::vec3 rOneWorld =
@@ -509,16 +505,13 @@ namespace Vulkyrie {
             _hingeJointStore.SetC2CrossA1AtIndex(i, c2CrossA1);
 
             // Re-evaluate the hinge angle and the limit-violation states from the current orientations.
-            const f32 hingeAngle = ComputeCurrentHingeAngle(jointEntity, orientationBodyOne, orientationBodyTwo);
+            const f32 hingeAngle = ComputeCurrentHingeAngleAtIndex(i, orientationBodyOne, orientationBodyTwo);
             const f32 lowerLimitError = hingeAngle - _hingeJointStore.GetLowerLimitAtIndex(i);
             const f32 upperLimitError = _hingeJointStore.GetUpperLimitAtIndex(i) - hingeAngle;
             const bool lowerLimitViolated = lowerLimitError <= 0;
             const bool upperLimitViolated = upperLimitError <= 0;
             _hingeJointStore.SetIsLowerLimitViolatedAtIndex(i, lowerLimitViolated);
             _hingeJointStore.SetIsUpperLimitViolatedAtIndex(i, upperLimitViolated);
-
-            const glm::mat3 &worldSpaceInertiaTensorBodyOne = _hingeJointStore.GetInertiaTensorOfBodyOneInWorldSpaceAtIndex(i);
-            const glm::mat3 &worldSpaceInertiaTensorBodyTwo = _hingeJointStore.GetInertiaTensorOfBodyTwoInWorldSpaceAtIndex(i);
 
             // --------------- Limits Constraints --------------- //
 
@@ -570,34 +563,35 @@ namespace Vulkyrie {
             // --------------- Rotation Constraints --------------- //
 
             // Compute the mass matrix K = J*M^-1*J^t (2x2) for the 2 rotation constraints, then its inverse.
+            // K is symmetric (el21 == el12) because the inverse inertia tensors are symmetric, so only three
+            // of the four elements need computing.
             const glm::vec3 I1B2CrossA1 = worldSpaceInertiaTensorBodyOne * b2CrossA1;
             const glm::vec3 I1C2CrossA1 = worldSpaceInertiaTensorBodyOne * c2CrossA1;
             const glm::vec3 I2B2CrossA1 = worldSpaceInertiaTensorBodyTwo * b2CrossA1;
             const glm::vec3 I2C2CrossA1 = worldSpaceInertiaTensorBodyTwo * c2CrossA1;
             const f32 el11 = glm::dot(b2CrossA1, I1B2CrossA1) + glm::dot(b2CrossA1, I2B2CrossA1);
             const f32 el12 = glm::dot(b2CrossA1, I1C2CrossA1) + glm::dot(b2CrossA1, I2C2CrossA1);
-            const f32 el21 = glm::dot(c2CrossA1, I1B2CrossA1) + glm::dot(c2CrossA1, I2B2CrossA1);
             const f32 el22 = glm::dot(c2CrossA1, I1C2CrossA1) + glm::dot(c2CrossA1, I2C2CrossA1);
-            // glm::mat2's 4-scalar constructor is column-major (col0, col1), so the middle two
-            // arguments are swapped from row-major reading order to build [[el11,el12],[el21,el22]].
-            const glm::mat2 matrixKRotation(el11, el21, el12, el22);
+            const glm::mat2 matrixKRotation(el11, el12, el12, el22);
 
             // Skip the correction entirely if the mass matrix is singular; for a fully non-dynamic body pair
             // the inverse stays zeroed instead, which makes lambda - and thus the correction - zero below.
-            _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat2(0.0f));
+            glm::mat2 inverseMassMatrixRotation(0.0f);
+            _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassMatrixRotation);
             f32 matrixDeterminant = glm::determinant(matrixKRotation);
 
             if (VE_MACHINE_EPSILON < std::abs(matrixDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat2(matrixKRotation, matrixDeterminant));
+                    inverseMassMatrixRotation = InverseMat2(matrixKRotation, matrixDeterminant);
+                    _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, inverseMassMatrixRotation);
                 }
 
                 // The rotation error is the current misalignment of the hinge axes: dot(a1,b2) and dot(a1,c2)
                 // are both zero exactly when a1 is aligned with a2. Solve K * lambda = -C and rotate the two
                 // bodies in opposite directions to remove the error.
                 const glm::vec2 errorRotation = glm::vec2(glm::dot(a1, b2), glm::dot(a1, c2));
-                const glm::vec2 lambdaRotation = _hingeJointStore.GetInverseMassRotationMatrixAtIndex(i) * (-errorRotation);
+                const glm::vec2 lambdaRotation = inverseMassMatrixRotation * (-errorRotation);
                 const glm::vec3 angularImpulseBody1 = -b2CrossA1 * lambdaRotation.x - c2CrossA1 * lambdaRotation.y;
                 const glm::vec3 w1 = angularLockAxisFactorBodyOne * (worldSpaceInertiaTensorBodyOne * angularImpulseBody1);
                 const glm::quat newOrientationBodyOne = glm::normalize(orientationBodyOne + glm::quat(0, w1) * orientationBodyOne * f32(0.5));
@@ -628,13 +622,15 @@ namespace Vulkyrie {
                                          skewSymmetricMatrixU2 * worldSpaceInertiaTensorBodyTwo * glm::transpose(skewSymmetricMatrixU2);
 
             // Same singular/non-dynamic guard as the rotation mass matrix above.
-            _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, glm::mat3(0.0f));
+            glm::mat3 inverseMassMatrixTranslation(0.0f);
+            _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, inverseMassMatrixTranslation);
             matrixDeterminant = glm::determinant(massMatrix);
 
             if (VE_MACHINE_EPSILON < std::abs(matrixDeterminant)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
-                    _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat3(massMatrix, matrixDeterminant));
+                    inverseMassMatrixTranslation = InverseMat3(massMatrix, matrixDeterminant);
+                    _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, inverseMassMatrixTranslation);
                 }
 
                 // Measure the current separation of the anchor points (the constraint error C) and solve
@@ -643,7 +639,7 @@ namespace Vulkyrie {
                 const glm::vec3 &x2 = _rigidBodyStore.GetConstrainedPositionAtIndex(bodyTwoIndex);
 
                 const glm::vec3 errorTranslation = x2 + rTwoWorld - x1 - rOneWorld;
-                const glm::vec3 lambdaTranslation = _hingeJointStore.GetInverseMassTranslationMatrixAtIndex(i) * (-errorTranslation);
+                const glm::vec3 lambdaTranslation = inverseMassMatrixTranslation * (-errorTranslation);
 
                 // Apply the impulse to body 1 (linear -P, angular r1 x P) as pseudo velocities, integrating its
                 // position directly and its orientation via the quaternion derivative q += 0.5 * (0,w) * q.
@@ -666,14 +662,16 @@ namespace Vulkyrie {
         }
     }
 
-    f32 HingeJointSolverSystem::ComputeCurrentHingeAngle(Entity jointEntity, const glm::quat &bodyOneOrientation, const glm::quat &bodyTwoOrientation) {
+    f32 HingeJointSolverSystem::ComputeCurrentHingeAngleAtIndex(size_t jointComponentIndex, const glm::quat &bodyOneOrientation,
+                                                                const glm::quat &bodyTwoOrientation) {
         f32 hingeAngle;
 
         // Compute the current orientation difference between the two bodies
         const glm::quat currentOrientationDiff = glm::normalize(bodyTwoOrientation * glm::inverse(bodyOneOrientation));
 
         // Compute the relative rotation considering the initial orientation difference
-        const glm::quat relativeRotation = glm::normalize(currentOrientationDiff * _hingeJointStore.GetInitialOrientationDifferenceInverse(jointEntity));
+        const glm::quat relativeRotation =
+            glm::normalize(currentOrientationDiff * _hingeJointStore.GetInitialOrientationDifferenceInverseAtIndex(jointComponentIndex));
 
         // A quaternion q = [cos(theta/2); sin(theta/2) * rotAxis] where rotAxis is a unit
         // length vector. We can extract cos(theta/2) with q.w and we can extract |sin(theta/2)| with :
@@ -687,7 +685,7 @@ namespace Vulkyrie {
         const f32 sinHalfAngleAbs = glm::length(relativeRotationToVec3);
 
         // Compute the dot product of the relative rotation axis and the hinge axis
-        const f32 dotProduct = glm::dot(relativeRotationToVec3, _hingeJointStore.GetHingeAxisWorldSpace(jointEntity));
+        const f32 dotProduct = glm::dot(relativeRotationToVec3, _hingeJointStore.GetHingeAxisWorldSpaceAtIndex(jointComponentIndex));
 
         // If the relative rotation axis and the hinge axis are pointing the same direction
         if (dotProduct >= f32(0.0)) {
@@ -700,7 +698,8 @@ namespace Vulkyrie {
         hingeAngle = computeNormalizedAngle(hingeAngle);
 
         // Compute and return the corresponding angle near one of the two limits
-        return computeCorrespondingAngleNearLimits(hingeAngle, _hingeJointStore.GetLowerLimit(jointEntity), _hingeJointStore.GetUpperLimit(jointEntity));
+        return computeCorrespondingAngleNearLimits(hingeAngle, _hingeJointStore.GetLowerLimitAtIndex(jointComponentIndex),
+                                                   _hingeJointStore.GetUpperLimitAtIndex(jointComponentIndex));
     }
 
     f32 HingeJointSolverSystem::computeNormalizedAngle(f32 angle) const {
