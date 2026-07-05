@@ -223,10 +223,10 @@ namespace Sandbox {
 
             dispatcher.Dispatch<MouseButtonPressedEvent>([this](const MouseButtonPressedEvent &e) {
                 if (e.MouseButton == MouseButton::MouseButton1) {
-                    audioSystem->PlaySound(fahAudioClip);
+                    audioSystem->PlaySound(akAudioClip);
                     return true;
                 } else if (e.MouseButton == MouseButton::MouseButton2) {
-                    audioSystem->PlaySound(akAudioClip);
+                    audioSystem->PlaySound(fahAudioClip);
                     return true;
                 } else if (e.MouseButton == MouseButton::MouseButton3) {
                     audioSystem->PlaySound(deniedClip);

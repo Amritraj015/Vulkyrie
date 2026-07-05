@@ -54,3 +54,6 @@ NOTES.md
 
 # vcpkg
 vcpkg_installed/
+
+# Claude Code local (personal, machine-specific) settings
+.claude/settings.local.json

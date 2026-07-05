@@ -5,7 +5,7 @@
         "slevesque.shader",
         "cschlosser.doxdocgen",
         "streetsidesoftware.code-spell-checker",
-        "Gruntfuggly.todo-tree",
-        "matepek.vscode-catch2-test-adapter"
+        "matepek.vscode-catch2-test-adapter",
+        "FanaticPythoner.better-todo-tree"
     ]
 }
