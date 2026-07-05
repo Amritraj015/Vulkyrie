@@ -1,6 +1,7 @@
 #include "physics/systems/hinge_joint_solver_system.h"
 #include "physics/physics_world.h"
 #include "physics/body/rigid_body.h"
+#include "core/asserts.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie {
@@ -662,7 +663,8 @@ namespace Vulkyrie {
         }
     }
 
-    f32 HingeJointSolverSystem::ComputeCurrentHingeAngleAtIndex(size_t jointComponentIndex, const glm::quat &bodyOneOrientation,
+    f32 HingeJointSolverSystem::ComputeCurrentHingeAngleAtIndex(size_t jointComponentIndex,
+                                                                const glm::quat &bodyOneOrientation,
                                                                 const glm::quat &bodyTwoOrientation) {
         f32 hingeAngle;
 
@@ -698,8 +700,8 @@ namespace Vulkyrie {
         hingeAngle = computeNormalizedAngle(hingeAngle);
 
         // Compute and return the corresponding angle near one of the two limits
-        return computeCorrespondingAngleNearLimits(hingeAngle, _hingeJointStore.GetLowerLimitAtIndex(jointComponentIndex),
-                                                   _hingeJointStore.GetUpperLimitAtIndex(jointComponentIndex));
+        return computeCorrespondingAngleNearLimits(
+            hingeAngle, _hingeJointStore.GetLowerLimitAtIndex(jointComponentIndex), _hingeJointStore.GetUpperLimitAtIndex(jointComponentIndex));
     }
 
     f32 HingeJointSolverSystem::computeNormalizedAngle(f32 angle) const {

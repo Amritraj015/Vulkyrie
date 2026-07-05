@@ -23,7 +23,7 @@ namespace Vulkyrie {
      * The system holds references to the component stores owned by the PhysicsWorld and operates on the active
      * components of the FixedJointComponentStore. It owns no state of its own; all per-joint solver data lives
      * in the store. It is non-copyable and non-movable. */
-    class FixedJointSolverSystem {
+    class FixedJointSolverSystem final {
     public:
         /** @brief Constructs the solver, binding it to the stores it operates on.
          * @param world The physics world whose component stores supply the bodies and joints to solve.
@@ -72,6 +72,18 @@ namespace Vulkyrie {
         void SolvePositionConstraint();
 
     private:
+        /** @brief Per-joint component indices resolved by InitializeBeforeSolving(). */
+        struct JointIndices {
+            size_t JointIndex;
+            size_t BodyOneIndex;
+            size_t BodyTwoIndex;
+        };
+
+        /** @brief Per-joint component indices, parallel to the joint store's active components. Resolved once
+         * per step by InitializeBeforeSolving() and reused by the other phases, so the per-iteration solver
+         * loops avoid repeating the entity-to-index hash lookups. Only valid for the current step. */
+        std::vector<JointIndices> _jointIndices;
+
         /** @brief A reference to RigidBodyComponentStore. */
         RigidBodyComponentStore &_rigidBodyStore;
 
@@ -86,18 +98,6 @@ namespace Vulkyrie {
 
         /** @brief Reference to the world's warm-start toggle; when false, accumulated impulses are reset each step. */
         bool &_enableWarmStartup;
-
-        /** @brief Per-joint component indices resolved by InitializeBeforeSolving(). */
-        struct JointIndices {
-            size_t JointIndex;
-            size_t BodyOneIndex;
-            size_t BodyTwoIndex;
-        };
-
-        /** @brief Per-joint component indices, parallel to the joint store's active components. Resolved once
-         * per step by InitializeBeforeSolving() and reused by the other phases, so the per-iteration solver
-         * loops avoid repeating the entity-to-index hash lookups. Only valid for the current step. */
-        std::vector<JointIndices> _jointIndices;
     };
 
 } // namespace Vulkyrie

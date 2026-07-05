@@ -1,6 +1,7 @@
 #include "physics/systems/slider_joint_solver_system.h"
 #include "physics/physics_world.h"
 #include "physics/body/rigid_body.h"
+#include "core/asserts.h"
 #include "core/utilities.h"
 
 namespace Vulkyrie {
