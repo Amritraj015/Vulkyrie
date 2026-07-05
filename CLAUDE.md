@@ -10,6 +10,11 @@ OpenGL renderer (Vulkan backend planned). The repo builds several targets on top
 
 ## Build commands
 
+This repo ships slash-command skills that wrap the workflows below — prefer them: `/build [preset]` (configure +
+build, default `clang-all-debug`), `/test [preset] [name-or-tag]` (build + run the Catch2 suite), and
+`/format-check [base-ref]` (clang-format + clang-tidy on files changed from `main`, read-only). The details below
+apply when running the underlying commands directly.
+
 Building requires **CMake 4.2+**, a C++23 compiler (GCC/Clang/MSVC), **Ninja**, and **vcpkg** with `VCPKG_ROOT` set
 (presets reference `$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake`). Dependencies (glfw3, glad, glm, imgui,
 assimp, openal-soft, stb, catch2) are resolved via `vcpkg.json`/`Dependencies.cmake`.
