@@ -10,7 +10,7 @@ namespace Vulkyrie {
     class PhysicsWorld;
 
     /** @brief Discriminator identifying which concrete joint type an entity represents. */
-    enum class JointType : i32 { Fixed, Hinge, BallAndSocket, Slider, Spring };
+    enum class JointType : i32 { Fixed, Hinge, BallAndSocket, Slider };
 
     /** @brief Technique used by the constraint solver to correct positional drift between the two constrained bodies. */
     enum class JointsPositionCorrectionTechnique : i32 { BaumgarteJoints, NonLinearGaussSeidel };

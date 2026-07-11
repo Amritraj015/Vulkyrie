@@ -44,7 +44,39 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::Update(Timestep timestep) {
-        (void)timestep;
+        _collisionSystem.ComputeCollisions();
+
+        createIslands();
+
+        _collisionSystem.CreateContacts();
+
+        _collisionSystem.ReportContactsAndTriggers();
+
+        updateBodiesInverseWorldInertiaTensors();
+
+        enableDisableJoints();
+
+        _dynamicsSystem.IntegrateVelocities(timestep);
+
+        solveContactsAndConstraints(timestep);
+
+        _dynamicsSystem.IntegratePositions(timestep, _contactSolverSystem.IsSplitImpulseActive());
+
+        solvePositionCorrection();
+
+        _dynamicsSystem.UpdateStates();
+
+        _collisionSystem.UpdateColliders();
+
+        if (_settings.EnableSleeping) {
+            updateSleepingBodies(timestep);
+        }
+
+        _dynamicsSystem.ResetForcesAndTorques();
+
+        _islands.Clear();
+
+        _processContactPairsOrderIslands.clear();
     }
 
     RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
@@ -99,7 +131,92 @@ namespace Vulkyrie {
         delete &body;
     }
 
-    // Joint &CreateJoint(const JointData &jointInfo);
+    Joint &PhysicsWorld::CreateJoint(const JointData &jointInfo) {
+        const Entity entity = _entityManager.CreateEntity();
+        const bool jointEnabled =
+            _rigidBodyStore.EntityEnabled(jointInfo.BodyOne->GetEntity()) && _rigidBodyStore.EntityEnabled(jointInfo.BodyTwo->GetEntity());
+        Joint *newJoint = nullptr;
+
+        switch (jointInfo.Type) {
+            case JointType::BallAndSocket: {
+                BallAndSocketJointComponent ballAndSocketJointComponent(false, std::numbers::pi_v<f32>);
+                _basJointStore.AddComponent(entity, ballAndSocketJointComponent, jointEnabled);
+
+                const auto &data = static_cast<const BallAndSocketJointData &>(jointInfo);
+                auto *joint = new BallAndSocketJoint(entity, *this, data);
+
+                newJoint = joint;
+                _basJointStore.SetJoint(entity, joint);
+
+                break;
+            }
+
+            case JointType::Slider: {
+                const auto &data = static_cast<const SliderJointData &>(jointInfo);
+
+                SliderJointComponent sliderJointComponent(
+                    data.LimitEnabled, data.MotorEnabled, data.MinTranslationLimit, data.MaxTranslationLimit, data.MotorSpeed, data.MaxMotorForce);
+                _sliderJointStore.AddComponent(entity, sliderJointComponent, jointEnabled);
+
+                auto *joint = new SliderJoint(entity, *this, data);
+
+                newJoint = joint;
+                _sliderJointStore.SetJoint(entity, joint);
+
+                break;
+            }
+
+            case JointType::Hinge: {
+                const auto &data = static_cast<const HingeJointData &>(jointInfo);
+
+                HingeJointComponent hingeJointComponent(
+                    data.LimitEnabled, data.MotorEnabled, data.MinAngleLimit, data.MaxAngleLimit, data.MotorSpeed, data.MaxMotorTorque);
+                _hingeJointStore.AddComponent(entity, hingeJointComponent, jointEnabled);
+
+                auto *joint = new HingeJoint(entity, *this, data);
+
+                newJoint = joint;
+                _hingeJointStore.SetJoint(entity, joint);
+
+                break;
+            }
+
+            case JointType::Fixed: {
+                _fixedJointStore.AddComponent(entity, jointEnabled);
+
+                const auto &data = static_cast<const FixedJointData &>(jointInfo);
+                auto *joint = new FixedJoint(entity, *this, data);
+
+                newJoint = joint;
+                _fixedJointStore.SetJoint(entity, joint);
+
+                break;
+            }
+        }
+
+        JointComponent jointComponent(jointInfo.BodyOne->GetEntity(),
+                                      jointInfo.BodyTwo->GetEntity(),
+                                      newJoint,
+                                      jointInfo.Type,
+                                      jointInfo.PositionCorrectionTechnique,
+                                      jointInfo.CollisionEnabled);
+
+        _jointStore.AddComponent(entity, jointComponent, jointEnabled);
+
+        if (!jointInfo.CollisionEnabled) {
+            _collisionSystem.AddNonCollidablePair(jointInfo.BodyOne->GetEntity(), jointInfo.BodyTwo->GetEntity());
+        }
+
+        VTRACE("Physics World: {}, New joint type {} created with ID: {}",
+               _settings.Name,
+               static_cast<i32>(newJoint->GetJointType()),
+               newJoint->GetEntity().GetID());
+
+        addJointToBodies(jointInfo.BodyOne->GetEntity(), jointInfo.BodyTwo->GetEntity(), entity);
+
+        return *newJoint;
+    }
+
     void PhysicsWorld::DestroyJoint(const Joint &joint) {
         RigidBody *bodyOne = joint.GetBodyOne();
         RigidBody *bodyTwo = joint.GetBodyTwo();
@@ -169,8 +286,46 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::setJointStatus(Entity jointEntity, bool enabled) {
-        (void)jointEntity;
-        (void)enabled;
+        if (enabled == _jointStore.IsDisabled(jointEntity)) {
+            return;
+        }
+
+        _jointStore.SetActiveStatus(jointEntity, enabled);
+
+        if (_basJointStore.HasComponent(jointEntity)) {
+            _basJointStore.SetActiveStatus(jointEntity, enabled);
+        }
+
+        if (_fixedJointStore.HasComponent(jointEntity)) {
+            _fixedJointStore.SetActiveStatus(jointEntity, enabled);
+        }
+
+        if (_hingeJointStore.HasComponent(jointEntity)) {
+            _hingeJointStore.SetActiveStatus(jointEntity, enabled);
+        }
+
+        if (_sliderJointStore.HasComponent(jointEntity)) {
+            _sliderJointStore.SetActiveStatus(jointEntity, enabled);
+        }
+    }
+
+    void PhysicsWorld::enableDisableJoints() {
+        const size_t totalComponents = _jointStore.GetTotalComponentCount();
+
+        std::vector<Entity> jointsEntities;
+        jointsEntities.reserve(totalComponents);
+
+        for (size_t i = 0; i < totalComponents; i++) {
+            jointsEntities.push_back(_jointStore.GetEntityAtIndex(i));
+        }
+
+        for (size_t i = 0; i < totalComponents; i++) {
+            const size_t jointEntityIndex = _jointStore.GetEntityIndex(jointsEntities[i]);
+            const Entity bodyOne = _jointStore.GetBodyOneEntityAtIndex(jointEntityIndex);
+            const Entity bodyTwo = _jointStore.GetBodyTwoEntityAtIndex(jointEntityIndex);
+
+            setJointStatus(jointsEntities[i], _bodyStore.IsBodyActive(bodyOne) && _bodyStore.IsBodyActive(bodyTwo));
+        }
     }
 
     void PhysicsWorld::solveContactsAndConstraints(Timestep timeStep) {

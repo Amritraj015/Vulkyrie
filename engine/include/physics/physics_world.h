@@ -250,8 +250,8 @@ namespace Vulkyrie {
         }
 
         void Update(Timestep timestep);
-        RigidBody &CreateRigidBody(const TransformComponent &transform);
 
+        RigidBody &CreateRigidBody(const TransformComponent &transform);
         void DestroyRigidBody(RigidBody &body);
 
         Joint &CreateJoint(const JointData &jointInfo);
@@ -294,6 +294,8 @@ namespace Vulkyrie {
         // bool _enableDebugRendering;
 
         void setJointStatus(Entity jointEntity, bool enabled);
+        void enableDisableJoints();
+
         void solveContactsAndConstraints(Timestep timeStep);
         void solvePositionCorrection();
         void createIslands();

@@ -76,6 +76,12 @@ namespace Vulkyrie {
             return _entityToComponentIndex.find(entity)->second >= _activeCount;
         }
 
+        [[nodiscard]] VE_INLINE bool EntityEnabled(Entity entity) const {
+            VASSERT(HasComponent(entity), "Entity does not have a component.");
+
+            return _entityToComponentIndex.find(entity)->second < _activeCount;
+        }
+
         /** @brief Checks if the specified entity has a component associated with it in this component store.
          * @param entity The entity to check for having a component.
          * @returns True if the entity has a component associated with it, false otherwise.
