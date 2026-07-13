@@ -113,7 +113,7 @@ namespace Vulkyrie {
 
         const f32 deltaVDotNormal = glm::dot(deltaVelocity, contactPoint.Normal);
         const glm::vec3 normalVelocity = deltaVDotNormal * contactPoint.Normal;
-        const glm::vec3 tangentVelocity(deltaVelocity.x - normalVelocity.x, deltaVelocity.y - normalVelocity.y, deltaVelocity.z - normalVelocity.z);
+        const glm::vec3 tangentVelocity = deltaVelocity - normalVelocity;
         const f32 lengthTangentVelocity = glm::length(tangentVelocity);
 
         if (VE_MACHINE_EPSILON < lengthTangentVelocity) {

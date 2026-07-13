@@ -296,7 +296,7 @@ namespace Vulkyrie {
         void setJointStatus(Entity jointEntity, bool enabled);
         void enableDisableJoints();
 
-        void solveContactsAndConstraints(Timestep timeStep);
+        void solveContactsAndConstraints(Timestep timestep);
         void solvePositionCorrection();
         void createIslands();
         void updateSleepingBodies(Timestep timeStep);

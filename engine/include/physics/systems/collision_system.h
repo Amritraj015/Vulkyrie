@@ -57,9 +57,17 @@ namespace Vulkyrie {
             }
         }
 
-        VE_INLINE const AABB GetWorldAABB(const Collider *collider) const {
+        [[nodiscard]] VE_INLINE const AABB GetWorldAABB(const Collider *collider) const {
             VASSERT(collider->GetBroadPhaseID() != AABB_TREE_NULL_NODE, "Invalid BroadPhaseID for collider.");
             return _broadPhaseSystem.GetFatAABB(collider->GetBroadPhaseID());
+        }
+
+        [[nodiscard]] VE_INLINE std::vector<ContactManifold> *GetCurrentContactManifolds() const {
+            return _currentContactManifolds;
+        }
+
+        [[nodiscard]] VE_INLINE std::vector<ContactPoint> *GetCurrentContactPoints() const {
+            return _currentContactPoints;
         }
 
         void RemoveCollider(Collider &collider);

@@ -221,11 +221,15 @@ namespace Vulkyrie {
         RigidBody *bodyOne = joint.GetBodyOne();
         RigidBody *bodyTwo = joint.GetBodyTwo();
 
+        const Entity bodyOneEntity = bodyOne->GetEntity();
+        const Entity bodyTwoEntity = bodyTwo->GetEntity();
+        const Entity jointEntity = joint.GetEntity();
+
         // If the collision between the two bodies of the constraint was disabled
         if (!joint.CollisionEnabled()) {
 
             // Remove the pair of bodies from the set of body pairs that cannot collide with each other
-            _collisionSystem.RemoveNonCollidablePair(bodyOne->GetEntity(), bodyTwo->GetEntity());
+            _collisionSystem.RemoveNonCollidablePair(bodyOneEntity, bodyTwoEntity);
         }
 
         // Wake up the two bodies of the joint
@@ -233,10 +237,8 @@ namespace Vulkyrie {
         bodyTwo->SetIsSleeping(false);
 
         // Remove the joint from the joint array of the bodies involved in the joint
-        _rigidBodyStore.RemoveJointFromBody(bodyOne->GetEntity(), joint.GetEntity());
-        _rigidBodyStore.RemoveJointFromBody(bodyTwo->GetEntity(), joint.GetEntity());
-
-        Entity jointEntity = joint.GetEntity();
+        _rigidBodyStore.RemoveJointFromBody(bodyOneEntity, joint.GetEntity());
+        _rigidBodyStore.RemoveJointFromBody(bodyTwoEntity, joint.GetEntity());
 
         // Destroy the corresponding entity and its components
         _jointStore.RemoveComponent(jointEntity);
@@ -263,8 +265,6 @@ namespace Vulkyrie {
         delete &joint;
     }
 
-    // void SetActiveStatusForBody(Entity entity, bool active);
-
     void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
         const bool isCurrentlyActive = !_bodyStore.IsDisabled(entity);
 
@@ -280,7 +280,7 @@ namespace Vulkyrie {
 
         const std::vector<Entity> &colliderEntities = _bodyStore.GetColliders(entity);
 
-        for (Entity colliderEntity : colliderEntities) {
+        for (const Entity colliderEntity : colliderEntities) {
             _colliderStore.SetActiveStatus(colliderEntity, active);
         }
     }
@@ -328,12 +328,31 @@ namespace Vulkyrie {
         }
     }
 
-    void PhysicsWorld::solveContactsAndConstraints(Timestep timeStep) {
-        (void)timeStep;
+    void PhysicsWorld::solveContactsAndConstraints(Timestep timestep) {
+        // Initialize the contact solver system.
+        _contactSolverSystem.Initialize(_collisionSystem.GetCurrentContactManifolds(), _collisionSystem.GetCurrentContactPoints());
+
+        // Initialize the constraint solver system.
+        _constraintSolverSystem.Initialize(timestep);
+
+        for (u16 i = 0; i < _settings.VelocitySolverIterations; i++) {
+            // Solve velocity constrains.
+            _constraintSolverSystem.SolveVelocityConstraints(timestep);
+
+            // Solve for contacts.
+            _contactSolverSystem.Solve(timestep);
+        }
+
+        // Store impulses.
+        _contactSolverSystem.StoreImpulses();
+
+        // Reset the contact solver system.
+        _contactSolverSystem.Reset();
     }
 
     void PhysicsWorld::solvePositionCorrection() {
-        for (size_t i = 0; i < _settings.PositionSolverIterations; ++i) {
+        // Solve position constraints.
+        for (u16 i = 0; i < _settings.PositionSolverIterations; ++i) {
             _constraintSolverSystem.SolvePositionConstraints();
         }
     }
