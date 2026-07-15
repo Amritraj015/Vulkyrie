@@ -77,35 +77,9 @@ namespace Vulkyrie {
         }
     }
 
-    bool ContactSolverSystem::IsSplitImpulseActive() const {
-        // TODO: Implement this.
-        return false;
-    }
-
-    void ContactSolverSystem::SetSplitImpulseActiveFlag(bool active) {
-        // TODO: Implement this.
-        (void)active;
-    }
-
     void ContactSolverSystem::initializeForIsland(size_t islandIndex) {
         // TODO: Implement this.
         (void)islandIndex;
-    }
-
-    f32 ContactSolverSystem::computeMixedRestitutionFactor(const Material &material1, const Material &material2) const {
-        // TODO: Implement this.
-
-        (void)material1;
-        (void)material2;
-        return f32(0);
-    }
-
-    f32 ContactSolverSystem::computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const {
-        // TODO: Implement this.
-
-        (void)material1;
-        (void)material2;
-        return f32(0);
     }
 
     void ContactSolverSystem::computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const {

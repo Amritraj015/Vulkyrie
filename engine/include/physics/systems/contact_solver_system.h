@@ -82,12 +82,18 @@ namespace Vulkyrie {
 
         ~ContactSolverSystem() = default;
 
+        [[nodiscard]] VE_INLINE bool IsSplitImpulseActive() const {
+            return _splitImpulseActive;
+        }
+
+        VE_INLINE void SetSplitImpulseActiveFlag(bool active) {
+            _splitImpulseActive = active;
+        }
+
         void Initialize(std::vector<ContactManifold> *contactManifolds, std::vector<ContactPoint> *contactPoints);
         void StoreImpulses();
         void Solve(Timestep timestep);
         void Reset();
-        bool IsSplitImpulseActive() const;
-        void SetSplitImpulseActiveFlag(bool active);
 
     private:
         static constexpr f32 BETA = f32(0.2);
@@ -109,11 +115,20 @@ namespace Vulkyrie {
 
         size_t _totalContactPoints;
         size_t _totalContactManifolds;
-        [[maybe_unused]] bool _splitImpulseActive;
+        bool _splitImpulseActive;
+
+        [[nodiscard]] VE_INLINE f32 computeMixedRestitutionFactor(const Material &material1, const Material &material2) const {
+            const f32 restitution1 = material1.GetRestitutionCoefficient();
+            const f32 restitution2 = material2.GetRestitutionCoefficient();
+
+            return (restitution1 > restitution2) ? restitution1 : restitution2;
+        }
+
+        [[nodiscard]] VE_INLINE f32 computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const {
+            return material1.GetFrictionCoefficientSquareRoot() * material2.GetFrictionCoefficientSquareRoot();
+        }
 
         void initializeForIsland(size_t islandIndex);
-        f32 computeMixedRestitutionFactor(const Material &material1, const Material &material2) const;
-        f32 computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const;
         void computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const;
         void warmStart();
     };

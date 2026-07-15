@@ -37,7 +37,6 @@ namespace Vulkyrie {
 
         VASSERT(_jointStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
         VASSERT(_rigidBodies.size() == 0, "_rigidBodies size should be 0.");
-        // VASSERT(mCollisionBodies.size() == 0, "");
         VASSERT(_bodyStore.GetTotalComponentCount() == 0, "Body Component Store must be empty.");
         VASSERT(_transformStore.GetTotalComponentCount() == 0, "Transform Component Store must be empty.");
         VASSERT(_colliderStore.GetTotalComponentCount() == 0, "Collider Component Store must be empty.");
