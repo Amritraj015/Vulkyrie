@@ -52,11 +52,11 @@ namespace Vulkyrie {
         // Save the accumulated impulses back into the external contacts so the next step can warm
         // start from them.
         for (size_t c = 0; c < _totalContactManifolds; ++c) {
-            auto &constraint = _contactConstraints[c];
-            auto *manifold = constraint.ExternalContactManifold;
+            ContactManifoldConstraint &constraint = _contactConstraints[c];
+            ContactManifold *manifold = constraint.ExternalContactManifold;
 
             for (u8 i = 0; i < constraint.TotalContactPoints; ++i) {
-                auto &point = _contactPoints[contactPointIndex];
+                ContactPointConstraint &point = _contactPoints[contactPointIndex];
                 point.ExternalPoint->SetPenetrationImpulse(point.PenetrationImpulse);
 
                 contactPointIndex++;
@@ -92,25 +92,25 @@ namespace Vulkyrie {
         (void)islandIndex;
     }
 
-    void ContactSolverSystem::computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const {
-        VASSERT(glm::length2(contactPoint.Normal) > f32(0.0), "Contact Manifold Normal Length should be greater than 0.");
+    void ContactSolverSystem::computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldConstraint &contactManifold) const {
+        VASSERT(glm::length2(contactManifold.Normal) > f32(0.0), "Contact Manifold Normal Length should be greater than 0.");
 
         // Compute the velocity difference in the tangential plane of the contact.
-        const f32 deltaVDotNormal = glm::dot(deltaVelocity, contactPoint.Normal);
-        const glm::vec3 normalVelocity = deltaVDotNormal * contactPoint.Normal;
+        const f32 deltaVDotNormal = glm::dot(deltaVelocity, contactManifold.Normal);
+        const glm::vec3 normalVelocity = deltaVDotNormal * contactManifold.Normal;
         const glm::vec3 tangentVelocity = deltaVelocity - normalVelocity;
         const f32 lengthTangentVelocity = glm::length(tangentVelocity);
 
         // The first friction vector points along the tangential velocity when there is one;
         // otherwise any unit vector orthogonal to the normal works.
         if (VE_MACHINE_EPSILON < lengthTangentVelocity) {
-            contactPoint.FrictionVector1 = tangentVelocity / lengthTangentVelocity;
+            contactManifold.FrictionVector1 = tangentVelocity / lengthTangentVelocity;
         } else {
-            contactPoint.FrictionVector1 = GetOrthogonalUnitVector(contactPoint.Normal);
+            contactManifold.FrictionVector1 = GetOrthogonalUnitVector(contactManifold.Normal);
         }
 
         // t2 = n x t1, so that (t1, t2, n) forms an orthonormal basis of the contact space.
-        contactPoint.FrictionVector2 = glm::cross(contactPoint.Normal, contactPoint.FrictionVector1);
+        contactManifold.FrictionVector2 = glm::cross(contactManifold.Normal, contactManifold.FrictionVector1);
     }
 
     void ContactSolverSystem::warmStart() {
@@ -118,7 +118,7 @@ namespace Vulkyrie {
 
         for (size_t c = 0; c < _totalContactManifolds; c++) {
             bool atLeastOneRestingContactPoint = false;
-            auto &cc = _contactConstraints[c];
+            ContactManifoldConstraint &cc = _contactConstraints[c];
             const size_t indexBody1 = cc.RigidBodyComponentIndexOfBody1;
             const size_t indexBody2 = cc.RigidBodyComponentIndexOfBody2;
 
@@ -130,7 +130,7 @@ namespace Vulkyrie {
             glm::vec3 angularVelocity2 = _rigidBodyStore.GetConstrainedAngularVelocityAtIndex(indexBody2);
 
             for (u8 i = 0; i < cc.TotalContactPoints; i++) {
-                auto &cp = _contactPoints[contactPointIndex];
+                ContactPointConstraint &cp = _contactPoints[contactPointIndex];
 
                 if (cp.IsRestingContact) {
                     atLeastOneRestingContactPoint = true;

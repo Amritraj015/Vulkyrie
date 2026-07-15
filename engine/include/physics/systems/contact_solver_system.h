@@ -15,7 +15,7 @@ namespace Vulkyrie {
     class PhysicsWorld;
 
     class ContactSolverSystem {
-        struct ContactPointSolver {
+        struct ContactPointConstraint {
             glm::vec3 Normal;
             glm::vec3 R1;
             glm::vec3 R2;
@@ -30,7 +30,7 @@ namespace Vulkyrie {
             bool IsRestingContact;
         };
 
-        struct ContactManifoldSolver {
+        struct ContactManifoldConstraint {
             glm::mat3 InverseInertiaTensorOfBody1;
             glm::mat3 InverseInertiaTensorOfBody2;
             glm::vec3 LinearLockAxisFactorOfBody1;
@@ -92,8 +92,8 @@ namespace Vulkyrie {
         static constexpr f32 BETA_SPLIT_IMPULSE = f32(0.2);
         static constexpr f32 SLOP = f32(0.01);
 
-        std::vector<ContactManifoldSolver> _contactConstraints;
-        std::vector<ContactPointSolver> _contactPoints;
+        std::vector<ContactManifoldConstraint> _contactConstraints;
+        std::vector<ContactPointConstraint> _contactPoints;
 
         [[maybe_unused]] f32 &_restitutionVelocityThreshold;
         Islands &_islands;
@@ -123,7 +123,7 @@ namespace Vulkyrie {
         }
 
         void initializeForIsland(size_t islandIndex);
-        void computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldSolver &contactPoint) const;
+        void computeFrictionVectors(const glm::vec3 &deltaVelocity, ContactManifoldConstraint &contactManifold) const;
         void warmStart();
     };
 } // namespace Vulkyrie
