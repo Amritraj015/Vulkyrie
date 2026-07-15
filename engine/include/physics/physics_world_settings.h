@@ -11,7 +11,7 @@ namespace Vulkyrie {
             Gravity = glm::vec3(0, -9.81f, 0);
             PersistentContactDistanceThresholdSquared = 0.03f * 0.03f;
             FrictionCoefficient = 0.3f;
-            BounceVelocityThreshold = 0.5f;
+            RestitutionVelocityThreshold = 0.5f;
             RestitutionCoefficient = 0.5f;
             EnableSleeping = true;
             VelocitySolverIterations = 6;
@@ -26,7 +26,7 @@ namespace Vulkyrie {
         glm::vec3 Gravity;
         f32 PersistentContactDistanceThresholdSquared;
         f32 FrictionCoefficient;
-        f32 BounceVelocityThreshold;
+        f32 RestitutionVelocityThreshold;
         f32 RestitutionCoefficient;
 
         /// Number of iterations when solving the velocity constraints of the Sequential Impulse technique

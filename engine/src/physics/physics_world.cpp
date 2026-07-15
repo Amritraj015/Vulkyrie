@@ -14,7 +14,7 @@ namespace Vulkyrie {
         , _collisionSystem(*this, _context.GetBoxShapeHalfEdgeMesh())
         , _constraintSolverSystem(*this, _enableWarmStartup)
         , _dynamicsSystem(*this, _gravityEnabled, _settings.Gravity)
-        , _contactSolverSystem(*this, _islands, _settings.RestitutionCoefficient)
+        , _contactSolverSystem(*this, _islands, _settings.RestitutionVelocityThreshold)
         , _eventListener(nullptr)
         , _sleepLinearVelocitySquared(_settings.DefaultSleepLinearVelocity * _settings.DefaultSleepLinearVelocity)
         , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)

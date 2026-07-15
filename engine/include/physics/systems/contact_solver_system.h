@@ -24,48 +24,40 @@ namespace Vulkyrie {
             f32 RestitutionBias;
             f32 PenetrationImpulse;
             f32 PenetrationSplitImpulse;
-
-            /// Inverse of the matrix K for the penetration
             f32 InversePenetrationMass;
-
-            /// Cross product of r1 with the contact normal
             glm::vec3 i1TimesR1CrossN;
-
-            /// Cross product of r2 with the contact normal
             glm::vec3 i2TimesR2CrossN;
-
-            /// True if the contact was existing last time step
             bool IsRestingContact;
         };
 
         struct ContactManifoldSolver {
-            glm::mat3 InverseInertiaTensorOfBodyOne;
-            glm::mat3 InverseInertiaTensorOfBodyTwo;
-            glm::vec3 LinearLockAxisFactorOfBodyOne;
-            glm::vec3 LinearLockAxisFactorOfBodyTwo;
-            glm::vec3 AngularLockAxisFactorOfBodyOne;
-            glm::vec3 AngularLockAxisFactorOfBodyTwo;
+            glm::mat3 InverseInertiaTensorOfBody1;
+            glm::mat3 InverseInertiaTensorOfBody2;
+            glm::vec3 LinearLockAxisFactorOfBody1;
+            glm::vec3 LinearLockAxisFactorOfBody2;
+            glm::vec3 AngularLockAxisFactorOfBody1;
+            glm::vec3 AngularLockAxisFactorOfBody2;
             ContactManifold *ExternalContactManifold;
-            size_t RigidBodyComponentIndexOfBodyOne;
-            size_t RigidBodyComponentIndexOfBodyTwo;
-            f32 MassInverseOfBodyOne;
-            f32 MassInverseOfBodyTwo;
+            size_t RigidBodyComponentIndexOfBody1;
+            size_t RigidBodyComponentIndexOfBody2;
+            f32 MassInverseOfBody1;
+            f32 MassInverseOfBody2;
             f32 FrictionCoefficient;
 
             // - Variables used when friction constraints are apply at the center of the manifold-//
             glm::vec3 Normal;
-            glm::vec3 FrictionPointBodyOne;
-            glm::vec3 FrictionPointBodyTwo;
+            glm::vec3 FrictionPointBody1;
+            glm::vec3 FrictionPointBody2;
             glm::vec3 r1Friction;
             glm::vec3 r2Friction;
             glm::vec3 r1CrossT1;
             glm::vec3 r1CrossT2;
             glm::vec3 r2CrossT1;
             glm::vec3 r2CrossT2;
-            glm::vec3 FrictionVectorOne;
-            glm::vec3 FrictionVectorTwo;
-            glm::vec3 OldFrictionVectorOne;
-            glm::vec3 OldFrictionVectorTwo;
+            glm::vec3 FrictionVector1;
+            glm::vec3 FrictionVector2;
+            glm::vec3 OldFrictionVector1;
+            glm::vec3 OldFrictionVector2;
             f32 InverseFriction1Mass;
             f32 InverseFriction2Mass;
             f32 InverseTwistFrictionMass;
@@ -121,10 +113,12 @@ namespace Vulkyrie {
             const f32 restitution1 = material1.GetRestitutionCoefficient();
             const f32 restitution2 = material2.GetRestitutionCoefficient();
 
+            // The most bouncy of the two materials dominates the collision.
             return (restitution1 > restitution2) ? restitution1 : restitution2;
         }
 
         [[nodiscard]] VE_INLINE f32 computeMixedFrictionCoefficient(const Material &material1, const Material &material2) const {
+            // Geometric mean of the two friction coefficients.
             return material1.GetFrictionCoefficientSquareRoot() * material2.GetFrictionCoefficientSquareRoot();
         }
 
