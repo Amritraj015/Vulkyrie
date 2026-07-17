@@ -111,7 +111,7 @@ namespace Vulkyrie {
         /** @brief Retrieves a reference to the Material associated with this collider. The Material defines the physical properties of the collider, such
          * as friction and restitution, which affect how it interacts with other colliders in the physics simulation.
          * @returns A reference to the Material associated with this collider. */
-        [[nodiscard]] Material &GetMaterial() const;
+        [[nodiscard]] const Material &GetMaterial() const;
 
         /** @brief Sets the material properties for this collider. The Material defines the physical properties of the collider, such as friction and
          * restitution, which affect how it interacts with other colliders in the physics simulation. Changing the material properties will affect the

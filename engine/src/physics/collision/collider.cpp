@@ -57,7 +57,7 @@ namespace Vulkyrie {
         return collisionShape.ContainsPoint(localPoint);
     }
 
-    Material &Collider::GetMaterial() const {
+    const Material &Collider::GetMaterial() const {
         return _body.GetPhysicsWorld().GetColliderComponentStore().GetMaterial(_entity);
     }
 

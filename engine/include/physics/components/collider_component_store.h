@@ -483,14 +483,23 @@ namespace Vulkyrie {
             _isQueryColliderFlags[_entityToComponentIndex.find(colliderEntity)->second] = static_cast<u8>(isQueryCollider);
         }
 
-        /** @brief Retrieves a reference to the Material associated with the specified collider entity. The entity must have a ColliderComponent associated
-         * with it.
+        /** @brief Retrieves const a reference to the Material associated with the specified collider entity. The entity must have a ColliderComponent
+         * associated with it.
          * @param colliderEntity The entity whose material properties are to be retrieved.
-         * @returns A reference to the Material associated with the specified collider entity. */
-        [[nodiscard]] VE_INLINE Material &GetMaterial(Entity colliderEntity) {
+         * @returns A const reference to the Material associated with the specified collider entity. */
+        [[nodiscard]] VE_INLINE const Material &GetMaterial(Entity colliderEntity) const {
             VASSERT(HasComponent(colliderEntity), "Entity does not have a ColliderComponent.");
 
             return _materials[_entityToComponentIndex.find(colliderEntity)->second];
+        }
+
+        /** @brief Retrieves const a reference to the Material specified at a given index. The index must be valid.
+         * @param componentIndex The index of the component in the collider store.
+         * @returns A const reference to the Material at the specified component index. */
+        [[nodiscard]] VE_INLINE const Material &GetMaterialAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _isQueryColliderFlags.size(), "Index out of bounds.");
+
+            return _materials[componentIndex];
         }
 
         /** @brief Sets the material properties for the specified collider entity. The entity must have a ColliderComponent associated with it.
