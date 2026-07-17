@@ -70,6 +70,14 @@ namespace Vulkyrie {
             return _currentContactPoints;
         }
 
+        [[nodiscard]] VE_INLINE const std::vector<ContactPair> *GetCurrentContactPairs() const {
+            return _currentContactPairs;
+        }
+
+        [[nodiscard]] VE_INLINE ContactPair &GetCurrentContactPairAtIndex(size_t index) {
+            return (*_currentContactPairs)[index];
+        }
+
         void RemoveCollider(Collider &collider);
         void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);

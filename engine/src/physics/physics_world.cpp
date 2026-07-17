@@ -357,12 +357,156 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::createIslands() {
-        // VASSERT(_processContactPairsOrderIslands.size() == 0, "_processContactPairsOrderIslands size must be 0.");
-        //
-        // const size_t totalRigidBodies = _rigidBodyComponentStore.GetTotalComponentCount();
-        // for (size_t i = 0; i < totalRigidBodies; ++i) {
-        //     _rigidBodyComponentStore.SetInIslandAtIndex(i, false);
-        // }
+        VASSERT(_processContactPairsOrderIslands.size() == 0, "_processContactPairsOrderIslands size must be 0.");
+
+        const size_t totalRigidBodies = _rigidBodyStore.GetTotalComponentCount();
+        for (size_t i = 0; i < totalRigidBodies; ++i) {
+            _rigidBodyStore.SetInIslandAtIndex(i, false);
+        }
+
+        const size_t nbJointsComponents = _jointStore.GetTotalComponentCount();
+        for (size_t i = 0; i < nbJointsComponents; i++) {
+            _jointStore.SetJointInIslandFlagsAtIndex(i, false);
+        }
+
+        _islands.ReserveMemory();
+
+        std::vector<Entity> bodyEntitiesToVisit;
+        bodyEntitiesToVisit.reserve(_islands.GetMaxBodiesInIslandInLastFrame());
+
+        std::vector<Entity> staticBodiesAddedToIsland;
+        staticBodiesAddedToIsland.reserve(16);
+
+        size_t totalManifolds = 0;
+
+        for (size_t b = 0; b < _rigidBodyStore.GetActiveComponentCount(); ++b) {
+            if (_rigidBodyStore.IsInIslandAtIndex(b)) {
+                continue;
+            }
+
+            if (BodyType::Static == _rigidBodyStore.GetBodyTypeAtIndex(b)) {
+                continue;
+            }
+
+            bodyEntitiesToVisit.clear();
+
+            _rigidBodyStore.SetInIslandAtIndex(b, true);
+            bodyEntitiesToVisit.push_back(_rigidBodyStore.GetEntityAtIndex(b));
+
+            const size_t islandIndex = _islands.AddIsland(totalManifolds);
+
+            while (bodyEntitiesToVisit.size() > 0) {
+                const Entity bodyToVisitEntity = bodyEntitiesToVisit.back();
+                bodyEntitiesToVisit.pop_back();
+
+                _islands.AddBodyToIsland(bodyToVisitEntity);
+
+                RigidBody &rigidBodyToVisit = _rigidBodyStore.GetRigidBody(bodyToVisitEntity);
+
+                rigidBodyToVisit.SetIsSleeping(false);
+
+                const size_t bodyToVisitIndex = _rigidBodyStore.GetEntityIndex(bodyToVisitEntity);
+
+                if (BodyType::Static == _rigidBodyStore.GetBodyTypeAtIndex(bodyToVisitIndex)) {
+                    staticBodiesAddedToIsland.push_back(bodyToVisitEntity);
+
+                    continue;
+                }
+
+                for (const u32 contactPairIndex : _rigidBodyStore.GetContactPairsAtIndex(bodyToVisitIndex)) {
+                    ContactPair &pair = _collisionSystem.GetCurrentContactPairAtIndex(contactPairIndex);
+
+                    if (pair.IsAlreadyInIsland) {
+                        continue;
+                    }
+
+                    pair.IsAlreadyInIsland = true;
+
+                    const bool isCollider1SimulationCollider = _colliderStore.IsSimulationCollider(pair.ColliderOneEntity);
+                    const bool isCollider2SimulationCollider = _colliderStore.IsSimulationCollider(pair.ColliderTwoEntity);
+
+                    if (!isCollider1SimulationCollider || !isCollider2SimulationCollider) {
+                        continue;
+                    }
+
+                    const Entity otherBodyEntity = pair.BodyOneEntity == bodyToVisitEntity ? pair.BodyTwoEntity : pair.BodyOneEntity;
+
+                    VASSERT(_colliderStore.IsSimulationCollider(pair.ColliderOneEntity), "Collider entity 1 must be a simulation collider.");
+                    VASSERT(_colliderStore.IsSimulationCollider(pair.ColliderTwoEntity), "Collider entity 2 must be a simulation collider.");
+                    VASSERT(!_colliderStore.IsTrigger(pair.ColliderOneEntity), "Collider entity 1 must not be a trigger.");
+                    VASSERT(!_colliderStore.IsTrigger(pair.ColliderTwoEntity), "Collider entity 2 must not be a trigger.");
+
+                    const size_t otherBodyIndex = _rigidBodyStore.GetEntityIndex(otherBodyEntity);
+
+                    if (_bodyStore.HasSimulationColliders(otherBodyEntity)) {
+                        _processContactPairsOrderIslands.push_back(contactPairIndex);
+
+                        VASSERT(pair.PotentialContactManifoldsCount > 0, "Total potential manifold count must be greater than 0.");
+
+                        totalManifolds += pair.PotentialContactManifoldsCount;
+
+                        _islands.TotalContactManifolds[islandIndex] += pair.PotentialContactManifoldsCount;
+
+                        if (_rigidBodyStore.IsInIslandAtIndex(otherBodyIndex)) {
+                            continue;
+                        }
+
+                        bodyEntitiesToVisit.push_back(otherBodyEntity);
+
+                        _rigidBodyStore.SetInIslandAtIndex(otherBodyIndex, true);
+                    }
+                }
+
+                // For each joint in which the current body is involved
+                const std::vector<Entity> &joints = _rigidBodyStore.GetJoints(rigidBodyToVisit.GetEntity());
+
+                for (size_t i = 0; i < joints.size(); i++) {
+
+                    const size_t jointComponentIndex = _jointStore.GetEntityIndex(joints[i]);
+
+                    // Check if the current joint has already been added into an island
+                    if (_jointStore.IsEntityInIslandAtIndex(jointComponentIndex)) {
+                        continue;
+                    }
+
+                    // Add the joint into the island
+                    _jointStore.SetJointInIslandFlagsAtIndex(jointComponentIndex, true);
+
+                    const Entity body1Entity = _jointStore.GetBodyOneEntityAtIndex(jointComponentIndex);
+                    const Entity body2Entity = _jointStore.GetBodyTwoEntityAtIndex(jointComponentIndex);
+                    const Entity otherBodyEntity = body1Entity == bodyToVisitEntity ? body2Entity : body1Entity;
+
+                    const size_t otherBodyIndex = _rigidBodyStore.GetEntityIndex(otherBodyEntity);
+
+                    // Check if the other body has already been added to the island
+                    if (_rigidBodyStore.IsInIslandAtIndex(otherBodyIndex)) {
+                        continue;
+                    }
+
+                    // Insert the other body into the stack of bodies to visit
+                    bodyEntitiesToVisit.push_back(otherBodyEntity);
+
+                    _rigidBodyStore.SetInIslandAtIndex(otherBodyIndex, true);
+                }
+            }
+
+            for (const Entity entity : staticBodiesAddedToIsland) {
+                VASSERT(BodyType::Static == _rigidBodyStore.GetBodyType(entity), "Body type must be static.");
+
+                _rigidBodyStore.SetInIsland(entity, false);
+            }
+
+            staticBodiesAddedToIsland.clear();
+        }
+
+        const std::vector<ContactPair> *contactPairs = _collisionSystem.GetCurrentContactPairs();
+
+        if (nullptr != contactPairs) {
+            for (const ContactPair &pair : *contactPairs) {
+                _rigidBodyStore.RemoveAllContactPairs(pair.BodyOneEntity);
+                _rigidBodyStore.RemoveAllContactPairs(pair.BodyTwoEntity);
+            }
+        }
     }
 
     void PhysicsWorld::updateSleepingBodies(Timestep timeStep) {

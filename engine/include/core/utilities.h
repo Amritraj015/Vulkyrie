@@ -122,22 +122,22 @@ namespace Vulkyrie {
      * If the squared length of the cross product is very small, it indicates that the vectors are parallel (or nearly parallel) since the cross product of
      * parallel vectors is zero.
      *
-     * @param vectorOne The first vector to compare.
-     * @param vectorTwo The second vector to compare.
+     * @param v1 The first vector to compare.
+     * @param v2 The second vector to compare.
      * @returns True if the vectors are parallel (or nearly parallel), false otherwise.
      */
-    [[nodiscard]] VE_INLINE bool AreParallelVectors(const glm::vec3 &vectorOne, const glm::vec3 &vectorTwo) {
-        return glm::length2(glm::cross(vectorOne, vectorTwo)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
+    [[nodiscard]] VE_INLINE bool AreParallelVectors(const glm::vec3 &v1, const glm::vec3 &v2) {
+        return glm::length2(glm::cross(v1, v2)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
     }
 
     /** @brief Determines if two vectors are orthogonal by checking if the absolute value of their dot product is below a small threshold.
      *
-     * @param vectorOne The first vector to compare.
-     * @param vectorTwo The second vector to compare.
+     * @param v1 The first vector to compare.
+     * @param v2 The second vector to compare.
      * @returns True if the vectors are orthogonal (or nearly orthogonal), false otherwise.
      */
-    [[nodiscard]] VE_INLINE bool AreOrthogonalVectors(const glm::vec3 &vectorOne, const glm::vec3 &vectorTwo) {
-        return std::abs(glm::dot(vectorOne, vectorTwo)) < 0.001f;
+    [[nodiscard]] VE_INLINE bool AreOrthogonalVectors(const glm::vec3 &v1, const glm::vec3 &v2) {
+        return std::abs(glm::dot(v1, v2)) < 0.001f;
     }
 
     /** @brief Computes the closest points between two line segments.

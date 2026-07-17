@@ -808,18 +808,6 @@ namespace Vulkyrie {
             return static_cast<bool>(_gravityEnabledFlags[componentIndex]);
         }
 
-        /** @brief Checks whether the body associated with the specified entity has already been assigned to a simulation island
-         * during the current constraint solving step. Islands are groups of interconnected bodies that are solved together to
-         * improve performance and allow independent sleeping of disconnected body groups. The entity must have a
-         * RigidBodyComponent associated with it.
-         * @param bodyEntity The entity to be checked.
-         * @returns True if the body is already assigned to an island, false otherwise. */
-        [[nodiscard]] VE_INLINE bool IsInIsland(Entity bodyEntity) const {
-            VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
-
-            return static_cast<bool>(_isInIslandFlags[_entityToComponentIndex.find(bodyEntity)->second]);
-        }
-
         /** @brief Retrieves the linear axis locking factors for the body associated with the specified entity. These factors
          * allow selective constraint of linear motion along individual axes: 1.0 indicates free movement along that axis, while
          * 0.0 completely locks motion. This enables effects like sliding along a rail or movement restricted to a plane. The
@@ -1036,6 +1024,29 @@ namespace Vulkyrie {
             _gravityEnabledFlags[_entityToComponentIndex.find(bodyEntity)->second] = static_cast<u8>(isGravityEnabled);
         }
 
+        /** @brief Checks whether the body associated with the specified entity has already been assigned to a simulation island
+         * during the current constraint solving step. Islands are groups of interconnected bodies that are solved together to
+         * improve performance and allow independent sleeping of disconnected body groups. The entity must have a
+         * RigidBodyComponent associated with it.
+         * @param bodyEntity The entity to be checked.
+         * @returns True if the body is already assigned to an island, false otherwise. */
+        [[nodiscard]] VE_INLINE bool IsInIsland(Entity bodyEntity) const {
+            VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
+
+            return static_cast<bool>(_isInIslandFlags[_entityToComponentIndex.find(bodyEntity)->second]);
+        }
+
+        /** @brief Checks whether the body associated with the specified index has already been assigned to a simulation island
+         * during the current constraint solving step. Islands are groups of interconnected bodies that are solved together to
+         * improve performance and allow independent sleeping of disconnected body groups. The component index must be valid.
+         * @param componentIndex The component index.
+         * @returns True if the body is already assigned to an island, false otherwise. */
+        [[nodiscard]] VE_INLINE bool IsInIslandAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _isInIslandFlags.size(), "Component index out of bounds.");
+
+            return static_cast<bool>(_isInIslandFlags[componentIndex]);
+        }
+
         /** @brief Sets whether the body associated with the specified entity has been assigned to a simulation island. This is
          * typically updated during the constraint solving phase. The entity must have a RigidBodyComponent associated with it.
          * @param bodyEntity The entity to be updated.
@@ -1135,6 +1146,15 @@ namespace Vulkyrie {
             VASSERT(HasComponent(bodyEntity), "Entity does not have a RigidBodyComponent.");
 
             _contactPairs[_entityToComponentIndex.find(bodyEntity)->second].clear();
+        }
+
+        /** @brief Gets a const reference to std::vector<ContactPair> at a given component index. The index must be valid.
+         * @param componentIndex The index of the component in the store.
+         * @returns A const reference to std::vector<ContactPair> at the provided component index if the index is valid. */
+        [[nodiscard]] VE_INLINE const std::vector<u32> &GetContactPairsAtIndex(size_t componentIndex) const {
+            VASSERT(componentIndex < _contactPairs.size(), "componentIndex out of bounds for _contactPairs");
+
+            return _contactPairs[componentIndex];
         }
 
     protected:
