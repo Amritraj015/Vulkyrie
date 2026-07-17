@@ -306,46 +306,35 @@ namespace Vulkyrie {
         return point - glm::dot(unitPlaneNormal, point - planePoint) * unitPlaneNormal;
     }
 
-    /** @brief Clips a line segment against an ordered list of planes, returning the surviving portion.
+    /** @brief Clips a line segment against an ordered list of planes, keeping the surviving portion.
      *
      * Applies each clipping plane in sequence, keeping only the part of the segment on the positive side
      * (dot(vertex - planePoint, planeNormal) >= 0). Each step replaces the current segment with the
-     * clipped result before applying the next plane. Returns an empty vector if the segment is fully
-     * clipped away.
+     * clipped result before applying the next plane. A clipped segment always has exactly two endpoints
+     * (possibly coincident), so the result is returned through two output points instead of a
+     * heap-allocated vertex list.
      *
      * @param segA The start point of the segment.
      * @param segB The end point of the segment.
      * @param planesPoints A point on each clipping plane. Must be the same size as planesNormals.
      * @param planesNormals The outward normal of each clipping plane. Must be the same size as planesPoints.
-     * @returns The vertices of the clipped segment (0 or 2 points), or an empty vector if fully clipped.
+     * @param outClippedSegA Receives the start point of the clipped segment. Only written when the function returns true.
+     * @param outClippedSegB Receives the end point of the clipped segment. Only written when the function returns true.
+     * @returns True if any part of the segment survived the clipping, false if the segment was fully clipped away.
      */
-    VE_INLINE std::vector<glm::vec3> ClipSegmentWithPlanes(const glm::vec3 &segA,
-                                                           const glm::vec3 &segB,
-                                                           const std::vector<glm::vec3> &planesPoints,
-                                                           const std::vector<glm::vec3> &planesNormals) {
+    VE_INLINE bool ClipSegmentWithPlanes(const glm::vec3 &segA,
+                                         const glm::vec3 &segB,
+                                         const std::vector<glm::vec3> &planesPoints,
+                                         const std::vector<glm::vec3> &planesNormals,
+                                         glm::vec3 &outClippedSegA,
+                                         glm::vec3 &outClippedSegB) {
         VASSERT(planesPoints.size() == planesNormals.size(), "planesPoints size must be equal to planesNormals.");
 
-        std::vector<glm::vec3> inputVertices;
-        std::vector<glm::vec3> outputVertices;
-        inputVertices.reserve(2);
-        outputVertices.reserve(2);
-
-        inputVertices.push_back(segA);
-        inputVertices.push_back(segB);
+        glm::vec3 v1 = segA;
+        glm::vec3 v2 = segB;
 
         // For each clipping plane
         for (size_t p = 0; p < planesPoints.size(); p++) {
-
-            // If there is no more vertices, stop
-            if (inputVertices.size() == 0) return inputVertices;
-
-            VASSERT(inputVertices.size() == 2, "Size of inputVertices must be 2.");
-
-            outputVertices.clear();
-
-            glm::vec3 &v1 = inputVertices[0];
-            glm::vec3 &v2 = inputVertices[1];
-
             const f32 v1DotN = glm::dot(v1 - planesPoints[p], planesNormals[p]);
             const f32 v2DotN = glm::dot(v2 - planesPoints[p], planesNormals[p]);
 
@@ -355,40 +344,32 @@ namespace Vulkyrie {
                 // If the first vertex is not in front of the clipping plane
                 if (v1DotN < 0.0f) {
 
-                    // The second point we keep is the intersection between the segment v1, v2 and the clipping plane
-                    f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(planesNormals[p], planesPoints[p]), planesNormals[p]);
+                    // Replace v1 with the intersection between the segment and the clipping plane. If the
+                    // intersection is degenerate (segment nearly parallel to the plane), collapse onto v2.
+                    const f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(planesNormals[p], planesPoints[p]), planesNormals[p]);
 
-                    if (t >= 0.0f && t <= 1.0f) {
-                        outputVertices.push_back(v1 + t * (v2 - v1));
-                    } else {
-                        outputVertices.push_back(v2);
-                    }
-                } else {
-                    outputVertices.push_back(v1);
+                    v1 = (t >= 0.0f && t <= 1.0f) ? v1 + t * (v2 - v1) : v2;
                 }
-
-                // Add the second vertex
-                outputVertices.push_back(v2);
+                // Otherwise both vertices are in front: the segment survives this plane unchanged.
             } else { // If the second vertex is behind the clipping plane
 
-                // If the first vertex is in front of the clipping plane
-                if (v1DotN >= 0.0f) {
-
-                    outputVertices.push_back(v1);
-
-                    // The first point we keep is the intersection between the segment v1, v2 and the clipping plane
-                    f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(-planesNormals[p], planesPoints[p]), -planesNormals[p]);
-
-                    if (t >= 0.0f && t <= 1.0f) {
-                        outputVertices.push_back(v1 + t * (v2 - v1));
-                    }
+                // If the first vertex is behind the plane as well, the segment is fully clipped away.
+                if (v1DotN < 0.0f) {
+                    return false;
                 }
-            }
 
-            inputVertices = outputVertices;
+                // Replace v2 with the intersection between the segment and the clipping plane. If the
+                // intersection is degenerate (segment nearly parallel to the plane), collapse onto v1.
+                const f32 t = ComputePlaneSegmentIntersection(v1, v2, glm::dot(-planesNormals[p], planesPoints[p]), -planesNormals[p]);
+
+                v2 = (t >= 0.0f && t <= 1.0f) ? v1 + t * (v2 - v1) : v1;
+            }
         }
 
-        return outputVertices;
+        outClippedSegA = v1;
+        outClippedSegB = v2;
+
+        return true;
     }
 
     /** @brief Computes the 3x3 skew-symmetric (cross-product) matrix for a vector v.

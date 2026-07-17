@@ -200,18 +200,20 @@ namespace Vulkyrie {
 
         if (isMinPenetrationFaceNormal) {
             if (data.ReportContacts) {
-                return ComputeCapsulePolyhedronFaceContactPoints(minFaceIndex,
-                                                                 capsuleRadius,
-                                                                 *polyhedronShape,
-                                                                 minPenetrationDepth,
-                                                                 polyhedronToCapsule,
-                                                                 contactNormal,
-                                                                 separatingAxisCapsuleSpace,
-                                                                 capsuleSegmentStartPolyhedronSpace,
-                                                                 capsuleSegmentEndPolyhedronSpace,
-                                                                 batch,
-                                                                 batchIndex,
-                                                                 isShapeOneCapsule);
+                if (!ComputeCapsulePolyhedronFaceContactPoints(minFaceIndex,
+                                                               capsuleRadius,
+                                                               *polyhedronShape,
+                                                               minPenetrationDepth,
+                                                               polyhedronToCapsule,
+                                                               contactNormal,
+                                                               separatingAxisCapsuleSpace,
+                                                               capsuleSegmentStartPolyhedronSpace,
+                                                               capsuleSegmentEndPolyhedronSpace,
+                                                               batch,
+                                                               batchIndex,
+                                                               isShapeOneCapsule)) {
+                    return false;
+                }
             }
         } else {
             if (data.ReportContacts) {
@@ -244,6 +246,8 @@ namespace Vulkyrie {
                                       isShapeOneCapsule ? closestPointPolyhedronEdge : contactPointCapsule);
             }
         }
+
+        data.IsColliding = true;
 
         return true;
     }
@@ -709,8 +713,8 @@ namespace Vulkyrie {
 
         std::vector<glm::vec3> planesPoints;
         std::vector<glm::vec3> planesNormals;
-        planesPoints.reserve(2);
-        planesNormals.reserve(2);
+        planesPoints.reserve(face.FaceVertices.size());
+        planesNormals.reserve(face.FaceVertices.size());
 
         // Build one clipping plane per edge of the reference face. Each plane passes through the edge's start
         // vertex and has a normal perpendicular to both the edge direction and the reference face normal, so it
@@ -738,7 +742,16 @@ namespace Vulkyrie {
 
         // Clip the capsule inner segment against the lateral boundary planes of the reference face to obtain
         // the portion of the segment that lies within the face's footprint.
-        std::vector<glm::vec3> clipSegment = ClipSegmentWithPlanes(capsuleSegAPolyhedronSpace, capsuleSegBPolyhedronSpace, planesPoints, planesNormals);
+        glm::vec3 clippedSegmentStart;
+        glm::vec3 clippedSegmentEnd;
+
+        if (!ClipSegmentWithPlanes(
+                capsuleSegAPolyhedronSpace, capsuleSegBPolyhedronSpace, planesPoints, planesNormals, clippedSegmentStart, clippedSegmentEnd)) {
+            // The segment lies entirely outside the face's footprint — no contact points to generate.
+            return false;
+        }
+
+        const std::array<glm::vec3, 2> clipSegment = { clippedSegmentStart, clippedSegmentEnd };
 
         // Offset to move a clipped point from its position on the capsule axis to its projection on the face.
         const glm::vec3 delta = faceNormal * (penetrationDepth - capsuleRadius);

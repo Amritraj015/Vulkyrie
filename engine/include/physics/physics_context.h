@@ -26,6 +26,15 @@ namespace Vulkyrie {
         }
 
     private:
+        /** @brief Populates the shared box half-edge mesh with the 8 vertices and 6 faces of a unit box and builds the half-edge connectivity. Vertex and
+         * face ordering match `BoxShape::GetVertexPosition` and `BoxShape::GetFaceNormal` respectively, so half-edge topology queries on any `BoxShape`
+         * resolve against the correct analytic data. */
+        void initBoxShapeHalfEdgeMesh();
+
+        /** @brief Populates the shared triangle half-edge mesh with 3 vertices and the two faces of a double-sided triangle (front face 0, back face 1,
+         * matching `TriangleShape::GetFaceNormal`) and builds the half-edge connectivity. */
+        void initTriangleShapeHalfEdgeMesh();
+
         std::unordered_set<PhysicsWorld *> _physicsWorlds;
         std::unordered_set<SphereShape *> _sphereShapes;
         std::unordered_set<BoxShape *> _boxShapes;

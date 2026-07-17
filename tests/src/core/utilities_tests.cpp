@@ -467,22 +467,24 @@ TEST_CASE("ClipSegmentWithPlanes - segment fully inside all planes is returned u
     const std::vector<glm::vec3> points = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
     const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
 
-    auto result = ClipSegmentWithPlanes({-0.5f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, points, normals);
+    glm::vec3 clippedSegA;
+    glm::vec3 clippedSegB;
 
-    REQUIRE(result.size() == 2);
-    REQUIRE(result[0].x == Catch::Approx(-0.5f).margin(1e-5f));
-    REQUIRE(result[1].x == Catch::Approx(0.5f).margin(1e-5f));
+    REQUIRE(ClipSegmentWithPlanes({-0.5f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, points, normals, clippedSegA, clippedSegB));
+    REQUIRE(clippedSegA.x == Catch::Approx(-0.5f).margin(1e-5f));
+    REQUIRE(clippedSegB.x == Catch::Approx(0.5f).margin(1e-5f));
 }
 
-TEST_CASE("ClipSegmentWithPlanes - segment fully outside a single plane is clipped to empty", "[core][utilities]") {
+TEST_CASE("ClipSegmentWithPlanes - segment fully outside a single plane is clipped away", "[core][utilities]") {
     // Segment from (2,0,0) to (3,0,0) is fully behind plane X=0 with inward normal (-1,0,0).
     // Plane point (0,0,0), normal (-1,0,0): half-space is X <= 0. Segment entirely at X > 0 → clipped.
     const std::vector<glm::vec3> points = {{0.0f, 0.0f, 0.0f}};
     const std::vector<glm::vec3> normals = {{-1.0f, 0.0f, 0.0f}};
 
-    auto result = ClipSegmentWithPlanes({2.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals);
+    glm::vec3 clippedSegA;
+    glm::vec3 clippedSegB;
 
-    REQUIRE(result.empty());
+    REQUIRE_FALSE(ClipSegmentWithPlanes({2.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals, clippedSegA, clippedSegB));
 }
 
 TEST_CASE("ClipSegmentWithPlanes - segment crossing a single plane clips one end", "[core][utilities]") {
@@ -491,11 +493,12 @@ TEST_CASE("ClipSegmentWithPlanes - segment crossing a single plane clips one end
     const std::vector<glm::vec3> points = {{0.0f, 0.0f, 0.0f}};
     const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}};
 
-    auto result = ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, points, normals);
+    glm::vec3 clippedSegA;
+    glm::vec3 clippedSegB;
 
-    REQUIRE(result.size() == 2);
-    REQUIRE(result[0].x == Catch::Approx(0.0f).margin(1e-5f));
-    REQUIRE(result[1].x == Catch::Approx(1.0f).margin(1e-5f));
+    REQUIRE(ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, points, normals, clippedSegA, clippedSegB));
+    REQUIRE(clippedSegA.x == Catch::Approx(0.0f).margin(1e-5f));
+    REQUIRE(clippedSegB.x == Catch::Approx(1.0f).margin(1e-5f));
 }
 
 TEST_CASE("ClipSegmentWithPlanes - segment clipped to a sub-interval by two opposing planes", "[core][utilities]") {
@@ -503,17 +506,19 @@ TEST_CASE("ClipSegmentWithPlanes - segment clipped to a sub-interval by two oppo
     const std::vector<glm::vec3> points = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
     const std::vector<glm::vec3> normals = {{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
 
-    auto result = ClipSegmentWithPlanes({-3.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals);
+    glm::vec3 clippedSegA;
+    glm::vec3 clippedSegB;
 
-    REQUIRE(result.size() == 2);
-    REQUIRE(result[0].x == Catch::Approx(-1.0f).margin(1e-5f));
-    REQUIRE(result[1].x == Catch::Approx(1.0f).margin(1e-5f));
+    REQUIRE(ClipSegmentWithPlanes({-3.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 0.0f}, points, normals, clippedSegA, clippedSegB));
+    REQUIRE(clippedSegA.x == Catch::Approx(-1.0f).margin(1e-5f));
+    REQUIRE(clippedSegB.x == Catch::Approx(1.0f).margin(1e-5f));
 }
 
 TEST_CASE("ClipSegmentWithPlanes - no planes leaves segment unchanged", "[core][utilities]") {
-    auto result = ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {}, {});
+    glm::vec3 clippedSegA;
+    glm::vec3 clippedSegB;
 
-    REQUIRE(result.size() == 2);
-    REQUIRE(result[0].x == Catch::Approx(-1.0f));
-    REQUIRE(result[1].x == Catch::Approx(1.0f));
+    REQUIRE(ClipSegmentWithPlanes({-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {}, {}, clippedSegA, clippedSegB));
+    REQUIRE(clippedSegA.x == Catch::Approx(-1.0f));
+    REQUIRE(clippedSegB.x == Catch::Approx(1.0f));
 }
