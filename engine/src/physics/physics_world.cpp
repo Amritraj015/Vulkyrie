@@ -20,14 +20,22 @@ namespace Vulkyrie {
         , _sleepAngularVelocitySquared(_settings.DefaultSleepAngularVelocity * _settings.DefaultSleepAngularVelocity)
         , _gravityEnabled(true)
         , _enableWarmStartup(true) {
+        // All members are set up through the initializer list above. The solver and dynamics systems
+        // capture _gravityEnabled and _enableWarmStartup by reference; those flags are declared after the
+        // systems but are only ever read during Update(), so binding the references here is safe even
+        // though the referenced flags receive their initial value later in this same initializer list.
     }
 
     PhysicsWorld::~PhysicsWorld() {
-        // Destroy all the joints that have not been removed.
-        for (size_t i = 0; _jointStore.GetTotalComponentCount(); ++i) {
-            DestroyJoint(_jointStore.GetJointAtIndex(i));
+        // Destroy all the joints that have not been removed yet. Each DestroyJoint() call removes the joint
+        // from the store (swapping another joint into the front), so we keep destroying the joint at index 0
+        // until the store is empty rather than indexing with a running counter that would go out of bounds.
+        while (_jointStore.GetTotalComponentCount() > 0) {
+            DestroyJoint(_jointStore.GetJointAtIndex(0));
         }
 
+        // Destroy all the rigid bodies that have not been removed yet. We walk the array from the back
+        // because DestroyRigidBody() erases the body from _rigidBodies, which keeps the lower indices valid.
         size_t index = _rigidBodies.size();
 
         while (index != 0) {
@@ -35,6 +43,7 @@ namespace Vulkyrie {
             DestroyRigidBody(*_rigidBodies[index]);
         }
 
+        // Once everything has been destroyed, all the stores must be empty.
         VASSERT(_jointStore.GetTotalComponentCount() == 0, "Joint Component Store must be empty.");
         VASSERT(_rigidBodies.size() == 0, "_rigidBodies size should be 0.");
         VASSERT(_bodyStore.GetTotalComponentCount() == 0, "Body Component Store must be empty.");
@@ -43,56 +52,77 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::Update(Timestep timestep) {
+        // Run broad-phase and narrow-phase collision detection to find the potential contact pairs.
         _collisionSystem.ComputeCollisions();
 
+        // Group the awake bodies connected by contacts or joints into islands.
         createIslands();
 
+        // Turn the potential contacts detected above into the actual narrow-phase contacts.
         _collisionSystem.CreateContacts();
 
+        // Report the contacts and triggers to the user through the event listener.
         _collisionSystem.ReportContactsAndTriggers();
 
+        // Recompute the world-space inverse inertia tensors from each body's current orientation.
         updateBodiesInverseWorldInertiaTensors();
 
+        // Enable or disable each joint depending on whether its bodies are awake.
         enableDisableJoints();
 
+        // Integrate the velocities from the external forces and torques (e.g. gravity).
         _dynamicsSystem.IntegrateVelocities(timestep);
 
+        // Solve the velocity constraints of the contacts and the joints.
         solveContactsAndConstraints(timestep);
 
+        // Integrate the positions and orientations of the bodies from their solved velocities.
         _dynamicsSystem.IntegratePositions(timestep, _contactSolverSystem.IsSplitImpulseActive());
 
+        // Solve the position error correction of the constraints.
         solvePositionCorrection();
 
+        // Commit the newly computed positions and velocities as the bodies' current state.
         _dynamicsSystem.UpdateStates();
 
+        // Update the broad-phase AABBs of the colliders to reflect the new body positions.
         _collisionSystem.UpdateColliders();
 
+        // Put bodies that have been at rest long enough to sleep.
         if (_settings.EnableSleeping) {
             updateSleepingBodies(timestep);
         }
 
+        // Clear the external forces and torques accumulated during this step.
         _dynamicsSystem.ResetForcesAndTorques();
 
+        // Reset the per-frame island and contact-pair ordering data.
         _islands.Clear();
 
         _processContactPairsOrderIslands.clear();
     }
 
     RigidBody &PhysicsWorld::CreateRigidBody(const TransformComponent &transform) {
+        // Create a new entity to represent the body and register its transform component.
         Entity entity = _entityManager.CreateEntity();
 
         _transformStore.AddComponent(entity, transform, true);
 
+        // Allocate the runtime rigid body object bound to that entity.
         auto *rigidBody = new RigidBody(entity, *this);
 
         VASSERT(nullptr != rigidBody, "Could not create RigidBody.");
 
+        // Register the body component (non-owning link back to the runtime object).
         BodyComponent bodyComponent(rigidBody);
         _bodyStore.AddComponent(entity, bodyComponent, true);
 
+        // Register the rigid body component. New bodies default to dynamic; the store initializes the
+        // mass and inverse mass to one, so no explicit inverse-mass computation is required here.
         RigidBodyComponent rigidBodyComponent(rigidBody, BodyType::Dynamic, transform.Position);
         _rigidBodyStore.AddComponent(entity, rigidBodyComponent, true);
 
+        // Track the body in the world's list of rigid bodies and return it to the caller.
         _rigidBodies.push_back(rigidBody);
 
         return *rigidBody;
@@ -103,7 +133,10 @@ namespace Vulkyrie {
 
         _settings.EnableSleeping = enabled;
 
-        if (_settings.EnableSleeping) {
+        // When the sleeping technique is turned off, we must wake up every body that is currently
+        // sleeping. Otherwise those bodies would remain asleep forever, since nothing would ever bring
+        // them back into the simulation once the sleeping machinery is disabled.
+        if (!_settings.EnableSleeping) {
             for (auto *rigidBody : _rigidBodies) {
                 rigidBody->SetIsSleeping(false);
             }
@@ -111,31 +144,41 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::DestroyRigidBody(RigidBody &body) {
+        // Remove all the colliders of the body from the collision system first.
         body.RemoveAllColliders();
 
         const Entity entity = body.GetEntity();
+
+        // Destroy every joint in which this body is involved. jointEntities is a live reference into the
+        // store, and DestroyJoint() unregisters the joint from both of its bodies, so the list shrinks on
+        // each iteration; we always destroy the joint at the front until none remain.
         const std::vector<Entity> &jointEntities = _rigidBodyStore.GetJoints(entity);
 
-        if (jointEntities.size() > 0) {
+        while (jointEntities.size() > 0) {
             DestroyJoint(_jointStore.GetJoint(jointEntities[0]));
         }
 
+        // Destroy the corresponding entity and all of its components.
         _bodyStore.RemoveComponent(entity);
         _rigidBodyStore.RemoveComponent(entity);
         _transformStore.RemoveComponent(entity);
         _entityManager.DestroyEntity(entity);
 
+        // Remove the body from the world's list of rigid bodies and free the runtime object.
         std::erase(_rigidBodies, &body);
 
         delete &body;
     }
 
     Joint &PhysicsWorld::CreateJoint(const JointData &jointInfo) {
+        // Create a new entity for the joint. The joint starts enabled only when both of its bodies are
+        // currently enabled (i.e. neither is sleeping/inactive).
         const Entity entity = _entityManager.CreateEntity();
         const bool jointEnabled =
             _rigidBodyStore.EntityEnabled(jointInfo.BodyOne->GetEntity()) && _rigidBodyStore.EntityEnabled(jointInfo.BodyTwo->GetEntity());
         Joint *newJoint = nullptr;
 
+        // Allocate the type-specific joint component and its runtime joint object.
         switch (jointInfo.Type) {
             case JointType::BallAndSocket: {
                 BallAndSocketJointComponent ballAndSocketJointComponent(false, std::numbers::pi_v<f32>);
@@ -193,6 +236,7 @@ namespace Vulkyrie {
             }
         }
 
+        // Register the generic joint component that links the joint entity to its two bodies.
         JointComponent jointComponent(jointInfo.BodyOne->GetEntity(),
                                       jointInfo.BodyTwo->GetEntity(),
                                       newJoint,
@@ -202,6 +246,8 @@ namespace Vulkyrie {
 
         _jointStore.AddComponent(entity, jointComponent, jointEnabled);
 
+        // If collision between the two constrained bodies is disabled, register them as a non-collidable
+        // pair so the collision system skips generating contacts between them.
         if (!jointInfo.CollisionEnabled) {
             _collisionSystem.AddNonCollidablePair(jointInfo.BodyOne->GetEntity(), jointInfo.BodyTwo->GetEntity());
         }
@@ -211,6 +257,7 @@ namespace Vulkyrie {
                static_cast<i32>(newJoint->GetJointType()),
                newJoint->GetEntity().GetID());
 
+        // Add the joint to the joint list of each of the two bodies it constrains.
         addJointToBodies(jointInfo.BodyOne->GetEntity(), jointInfo.BodyTwo->GetEntity(), entity);
 
         return *newJoint;
@@ -272,11 +319,13 @@ namespace Vulkyrie {
             return;
         }
 
-        // Else, activate or deactivate the body from all component stores.
+        // Else, activate or deactivate the body across all of its component stores so that they stay in
+        // sync (body, transform and rigid-body components).
         _bodyStore.SetActiveStatus(entity, active);
         _transformStore.SetActiveStatus(entity, active);
         _rigidBodyStore.SetActiveStatus(entity, active);
 
+        // Propagate the same active status to every collider attached to the body.
         const std::vector<Entity> &colliderEntities = _bodyStore.GetColliders(entity);
 
         for (const Entity colliderEntity : colliderEntities) {
@@ -285,10 +334,15 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::setJointStatus(Entity jointEntity, bool enabled) {
-        if (enabled == _jointStore.IsDisabled(jointEntity)) {
+        // If the joint is already in the desired enabled/disabled state, there is nothing to do.
+        const bool isCurrentlyEnabled = !_jointStore.IsDisabled(jointEntity);
+
+        if (enabled == isCurrentlyEnabled) {
             return;
         }
 
+        // Otherwise update the enabled status of the joint in the generic joint store and in whichever
+        // type-specific joint store owns this entity.
         _jointStore.SetActiveStatus(jointEntity, enabled);
 
         if (_basJointStore.HasComponent(jointEntity)) {
@@ -311,6 +365,9 @@ namespace Vulkyrie {
     void PhysicsWorld::enableDisableJoints() {
         const size_t totalComponents = _jointStore.GetTotalComponentCount();
 
+        // Snapshot all the joint entities up front. setJointStatus() below can move components around in the
+        // store (activating/deactivating swaps them between the active and inactive zones), so we must not
+        // iterate the store by index while mutating it.
         std::vector<Entity> jointsEntities;
         jointsEntities.reserve(totalComponents);
 
@@ -318,12 +375,15 @@ namespace Vulkyrie {
             jointsEntities.push_back(_jointStore.GetEntityAtIndex(i));
         }
 
+        // For each joint, enable it if at least one of its two bodies is enabled (awake), and disable it
+        // only when both bodies are disabled (sleeping/inactive). Using EntityEnabled() keys off the same
+        // enabled/disabled state that the sleeping logic updates, matching ReactPhysics3D's behavior.
         for (size_t i = 0; i < totalComponents; i++) {
             const size_t jointEntityIndex = _jointStore.GetEntityIndex(jointsEntities[i]);
             const Entity bodyOne = _jointStore.GetBodyOneEntityAtIndex(jointEntityIndex);
             const Entity bodyTwo = _jointStore.GetBodyTwoEntityAtIndex(jointEntityIndex);
 
-            setJointStatus(jointsEntities[i], _bodyStore.IsBodyActive(bodyOne) && _bodyStore.IsBodyActive(bodyTwo));
+            setJointStatus(jointsEntities[i], _bodyStore.EntityEnabled(bodyOne) || _bodyStore.EntityEnabled(bodyTwo));
         }
     }
 
@@ -510,23 +570,30 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::updateSleepingBodies(Timestep timeStep) {
+        // For each island, we track the smallest amount of time any of its bodies has been at rest. A whole
+        // island can only go to sleep once every one of its bodies has been still long enough.
         for (size_t i = 0; i < _islands.GetTotalIslands(); ++i) {
             f32 minSleepTime = VE_DECIMAL_MAX;
 
+            // Compute the minimum resting time over all the (non-static) bodies of the island.
             for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
                 const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
                 const size_t bodyIndex = _rigidBodyStore.GetEntityIndex(bodyEntity);
 
+                // Static bodies never sleep and do not influence the island's resting time.
                 if (_rigidBodyStore.GetBodyTypeAtIndex(bodyIndex) == BodyType::Static) continue;
 
                 const f32 linearVelocitySquared = glm::length2(_rigidBodyStore.GetLinearVelocityAtIndex(bodyIndex));
                 const f32 angularVelocitySquared = glm::length2(_rigidBodyStore.GetAngularVelocityAtIndex(bodyIndex));
                 const bool isAllowedToSleep = _rigidBodyStore.CanSleepAtIndex(bodyIndex);
 
+                // If the body is moving fast enough, or is not allowed to sleep, reset its sleep timer. This
+                // forces minSleepTime to zero and keeps the whole island awake.
                 if (linearVelocitySquared > _sleepLinearVelocitySquared || angularVelocitySquared > _sleepAngularVelocitySquared || !isAllowedToSleep) {
                     _rigidBodyStore.SetSleepTimeAtIndex(bodyIndex, f32(0.0));
                     minSleepTime = f32(0.0);
                 } else {
+                    // Otherwise the body is at rest: accumulate the elapsed time and keep the running minimum.
                     const f32 newSleepTime = _rigidBodyStore.GetSleepTimeAtIndex(bodyIndex) + timeStep.GetSeconds();
                     _rigidBodyStore.SetSleepTimeAtIndex(bodyIndex, newSleepTime);
 
@@ -536,6 +603,7 @@ namespace Vulkyrie {
                 }
             }
 
+            // If every body of the island has been at rest for long enough, put the whole island to sleep.
             if (minSleepTime >= _settings.TimeToSleep) {
                 for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {
                     const Entity bodyEntity = _islands.BodyEntities[_islands.StartingBodyIndexForIsland[i] + b];
@@ -547,6 +615,8 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::addJointToBodies(Entity bodyOne, Entity bodyTwo, Entity joint) {
+        // Register the joint in the joint list of each of the two bodies it constrains, so the island DFS
+        // can later walk the constraint graph from either body.
         _rigidBodyStore.AddJointToBody(bodyOne, joint);
 
         VTRACE("PhysicsWorld: {} - Adding Joint {} to Body {}.", GetWorldName(), joint.GetID(), bodyOne.GetID());
@@ -557,12 +627,15 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::updateBodiesInverseWorldInertiaTensors() {
+        // Recompute the world-space inverse inertia tensor of every active rigid body from its current
+        // orientation. This is done once per step because the tensor depends on the body's rotation.
         for (size_t i = 0; i < _rigidBodyStore.GetActiveComponentCount(); i++) {
-            const Entity boydEntity = _rigidBodyStore.GetEntityAtIndex(i);
-            const glm::mat3 orientation = glm::mat3_cast(_transformStore.GetTransform(boydEntity).Rotation);
+            const Entity bodyEntity = _rigidBodyStore.GetEntityAtIndex(i);
+            const glm::mat3 orientation = glm::mat3_cast(_transformStore.GetTransform(bodyEntity).Rotation);
             const glm::vec3 &localInertiaTensor = _rigidBodyStore.GetInverseLocalInertiaTensorAtIndex(i);
             glm::mat3 &worldInertiaTensor = _rigidBodyStore.GetInverseWorldInertiaTensorAtIndex(i);
 
+            // I_world^-1 = R * I_local^-1 * R^T, computed by the RigidBody helper into the world tensor.
             RigidBody::ComputeWorldSpaceInertiaTensorInverse(orientation, localInertiaTensor, worldInertiaTensor);
         }
     }
