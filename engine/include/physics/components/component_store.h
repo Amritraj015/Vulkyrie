@@ -70,7 +70,7 @@ namespace Vulkyrie {
          * @param entity The entity to check for being disabled.
          * @returns True if the entity has a component that is currently inactive, false otherwise.
          */
-        [[nodiscard]] VE_INLINE bool IsDisabled(Entity entity) const {
+        [[nodiscard]] VE_INLINE bool EntityDisabled(Entity entity) const {
             VASSERT(HasComponent(entity), "Entity does not have a component.");
 
             return _entityToComponentIndex.find(entity)->second >= _activeCount;

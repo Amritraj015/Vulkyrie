@@ -558,7 +558,7 @@ namespace Vulkyrie {
             localToWorldTransform,
             material // Default material
         };
-        const bool isDisabled = _physicsWorld.GetRigidBodyComponentStore().IsDisabled(_entity);
+        const bool isDisabled = _physicsWorld.GetRigidBodyComponentStore().EntityDisabled(_entity);
         _physicsWorld.GetColliderComponentStore().AddComponent(colliderEntity, colliderComponent, !isDisabled);
         _physicsWorld.GetBodyComponentStore().AddColliderToBody(_entity, colliderEntity);
 
@@ -583,42 +583,76 @@ namespace Vulkyrie {
     }
 
     void RigidBody::enableOverlappingPairs() {
-        // const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
-        //
-        // for (Entity colliderEntity : colliderEntities) {
-        //
-        //     OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
-        //
-        //     if (!pair->isEnabled) {
-        //
-        //         mWorld.mCollisionDetection.mOverlappingPairs.enablePair(overlappingPairs[j]);
-        //     }
-        // }
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        auto &colliderStore = _physicsWorld.GetColliderComponentStore();
+        auto &collisionSystem = _physicsWorld.GetCollisionSystem();
+
+        for (const Entity colliderEntity : colliderEntities) {
+            const std::vector<u64> &overlappingPairs = colliderStore.GetOverlappingPairs(colliderEntity);
+
+            for (const u64 pairID : overlappingPairs) {
+                const OverlappingPair &pair = collisionSystem.GetOverlappingPair(pairID);
+
+                if (!pair.IsEnabled) {
+                    collisionSystem.EnableOverlappingPair(pairID);
+                }
+            }
+        }
     }
 
     void RigidBody::checkForDisabledOverlappingPairs() {
-        // const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
-        //
-        // for (Entity colliderEntity : colliderEntities) {
-        //
-        //     OverlappingPairs::OverlappingPair* pair = mWorld.mCollisionDetection.mOverlappingPairs.getOverlappingPair(overlappingPairs[j]);
-        //
-        //     const Entity body1Entity = mWorld.mCollidersComponents.getBody(pair->collider1);
-        //     const Entity body2Entity = mWorld.mCollidersComponents.getBody(pair->collider2);
-        //
-        //     const bool isBody1Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body1Entity);
-        //     const bool isBody2Disabled = mWorld.mRigidBodyComponents.getIsEntityDisabled(body2Entity);
-        //
-        //     // If both bodies of the pair are disabled, we disable the overlapping pair
-        //     if (isBody1Disabled && isBody2Disabled) {
-        //
-        //         mWorld.mCollisionDetection.disableOverlappingPair(overlappingPairs[j]);
-        //     }
-        //
-        // }
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        auto &collisionSystem = _physicsWorld.GetCollisionSystem();
+        auto &colliderStore = _physicsWorld.GetColliderComponentStore();
+        auto &rigidBodyStore = _physicsWorld.GetRigidBodyComponentStore();
+
+        for (const Entity colliderEntity : colliderEntities) {
+            const std::vector<u64> &overlappingPairs = colliderStore.GetOverlappingPairs(colliderEntity);
+
+            for (const u64 pairID : overlappingPairs) {
+                const OverlappingPair &pair = collisionSystem.GetOverlappingPair(pairID);
+
+                const Entity body1Entity = colliderStore.GetBodyEntity(pair.ColliderOneEntity);
+                const Entity body2Entity = colliderStore.GetBodyEntity(pair.ColliderTwoEntity);
+
+                const bool body1Disabled = rigidBodyStore.EntityDisabled(body1Entity);
+                const bool body2Disabled = rigidBodyStore.EntityDisabled(body2Entity);
+
+                if (body1Disabled && body2Disabled) {
+                    collisionSystem.DisableOverlappingPair(pairID);
+                }
+            }
+        }
     }
 
     void RigidBody::awakeNeighborDisabledBodies() {
+        auto &colliderStore = _physicsWorld.GetColliderComponentStore();
+        auto &rigidBodyStore = _physicsWorld.GetRigidBodyComponentStore();
+        auto &collisionSystem = _physicsWorld.GetCollisionSystem();
+
+        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+
+        for (const Entity colliderEntity : colliderEntities) {
+            const std::vector<u64> &overlappingPairs = colliderStore.GetOverlappingPairs(colliderEntity);
+
+            for (const u64 pairID : overlappingPairs) {
+                const OverlappingPair &pair = collisionSystem.GetOverlappingPair(pairID);
+
+                if (pair.WereCollidingLastFrame) {
+                    const Entity body1Entity = colliderStore.GetBodyEntity(pair.ColliderOneEntity);
+                    const Entity body2Entity = colliderStore.GetBodyEntity(pair.ColliderTwoEntity);
+
+                    const bool isCurrentBody1 = _entity == body1Entity;
+                    const bool isNeighborDisabled = rigidBodyStore.EntityDisabled(isCurrentBody1 ? body2Entity : body1Entity);
+
+                    if (isNeighborDisabled) {
+                        RigidBody &neighborBody = rigidBodyStore.GetRigidBody(isCurrentBody1 ? body2Entity : body1Entity);
+
+                        neighborBody.SetIsSleeping(false);
+                    }
+                }
+            }
+        }
     }
 
 } // namespace Vulkyrie

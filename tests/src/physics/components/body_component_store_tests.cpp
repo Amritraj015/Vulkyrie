@@ -210,7 +210,7 @@ TEST_CASE("BodyComponentStore - _bodyActiveFlags is false when added as inactive
 
     // Both the ECS active status and the physics-simulation body-active flag mirror the active param.
     REQUIRE_FALSE(store.IsBodyActive(e));
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 }
 
 TEST_CASE("BodyComponentStore - _simulationColliderFlags is false by default", "[ecs][body]") {
@@ -262,11 +262,11 @@ TEST_CASE("BodyComponentStore - SetBodyActive is independent of ECS active statu
 
     store.SetBodyActive(e, false);
     REQUIRE_FALSE(store.IsBodyActive(e));
-    REQUIRE(store.IsDisabled(e)); // ECS still inactive
+    REQUIRE(store.EntityDisabled(e)); // ECS still inactive
 
     store.SetBodyActive(e, true);
     REQUIRE(store.IsBodyActive(e));
-    REQUIRE(store.IsDisabled(e)); // ECS still inactive
+    REQUIRE(store.EntityDisabled(e)); // ECS still inactive
 }
 
 // ===========================================================================================
@@ -678,7 +678,7 @@ TEST_CASE("BodyComponentStore - IsDisabled returns false for active component", 
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeBodyComp(nullptr), true);
 
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 }
 
 TEST_CASE("BodyComponentStore - IsDisabled returns true for inactive component", "[ecs][body]") {
@@ -688,7 +688,7 @@ TEST_CASE("BodyComponentStore - IsDisabled returns true for inactive component",
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeBodyComp(nullptr), false);
 
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 }
 
 TEST_CASE("BodyComponentStore - IsDisabled reflects ECS active status after SetActiveStatus", "[ecs][body]") {
@@ -698,13 +698,13 @@ TEST_CASE("BodyComponentStore - IsDisabled reflects ECS active status after SetA
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeBodyComp(nullptr), true);
 
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 
     store.SetActiveStatus(e, false);
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 
     store.SetActiveStatus(e, true);
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 }
 
 // ===========================================================================================

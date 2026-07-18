@@ -25,7 +25,7 @@ namespace Vulkyrie {
             const Entity bodyOneEntity = _jointStore.GetBodyOneEntityAtIndex(jointIndex);
             const Entity bodyTwoEntity = _jointStore.GetBodyTwoEntityAtIndex(jointIndex);
 
-            VASSERT(!_rigidBodyStore.IsDisabled(bodyOneEntity) || !_rigidBodyStore.IsDisabled(bodyTwoEntity), "Both bodies must be active.");
+            VASSERT(!_rigidBodyStore.EntityDisabled(bodyOneEntity) || !_rigidBodyStore.EntityDisabled(bodyTwoEntity), "Both bodies must be active.");
 
             const size_t bodyOneIndex = _rigidBodyStore.GetEntityIndex(bodyOneEntity);
             const size_t bodyTwoIndex = _rigidBodyStore.GetEntityIndex(bodyTwoEntity);

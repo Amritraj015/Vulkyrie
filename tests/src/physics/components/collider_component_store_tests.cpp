@@ -55,7 +55,7 @@ static void requireDensePacking(ColliderComponentStore &store, const std::vector
     }
     for (const auto &e : expectedInactive) {
         REQUIRE_FALSE(activeSet.contains(e));
-        REQUIRE(store.IsDisabled(e));
+        REQUIRE(store.EntityDisabled(e));
     }
 
     // Verify each active entity's local-to-world transform aligns with the span.
@@ -970,7 +970,7 @@ TEST_CASE("ColliderComponentStore - Stress: many adds, removes, and SetActiveSta
 
     // Deactivate all active components.
     for (const auto &e : entities) {
-        if (!store.IsDisabled(e)) {
+        if (!store.EntityDisabled(e)) {
             store.SetActiveStatus(e, false);
         }
     }

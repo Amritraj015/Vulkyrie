@@ -125,8 +125,12 @@ namespace Vulkyrie {
         // If the body is already in the desired active state, do nothing.
         if (bodyComponentStore.IsBodyActive(_entity) == active) return;
 
-        // Else set the active status of the body in the body component store.
-        bodyComponentStore.SetActiveStatus(_entity, active);
+        // Else update the body's active flag. We deliberately do not move the body between the enabled and
+        // disabled component zones here: that transition is driven by the sleeping state in
+        // RigidBody::SetIsActive() (via SetIsSleeping() -> PhysicsWorld::SetActiveStatusForBody()). This
+        // mirrors ReactPhysics3D, whose Body::setIsActive() only updates the active flag and the body's
+        // colliders, leaving the enabled/disabled partition to the sleeping machinery.
+        bodyComponentStore.SetBodyActive(_entity, active);
 
         // When activating the body, we need to add its colliders to the collision system so that it can participate in collision detection.
         if (active) {

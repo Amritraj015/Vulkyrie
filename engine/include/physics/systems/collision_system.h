@@ -78,6 +78,18 @@ namespace Vulkyrie {
             return (*_currentContactPairs)[index];
         }
 
+        [[nodiscard]] VE_INLINE const OverlappingPair &GetOverlappingPair(u64 pairID) {
+            return *_overlappingPairs.GetOverlappingPair(pairID);
+        }
+
+        VE_INLINE void EnableOverlappingPair(u64 pairID) {
+            _overlappingPairs.EnablePair(pairID);
+        }
+
+        VE_INLINE void DisableOverlappingPair(u64 pairID) {
+            _overlappingPairs.DisablePair(pairID);
+        }
+
         void RemoveCollider(Collider &collider);
         void AddNonCollidablePair(Entity bodyOneEntity, Entity bodyTwoEntity);
         void NotifyOverlappingPairsToTestOverlap(Collider &collider);

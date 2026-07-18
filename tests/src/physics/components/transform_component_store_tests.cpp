@@ -850,7 +850,7 @@ TEST_CASE("TransformComponentStore - IsDisabled returns false for active entity"
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), true);
 
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 }
 
 TEST_CASE("TransformComponentStore - IsDisabled returns true for inactive entity", "[ecs][transform]") {
@@ -860,7 +860,7 @@ TEST_CASE("TransformComponentStore - IsDisabled returns true for inactive entity
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), false);
 
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 }
 
 TEST_CASE("TransformComponentStore - IsDisabled returns true after SetActiveStatus false", "[ecs][transform]") {
@@ -870,11 +870,11 @@ TEST_CASE("TransformComponentStore - IsDisabled returns true after SetActiveStat
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), true);
 
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 
     store.SetActiveStatus(e, false);
 
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 }
 
 TEST_CASE("TransformComponentStore - IsDisabled returns false after SetActiveStatus true", "[ecs][transform]") {
@@ -884,11 +884,11 @@ TEST_CASE("TransformComponentStore - IsDisabled returns false after SetActiveSta
     Entity e = em.CreateEntity();
     store.AddComponent(e, makeTransform(1.0f), false);
 
-    REQUIRE(store.IsDisabled(e));
+    REQUIRE(store.EntityDisabled(e));
 
     store.SetActiveStatus(e, true);
 
-    REQUIRE_FALSE(store.IsDisabled(e));
+    REQUIRE_FALSE(store.EntityDisabled(e));
 }
 
 // ===========================================================================================

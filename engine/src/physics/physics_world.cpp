@@ -312,7 +312,7 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::SetActiveStatusForBody(Entity entity, bool active) {
-        const bool isCurrentlyActive = !_bodyStore.IsDisabled(entity);
+        const bool isCurrentlyActive = !_bodyStore.EntityDisabled(entity);
 
         // If the body is already in the desired active state, we can skip changing it and return early.
         if (active == isCurrentlyActive) {
@@ -335,7 +335,7 @@ namespace Vulkyrie {
 
     void PhysicsWorld::setJointStatus(Entity jointEntity, bool enabled) {
         // If the joint is already in the desired enabled/disabled state, there is nothing to do.
-        const bool isCurrentlyEnabled = !_jointStore.IsDisabled(jointEntity);
+        const bool isCurrentlyEnabled = !_jointStore.EntityDisabled(jointEntity);
 
         if (enabled == isCurrentlyEnabled) {
             return;
