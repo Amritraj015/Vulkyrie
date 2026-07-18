@@ -443,6 +443,10 @@ namespace Vulkyrie {
         return (v.x < v.y ? (v.x < v.z ? Axis::X : Axis::Z) : (v.y < v.z ? Axis::Y : Axis::Z));
     }
 
+    [[nodiscard]] VE_INLINE f32 ComputePointToPlaneDistance(const glm::vec3 &point, const glm::vec3 &planeNormal, const glm::vec3 &planePoint) {
+        return glm::dot(planeNormal, point - planePoint);
+    }
+
     /** @brief Computes an arbitrary unit vector orthogonal to v.
      *
      * Zeroes out the component along the axis with the smallest magnitude and swaps/negates the

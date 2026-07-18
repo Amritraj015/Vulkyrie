@@ -46,7 +46,7 @@ namespace Vulkyrie {
             return _volume;
         }
 
-        [[nodiscard]] VE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass, f32 scale) const {
+        [[nodiscard]] VE_INLINE glm::vec3 GetLocalInertiaTensor(f32 mass, glm::vec3 scale) const {
             const f32 factor = (f32(1.0) / f32(3.0)) * mass;
             const glm::vec3 realExtent = f32(0.5) * scale * (_bounds.GetMax() - _bounds.GetMin());
 

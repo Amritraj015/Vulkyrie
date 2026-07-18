@@ -102,7 +102,7 @@ namespace Vulkyrie {
                                                  std::vector<glm::vec3> &triangleVerticesNormals,
                                                  std::vector<u32> &shapeIds) const = 0;
 
-    private:
+    protected:
         /** @brief The non-uniform scale applied to the concave shape in local space. */
         glm::vec3 _scale;
 

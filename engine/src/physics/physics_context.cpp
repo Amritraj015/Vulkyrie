@@ -9,6 +9,68 @@ namespace Vulkyrie {
         initTriangleShapeHalfEdgeMesh();
     }
 
+    PhysicsContext::~PhysicsContext() {
+        // Destroy the physics worlds.
+        for (auto &world : _physicsWorlds) {
+            deletePhysicsWorld(world);
+        }
+        _physicsWorlds.clear();
+
+        // Destroy the sphere shapes.
+        for (auto &sphere : _sphereShapes) {
+            deleteSphereShape(sphere);
+        }
+        _sphereShapes.clear();
+
+        // Destroy the box shapes.
+        for (auto &box : _boxShapes) {
+            deleteBoxShape(box);
+        }
+        _boxShapes.clear();
+
+        // Destroy the capsule shapes.
+        for (auto &capsule : _capsuleShapes) {
+            deleteCapsuleShape(capsule);
+        }
+        _capsuleShapes.clear();
+
+        // Destroy the convex mesh shapes.
+        for (auto &it : _convexMeshShapes) {
+            deleteConvexMeshShape(it);
+        }
+        _convexMeshShapes.clear();
+
+        // Destroy the heigh-field shapes.
+        for (auto &heightFieldShape : _heightFieldShapes) {
+            deleteHeightFieldShape(heightFieldShape);
+        }
+        _heightFieldShapes.clear();
+
+        // Destroy the concave mesh shapes.
+        for (auto &concaveMesh : _concaveMeshShapes) {
+            deleteConcaveMeshShape(concaveMesh);
+        }
+        _concaveMeshShapes.clear();
+
+        // Destroy the convex mesh.
+        for (auto &convexMesh : _convexMeshes) {
+            deleteConvexMesh(convexMesh);
+        }
+        _convexMeshes.clear();
+
+        // Destroy the triangle mesh.
+        for (auto &triangleMesh : _triangleMeshes) {
+            deleteTriangleMesh(triangleMesh);
+        }
+        _triangleMeshes.clear();
+
+        // Destroy the height-field mesh.
+        for (auto &heightField : _heightFields) {
+            deleteHeightField(heightField);
+        }
+        _heightFields.clear();
+    }
+
     void PhysicsContext::initBoxShapeHalfEdgeMesh() {
         // Vertex indices match the ordering of BoxShape::GetVertexPosition.
         for (size_t v = 0; v < 8; ++v) {
