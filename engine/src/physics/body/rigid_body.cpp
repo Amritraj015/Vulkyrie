@@ -541,9 +541,11 @@ namespace Vulkyrie {
     }
 
     Collider &RigidBody::AddCollider(CollisionShape &collisionShape, const TransformComponent &transform) {
+        // Create a new entity and runtime collider bound to this body.
         Entity colliderEntity = _physicsWorld.GetEntityManager().CreateEntity();
-        Collider *collider = new Collider(colliderEntity, *this);
+        auto *collider = new Collider(colliderEntity, *this);
 
+        // Build the collider's local-to-world transform and default material from the world settings.
         const TransformComponent localToWorldTransform = GetTransform() * transform;
         const PhysicsWorldSettings &settings = _physicsWorld.GetSettings();
         Material material(settings.FrictionCoefficient, settings.RestitutionCoefficient);
@@ -558,12 +560,19 @@ namespace Vulkyrie {
             localToWorldTransform,
             material // Default material
         };
+
+        // Register the collider component in the same enabled/disabled zone as the body: a body that is
+        // currently disabled (sleeping or static) gets its new collider added to the disabled zone too.
         const bool isDisabled = _physicsWorld.GetRigidBodyComponentStore().EntityDisabled(_entity);
         _physicsWorld.GetColliderComponentStore().AddComponent(colliderEntity, colliderComponent, !isDisabled);
         _physicsWorld.GetBodyComponentStore().AddColliderToBody(_entity, colliderEntity);
 
+        // Link the collider to its collision shape.
         collisionShape.AddCollider(*collider);
 
+        // Only add the collider to the broad phase when the body is active. Note this keys off the active
+        // flag (not the disabled zone) so that a sleeping-but-active body still has its colliders in the
+        // broad phase and can be woken by collisions.
         const bool isActive = IsActive();
 
         if (isActive) {
@@ -571,18 +580,23 @@ namespace Vulkyrie {
             _physicsWorld.GetCollisionSystem().AddCollider(*collider, aabb);
         }
 
+        // A rigid body's colliders participate in the simulation, so mark the body as having simulation colliders.
         _physicsWorld.GetBodyComponentStore().SetHasSimulationColliders(_entity, true);
 
         return *collider;
     }
 
     void RigidBody::RemoveCollider(Collider &collider) {
+        // Removing a collider changes this body's collision geometry, so wake up any disabled (sleeping)
+        // neighbors that were colliding with it, then defer the actual removal to the base Body class.
         awakeNeighborDisabledBodies();
 
         Body::RemoveCollider(collider);
     }
 
     void RigidBody::enableOverlappingPairs() {
+        // Re-enable every overlapping pair involving this body's colliders. This is called when the body is
+        // woken up; at that point all of its overlapping pairs should have been disabled while it slept.
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
         auto &colliderStore = _physicsWorld.GetColliderComponentStore();
         auto &collisionSystem = _physicsWorld.GetCollisionSystem();
@@ -601,6 +615,8 @@ namespace Vulkyrie {
     }
 
     void RigidBody::checkForDisabledOverlappingPairs() {
+        // For every overlapping pair involving this body's colliders, disable the pair when both bodies are
+        // disabled (sleeping or static). Two disabled bodies cannot move, so their contacts need not be solved.
         const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
         auto &collisionSystem = _physicsWorld.GetCollisionSystem();
         auto &colliderStore = _physicsWorld.GetColliderComponentStore();
@@ -626,6 +642,8 @@ namespace Vulkyrie {
     }
 
     void RigidBody::awakeNeighborDisabledBodies() {
+        // When this body is modified (e.g. a collider is removed), any disabled neighbor that was colliding
+        // with it last frame must be woken up so the simulation stays consistent around the change.
         auto &colliderStore = _physicsWorld.GetColliderComponentStore();
         auto &rigidBodyStore = _physicsWorld.GetRigidBodyComponentStore();
         auto &collisionSystem = _physicsWorld.GetCollisionSystem();
@@ -638,10 +656,12 @@ namespace Vulkyrie {
             for (const u64 pairID : overlappingPairs) {
                 const OverlappingPair &pair = collisionSystem.GetOverlappingPair(pairID);
 
+                // Only consider pairs that were actually colliding on the previous frame.
                 if (pair.WereCollidingLastFrame) {
                     const Entity body1Entity = colliderStore.GetBodyEntity(pair.ColliderOneEntity);
                     const Entity body2Entity = colliderStore.GetBodyEntity(pair.ColliderTwoEntity);
 
+                    // Identify the other body of the pair and wake it if it is currently disabled.
                     const bool isCurrentBody1 = _entity == body1Entity;
                     const bool isNeighborDisabled = rigidBodyStore.EntityDisabled(isCurrentBody1 ? body2Entity : body1Entity);
 

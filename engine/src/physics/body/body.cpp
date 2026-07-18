@@ -67,9 +67,10 @@ namespace Vulkyrie {
         Collider &firstCollider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntities[0]);
         AABB bodyAABB = firstCollider.GetCollisionShape().ComputeTransformedAABB(bodyTransform * firstCollider.GetLocalToBodyTransform());
 
-        // Merge the body's AABB with the world-space AABBs of the remaining colliders.
-        for (Entity colliderEntity : colliderEntities) {
-            Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntity);
+        // Merge the body's AABB with the world-space AABBs of the remaining colliders. We start at index 1
+        // because the first collider already seeded bodyAABB above, avoiding a redundant transform + merge.
+        for (size_t i = 1; i < colliderEntities.size(); ++i) {
+            Collider &collider = _physicsWorld.GetColliderComponentStore().GetCollider(colliderEntities[i]);
             AABB colliderAABB = collider.GetCollisionShape().ComputeTransformedAABB(bodyTransform * collider.GetLocalToBodyTransform());
 
             bodyAABB.MergeWithAABB(colliderAABB);
@@ -110,7 +111,11 @@ namespace Vulkyrie {
     }
 
     void Body::RemoveAllColliders() {
-        const std::vector<Entity> &colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
+        // We must copy the list of collider entities here (note: no reference). RemoveCollider() below
+        // mutates the body's collider list in the component store via swap-erase, which would invalidate
+        // the iterators of a range-for over the live list and cause colliders to be skipped. Iterating over
+        // a snapshot keeps the traversal stable while the underlying list shrinks to empty.
+        const std::vector<Entity> colliderEntities = _physicsWorld.GetBodyComponentStore().GetColliders(_entity);
 
         // TODO: This can be optimized by batching the removal of colliders from the
         // collision system instead of doing it one by one in the RemoveCollider method.
