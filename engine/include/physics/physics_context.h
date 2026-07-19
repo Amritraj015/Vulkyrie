@@ -17,7 +17,7 @@ namespace Vulkyrie {
     class BoxShape;
     class PhysicsWorld;
 
-    class PhysicsContext {
+    class PhysicsContext final {
     public:
         PhysicsContext();
 
@@ -33,41 +33,41 @@ namespace Vulkyrie {
             return _triangleShapeHalfEdgeMesh;
         }
 
-        PhysicsWorld *createPhysicsWorld(const PhysicsWorldSettings &worldSettings);
-        void destroyPhysicsWorld(PhysicsWorld *world);
+        PhysicsWorld *CreatePhysicsWorld(const PhysicsWorldSettings &worldSettings);
+        void DestroyPhysicsWorld(PhysicsWorld *world);
 
-        SphereShape *createSphereShape(const f32 radius);
-        void destroySphereShape(SphereShape *sphereShape);
+        SphereShape *CreateSphereShape(const f32 radius);
+        void DestroySphereShape(SphereShape *sphereShape);
 
-        BoxShape *createBoxShape(const glm::vec3 &extent);
-        void destroyBoxShape(BoxShape *boxShape);
+        BoxShape *CreateBoxShape(const glm::vec3 &extent);
+        void DestroyBoxShape(BoxShape *boxShape);
 
-        CapsuleShape *createCapsuleShape(f32 radius, f32 height);
-        void destroyCapsuleShape(CapsuleShape *capsuleShape);
+        CapsuleShape *CreateCapsuleShape(f32 radius, f32 height);
+        void DestroyCapsuleShape(CapsuleShape *capsuleShape);
 
-        ConvexMeshShape *createConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
-        void destroyConvexMeshShape(ConvexMeshShape *convexMeshShape);
+        ConvexMeshShape *CreateConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
+        void DestroyConvexMeshShape(ConvexMeshShape *convexMeshShape);
 
-        HeightField *createHeightField(size_t nbGridColumns,
+        HeightField *CreateHeightField(size_t nbGridColumns,
                                        size_t nbGridRows,
                                        const void *heightFieldData,
                                        HeightField::HeightDataType dataType,
                                        std::vector<Message> &messages,
                                        f32 integerHeightScale = 1.0f);
-        void destroyHeightField(HeightField *heightField);
+        void DestroyHeightField(HeightField *heightField);
 
-        HeightFieldShape *createHeightFieldShape(HeightField *heightField, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
-        void destroyHeightFieldShape(HeightFieldShape *heightFieldShape);
+        HeightFieldShape *CreateHeightFieldShape(HeightField *heightField, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
+        void DestroyHeightFieldShape(HeightFieldShape *heightFieldShape);
 
-        ConcaveMeshShape *createConcaveMeshShape(TriangleMesh *triangleMesh, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
-        void destroyConcaveMeshShape(ConcaveMeshShape *concaveMeshShape);
+        ConcaveMeshShape *CreateConcaveMeshShape(TriangleMesh *triangleMesh, const glm::vec3 &scaling = glm::vec3(1, 1, 1));
+        void DestroyConcaveMeshShape(ConcaveMeshShape *concaveMeshShape);
 
-        // ConvexMesh *createConvexMesh(const PolygonVertexArray &polygonVertexArray, std::vector<Message> &messages);
-        // ConvexMesh *createConvexMesh(const VertexArray &vertexArray, std::vector<Message> &messages);
-        // void destroyConvexMesh(ConvexMesh *convexMesh);
+        // ConvexMesh *CreateConvexMesh(const PolygonVertexArray &polygonVertexArray, std::vector<Message> &messages);
+        // ConvexMesh *CreateConvexMesh(const VertexArray &vertexArray, std::vector<Message> &messages);
+        // void DestroyConvexMesh(ConvexMesh *convexMesh);
         //
-        // TriangleMesh *createTriangleMesh(const TriangleVertexArray &triangleVertexArray, std::vector<Message> &messages);
-        // void destroyTriangleMesh(TriangleMesh *triangleMesh);
+        // TriangleMesh *CreateTriangleMesh(const TriangleVertexArray &triangleVertexArray, std::vector<Message> &messages);
+        // void DestroyTriangleMesh(TriangleMesh *triangleMesh);
 
     private:
         std::unordered_set<PhysicsWorld *> _physicsWorlds;
@@ -92,17 +92,6 @@ namespace Vulkyrie {
         /** @brief Populates the shared triangle half-edge mesh with 3 vertices and the two faces of a double-sided triangle (front face 0, back face 1,
          * matching `TriangleShape::GetFaceNormal`) and builds the half-edge connectivity. */
         void initTriangleShapeHalfEdgeMesh();
-
-        void deletePhysicsWorld(PhysicsWorld *world);
-        void deleteSphereShape(SphereShape *sphereShape);
-        void deleteBoxShape(BoxShape *boxShape);
-        void deleteCapsuleShape(CapsuleShape *capsuleShape);
-        void deleteConvexMeshShape(ConvexMeshShape *convexMeshShape);
-        void deleteHeightFieldShape(HeightFieldShape *heightFieldShape);
-        void deleteConcaveMeshShape(ConcaveMeshShape *concaveMeshShape);
-        void deleteConvexMesh(ConvexMesh *convexMesh);
-        void deleteTriangleMesh(TriangleMesh *triangleMesh);
-        void deleteHeightField(HeightField *heightField);
     };
 
 } // namespace Vulkyrie

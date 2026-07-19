@@ -194,7 +194,7 @@ namespace Vulkyrie {
 
         void reportContacts(CollisionCallback &callback,
                             std::vector<ContactPair> &contactPairs,
-                            std::vector<ContactManifold> &manifolds,
+                            // std::vector<ContactManifold> &manifolds,
                             std::vector<ContactPoint> &contactPoints,
                             std::vector<ContactPair> &lostContactPairs);
 

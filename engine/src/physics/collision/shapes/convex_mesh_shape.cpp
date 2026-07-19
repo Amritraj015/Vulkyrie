@@ -4,6 +4,16 @@
 
 namespace Vulkyrie {
 
+    ConvexMeshShape::ConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scale)
+        : ConvexPolyhedronShape(CollisionShapeName::ConvexMesh)
+        , _convexMesh(convexMesh)
+        , _scale(scale) {
+
+        _scaledFaceNormals.reserve(convexMesh->GetFacesCount());
+
+        computeScaledFaceNormals();
+    }
+
     glm::vec3 ConvexMeshShape::GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const {
         f32 maxDotProduct = VE_DECIMAL_MIN;
         size_t indexMaxDotProduct = 0;
@@ -39,7 +49,7 @@ namespace Vulkyrie {
         return true;
     }
 
-    void ConvexMeshShape::computeScaledFacesNormals() {
+    void ConvexMeshShape::computeScaledFaceNormals() {
         _scaledFaceNormals.clear();
 
         for (size_t f = 0; f < _convexMesh->GetFacesCount(); f++) {
@@ -47,7 +57,7 @@ namespace Vulkyrie {
 
             normal = (f32(1.0) / _scale) * normal;
 
-            const f32 normalLength = normal.length();
+            const f32 normalLength = glm::length(normal);
             VASSERT(VE_MACHINE_EPSILON < normalLength, "Normal length must be greater than VE_MACHINE_EPSILON.");
 
             normal /= normalLength;

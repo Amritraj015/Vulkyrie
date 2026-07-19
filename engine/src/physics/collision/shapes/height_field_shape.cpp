@@ -2,6 +2,11 @@
 
 namespace Vulkyrie {
 
+    HeightFieldShape::HeightFieldShape(HeightField *heightField, const glm::vec3 &scaling)
+        : ConcaveShape(CollisionShapeName::HeightField, scaling)
+        , _heightField(heightField) {
+    }
+
     void HeightFieldShape::ComputeOverlappingTriangles(const AABB &localAABB,
                                                        std::vector<glm::vec3> &triangleVertices,
                                                        std::vector<glm::vec3> &triangleVerticesNormals,

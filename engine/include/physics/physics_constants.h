@@ -22,6 +22,6 @@ namespace Vulkyrie {
     constexpr i32 SUPPORTED_COLLISION_SHAPE_TYPE_COUNT = 4;
 
     /** The specific name of the collision shape, used to identify the exact type of shape. */
-    enum class CollisionShapeName : u32 { Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, Heightfield };
+    enum class CollisionShapeName : u32 { Triangle, Sphere, Capsule, Box, ConvexMesh, TriangleMesh, HeightField };
 
 } // namespace Vulkyrie

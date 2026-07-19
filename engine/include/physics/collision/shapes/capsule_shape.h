@@ -15,7 +15,7 @@ namespace Vulkyrie {
          * value.
          * @param height The height of the capsule shape, which is the distance between the centers of the two hemispherical end caps. Must be a positive
          * value. */
-        CapsuleShape(f32 radius, f32 height);
+        explicit CapsuleShape(f32 radius, f32 height);
 
         VE_DELETE_MOVE_AND_COPY(CapsuleShape);
 

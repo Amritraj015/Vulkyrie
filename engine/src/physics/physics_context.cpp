@@ -1,4 +1,6 @@
 #include "physics/physics_context.h"
+#include "physics/collision/shapes/box_shape.h"
+#include "physics/physics_world.h"
 
 namespace Vulkyrie {
 
@@ -11,65 +13,216 @@ namespace Vulkyrie {
 
     PhysicsContext::~PhysicsContext() {
         // Destroy the physics worlds.
-        for (auto &world : _physicsWorlds) {
-            deletePhysicsWorld(world);
+        while (!_physicsWorlds.empty()) {
+            DestroyPhysicsWorld(*_physicsWorlds.begin());
         }
-        _physicsWorlds.clear();
 
         // Destroy the sphere shapes.
-        for (auto &sphere : _sphereShapes) {
-            deleteSphereShape(sphere);
+        while (!_sphereShapes.empty()) {
+            DestroySphereShape(*_sphereShapes.begin());
         }
-        _sphereShapes.clear();
 
         // Destroy the box shapes.
-        for (auto &box : _boxShapes) {
-            deleteBoxShape(box);
+        while (!_boxShapes.empty()) {
+            DestroyBoxShape(*_boxShapes.begin());
         }
-        _boxShapes.clear();
 
         // Destroy the capsule shapes.
-        for (auto &capsule : _capsuleShapes) {
-            deleteCapsuleShape(capsule);
+        while (!_capsuleShapes.empty()) {
+            DestroyCapsuleShape(*_capsuleShapes.begin());
         }
-        _capsuleShapes.clear();
 
         // Destroy the convex mesh shapes.
-        for (auto &it : _convexMeshShapes) {
-            deleteConvexMeshShape(it);
+        while (!_convexMeshShapes.empty()) {
+            DestroyConvexMeshShape(*_convexMeshShapes.begin());
         }
-        _convexMeshShapes.clear();
 
         // Destroy the heigh-field shapes.
-        for (auto &heightFieldShape : _heightFieldShapes) {
-            deleteHeightFieldShape(heightFieldShape);
+        while (!_heightFieldShapes.empty()) {
+            DestroyHeightFieldShape(*_heightFieldShapes.begin());
         }
-        _heightFieldShapes.clear();
 
         // Destroy the concave mesh shapes.
-        for (auto &concaveMesh : _concaveMeshShapes) {
-            deleteConcaveMeshShape(concaveMesh);
+        while (!_concaveMeshShapes.empty()) {
+            DestroyConcaveMeshShape(*_concaveMeshShapes.begin());
         }
-        _concaveMeshShapes.clear();
 
-        // Destroy the convex mesh.
-        for (auto &convexMesh : _convexMeshes) {
-            deleteConvexMesh(convexMesh);
-        }
-        _convexMeshes.clear();
+        // Destroy the convex meshes.
+        while (!_convexMeshes.empty()) {
+            auto *convexMesh = *_convexMeshes.begin();
+            _convexMeshes.erase(convexMesh);
 
-        // Destroy the triangle mesh.
-        for (auto &triangleMesh : _triangleMeshes) {
-            deleteTriangleMesh(triangleMesh);
+            delete convexMesh;
         }
-        _triangleMeshes.clear();
 
-        // Destroy the height-field mesh.
-        for (auto &heightField : _heightFields) {
-            deleteHeightField(heightField);
+        // Destroy the triangle meshes.
+        while (!_triangleMeshes.empty()) {
+            auto *triangleMesh = *_triangleMeshes.begin();
+            _triangleMeshes.erase(triangleMesh);
+
+            delete triangleMesh;
         }
-        _heightFields.clear();
+
+        // Destroy the height-fields.
+        while (!_heightFields.empty()) {
+            DestroyHeightField(*_heightFields.begin());
+        }
     }
+
+    PhysicsWorld *PhysicsContext::CreatePhysicsWorld(const PhysicsWorldSettings &worldSettings) {
+        auto *world = new PhysicsWorld(worldSettings);
+
+        _physicsWorlds.insert(world);
+
+        return world;
+    }
+
+    void PhysicsContext::DestroyPhysicsWorld(PhysicsWorld *world) {
+        _physicsWorlds.erase(world);
+
+        delete world;
+    }
+
+    SphereShape *PhysicsContext::CreateSphereShape(const f32 radius) {
+        if (radius <= f32(0.0)) {
+            VERROR("Circle Radius cannot be <= 0, provided radius: {}", radius);
+
+            return nullptr;
+        }
+
+        auto *shape = new SphereShape(radius);
+        _sphereShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroySphereShape(SphereShape *sphereShape) {
+        _sphereShapes.erase(sphereShape);
+
+        delete sphereShape;
+    }
+
+    BoxShape *PhysicsContext::CreateBoxShape(const glm::vec3 &extent) {
+        if (extent.x <= f32(0.0) || extent.y <= f32(0.0) || extent.z <= f32(0.0)) {
+            VERROR("Invalid half extents x: {}, y: {}, z: {}", extent.x, extent.y, extent.z);
+
+            return nullptr;
+        }
+
+        auto *shape = new BoxShape(extent, *this);
+
+        _boxShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroyBoxShape(BoxShape *boxShape) {
+        _boxShapes.erase(boxShape);
+
+        delete boxShape;
+    }
+
+    CapsuleShape *PhysicsContext::CreateCapsuleShape(f32 radius, f32 height) {
+        if (radius <= f32(0.0)) {
+            VERROR("Capsule radius must be > 0, provided radius: {}", radius);
+
+            return nullptr;
+        }
+
+        if (height <= f32(0.0)) {
+            VERROR("Capsule height must be > 0, provided height: {}", height);
+
+            return nullptr;
+        }
+
+        auto *shape = new CapsuleShape(radius, height);
+
+        _capsuleShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroyCapsuleShape(CapsuleShape *capsuleShape) {
+        _capsuleShapes.erase(capsuleShape);
+
+        delete capsuleShape;
+    }
+
+    ConvexMeshShape *PhysicsContext::CreateConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scaling) {
+        auto *shape = new ConvexMeshShape(convexMesh, scaling);
+
+        _convexMeshShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroyConvexMeshShape(ConvexMeshShape *convexMeshShape) {
+        _convexMeshShapes.erase(convexMeshShape);
+
+        delete convexMeshShape;
+    }
+
+    HeightField *PhysicsContext::CreateHeightField(size_t nbGridColumns,
+                                                   size_t nbGridRows,
+                                                   const void *heightFieldData,
+                                                   HeightField::HeightDataType dataType,
+                                                   std::vector<Message> &messages,
+                                                   f32 integerHeightScale) {
+        auto *heightField = new HeightField(_triangleShapeHalfEdgeMesh);
+
+        const bool isValid = heightField->Initialize(nbGridColumns, nbGridRows, heightFieldData, dataType, messages, integerHeightScale);
+
+        if (!isValid) {
+            delete heightField;
+
+            return nullptr;
+        }
+
+        _heightFields.insert(heightField);
+
+        return heightField;
+    }
+
+    void PhysicsContext::DestroyHeightField(HeightField *heightField) {
+        _heightFields.erase(heightField);
+
+        delete heightField;
+    }
+
+    HeightFieldShape *PhysicsContext::CreateHeightFieldShape(HeightField *heightField, const glm::vec3 &scaling) {
+        auto *shape = new HeightFieldShape(heightField, scaling);
+
+        _heightFieldShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroyHeightFieldShape(HeightFieldShape *heightFieldShape) {
+        _heightFieldShapes.erase(heightFieldShape);
+
+        delete heightFieldShape;
+    }
+
+    ConcaveMeshShape *PhysicsContext::CreateConcaveMeshShape(TriangleMesh *triangleMesh, const glm::vec3 &scaling) {
+        auto *shape = new ConcaveMeshShape(triangleMesh, _triangleShapeHalfEdgeMesh, scaling);
+
+        _concaveMeshShapes.insert(shape);
+
+        return shape;
+    }
+
+    void PhysicsContext::DestroyConcaveMeshShape(ConcaveMeshShape *concaveMeshShape) {
+        _concaveMeshShapes.erase(concaveMeshShape);
+
+        delete concaveMeshShape;
+    }
+
+    // ConvexMesh *CreateConvexMesh(const PolygonVertexArray &polygonVertexArray, std::vector<Message> &messages);
+    // ConvexMesh *CreateConvexMesh(const VertexArray &vertexArray, std::vector<Message> &messages);
+    // void DestroyConvexMesh(ConvexMesh *convexMesh);
+    //
+    // TriangleMesh *CreateTriangleMesh(const TriangleVertexArray &triangleVertexArray, std::vector<Message> &messages);
+    // void DestroyTriangleMesh(TriangleMesh *triangleMesh);
 
     void PhysicsContext::initBoxShapeHalfEdgeMesh() {
         // Vertex indices match the ordering of BoxShape::GetVertexPosition.

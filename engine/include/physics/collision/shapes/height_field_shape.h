@@ -8,7 +8,11 @@ namespace Vulkyrie {
 
     class HeightFieldShape final : public ConcaveShape {
     public:
+        explicit HeightFieldShape(HeightField *heightField, const glm::vec3 &scaling = glm::vec3(1.0f));
+
         VE_DELETE_MOVE_AND_COPY(HeightFieldShape);
+
+        ~HeightFieldShape() override = default;
 
         [[nodiscard]] VE_INLINE HeightField *GetHeightField() const {
             return _heightField;

@@ -1,5 +1,4 @@
 #include "renderer/frame_graph/resources/render_graph_transient_resources.h"
-#include <functional>
 
 namespace Vulkyrie {
 

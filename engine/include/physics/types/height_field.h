@@ -77,7 +77,7 @@ namespace Vulkyrie {
     private:
         std::vector<f32> _heightFieldData;
         AABB _bounds;
-        HalfEdgeMesh &_triangleHalfEdgeStructure;
+        [[maybe_unused]] HalfEdgeMesh &_triangleHalfEdgeStructure;
         size_t _totalColumns;
         size_t _totalRows;
         f32 _width;

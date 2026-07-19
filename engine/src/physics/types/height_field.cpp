@@ -2,6 +2,10 @@
 
 namespace Vulkyrie {
 
+    HeightField::HeightField(HalfEdgeMesh &triangleHalfEdgeStructure)
+        : _triangleHalfEdgeStructure(triangleHalfEdgeStructure) {
+    }
+
     bool HeightField::Initialize(
         size_t totalColumns, size_t totalRows, const void *heightFieldData, HeightDataType dataType, std::vector<Message> &messages, f32 integerHeightScale) {
 

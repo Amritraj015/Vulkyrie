@@ -129,7 +129,7 @@ namespace Vulkyrie {
         class Data final {
         public:
             Data(std::vector<Vulkyrie::ContactPair> &contactPairs,
-                 std::vector<Vulkyrie::ContactManifold> &contactManifolds,
+                 // std::vector<Vulkyrie::ContactManifold> &contactManifolds,
                  std::vector<Vulkyrie::ContactPoint> &contactPoints,
                  std::vector<Vulkyrie::ContactPair> &lostContactPairs,
                  PhysicsWorld &world);
@@ -156,7 +156,7 @@ namespace Vulkyrie {
 
         private:
             std::vector<Vulkyrie::ContactPair> &_contactPairs;
-            [[maybe_unused]] std::vector<Vulkyrie::ContactManifold> &_contactManifolds;
+            // std::vector<Vulkyrie::ContactManifold> &_contactManifolds;
             std::vector<Vulkyrie::ContactPoint> &_contactPoints;
             std::vector<Vulkyrie::ContactPair> &_lostContactPairs;
             std::vector<size_t> _contactPairIndices;

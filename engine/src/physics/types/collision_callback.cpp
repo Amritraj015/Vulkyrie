@@ -30,12 +30,12 @@ namespace Vulkyrie {
     }
 
     CollisionCallback::Data::Data(std::vector<Vulkyrie::ContactPair> &contactPairs,
-                                  std::vector<Vulkyrie::ContactManifold> &contactManifolds,
+                                  // std::vector<Vulkyrie::ContactManifold> &contactManifolds,
                                   std::vector<Vulkyrie::ContactPoint> &contactPoints,
                                   std::vector<Vulkyrie::ContactPair> &lostContactPairs,
                                   PhysicsWorld &world)
         : _contactPairs(contactPairs)
-        , _contactManifolds(contactManifolds)
+        // , _contactManifolds(contactManifolds)
         , _contactPoints(contactPoints)
         , _lostContactPairs(lostContactPairs)
         , _physicsWorld(world) {

@@ -13,7 +13,7 @@ namespace Vulkyrie {
     public:
         /** @brief Construct a sphere collision shape.
          * @param radius The radius of the sphere. Must be positive. */
-        SphereShape(f32 radius);
+        explicit SphereShape(f32 radius);
 
         VE_DELETE_MOVE_AND_COPY(SphereShape);
 

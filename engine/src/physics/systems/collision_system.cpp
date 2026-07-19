@@ -89,8 +89,10 @@ namespace Vulkyrie {
         EventListener *eventListener = _physicsWorld.GetEventListener();
 
         if (nullptr != eventListener) {
-            reportContacts(*(eventListener), *_currentContactPairs, *_currentContactManifolds, *_currentContactPoints, _lostContactPairs);
-            reportTriggers(*(eventListener), _currentContactPairs, _lostContactPairs);
+            // reportContacts(*(eventListener), *_currentContactPairs, *_currentContactManifolds, *_currentContactPoints, _lostContactPairs);
+            reportContacts(*eventListener, *_currentContactPairs, *_currentContactPoints, _lostContactPairs);
+
+            reportTriggers(*eventListener, _currentContactPairs, _lostContactPairs);
         }
 
         // TODO: Implement the following debug rendering of contacts and triggers, which can be enabled through a debug flag in the physics world.
@@ -549,7 +551,8 @@ namespace Vulkyrie {
             createSnapshotContacts(contactPairs, contactManifolds, contactPoints, potentialContactManifolds, potentialContactPoints);
 
             // Report the contacts to the client through the callback concept.
-            reportContacts(callback, contactPairs, contactManifolds, contactPoints, lostContactPairs);
+            // reportContacts(callback, contactPairs, contactManifolds, contactPoints, lostContactPairs);
+            reportContacts(callback, contactPairs, contactPoints, lostContactPairs);
         }
 
         return isColliding;
@@ -1679,12 +1682,13 @@ namespace Vulkyrie {
 
     void CollisionSystem::reportContacts(CollisionCallback &callback,
                                          std::vector<ContactPair> &contactPairs,
-                                         std::vector<ContactManifold> &manifolds,
+                                         // std::vector<ContactManifold> &manifolds,
                                          std::vector<ContactPoint> &contactPoints,
                                          std::vector<ContactPair> &lostContactPairs) {
         // Report contacts if there are any contact pairs or lost contact pairs to report.
         if (contactPairs.size() + lostContactPairs.size() > 0) {
-            CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, _physicsWorld);
+            // CollisionCallback::Data callbackData(contactPairs, manifolds, contactPoints, lostContactPairs, _physicsWorld);
+            CollisionCallback::Data callbackData(contactPairs, contactPoints, lostContactPairs, _physicsWorld);
             callback.OnCollision(callbackData);
         }
     }

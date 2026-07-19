@@ -18,7 +18,7 @@ namespace Vulkyrie {
          * @param margin The margin to be applied to the box shape for collision detection purposes. This is an optional parameter that defaults to 0.0f if
          * not provided. A positive margin can help improve collision detection stability by providing a small buffer around the shape.
          */
-        BoxShape(const glm::vec3 &halfExtents, PhysicsContext &context);
+        explicit BoxShape(const glm::vec3 &halfExtents, PhysicsContext &context);
 
         VE_DELETE_MOVE_AND_COPY(BoxShape);
 

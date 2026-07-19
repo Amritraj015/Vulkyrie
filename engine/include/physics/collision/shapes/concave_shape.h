@@ -16,7 +16,7 @@ namespace Vulkyrie {
          * @param name The specific name of the collision shape (e.g., TriangleMesh, Heightfield).
          * @param scale The non-uniform scale applied to the concave shape in local space.
          */
-        ConcaveShape(CollisionShapeName name, const glm::vec3 &scale);
+        explicit ConcaveShape(CollisionShapeName name, const glm::vec3 &scale);
 
         VE_DELETE_MOVE_AND_COPY(ConcaveShape);
 
@@ -33,7 +33,7 @@ namespace Vulkyrie {
         /** @brief Set the non-uniform scale of the concave shape and notify all attached colliders of the change.
          * @param scale The new scale vector to apply to the shape in local space.
          */
-        VE_INLINE void SetScale(const glm::vec3 &scale) {
+        VE_INLINE virtual void SetScale(const glm::vec3 &scale) {
             _scale = scale;
 
             NotifyCollidersOfShapeChange();
@@ -88,7 +88,7 @@ namespace Vulkyrie {
         /** @brief Get the volume of the concave shape.
          * @returns The volume of the concave shape.
          */
-        [[nodiscard]] VE_INLINE virtual f32 GetVolume() const override;
+        [[nodiscard]] virtual f32 GetVolume() const override;
 
         /** @brief Compute all triangles of the concave shape that overlap the given local-space AABB. This is the primary mechanism for broadphase and
          * narrowphase collision queries against concave shapes — only the subset of triangles intersecting the query AABB need to be tested.

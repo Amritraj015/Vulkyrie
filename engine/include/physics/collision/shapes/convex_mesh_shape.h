@@ -8,17 +8,17 @@ namespace Vulkyrie {
 
     class ConvexMeshShape : public ConvexPolyhedronShape {
     public:
-        ConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scale = glm::vec3(1.0f));
+        explicit ConvexMeshShape(ConvexMesh *convexMesh, const glm::vec3 &scale = glm::vec3(1.0f));
 
         VE_DELETE_MOVE_AND_COPY(ConvexMeshShape);
 
-        ~ConvexMeshShape() override = default;
+        virtual ~ConvexMeshShape() override = default;
 
         VE_INLINE void SetScale(const glm::vec3 &scale) {
             _scale = scale;
 
             // Recompute the scaled face normals.
-            computeScaledFacesNormals();
+            computeScaledFaceNormals();
 
             // Notify collider shape change.
             NotifyCollidersOfShapeChange();
@@ -68,6 +68,10 @@ namespace Vulkyrie {
             return _convexMesh->GetHalfEdgeMesh().GetHalfEdge(edgeIndex);
         }
 
+        [[nodiscard]] VE_INLINE const std::vector<HalfEdgeMesh::Edge> &GetHalfEdges() const override {
+            return _convexMesh->GetHalfEdgeMesh().GetHalfEdges();
+        }
+
         [[nodiscard]] VE_INLINE const HalfEdgeMesh::Vertex &GetVertex(size_t vertexIndex) const override {
             VASSERT(vertexIndex < GetVerticesCount(), "Invalid vertex index.");
 
@@ -97,7 +101,7 @@ namespace Vulkyrie {
         glm::vec3 _scale;
         std::vector<glm::vec3> _scaledFaceNormals;
 
-        void computeScaledFacesNormals();
+        void computeScaledFaceNormals();
     };
 
 } // namespace Vulkyrie
