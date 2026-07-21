@@ -2,7 +2,7 @@
 
 using namespace Vulkyrie;
 
-std::unique_ptr<Application> CreateApplication() {
+Application *CreateApplication() {
     WindowProps windowProps = {
         .Height = 600,
         .Width = 800,
@@ -10,5 +10,5 @@ std::unique_ptr<Application> CreateApplication() {
         .GraphicsAPI = GraphicsAPI::OpenGL,
     };
 
-    return std::make_unique<Asteroids::AsteroidsApplication>(windowProps);
+    return new Asteroids::AsteroidsApplication(windowProps);
 }

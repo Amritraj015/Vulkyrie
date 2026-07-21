@@ -3,7 +3,7 @@
 
 using namespace Vulkyrie;
 
-std::unique_ptr<Application> CreateApplication() {
+Application *CreateApplication() {
     WindowProps windowProps = {
         .Height = 800,
         .Width = 1500,
@@ -11,5 +11,5 @@ std::unique_ptr<Application> CreateApplication() {
         .GraphicsAPI = GraphicsAPI::OpenGL,
     };
 
-    return std::make_unique<Vulkyrie::Editor::VulkyrieEditor>(windowProps);
+    return new Vulkyrie::Editor::VulkyrieEditor(windowProps);
 }

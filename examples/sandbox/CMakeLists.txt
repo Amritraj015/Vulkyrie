@@ -5,8 +5,8 @@ file(GLOB_RECURSE SANDBOX_SOURCES
 
 add_executable(sandbox ${SANDBOX_SOURCES})
 
-# Require C++23 properly
-target_compile_features(sandbox PRIVATE cxx_std_23)
+# Require C++26 properly
+target_compile_features(sandbox PRIVATE cxx_std_26)
 
 # Link engine
 target_link_libraries(sandbox PRIVATE engine imgui::imgui)

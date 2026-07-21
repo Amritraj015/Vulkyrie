@@ -89,5 +89,4 @@
 #include "physics/types/last_frame_collision_data.h"
 #include "physics/types/islands.h"
 
-
-extern std::unique_ptr<Vulkyrie::Application> CreateApplication();
+extern Vulkyrie::Application *CreateApplication();

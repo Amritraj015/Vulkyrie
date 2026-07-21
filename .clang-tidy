@@ -1,6 +1,6 @@
 ---
 # Clang-Tidy configuration for Vulkyrie Game Engine
-# Configured for C++23 with Vulkan and game engine best practices
+# Configured for C++26 with Vulkan and game engine best practices
 
 Checks: >
   -*,

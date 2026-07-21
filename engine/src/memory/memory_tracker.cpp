@@ -23,11 +23,19 @@ namespace Vulkyrie {
 
         const i64 current = counters.CurrentBytes.fetch_add(size, std::memory_order_relaxed) + size;
 
+        // Raise the peak high-water mark (C++26 atomic max).
+        counters.PeakBytes.fetch_max(current, std::memory_order_relaxed);
+
+        // ---------------------------------------------------------------------------
+        // The following is not needed with C++26 and is replaced by the fetch_max
+        // function on the line above. Keeping the following as commented just in-case
+        // I need to downgrade to C++23 or lower.
+        // ---------------------------------------------------------------------------
         // Raise the high-water mark with a relaxed CAS loop.
-        i64 previousPeak = counters.PeakBytes.load(std::memory_order_relaxed);
-        while (current > previousPeak && !counters.PeakBytes.compare_exchange_weak(previousPeak, current, std::memory_order_relaxed)) {
-            // `previousPeak` is refreshed by compare_exchange_weak on failure; retry.
-        }
+        // i64 previousPeak = counters.PeakBytes.load(std::memory_order_relaxed);
+        // while (current > previousPeak && !counters.PeakBytes.compare_exchange_weak(previousPeak, current, std::memory_order_relaxed)) {
+        //     // `previousPeak` is refreshed by compare_exchange_weak on failure; retry.
+        // }
     }
 
     void MemoryTracker::OnFree(MemoryTag tag, i64 size) {

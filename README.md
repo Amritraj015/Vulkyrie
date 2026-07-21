@@ -22,7 +22,7 @@
 Make sure you have the following installed:
 
 - **CMake** (version 4.2 or higher)
-- A C/C++ compiler that supports C++23, such as:
+- A C/C++ compiler that supports C++26, such as:
   - **GCC**
   - **MSVC**
   - **Clang**

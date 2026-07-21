@@ -23,12 +23,14 @@ int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
         return std::to_underlying(Vulkyrie::StatusCode::InvalidApplication);
     }
 
-    VLKY_PROFILE_BEGIN_SESSION("Game Loop", "profile_results.json");
+    VLKY_PROFILE_BEGIN_SESSION("Game Loop", "profile_game_loop.json");
 
     // Run the application and get its status code.
     statusCode = application->Run();
 
     VLKY_PROFILE_END_SESSION();
+
+    delete application;
 
     // Emit the per-subsystem memory report (and, in later phases, the leak check).
     Vulkyrie::MemorySystem::Shutdown();

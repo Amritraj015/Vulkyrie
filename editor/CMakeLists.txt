@@ -6,8 +6,8 @@ file(GLOB_RECURSE VULKYRIE_EDITOR_SOURCES
 # Declare the editor executable
 add_executable(editor ${VULKYRIE_EDITOR_SOURCES})
 
-# Require C++23 properly
-target_compile_features(editor PRIVATE cxx_std_23)
+# Require C++26 properly
+target_compile_features(editor PRIVATE cxx_std_26)
 
 # Link engine and other dependencies
 target_link_libraries(editor PRIVATE engine imgui::imgui)

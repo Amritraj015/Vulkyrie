@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Vulkyrie is a C++23 game engine (work in progress) with its own ECS, a custom rigid-body physics engine, and an
+Vulkyrie is a C++26 game engine (work in progress) with its own ECS, a custom rigid-body physics engine, and an
 OpenGL renderer (Vulkan backend planned). The repo builds several targets on top of the `engine` static library:
 `editor` (ImGui-based), `examples/sandbox` and `examples/asteroids`, `vulky-cli`, `runtime`, and `tests` (Catch2).
 
@@ -15,7 +15,7 @@ build, default `clang-all-debug`), `/test [preset] [name-or-tag]` (build + run t
 `/format-check [base-ref]` (clang-format + clang-tidy on files changed from `main`, read-only). The details below
 apply when running the underlying commands directly.
 
-Building requires **CMake 4.2+**, a C++23 compiler (GCC/Clang/MSVC), **Ninja**, and **vcpkg** with `VCPKG_ROOT` set
+Building requires **CMake 4.2+**, a C++26 compiler (GCC/Clang/MSVC), **Ninja**, and **vcpkg** with `VCPKG_ROOT` set
 (presets reference `$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake`). Dependencies (glfw3, glad, glm, imgui,
 assimp, openal-soft, stb, catch2) are resolved via `vcpkg.json`/`Dependencies.cmake`.
 

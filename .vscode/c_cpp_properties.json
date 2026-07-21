@@ -27,7 +27,7 @@
             "defines": [],
             "compilerPath": "/usr/bin/clang++",
             "cStandard": "c23",
-            "cppStandard": "c++23",
+            "cppStandard": "c++26",
             "intelliSenseMode": "${default}",
             "configurationProvider": "ms-vscode.cmake-tools"
         }

@@ -5,8 +5,8 @@ file(GLOB_RECURSE VULKY_CLI_SOURCES
 
 add_executable(vulky ${VULKY_CLI_SOURCES})
 
-# Require C++23 properly
-target_compile_features(vulky PRIVATE cxx_std_23)
+# Require C++26 properly
+target_compile_features(vulky PRIVATE cxx_std_26)
 
 # Link engine
 target_link_libraries(vulky PRIVATE engine)
