@@ -71,10 +71,10 @@ namespace Vulkyrie {
 
         /** @brief Loads a WAV audio file from disk and fills the provided AudioClip with the loaded data.
          * @param filePath The path to the WAV file to load.
-         * @param clip The AudioClip to fill with the loaded audio data.
+         * @param outClip The AudioClip to fill with the loaded audio data.
          * @returns true if the file was loaded successfully, false otherwise.
          */
-        bool LoadWAV(const std::filesystem::path &filePath, AudioClip &clip);
+        bool LoadWAV(const std::filesystem::path &filePath, AudioClip &outClip);
     };
 
 } // namespace Vulkyrie

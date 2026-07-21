@@ -119,7 +119,7 @@ namespace Vulkyrie {
         }
     }
 
-    bool AudioSystem::LoadWAV(const std::filesystem::path &filePath, AudioClip &clip) {
+    bool AudioSystem::LoadWAV(const std::filesystem::path &filePath, AudioClip &outClip) {
         // Try to open the file in binary mode.
         std::ifstream file(filePath, std::ios::binary);
 
@@ -193,19 +193,19 @@ namespace Vulkyrie {
 
         // Determine the OpenAL format based on the number of channels and bits per sample.
         if (numChannels == 1 && bitsPerSample == 16) {
-            clip.Format = AL_FORMAT_MONO16;
+            outClip.Format = AL_FORMAT_MONO16;
         } else if (numChannels == 2 && bitsPerSample == 16) {
-            clip.Format = AL_FORMAT_STEREO16;
+            outClip.Format = AL_FORMAT_STEREO16;
         } else {
             return false;
         }
 
         // Set the sample rate for the audio clip.
-        clip.Frequency = sampleRate;
+        outClip.Frequency = sampleRate;
 
         // Generate an OpenAL buffer and fill it with the audio data.
-        alGenBuffers(1, &clip.Buffer);
-        alBufferData(clip.Buffer, clip.Format, bufferData.data(), static_cast<ALsizei>(bufferData.size()), clip.Frequency);
+        alGenBuffers(1, &outClip.Buffer);
+        alBufferData(outClip.Buffer, outClip.Format, bufferData.data(), static_cast<ALsizei>(bufferData.size()), outClip.Frequency);
 
         // Return true to indicate that the WAV file was loaded successfully.
         return true;
