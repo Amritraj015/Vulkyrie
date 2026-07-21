@@ -69,6 +69,8 @@ namespace Vulkyrie {
      * 4. Pre-generates texture sampler uniform names for efficient rendering
      */
     void OpenGLMesh::SetupMesh() {
+        VE_MEMORY_SCOPE(MemoryTag::Rendering);
+
         // ========================================
         // GPU Buffer Setup
         // ========================================

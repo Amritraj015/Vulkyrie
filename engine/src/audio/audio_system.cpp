@@ -6,6 +6,8 @@
 namespace Vulkyrie {
 
     AudioSystem::AudioSystem() {
+        VE_MEMORY_SCOPE(MemoryTag::Audio);
+
         // Initialize OpenAL
         _device = alcOpenDevice(nullptr);
         VASSERT_EXPR(_device, "Failed to open OpenAL device.");
@@ -106,6 +108,8 @@ namespace Vulkyrie {
     }
 
     void AudioSystem::Update() {
+        VE_MEMORY_SCOPE(MemoryTag::Audio);
+
         // Check which sources finished playing and mark them free
         for (auto &src : _sources) {
             if (src.Active && !src.IsPlaying()) {

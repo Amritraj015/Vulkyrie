@@ -1,20 +1,19 @@
 #include "vulkyrie.h"
 
-#if defined(VULKYRIE_DEBUG)
-// void *operator new(size_t size) {
-//     VDEBUG("Allocating: {} bytes", size);
-//     return std::malloc(size);
-// }
-#endif
+#include "memory/memory_system.h"
 
 int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     // Initialize the logger sub-system.
     auto statusCode = Vulkyrie::Logger::InitializeLogger(Vulkyrie::LoggerType::Console);
 
     // If logger initialization failed, return the error code.
-    if (statusCode != Vulkyrie::StatusCode::Successful) {
+    if (Vulkyrie::StatusCode::Successful != statusCode) {
         return std::to_underlying(statusCode);
     }
+
+    // Initialize the memory sub-system (attribution already works via static storage; this sets up
+    // reporting and, in later phases, budgets and third-party allocator hooks).
+    Vulkyrie::MemorySystem::Initialize();
 
     // Initialize the Vulkyrie Application.
     auto application = CreateApplication();
@@ -30,6 +29,9 @@ int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     statusCode = application->Run();
 
     VLKY_PROFILE_END_SESSION();
+
+    // Emit the per-subsystem memory report (and, in later phases, the leak check).
+    Vulkyrie::MemorySystem::Shutdown();
 
     // Terminate the logger sub-system and return its status code.
     return std::to_underlying(statusCode);

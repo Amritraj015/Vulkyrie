@@ -10,11 +10,13 @@ namespace Vulkyrie {
 
     class HeightField final {
     public:
+        enum class HeightDataType : i32 { F32, F64, I32 };
+
         HeightField(HalfEdgeMesh &triangleHalfEdgeStructure);
 
         VE_DELETE_MOVE_AND_COPY(HeightField);
 
-        enum class HeightDataType : i32 { F32, F64, I32 };
+        ~HeightField() = default;
 
         [[nodiscard]] VE_INLINE size_t GetTotalRows() const {
             return _totalRows;
@@ -45,8 +47,7 @@ namespace Vulkyrie {
         }
 
         [[nodiscard]] VE_INLINE f32 GetHeightAt(size_t x, size_t y) const {
-            VASSERT(x < _totalColumns, "Column index out of bounds.");
-            VASSERT(y < _totalRows, "Row index out of bounds.");
+            VASSERT(x < _totalColumns && y < _totalRows, "Column and row index out of bounds.");
 
             return _heightFieldData[y * _totalColumns + x];
         }

@@ -52,6 +52,8 @@ namespace Vulkyrie {
     }
 
     void PhysicsWorld::Update(Timestep timestep) {
+        VE_MEMORY_SCOPE(MemoryTag::Physics);
+
         // Run broad-phase and narrow-phase collision detection to find the potential contact pairs.
         _collisionSystem.ComputeCollisions();
 

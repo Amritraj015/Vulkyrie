@@ -77,6 +77,15 @@ Test sources live under `tests/src/`, mirroring the engine's module layout (`cor
 - Clang/GCC builds compile with `-Wall -Wextra -Wconversion -Wsign-conversion -Wpedantic -Werror`; MSVC uses `/W4 /WX`.
   Warnings are build failures, not suggestions.
 
+## Plan mode files
+
+Plan Mode assigns each new plan file under `.claude/plans/` an auto-generated, content-blind slug at the moment
+planning starts (before the plan has any content) — this cannot be configured via CLAUDE.md or `settings.json`
+(tracked upstream as [anthropics/claude-code#32118](https://github.com/anthropics/claude-code/issues/32118)).
+**As the last step before calling `ExitPlanMode`, rename the plan file** (it's just a normal tracked file by then)
+to a descriptive kebab-case name reflecting its actual content, e.g. `memory-subsystem-phase-0-implementation-plan.md`,
+keeping it in `.claude/plans/`.
+
 ## Architecture
 
 ### Core engine conventions (`engine/include/vlkypch.h`)

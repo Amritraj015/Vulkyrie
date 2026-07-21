@@ -34,12 +34,8 @@ namespace Vulkyrie {
             hingeAxisInBodyTwoLocalSpace = glm::normalize(glm::inverse(bodyTwoTransform.Rotation) * jointData.RotationAxisInWorldSpace);
         }
 
-        // These values were set by AddComponent before this constructor ran.
-        const f32 lowerLimit = hingeJointStore.GetLowerLimit(_entity);
-        const f32 upperLimit = hingeJointStore.GetUpperLimit(_entity);
-
-        VASSERT(lowerLimit <= f32(0) && lowerLimit >= f32(-2.0) * std::numbers::pi_v<f32>, "Invalid lower limit.");
-        VASSERT(upperLimit >= f32(0) && upperLimit <= f32(2.0) * std::numbers::pi_v<f32>, "Invalid upper limit.");
+        VASSERT(hingeJointStore.GetLowerLimit(_entity) <= f32(0) && hingeJointStore.GetLowerLimit(_entity) >= f32(-2.0) * std::numbers::pi_v<f32>, "Invalid lower limit.");
+        VASSERT(hingeJointStore.GetUpperLimit(_entity) >= f32(0) && hingeJointStore.GetUpperLimit(_entity) <= f32(2.0) * std::numbers::pi_v<f32>, "Invalid upper limit.");
 
         hingeJointStore.SetLocalSpaceAnchorPointOnBodyOne(_entity, anchorPointInBodyOneLocalSpace);
         hingeJointStore.SetLocalSpaceAnchorPointOnBodyTwo(_entity, anchorPointInBodyTwoLocalSpace);

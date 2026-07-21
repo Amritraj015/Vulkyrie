@@ -1,0 +1,55 @@
+// The logger must never heap-allocate: the memory tracker's global operator new/delete override
+// reports failures through it (VASSERT -> VERROR), and the shutdown memory report must not perturb
+// the very counters it is printing. These tests pin that guarantee, using the memory tracker itself
+// as the allocation detector.
+#include "core/logger.h"
+
+#include "memory/memory_tag.h"
+#include "memory/memory_tracker.h"
+
+#include <catch2/catch_test_macros.hpp>
+
+#include <cstdint>
+#include <string_view>
+
+using namespace Vulkyrie;
+
+namespace {
+
+    [[nodiscard]] i64 TotalAllocatedAcrossAllTags() {
+        i64 total = 0;
+        for (std::uint32_t index = 0; index < MemoryTagCount; ++index) {
+            total += MemoryTracker::TotalAllocated(static_cast<MemoryTag>(index));
+        }
+        return total;
+    }
+
+    [[nodiscard]] i64 LiveAllocationsAcrossAllTags() {
+        i64 total = 0;
+        for (std::uint32_t index = 0; index < MemoryTagCount; ++index) {
+            total += MemoryTracker::LiveAllocations(static_cast<MemoryTag>(index));
+        }
+        return total;
+    }
+
+} // namespace
+
+TEST_CASE("Console log sink formats and logs without heap allocation", "[core][logger]") {
+    REQUIRE(Logger::InitializeLogger(LoggerType::Console) == StatusCode::Successful);
+
+    // Warm-up: the first write to stdout may lazily set up libc stream buffers (malloc-based, so
+    // invisible to the tracker anyway); keep it out of the measured region regardless.
+    Logger::Log(LogLevel::Info, "logger allocation test: warm-up");
+
+    const i64 allocatedBefore = TotalAllocatedAcrossAllTags();
+    const i64 liveBefore = LiveAllocationsAcrossAllTags();
+
+    // A representative formatted message (mirrors the shutdown memory report's row format).
+    Logger::Log(LogLevel::Info, "{:<12}{:>14}{:>14}", std::string_view{ "Subsystem" }, i64{ 123456 }, i64{ 789 });
+
+    // A message wider than the sink's 512-byte stack buffer, forcing the truncation path.
+    Logger::Log(LogLevel::Info, "{:>600}", std::string_view{ "(truncation test)" });
+
+    REQUIRE(TotalAllocatedAcrossAllTags() == allocatedBefore);
+    REQUIRE(LiveAllocationsAcrossAllTags() == liveBefore);
+}

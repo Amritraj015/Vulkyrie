@@ -26,6 +26,8 @@ namespace Vulkyrie {
      * @param path The filesystem path to the model file
      */
     void OpenGLModel::LoadModel(std::filesystem::path const &path) {
+        VE_MEMORY_SCOPE(MemoryTag::Assets);
+
         // Initialize ASSIMP importer and load the model file
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(path.string(),

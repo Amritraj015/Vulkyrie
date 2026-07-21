@@ -1,5 +1,7 @@
 #include "core/file_log_sink.h"
 
+#include "core/log_formatting.h"
+
 namespace Vulkyrie {
 
     FileLogSink::~FileLogSink() {
@@ -55,13 +57,9 @@ namespace Vulkyrie {
         const auto remaining = static_cast<size_t>(end - out);
         const size_t available = remaining > 1 ? remaining - 1 : 0;
 
-        // Format message
-        const std::string msg = std::vformat(fmt, args);
-
-        const size_t copyLen = std::min(msg.size(), available);
-
-        std::memcpy(out, msg.data(), copyLen);
-        out += copyLen;
+        // Format the message directly into the remaining buffer space (truncating if needed) so
+        // logging never heap-allocates.
+        out += FormatToBuffer(out, available, fmt, args);
 
         // Append newline
         if (out < end) {

@@ -57,6 +57,12 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
+// Memory subsystem vocabulary: the thread-local scope stack, the VE_MEMORY_SCOPE macro, and the
+// linker anchor that keeps the global operator new/delete override from being dropped. Included
+// here (after the integer typedefs) so it is force-included into every engine translation unit.
+// Kept self-contained so it introduces no circular include with this precompiled header.
+#include "memory/memory_scope.h"
+
 // #if defined(VE_USE_DOUBLE_INSTEAD_OF_FLOAT)
 // typedef f64 decimal;
 // #else

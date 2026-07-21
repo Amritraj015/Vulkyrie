@@ -1,5 +1,7 @@
 #include "core/console_log_sink.h"
 
+#include "core/log_formatting.h"
+
 namespace Vulkyrie {
 
     constexpr std::string_view consoleLogPrefixes[] = {
@@ -12,23 +14,20 @@ namespace Vulkyrie {
         const std::string_view prefix = consoleLogPrefixes[static_cast<size_t>(logLevel)];
 
         auto out = buffer.data();
-        const auto end = buffer.data() + buffer.size();
 
         constexpr std::string_view reset = "\033[0m\n";
+        static_assert(LOG_BUFFER_SIZE > reset.size(), "Log buffer must have room for the ANSI reset sequence.");
 
         // Copy prefix, reserving space for the reset sequence
-        const size_t prefixSize = std::min(prefix.size(), buffer.size() > reset.size() ? buffer.size() - reset.size() : 0);
+        const size_t prefixSize = std::min(prefix.size(), buffer.size() - reset.size());
 
         std::memcpy(out, prefix.data(), prefixSize);
         out += prefixSize;
 
-        // Format message safely, then copy what fits into the remaining buffer space
-        const auto remaining = static_cast<size_t>(end - out);
-        const size_t available = remaining > reset.size() ? remaining - reset.size() : 0;
-        const std::string msg = std::vformat(fmt, args);
-        const size_t copyLen = std::min(msg.size(), available);
-        std::memcpy(out, msg.data(), copyLen);
-        out += copyLen;
+        // Format the message directly into the remaining buffer space (truncating if needed) so
+        // logging never heap-allocates.
+        const size_t available = buffer.size() - reset.size() - prefixSize;
+        out += FormatToBuffer(out, available, fmt, args);
 
         // Append ANSI reset + newline
         std::memcpy(out, reset.data(), reset.size());
