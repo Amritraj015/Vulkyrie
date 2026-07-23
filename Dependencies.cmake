@@ -2,6 +2,9 @@
 # Third-party dependencies (vcpkg provided ports)
 # ------------------------------------------------
 
+# Threads (std::jthread / std::thread need pthreads on Linux)
+find_package(Threads REQUIRED)
+
 # GLFW
 find_package(glfw3 CONFIG REQUIRED)
 

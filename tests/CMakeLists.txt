@@ -23,6 +23,11 @@ target_link_libraries(tests PRIVATE
     engine
 )
 
+# White-box tests (e.g. the Chase-Lev deque stress) exercise private engine headers directly.
+target_include_directories(tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/engine/src
+)
+
 # ---------------------------
 # CTest Integration
 # ---------------------------

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "core/logger.h"
+
 #include <cstdio>
+#include <mutex>
 
 namespace Vulkyrie {
     class FileLogSink final : public LogSink {
@@ -11,6 +13,8 @@ namespace Vulkyrie {
         ~FileLogSink() override;
 
     private:
+        /** @brief Guards `_logFile`'s lifetime and serializes writes from worker threads. */
+        std::mutex _mutex;
         FILE *_logFile;
     };
 } // namespace Vulkyrie

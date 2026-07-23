@@ -19,5 +19,6 @@ namespace Vulkyrie {
         UnsupportedGraphicsAPI,       // Unsupported graphics API error.
         FailedToInitializeGLAD,       // Failed to initialize GLAD error.
         FailedToCompileShaderProgram, // Failed to create shader program error.
+        JobSystemAlreadyInitialized,  // JobSystem::Initialize called while an explicit instance is already running.
     };
 } // namespace Vulkyrie

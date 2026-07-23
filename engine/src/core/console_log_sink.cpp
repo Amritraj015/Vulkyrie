@@ -35,6 +35,9 @@ namespace Vulkyrie {
 
         FILE *stream = (logLevel == LogLevel::Error || logLevel == LogLevel::Fatal) ? stderr : stdout;
 
+        // Formatting above used only this call's stack buffer; the lock makes the write and the
+        // flush atomic as a pair so concurrent worker-thread messages never interleave.
+        const std::lock_guard<std::mutex> lock(_mutex);
         std::fwrite(buffer.data(), 1, static_cast<size_t>(out - buffer.data()), stream);
         std::fflush(stream);
     }

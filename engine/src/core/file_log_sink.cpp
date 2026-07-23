@@ -5,13 +5,16 @@
 namespace Vulkyrie {
 
     FileLogSink::~FileLogSink() {
+        const std::lock_guard<std::mutex> lock(_mutex);
         if (nullptr != _logFile) {
             std::fflush(_logFile);
             std::fclose(_logFile);
+            _logFile = nullptr;
         }
     }
 
     StatusCode FileLogSink::Initialize() {
+        const std::lock_guard<std::mutex> lock(_mutex);
 #if defined(VE_PLATFORM_WINDOWS)
         fopen_s(&_logFile, "vulkyrie_log.txt", "a");
 #else
@@ -28,10 +31,6 @@ namespace Vulkyrie {
     constexpr std::string_view fileLogPrefixes[] = { "[FATAL]:", "[ERROR]:", "[WARN]:", "[INFO]:", "[DEBUG]:", "[TRACE]:" };
 
     void FileLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
-        if (_logFile == nullptr) {
-            return;
-        }
-
         std::array<char, LOG_BUFFER_SIZE> buffer;
 
         const std::string_view prefix = fileLogPrefixes[static_cast<size_t>(logLevel)];
@@ -66,6 +65,12 @@ namespace Vulkyrie {
             *out++ = '\n';
         }
 
+        // Formatting above used only this call's stack buffer; the lock guards `_logFile`'s
+        // lifetime and keeps concurrent worker-thread messages from interleaving.
+        const std::lock_guard<std::mutex> lock(_mutex);
+        if (nullptr == _logFile) {
+            return;
+        }
         std::fwrite(buffer.data(), 1, static_cast<size_t>(out - buffer.data()), _logFile);
     }
 
