@@ -460,8 +460,11 @@ namespace Vulkyrie {
             state->MaxEdges = std::max(config.MaxEdges, 1U);
             state->QueueCount = workerCount + 1U;
 
-            state->Jobs = Scope<Job[]>(new Job[state->MaxJobs]);
-            state->Edges = Scope<JobEdge[]>(new JobEdge[state->MaxEdges]);
+            // state->Jobs = Scope<Job[]>(new Job[state->MaxJobs]);
+            // state->Edges = Scope<JobEdge[]>(new JobEdge[state->MaxEdges]);
+
+            state->Jobs = CreateScope<Job[]>(state->MaxJobs);
+            state->Edges = CreateScope<JobEdge[]>(state->MaxEdges);
 
             state->Queues.reserve(state->QueueCount);
             for (u32 i = 0; i < state->QueueCount; ++i) {
@@ -565,9 +568,11 @@ namespace Vulkyrie {
 
         CreateState(config, workerCount, false);
 
-        // VINFO compiles out below the info log level, leaving `state` otherwise unused.
-        [[maybe_unused]] const JobSystemState &state = *gState.load(std::memory_order_acquire);
+#if defined(VULKYRIE_DEBUG)
+        const JobSystemState &state = *gState.load(std::memory_order_acquire);
         VINFO("Job system initialized: {} worker thread(s) + main, {} job slots, {} dependency edges.", workerCount, state.MaxJobs, state.MaxEdges);
+#endif
+
         return StatusCode::Successful;
     }
 
