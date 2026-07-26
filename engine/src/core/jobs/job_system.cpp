@@ -41,10 +41,17 @@ namespace Vulkyrie {
          * the stall timeout elapses — a diagnosable failure instead of a silent livelock. */
         class ExhaustionStallGuard {
         public:
-            void OnProgress() {
+            /** @brief Reports that the pool made — or could still make — progress, clearing any
+             * streak so the abort countdown restarts from zero at the next failure. */
+            VE_INLINE void OnProgress() {
                 _stalled = false;
             }
 
+            /** @brief Reports another failed attempt to drain the pool. The first one only starts
+             * the clock; the process aborts once `EXHAUSTION_STALL_TIMEOUT` has elapsed with no
+             * intervening `OnProgress`, so a momentary exhaustion is never mistaken for a stall.
+             * @param poolName The exhausted pool, named in the fatal diagnosis.
+             */
             void OnNoProgress(const char *poolName) {
                 const auto now = std::chrono::steady_clock::now();
 
@@ -134,6 +141,13 @@ namespace Vulkyrie {
          * inside one of its own jobs can never count that job as proof of system liveness. */
         thread_local u32 tExecutingDepth = 0;
 
+        /** @brief Draws this thread's next xorshift32 value, used to choose a steal victim. The
+         * seed is lazily derived from the thread id (and forced odd), so every thread starts its
+         * scan at a different queue — uncoordinated victim choice is what keeps idle workers from
+         * all piling onto queue 0. Since xorshift maps non-zero states to non-zero states, the
+         * generator can never collapse to its zero fixed point.
+         * @returns A non-zero pseudo-random value; callers reduce it modulo the queue count.
+         */
         [[nodiscard]] u32 NextStealRandom() {
             u32 x = tStealSeed;
 
@@ -149,10 +163,20 @@ namespace Vulkyrie {
             return x;
         }
 
+        /** @brief Packs a handle into the single `u64` the queues and edges carry:
+         * `{generation:32, index:32}`. Moving one word instead of a `JobHandle` keeps publishing a
+         * queue slot to a single relaxed atomic store, and carrying the generation along is what
+         * lets a dequeued entry be validated against its slot before it runs.
+         * @param handle The handle to pack.
+         * @returns The packed pair; unpack the index with `& JobIndexMask` and the generation with
+         * `>> 32`.
+         */
         [[nodiscard]] VE_INLINE u64 PackJobHandle(const JobHandle &handle) {
             return (static_cast<u64>(handle.Generation) << 32U) | (static_cast<u64>(handle.Index) & LOW_32_BITS);
         }
 
+        /** @brief Defined below; declared here because completion is mutually recursive
+         * (`ExecutePackedJob` -> `FinishJob` -> `OnJobReady` -> `ExecutePackedJob`). */
         void ExecutePackedJob(JobSystemState &state, u64 packedHandle);
 
         /** @brief Pushes a freed edge onto the ABA-tagged free list. */
@@ -352,6 +376,13 @@ namespace Vulkyrie {
             }
         }
 
+        /** @brief Runs one dispatched job to completion — the single place a job body executes,
+         * on whichever thread claimed it. Validates the packed handle against the slot, invokes
+         * the payload under the memory tag captured at submission, destroys the capture, then
+         * finishes the job, which frees the slot and releases its successors.
+         * @param state The state object of the job system.
+         * @param packedHandle The job to run, as produced by `PackJobHandle`.
+         */
         void ExecutePackedJob(JobSystemState &state, u64 packedHandle) {
             Job &job = state.Jobs[packedHandle & state.JobIndexMask];
 
@@ -373,7 +404,7 @@ namespace Vulkyrie {
                 job.Invoke(job.Payload);
             }
 
-            if (job.Destroy != nullptr) {
+            if (nullptr != job.Destroy) {
                 job.Destroy(job.Payload);
             }
 
@@ -386,6 +417,13 @@ namespace Vulkyrie {
             FinishJob(state, job);
         }
 
+        /** @brief Scans every queue for work an idle worker could still pick up. Deliberately
+         * approximate — it reads each deque's `LooksEmpty` heuristic — because the answer only
+         * ever avoids a needless sleep: the eventcount, never this scan, is what makes a missed
+         * wakeup impossible.
+         * @param state The state object of the job system.
+         * @returns True if any queue looked non-empty during the scan.
+         */
         [[nodiscard]] bool HasPendingWork(JobSystemState &state) {
             for (u32 i = 0; i < state.QueueCount; ++i) {
                 if (!state.Queues[i]->LooksEmpty()) {
@@ -414,6 +452,13 @@ namespace Vulkyrie {
             state.WorkSignal.wait(seen, std::memory_order_acquire);
         }
 
+        /** @brief Pins the calling worker to one core so its deque and the data its jobs touch
+         * stay in that core's caches. The index wraps at the machine's core count, so an
+         * oversubscribed pool shares cores instead of failing. Failure is a warning, never fatal —
+         * a restricted affinity mask (container, cgroup) is a normal deployment, not an error —
+         * and platforms with no affinity API simply run unpinned.
+         * @param core The core to pin to, taken modulo the core count.
+         */
         void PinCurrentThreadToCore(u32 core) {
             const u32 coreCount = std::max(std::thread::hardware_concurrency(), 1U);
 
@@ -436,14 +481,39 @@ namespace Vulkyrie {
 #endif
         }
 
-        void NameCurrentThread([[maybe_unused]] u32 workerIndex) {
+        /** @brief Gives the calling worker a debugger-visible name (`VlkyJob<index>`). Purely
+         * diagnostic, so naming is best-effort and failures are ignored — unlike core pinning,
+         * which warns — and a platform (or an OS build) without the API simply keeps the thread's
+         * default name.
+         * @param workerIndex The worker's queue index; becomes the name's suffix. */
+        void NameCurrentThread(u32 workerIndex) {
 #if defined(VE_PLATFORM_LINUX)
+
+            // pthread caps the name at 16 bytes *including* the terminator: at most 15 characters
+            // go into a value-initialized buffer, which keeps the NUL whatever the index is.
             std::array<char, 16> name{};
             std::format_to_n(name.data(), static_cast<std::ptrdiff_t>(name.size() - 1U), "VlkyJob{}", workerIndex);
             pthread_setname_np(pthread_self(), name.data());
+
+#elif defined(VE_PLATFORM_WINDOWS) && defined(NTDDI_VERSION) && defined(NTDDI_WIN10_RS1) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+
+            // Windows imposes no length limit; the buffer mirrors the Linux branch so both stay
+            // allocation-free. MAX_WORKER_THREADS is 128, so "VlkyJob128" fits with room to spare.
+            std::array<wchar_t, 16> name{};
+            std::format_to_n(name.data(), static_cast<std::ptrdiff_t>(name.size() - 1U), L"VlkyJob{}", workerIndex);
+            SetThreadDescription(GetCurrentThread(), name.data());
+
 #endif
         }
 
+        /** @brief A pool worker's entire life. Claims its queue index, names and (optionally) pins
+         * the thread, then loops: run whatever job it finds in any queue, and when a search comes
+         * up empty, yield-spin for `SPIN_ROUNDS_BEFORE_SLEEP` rounds before futex-sleeping on the
+         * eventcount — cheap to wake for bursty work, free to leave idle. Returns (ending the
+         * thread) once `DestroyState` signals the stop token.
+         * @param stopToken Cancellation signal delivered at shutdown.
+         * @param workerIndex This worker's queue index (1..N; index 0 belongs to the main thread).
+         */
         void WorkerMain(const std::stop_token &stopToken, u32 workerIndex) {
             JobSystemState &state = *gState.load(std::memory_order_acquire);
 

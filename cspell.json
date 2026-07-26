@@ -25,6 +25,7 @@
         "Framebufferfv",
         "Framebufferiv",
         "framegraph",
+        "futex",
         "gbuffer",
         "glfw",
         "Hodgman",
@@ -39,6 +40,7 @@
         "Minkowski",
         "MSVC",
         "MULTISAMPLE",
+        "NTDDI",
         "OPENGL",
         "Parameteri",
         "Parameteriv",
@@ -58,7 +60,8 @@
         "VLKY",
         "Voronoi",
         "vulky",
-        "Vulkyrie"
+        "Vulkyrie",
+        "xorshift"
     ],
     "flagWords": [],
     "language": "en"
