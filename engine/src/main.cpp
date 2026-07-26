@@ -3,14 +3,15 @@
 #include "core/jobs/job_system.h"
 #include "memory/memory_system.h"
 
+#define VE_TERMINATE_ON_FAILURE(expr)                                                                                                                          \
+    do {                                                                                                                                                       \
+        Vulkyrie::StatusCode _s = (expr);                                                                                                                      \
+        if (Vulkyrie::StatusCode::Successful != _s) return std::to_underlying(_s);                                                                             \
+    } while (false)
+
 int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     // Initialize the logger sub-system.
-    auto statusCode = Vulkyrie::Logger::InitializeLogger(Vulkyrie::LoggerType::Console);
-
-    // If logger initialization failed, return the error code.
-    if (Vulkyrie::StatusCode::Successful != statusCode) {
-        return std::to_underlying(statusCode);
-    }
+    VE_TERMINATE_ON_FAILURE(Vulkyrie::Logger::InitializeLogger(Vulkyrie::LoggerType::Console));
 
     // Initialize the memory sub-system (attribution already works via static storage; this sets up
     // reporting and, in later phases, budgets and third-party allocator hooks).
@@ -19,7 +20,7 @@ int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     // Initialize the job sub-system (worker pool + task graph). Must come after the memory
     // sub-system so the pools are tracked, and shut down before it so workers are joined before
     // the shutdown report is emitted.
-    Vulkyrie::JobSystem::Initialize();
+    VE_TERMINATE_ON_FAILURE(Vulkyrie::JobSystem::Initialize());
 
     // Initialize the Vulkyrie Application.
     auto application = CreateApplication();
@@ -32,7 +33,7 @@ int main([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     VLKY_PROFILE_BEGIN_SESSION("Game Loop", "profile_game_loop.json");
 
     // Run the application and get its status code.
-    statusCode = application->Run();
+    Vulkyrie::StatusCode statusCode = application->Run();
 
     VLKY_PROFILE_END_SESSION();
 

@@ -4,8 +4,8 @@
 
 #define RETURN_ON_FAILURE(expr)                                                                                                                                \
     do {                                                                                                                                                       \
-        StatusCode _s = (expr);                                                                                                                                \
-        if (_s != StatusCode::Successful) return _s;                                                                                                           \
+        Vulkyrie::StatusCode _s = (expr);                                                                                                                      \
+        if (Vulkyrie::StatusCode::Successful != _s) return _s;                                                                                                 \
     } while (false)
 
 namespace Vulkyrie {

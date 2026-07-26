@@ -60,7 +60,7 @@ namespace Vulkyrie {
                     VFATAL("JobSystem: {} exhausted and no job was dispatched (queued or executing) for {} seconds - "
                            "nothing can drain the pool (jobs were created but never scheduled, or the pool is smaller "
                            "than the graph being built). Raise the pool size in JobSystemConfig or schedule the graph "
-                           "as it is built. Aborting instead of livelocking.",
+                           "as it is built. Aborting to prevent livelock.",
                            poolName,
                            EXHAUSTION_STALL_TIMEOUT.count());
                     std::abort();
@@ -135,7 +135,7 @@ namespace Vulkyrie {
 
         [[nodiscard]] u32 NextStealRandom() {
             u32 x = tStealSeed;
-            if (x == 0) {
+            if (0 == x) {
                 x = static_cast<u32>(std::hash<std::thread::id>{}(std::this_thread::get_id()) & LOW_32_BITS) | 1U;
             }
             x ^= x << 13U;
@@ -395,7 +395,7 @@ namespace Vulkyrie {
 #if defined(VE_PLATFORM_LINUX)
             cpu_set_t cpuSet;
             CPU_ZERO(&cpuSet);
-            CPU_SET(static_cast<int>(core % coreCount), &cpuSet);
+            CPU_SET(static_cast<i32>(core % coreCount), &cpuSet);
             if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuSet) != 0) {
                 VWARN("JobSystem: failed to pin worker to core {}.", core % coreCount);
             }
@@ -556,12 +556,13 @@ namespace Vulkyrie {
                 VWARN("JobSystem::Initialize called while already initialized - call Shutdown first.");
                 return StatusCode::JobSystemAlreadyInitialized;
             }
+
             // An implicit synchronous instance is a bootstrap convenience; replace it silently.
             DestroyState();
         }
 
         u32 workerCount = config.WorkerCount;
-        if (workerCount == 0) {
+        if (0 == workerCount) {
             workerCount = std::max(std::thread::hardware_concurrency(), 1U) - 1U;
         }
         workerCount = std::min(workerCount, MAX_WORKER_THREADS);
@@ -579,6 +580,8 @@ namespace Vulkyrie {
     void JobSystem::Shutdown() {
         const std::lock_guard<std::mutex> lock(gLifecycleMutex);
         DestroyState();
+
+        VINFO("Job system shutdown successfully.");
     }
 
     bool JobSystem::IsInitialized() {
