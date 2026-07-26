@@ -125,6 +125,33 @@ TEST_CASE("A dependency on an already-finished job is satisfied immediately", "[
     REQUIRE(ran.load(std::memory_order_relaxed));
 }
 
+TEST_CASE("Two edges between the same pair must both be released before the successor runs", "[jobs]") {
+    std::atomic<bool> aRan{ false };
+    std::atomic<bool> bSawA{ false };
+    std::atomic<u32> bRuns{ 0 };
+
+    const JobHandle a = JobSystem::Create([&aRan] { aRan.store(true, std::memory_order_release); });
+    const JobHandle b = JobSystem::Create([&aRan, &bSawA, &bRuns] {
+        bSawA.store(aRan.load(std::memory_order_acquire), std::memory_order_relaxed);
+        bRuns.fetch_add(1, std::memory_order_relaxed);
+    });
+
+    // The same dependency declared twice — what a graph builder that does not deduplicate its
+    // edges produces. B's pending count is 3 (two edges plus Create's own +1) and A's successor
+    // list holds two entries pointing at B, so the count and the list have to agree: the first
+    // release must not dispatch B, and the second must dispatch it exactly once.
+    JobSystem::AddDependency(b, a);
+    JobSystem::AddDependency(b, a);
+
+    JobSystem::Schedule(b);
+    JobSystem::Schedule(a);
+
+    JobSystem::Wait(b);
+
+    REQUIRE(bSawA.load(std::memory_order_relaxed));
+    REQUIRE(bRuns.load(std::memory_order_relaxed) == 1);
+}
+
 TEST_CASE("Fan-in and fan-out edges all resolve", "[jobs]") {
     constexpr u32 kFan = 64;
 

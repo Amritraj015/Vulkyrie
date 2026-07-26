@@ -26,7 +26,7 @@ find_package(OpenAL CONFIG REQUIRED)
 # STB
 find_package(Stb REQUIRED)
 
-# Catch2
-if(VULKYRIE_BUILD_TESTS)
+# Catch2 (test framework, and the harness the benchmarks are written against)
+if(VULKYRIE_BUILD_TESTS OR VULKYRIE_BUILD_BENCHMARKS)
     find_package(Catch2 CONFIG REQUIRED)
 endif()

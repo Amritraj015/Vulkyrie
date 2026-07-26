@@ -12,6 +12,7 @@ option(VULKYRIE_BUILD_EXAMPLES "Build Vulkyrie examples" ON)
 option(VULKYRIE_BUILD_CLI "Build vulky-cli" ON)
 option(VULKYRIE_BUILD_EDITOR "Build Vulkyrie Editor" ON)
 option(VULKYRIE_BUILD_TESTS "Build Vulkyrie tests" ON)
+option(VULKYRIE_BUILD_BENCHMARKS "Build Vulkyrie benchmarks" OFF)
 option(VULKYRIE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json" ON)
 
 # -------------------------------------
@@ -65,4 +66,13 @@ endif()
 # -------------------------------------
 if(VULKYRIE_BUILD_TESTS)
     add_subdirectory(tests)
+endif()
+
+# -------------------------------------
+# Build benchmarks
+# -------------------------------------
+# Off by default: benchmarks only mean anything in a Release build, so paying for them in every
+# Debug configure would be pure friction. The `benchmarks-*` and `all-*` presets turn them on.
+if(VULKYRIE_BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
 endif()

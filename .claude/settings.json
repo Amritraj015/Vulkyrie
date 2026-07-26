@@ -1,19 +1,19 @@
 {
-  "plansDirectory": ".claude/plans",
-  "permissions": {
-    "allow": [
-      "Bash(cmake --preset *)",
-      "Bash(cmake --build --preset *)",
-      "Bash(ctest --preset *)",
-      "Bash(ctest --test-dir *)",
-      "Bash(clang-format --dry-run *)",
-      "Bash(clang-format --version)",
-      "Bash(clang-tidy --version)",
-      "Bash(git status)",
-      "Bash(git diff *)",
-      "Bash(git log *)",
-      "Bash(git show *)",
-      "Bash(git branch *)"
-    ]
-  }
+    "plansDirectory": ".claude/plans",
+    "permissions": {
+        "allow": [
+            "Bash(cmake --preset *)",
+            "Bash(cmake --build --preset *)",
+            "Bash(ctest --preset *)",
+            "Bash(ctest --test-dir *)",
+            "Bash(clang-format --dry-run *)",
+            "Bash(clang-format --version)",
+            "Bash(clang-tidy --version)",
+            "Bash(git status)",
+            "Bash(git diff *)",
+            "Bash(git log *)",
+            "Bash(git show *)",
+            "Bash(git branch *)"
+        ]
+    }
 }

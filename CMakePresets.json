@@ -65,7 +65,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -98,6 +99,18 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "benchmarks-release",
+      "displayName": "Benchmarks (Release)",
+      "inherits": "base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "gcc-all-release",
@@ -112,7 +125,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -128,7 +142,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -207,6 +222,23 @@
       }
     },
     {
+      "name": "gcc-benchmarks-release",
+      "displayName": "(GCC) - Benchmarks (Release)",
+      "inherits": "gcc-base-release",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
       "name": "gcc-tests-release-win",
       "displayName": "(GCC) - Tests (Release)",
       "inherits": "gcc-base-release-win",
@@ -221,6 +253,23 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "gcc-benchmarks-release-win",
+      "displayName": "(GCC) - Benchmarks (Release)",
+      "inherits": "gcc-base-release-win",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "clang-all-release",
@@ -230,7 +279,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -263,6 +313,18 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "clang-benchmarks-release",
+      "displayName": "(Clang) - Benchmarks (Release)",
+      "inherits": "clang-base-release",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "msvc-all-release",
@@ -277,7 +339,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -323,6 +386,23 @@
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
         "VULKYRIE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "msvc-benchmarks-release",
+      "displayName": "(MSVC) - Benchmarks (Release)",
+      "inherits": "msvc-base-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
 
@@ -384,7 +464,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -417,6 +498,18 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "benchmarks-debug",
+      "displayName": "Benchmarks (Debug)",
+      "inherits": "base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "gcc-all-debug",
@@ -431,7 +524,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -447,7 +541,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -526,6 +621,23 @@
       }
     },
     {
+      "name": "gcc-benchmarks-debug",
+      "displayName": "(GCC) - Benchmarks (Debug)",
+      "inherits": "gcc-base-debug",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
       "name": "gcc-tests-debug-win",
       "displayName": "(GCC) - Tests (Debug)",
       "inherits": "gcc-base-debug-win",
@@ -540,6 +652,23 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "gcc-benchmarks-debug-win",
+      "displayName": "(GCC) - Benchmarks (Debug)",
+      "inherits": "gcc-base-debug-win",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "clang-all-debug",
@@ -549,7 +678,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -582,6 +712,18 @@
         "VULKYRIE_BUILD_TESTS": "ON"
       }
     },
+    {
+      "name": "clang-benchmarks-debug",
+      "displayName": "(Clang) - Benchmarks (Debug)",
+      "inherits": "clang-base-debug",
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
+    },
 
     {
       "name": "msvc-all-debug",
@@ -596,7 +738,8 @@
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
-        "VULKYRIE_BUILD_TESTS": "ON"
+        "VULKYRIE_BUILD_TESTS": "ON",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -643,6 +786,23 @@
         "VULKYRIE_BUILD_CLI": "OFF",
         "VULKYRIE_BUILD_TESTS": "ON"
       }
+    },
+    {
+      "name": "msvc-benchmarks-debug",
+      "displayName": "(MSVC) - Benchmarks (Debug)",
+      "inherits": "msvc-base-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VULKYRIE_BUILD_EXAMPLES": "OFF",
+        "VULKYRIE_BUILD_EDITOR": "OFF",
+        "VULKYRIE_BUILD_CLI": "OFF",
+        "VULKYRIE_BUILD_TESTS": "OFF",
+        "VULKYRIE_BUILD_BENCHMARKS": "ON"
+      }
     }
   ],
 
@@ -651,6 +811,7 @@
     { "name": "examples-debug", "configurePreset": "examples-debug" },
     { "name": "cli-debug", "configurePreset": "cli-debug" },
     { "name": "tests-debug", "configurePreset": "tests-debug" },
+    { "name": "benchmarks-debug", "configurePreset": "benchmarks-debug" },
 
     {
       "name": "gcc-all-debug",
@@ -682,6 +843,15 @@
     {
       "name": "gcc-tests-debug",
       "configurePreset": "gcc-tests-debug",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "gcc-benchmarks-debug",
+      "configurePreset": "gcc-benchmarks-debug",
       "condition": {
         "type": "notEquals",
         "lhs": "${hostSystemName}",
@@ -725,6 +895,15 @@
         "rhs": "Windows"
       }
     },
+    {
+      "name": "gcc-benchmarks-debug-win",
+      "configurePreset": "gcc-benchmarks-debug-win",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
 
     { "name": "clang-all-debug", "configurePreset": "clang-all-debug" },
     {
@@ -733,6 +912,7 @@
     },
     { "name": "clang-cli-debug", "configurePreset": "clang-cli-debug" },
     { "name": "clang-tests-debug", "configurePreset": "clang-tests-debug" },
+    { "name": "clang-benchmarks-debug", "configurePreset": "clang-benchmarks-debug" },
 
     {
       "name": "msvc-all-debug",
@@ -770,11 +950,21 @@
         "rhs": "Windows"
       }
     },
+    {
+      "name": "msvc-benchmarks-debug",
+      "configurePreset": "msvc-benchmarks-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
 
     { "name": "all-release", "configurePreset": "all-release" },
     { "name": "examples-release", "configurePreset": "examples-release" },
     { "name": "cli-release", "configurePreset": "cli-release" },
     { "name": "tests-release", "configurePreset": "tests-release" },
+    { "name": "benchmarks-release", "configurePreset": "benchmarks-release" },
 
     {
       "name": "gcc-all-release",
@@ -806,6 +996,15 @@
     {
       "name": "gcc-tests-release",
       "configurePreset": "gcc-tests-release",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "gcc-benchmarks-release",
+      "configurePreset": "gcc-benchmarks-release",
       "condition": {
         "type": "notEquals",
         "lhs": "${hostSystemName}",
@@ -849,6 +1048,15 @@
         "rhs": "Windows"
       }
     },
+    {
+      "name": "gcc-benchmarks-release-win",
+      "configurePreset": "gcc-benchmarks-release-win",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
 
     { "name": "clang-all-release", "configurePreset": "clang-all-release" },
     {
@@ -857,6 +1065,7 @@
     },
     { "name": "clang-cli-release", "configurePreset": "clang-cli-release" },
     { "name": "clang-tests-release", "configurePreset": "clang-tests-release" },
+    { "name": "clang-benchmarks-release", "configurePreset": "clang-benchmarks-release" },
 
     {
       "name": "msvc-all-release",
@@ -888,6 +1097,15 @@
     {
       "name": "msvc-tests-release",
       "configurePreset": "msvc-tests-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "msvc-benchmarks-release",
+      "configurePreset": "msvc-benchmarks-release",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

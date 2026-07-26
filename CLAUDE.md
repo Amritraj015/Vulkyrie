@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Vulkyrie is a C++26 game engine (work in progress) with its own ECS, a custom rigid-body physics engine, and an
 OpenGL renderer (Vulkan backend planned). The repo builds several targets on top of the `engine` static library:
-`editor` (ImGui-based), `examples/sandbox` and `examples/asteroids`, `vulky-cli`, `runtime`, and `tests` (Catch2).
+`editor` (ImGui-based), `examples/sandbox` and `examples/asteroids`, `vulky-cli`, `runtime`, `tests` (Catch2), and
+`benchmarks` (Catch2 microbenchmarks).
 
 ## Build commands
 
@@ -29,7 +30,8 @@ cmake --build --preset <preset-name>
 Preset names follow `[<compiler>-]<target-set>-<config>[-win]`:
 - Compiler prefix: none (system default), `gcc-`, `clang-`, `msvc-` (MSVC presets must be run from an x64 Developer
   shell; `-win` variants are GCC/MinGW on Windows).
-- Target set: `all` (engine + editor + examples + CLI + tests), `examples`, `cli`, `tests`.
+- Target set: `all` (engine + editor + examples + CLI + tests + benchmarks), `examples`, `cli`, `tests`,
+  `benchmarks`.
 - Config: `debug`, `release`.
 
 Day-to-day local development normally uses **`clang-all-debug`** (this is the default VS Code build task).
@@ -44,6 +46,7 @@ cmake --build build
 ### Build options (`cmake -D<OPTION>=OFF/ON`)
 
 `VULKYRIE_BUILD_EXAMPLES`, `VULKYRIE_BUILD_EDITOR`, `VULKYRIE_BUILD_CLI`, `VULKYRIE_BUILD_TESTS` (all default ON),
+`VULKYRIE_BUILD_BENCHMARKS` (default OFF; enabled by the `benchmarks-*` and `all-*` presets),
 `VULKYRIE_EXPORT_COMPILE_COMMANDS` (default ON; copies `compile_commands.json` to the repo root for clangd/clang-tidy).
 
 ### Running built binaries
@@ -67,6 +70,21 @@ build/<preset>/tests/tests --list-tests            # list all available test cas
 ```
 
 Test sources live under `tests/src/`, mirroring the engine's module layout (`core/`, `physics/`, `renderer/`, ...).
+
+### Benchmarks
+
+Catch2 microbenchmarks in a separate `benchmarks` target, deliberately **not** registered with CTest (they are a
+measuring tool, not a pass/fail gate). Sources live under `benchmarks/src/`, mirroring the same module layout, with
+shared scaffolding in `benchmarks/src/support/` (`BusyWork`, `JobSystemScope`, `ScalingWorkerCounts`).
+
+```bash
+cmake --preset clang-benchmarks-release && cmake --build --preset clang-benchmarks-release
+build/clang-benchmarks-release/benchmarks/benchmarks            # all benchmarks
+build/clang-benchmarks-release/benchmarks/benchmarks "[jobs]"   # one subsystem
+```
+
+Always measure a Release build; `all-debug` builds the target only so it cannot rot. See `benchmarks/README.md`
+for the conventions when adding benchmarks for another subsystem.
 
 ### Formatting and static analysis
 

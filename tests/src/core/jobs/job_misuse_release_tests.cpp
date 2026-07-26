@@ -6,6 +6,8 @@
 
 #include "core/jobs/job_system.h"
 
+#include "jobs_test_support.h"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
@@ -131,6 +133,56 @@ TEST_CASE("Release: a pool fully in flight on workers is not misdiagnosed as a p
     JobSystemConfig config{};
     config.PinToCores = false;
     JobSystem::Initialize(config);
+}
+
+TEST_CASE("Release: an exhausted edge pool drains via assist instead of livelocking", "[jobs]") {
+    // The edge-pool twin of the test above. AllocateEdge has its own exhaustion-recovery loop, and
+    // edges recycle on a different schedule from slots — only when a *finished* predecessor walks
+    // its successor list — so the job-pool test says nothing about it. Here the slots are plentiful
+    // and only MaxEdges is scarce, which pins the recovery to the edge path.
+    const Tests::JobSystemConfigRestorer restorer{};
+
+    JobSystem::Shutdown();
+    {
+        JobSystemConfig config{};
+        config.WorkerCount = 2;
+        config.PinToCores = false;
+        config.MaxJobs = 512; // Comfortably more than the 200 slots this test holds at once.
+        config.MaxEdges = 8;  // Far fewer than the 100 dependencies it declares.
+        JobSystem::Initialize(config);
+    }
+
+    constexpr u32 kPairs = 100;
+    static constexpr auto kHeadDuration = std::chrono::milliseconds(1);
+
+    std::atomic<u32> executed{ 0 };
+    std::vector<JobHandle> tails;
+    tails.reserve(kPairs);
+
+    for (u32 i = 0; i < kPairs; ++i) {
+        // The heads are deliberately slow. Edges come back only when a head *finishes*, so without
+        // this the two workers would recycle the eight edges faster than the loop consumes them and
+        // the recovery path under test would never be entered at all.
+        const JobHandle head = JobSystem::Create([&executed] {
+            std::this_thread::sleep_for(kHeadDuration);
+            executed.fetch_add(1, std::memory_order_relaxed);
+        });
+        const JobHandle tail = JobSystem::Create([&executed] { executed.fetch_add(1, std::memory_order_relaxed); });
+
+        // Each pair burns an edge held until its head runs: from the ninth pair on, AddDependency
+        // finds the pool empty and has to assist-drain the backlog to get one.
+        JobSystem::AddDependency(tail, head);
+        JobSystem::Schedule(head);
+        JobSystem::Schedule(tail);
+
+        tails.push_back(tail);
+    }
+
+    for (const JobHandle &handle : tails) {
+        JobSystem::Wait(handle);
+    }
+
+    REQUIRE(executed.load(std::memory_order_relaxed) == 2U * kPairs);
 }
 
 // Manual-only (hidden tag, excluded from default and "[jobs]" runs): the genuine-stall direction

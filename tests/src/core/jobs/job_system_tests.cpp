@@ -77,6 +77,31 @@ TEST_CASE("Job payloads up to the inline capacity are stored and invoked correct
     REQUIRE(sum.load(std::memory_order_relaxed) == expected);
 }
 
+TEST_CASE("A capture of exactly JOB_PAYLOAD_CAPACITY bytes still fits inline", "[jobs]") {
+    // The boundary itself: 56 bytes of data plus one 8-byte reference is exactly the inline
+    // capacity, one byte short of the static_assert in Job::Emplace. If the slot layout ever
+    // regresses (padding, an extra dispatch pointer inside the payload line), this is where it
+    // shows up as a compile error rather than in a caller's capture months later.
+    std::array<u8, 56> data{};
+    std::iota(data.begin(), data.end(), u8{ 1 });
+    const u64 expected = std::accumulate(data.begin(), data.end(), u64{ 0 });
+
+    std::atomic<u64> sum{ 0 };
+    const auto body = [data, &sum] {
+        u64 total = 0;
+        for (const u8 value : data) {
+            total += value;
+        }
+        sum.store(total, std::memory_order_relaxed);
+    };
+    static_assert(sizeof(body) == JOB_PAYLOAD_CAPACITY, "This test only means something if the capture sits exactly at the inline limit.");
+
+    const JobHandle handle = JobSystem::Run(body);
+    JobSystem::Wait(handle);
+
+    REQUIRE(sum.load(std::memory_order_relaxed) == expected);
+}
+
 TEST_CASE("Non-trivially-destructible captures are destroyed after execution", "[jobs]") {
     auto shared = CreateRef<i32>(42);
     std::atomic<i32> seen{ 0 };
