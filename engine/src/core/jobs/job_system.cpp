@@ -47,6 +47,7 @@ namespace Vulkyrie {
 
             void OnNoProgress(const char *poolName) {
                 const auto now = std::chrono::steady_clock::now();
+
                 if (!_stalled) {
                     _stalled = true;
                     _stallStart = now;
@@ -135,13 +136,16 @@ namespace Vulkyrie {
 
         [[nodiscard]] u32 NextStealRandom() {
             u32 x = tStealSeed;
+
             if (0 == x) {
                 x = static_cast<u32>(std::hash<std::thread::id>{}(std::this_thread::get_id()) & LOW_32_BITS) | 1U;
             }
+
             x ^= x << 13U;
             x ^= x >> 17U;
             x ^= x << 5U;
             tStealSeed = x;
+
             return x;
         }
 
@@ -154,9 +158,11 @@ namespace Vulkyrie {
         /** @brief Pushes a freed edge onto the ABA-tagged free list. */
         void FreeEdge(JobSystemState &state, u32 edgeIndex) {
             u64 head = state.EdgeFreeListHead.load(std::memory_order_relaxed);
+
             for (;;) {
                 state.Edges[edgeIndex].Next.store(static_cast<u32>(head & LOW_32_BITS), std::memory_order_relaxed);
                 const u64 newHead = (((head >> 32U) + 1U) << 32U) | static_cast<u64>(edgeIndex);
+
                 if (state.EdgeFreeListHead.compare_exchange_weak(head, newHead, std::memory_order_release, std::memory_order_relaxed)) {
                     return;
                 }
@@ -167,20 +173,25 @@ namespace Vulkyrie {
          * @returns False if no work was available anywhere. */
         bool AssistOne(JobSystemState &state) {
             const i32 own = tQueueIndex;
+
             if (own >= 0 && static_cast<u32>(own) < state.QueueCount) {
                 if (const auto handle = state.Queues[static_cast<std::size_t>(own)]->TryPop()) {
                     ExecutePackedJob(state, *handle);
+
                     return true;
                 }
             }
 
             const u32 queueCount = state.QueueCount;
             const u32 start = NextStealRandom() % queueCount;
+
             for (u32 i = 0; i < queueCount; ++i) {
                 const u32 victim = (start + i) % queueCount;
+
                 if (own >= 0 && victim == static_cast<u32>(own)) {
                     continue;
                 }
+
                 if (const auto handle = state.Queues[victim]->TrySteal()) {
                     ExecutePackedJob(state, *handle);
                     return true;
@@ -211,14 +222,17 @@ namespace Vulkyrie {
          * guard quiet without ever freeing an edge. */
         [[nodiscard]] bool AnyJobDispatchedElsewhere(const JobSystemState &state) {
             u32 dispatched = 0;
+
             for (u32 i = 0; i < state.MaxJobs; ++i) {
                 const Job &job = state.Jobs[i];
+
                 if (!job.Finished.load(std::memory_order_acquire) && job.PendingDependencies.load(std::memory_order_relaxed) == 0) {
                     if (++dispatched > tExecutingDepth) {
                         return true;
                     }
                 }
             }
+
             return false;
         }
 
@@ -226,8 +240,10 @@ namespace Vulkyrie {
          * which frees edges) until one is available — always correct, loud in debug. */
         [[nodiscard]] u32 AllocateEdge(JobSystemState &state) {
             ExhaustionStallGuard stallGuard;
+
             for (;;) {
                 u64 head = state.EdgeFreeListHead.load(std::memory_order_acquire);
+
                 while (static_cast<u32>(head & LOW_32_BITS) != INVALID_JOB_EDGE) {
                     const auto edgeIndex = static_cast<u32>(head & LOW_32_BITS);
                     const u32 next = state.Edges[edgeIndex].Next.load(std::memory_order_relaxed);
@@ -238,9 +254,11 @@ namespace Vulkyrie {
                 }
 
                 const u64 fresh = state.NextEdge.fetch_add(1, std::memory_order_relaxed);
+
                 if (fresh < state.MaxEdges) {
                     return static_cast<u32>(fresh);
                 }
+
                 state.NextEdge.store(state.MaxEdges, std::memory_order_relaxed);
 
                 // Edges only recycle when a *finished* predecessor walks its successor list, so —
@@ -250,12 +268,15 @@ namespace Vulkyrie {
                 // stack for the whole stall window aborts (see AnyJobDispatchedElsewhere for the
                 // accepted blind spot at this site).
                 VASSERT(false, "Job edge pool exhausted ({} edges) - raise JobSystemConfig::MaxEdges.", state.MaxEdges);
+
                 const bool assisted = AssistOne(state);
+
                 if (assisted || AnyJobDispatchedElsewhere(state)) {
                     stallGuard.OnProgress();
                 } else {
                     stallGuard.OnNoProgress("dependency-edge pool (MaxEdges)");
                 }
+
                 if (!assisted) {
                     std::this_thread::yield();
                 }
@@ -283,6 +304,7 @@ namespace Vulkyrie {
             }
 
             const i32 own = tQueueIndex;
+
             if (own >= 0 && static_cast<u32>(own) < state.QueueCount && state.Queues[static_cast<std::size_t>(own)]->TryPush(packedHandle)) {
                 WakeOne(state);
                 return;
@@ -305,6 +327,7 @@ namespace Vulkyrie {
             // upstream contract violation (e.g. AddDependency after the successor was dispatched).
             // Without the loop guard the sentinel would be used as a pool index (wild OOB read).
             VASSERT(edgeIndex != JOB_EDGE_LIST_CLOSED, "FinishJob on an already-finished job - the job ran twice.");
+
             while (edgeIndex != INVALID_JOB_EDGE && edgeIndex != JOB_EDGE_LIST_CLOSED) {
                 JobEdge &edge = state.Edges[edgeIndex];
                 const u32 next = edge.Next.load(std::memory_order_relaxed);
@@ -369,6 +392,7 @@ namespace Vulkyrie {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -377,6 +401,7 @@ namespace Vulkyrie {
          * bumps it too via the callback, so shutdown can never hang here. */
         void IdleWait(JobSystemState &state, const std::stop_token &stopToken) {
             const u32 seen = state.WorkSignal.load(std::memory_order_acquire);
+
             if (HasPendingWork(state) || stopToken.stop_requested()) {
                 return;
             }
@@ -424,11 +449,13 @@ namespace Vulkyrie {
 
             tQueueIndex = static_cast<i32>(workerIndex);
             NameCurrentThread(workerIndex);
+
             if (state.Config.PinToCores) {
                 PinCurrentThreadToCore(workerIndex);
             }
 
             u32 failedRounds = 0;
+
             while (!stopToken.stop_requested()) {
                 if (AssistOne(state)) {
                     failedRounds = 0;
@@ -467,6 +494,7 @@ namespace Vulkyrie {
             state->Edges = CreateScope<JobEdge[]>(state->MaxEdges);
 
             state->Queues.reserve(state->QueueCount);
+
             for (u32 i = 0; i < state->QueueCount; ++i) {
                 // Each queue holds the whole pool, so TryPush can only fail on a logic error.
                 state->Queues.push_back(CreateScope<JobQueue>(static_cast<std::size_t>(state->MaxJobs)));
@@ -478,6 +506,7 @@ namespace Vulkyrie {
             gState.store(state, std::memory_order_release);
 
             state->Workers.reserve(workerCount);
+
             for (u32 i = 1; i <= workerCount; ++i) {
                 state->Workers.emplace_back([i](const std::stop_token &stopToken) { WorkerMain(stopToken, i); });
             }
@@ -487,18 +516,22 @@ namespace Vulkyrie {
          * Caller must hold the lifecycle mutex. */
         void DestroyState() {
             JobSystemState *state = gState.load(std::memory_order_acquire);
-            if (state == nullptr) {
+
+            if (nullptr == state) {
                 return;
             }
 
             for (std::jthread &worker : state->Workers) {
                 worker.request_stop();
             }
+
             state->WorkSignal.fetch_add(1, std::memory_order_release);
             state->WorkSignal.notify_all();
+
             for (std::jthread &worker : state->Workers) {
                 worker.join();
             }
+
             state->Workers.clear();
 
 #if defined(VULKYRIE_DEBUG)
@@ -523,11 +556,13 @@ namespace Vulkyrie {
             }
 
             const std::lock_guard<std::mutex> lock(gLifecycleMutex);
+
             if (JobSystemState *state = gState.load(std::memory_order_acquire)) {
                 return *state;
             }
 
             CreateState(JobSystemConfig{}, 0, true);
+
             return *gState.load(std::memory_order_acquire);
         }
 
@@ -539,6 +574,7 @@ namespace Vulkyrie {
             }
 
             Job &job = state.Jobs[handle.Index];
+
             if (job.Generation.load(std::memory_order_acquire) != handle.Generation) {
                 return nullptr;
             }
@@ -562,9 +598,11 @@ namespace Vulkyrie {
         }
 
         u32 workerCount = config.WorkerCount;
+
         if (0 == workerCount) {
             workerCount = std::max(std::thread::hardware_concurrency(), 1U) - 1U;
         }
+
         workerCount = std::min(workerCount, MAX_WORKER_THREADS);
 
         CreateState(config, workerCount, false);
@@ -590,7 +628,7 @@ namespace Vulkyrie {
 
     u32 JobSystem::WorkerCount() {
         const JobSystemState *state = gState.load(std::memory_order_acquire);
-        return state != nullptr ? state->QueueCount : 1U;
+        return nullptr != state ? state->QueueCount : 1U;
     }
 
     u32 JobSystem::CurrentWorkerIndex() {
@@ -608,6 +646,7 @@ namespace Vulkyrie {
                 Job &job = state.Jobs[index];
 
                 bool expected = true;
+
                 if (!job.Finished.compare_exchange_strong(expected, false, std::memory_order_acquire, std::memory_order_relaxed)) {
                     continue;
                 }
@@ -618,6 +657,7 @@ namespace Vulkyrie {
                 job.Tag = CurrentMemoryTag();
                 job.Invoke = nullptr;
                 job.Destroy = nullptr;
+
                 return JobHandle{ index, generation };
             }
 
@@ -631,12 +671,15 @@ namespace Vulkyrie {
             // a pool with nothing dispatched beyond this thread's own blocked stack for the whole
             // stall window aborts.
             VASSERT(false, "Job pool exhausted ({} slots) - raise JobSystemConfig::MaxJobs.", state.MaxJobs);
+
             const bool assisted = AssistOne(state);
+
             if (assisted || AnyJobDispatchedElsewhere(state)) {
                 stallGuard.OnProgress();
             } else {
                 stallGuard.OnNoProgress("job pool (MaxJobs)");
             }
+
             if (!assisted) {
                 std::this_thread::yield();
             }
@@ -649,15 +692,18 @@ namespace Vulkyrie {
 
     void JobSystem::AddDependency(JobHandle job, JobHandle dependsOn) {
         JobSystemState *state = gState.load(std::memory_order_acquire);
-        if (state == nullptr) {
+
+        if (nullptr == state) {
             return;
         }
 
         Job *successor = ResolveJob(*state, job);
-        VASSERT(successor != nullptr, "AddDependency: successor handle is stale or invalid.");
-        if (successor == nullptr) {
+        VASSERT(nullptr != successor, "AddDependency: successor handle is stale or invalid.");
+
+        if (nullptr == successor) {
             return;
         }
+
         // An unscheduled successor always holds Create's +1, so pending >= 1. Pending == 0 means
         // it was already dispatched — including the scheduled-but-still-running case a Finished
         // check would miss. Violations in release are contained (not fixed) by the generation
@@ -666,6 +712,7 @@ namespace Vulkyrie {
                 "AddDependency must be called before the successor is scheduled (the successor was already dispatched).");
 
         Job *predecessor = ResolveJob(*state, dependsOn);
+
         if (predecessor == nullptr || predecessor->Finished.load(std::memory_order_acquire)) {
             return; // Already satisfied (finished or recycled): nothing to record.
         }
@@ -677,6 +724,7 @@ namespace Vulkyrie {
         edge.PackedSuccessor = PackJobHandle(job);
 
         u64 head = predecessor->FirstEdge.load(std::memory_order_acquire);
+
         for (;;) {
             // The generation tag makes this push atomic with "is this still the incarnation the
             // handle refers to, and is its successor list still open".
@@ -684,14 +732,17 @@ namespace Vulkyrie {
                 // The predecessor finished (and possibly got recycled) while we prepared the edge:
                 // the dependency is satisfied. Roll back our pending increment.
                 FreeEdge(*state, edgeIndex);
+
                 if (successor->PendingDependencies.fetch_sub(1, std::memory_order_acq_rel) == 1) {
                     OnJobReady(*state, PackJobHandle(job));
                 }
+
                 return;
             }
 
             edge.Next.store(static_cast<u32>(head & LOW_32_BITS), std::memory_order_relaxed);
             const u64 newHead = PackEdgeHead(dependsOn.Generation, edgeIndex);
+
             if (predecessor->FirstEdge.compare_exchange_weak(head, newHead, std::memory_order_release, std::memory_order_acquire)) {
                 return;
             }
@@ -700,13 +751,15 @@ namespace Vulkyrie {
 
     void JobSystem::Schedule(JobHandle job) {
         JobSystemState *state = gState.load(std::memory_order_acquire);
-        if (state == nullptr || !job.IsValid()) {
+
+        if (nullptr == state || !job.IsValid()) {
             return;
         }
 
         Job *slot = ResolveJob(*state, job);
-        VASSERT(slot != nullptr, "Schedule: job handle is stale or invalid.");
-        if (slot == nullptr) {
+        VASSERT(nullptr != slot, "Schedule: job handle is stale or invalid.");
+
+        if (nullptr == slot) {
             return;
         }
 
@@ -718,7 +771,8 @@ namespace Vulkyrie {
 
     void JobSystem::Wait(JobHandle job) {
         JobSystemState *state = gState.load(std::memory_order_acquire);
-        if (state == nullptr) {
+
+        if (nullptr == state) {
             return;
         }
 
@@ -732,7 +786,8 @@ namespace Vulkyrie {
 
     bool JobSystem::IsComplete(JobHandle job) {
         JobSystemState *state = gState.load(std::memory_order_acquire);
-        if (state == nullptr || !job.IsValid() || job.Index >= state->MaxJobs) {
+
+        if (nullptr == state || !job.IsValid() || job.Index >= state->MaxJobs) {
             return true;
         }
 
@@ -743,6 +798,7 @@ namespace Vulkyrie {
         // this incarnation finished.
         const bool finished = slot.Finished.load(std::memory_order_acquire);
         const u32 generation = slot.Generation.load(std::memory_order_acquire);
+
         if (generation != job.Generation) {
             return true;
         }
