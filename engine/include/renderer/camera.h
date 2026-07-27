@@ -139,7 +139,7 @@ namespace Vulkyrie {
          * @param deltaTime The time elapsed since the last frame.
          */
         VE_INLINE void OnUpdate(Timestep deltaTime) {
-            f32 dt = static_cast<f32>(deltaTime);
+            const f32 dt = deltaTime.GetSeconds();
             f32 cameraSpeed = _settings.RegularMovementSpeed;
 
             if (IsKeyPressed(_settings.FastSpeedModifierKey)) {

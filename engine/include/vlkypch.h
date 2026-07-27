@@ -10,6 +10,7 @@
 #include <memory>
 #include <memory.h>
 #include <utility>
+#include <compare>
 #include <algorithm>
 #include <functional>
 #include <random>
