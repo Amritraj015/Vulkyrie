@@ -22,6 +22,53 @@ static_assert(ChunkRangeFor(10, 3, 2) == IndexRange{ 7, 10 });
 
 namespace {
 
+    using RangeBody = decltype([](u32, u32, u32) {});
+    using IndexBody = decltype([](u32) {});
+    using GenericBody = decltype([](auto...) {});
+    using NonVoidRangeBody = decltype([](u32, u32, u32) { return 0; });
+
+    /** A stateful body with a non-const `operator()`. */
+    struct MutableRangeBody {
+    public:
+        u32 Calls = 0;
+
+        void operator()(u32, u32, u32) {
+            ++Calls;
+        }
+    };
+
+    /** A body callable only on an rvalue; the chunk job invokes `fn` as an lvalue. */
+    struct RvalueOnlyRangeBody {
+    public:
+        void operator()(u32, u32, u32) && {
+        }
+    };
+
+} // namespace
+
+// Each concept accepts its own arity and rejects the other's.
+static_assert(ParallelForRangeFunc<RangeBody>);
+static_assert(!ParallelForFunc<RangeBody>);
+static_assert(ParallelForFunc<IndexBody>);
+static_assert(!ParallelForRangeFunc<IndexBody>);
+
+// A generic body satisfies both.
+static_assert(ParallelForRangeFunc<GenericBody>);
+static_assert(ParallelForFunc<GenericBody>);
+
+// The void return is enforced.
+static_assert(!ParallelForRangeFunc<NonVoidRangeBody>);
+
+// Mutable bodies stay valid; rvalue-only bodies are rejected.
+static_assert(ParallelForRangeFunc<MutableRangeBody>);
+static_assert(!ParallelForRangeFunc<RvalueOnlyRangeBody>);
+
+// Holds under both lvalue and rvalue deduction.
+static_assert(ParallelForRangeFunc<RangeBody &>);
+static_assert(ParallelForFunc<IndexBody &>);
+
+namespace {
+
     /** The deterministic workload the multi-worker-count test replays: per-chunk buffers keyed by
      * chunk index, merged in ascending chunk order. */
     [[nodiscard]] std::vector<u64> RunDeterministicWorkload() {

@@ -54,6 +54,14 @@ namespace Vulkyrie {
         return IndexRange{ begin, end };
     }
 
+    /** @brief A `ParallelForRange` body: invocable as `fn(chunkIndex, begin, end)`, returning `void`. */
+    template <typename TFunc>
+    concept ParallelForRangeFunc = std::invocable<TFunc &, u32, u32, u32> && std::same_as<std::invoke_result_t<TFunc &, u32, u32, u32>, void>;
+
+    /** @brief A `ParallelFor` body: invocable as `fn(index)`, returning `void`. */
+    template <typename TFunc>
+    concept ParallelForFunc = std::invocable<TFunc &, u32> && std::same_as<std::invoke_result_t<TFunc &, u32>, void>;
+
     /** @brief Runs `fn(chunkIndex, begin, end)` once per chunk across the job system and returns
      * when every chunk has completed (the calling thread executes chunks too). The partition is
      * machine-independent (see `ChunkCountFor`); with zero workers the chunks run inline in
@@ -63,7 +71,7 @@ namespace Vulkyrie {
      * @param grainSize Target items per chunk.
      * @param fn The chunk body; keyed by `chunkIndex` for deterministic output (see `ChunkedOutput`).
      */
-    template <typename TFunc> void ParallelForRange(u32 count, u32 grainSize, TFunc &&fn) {
+    template <ParallelForRangeFunc TFunc> void ParallelForRange(u32 count, u32 grainSize, TFunc &&fn) {
         const u32 chunkCount = ChunkCountFor(count, grainSize);
         if (chunkCount == 0U) {
             return;
@@ -96,7 +104,7 @@ namespace Vulkyrie {
      * @param grainSize Target items per chunk.
      * @param fn The per-index body; invoked concurrently across chunks.
      */
-    template <typename TFunc> void ParallelFor(u32 count, u32 grainSize, TFunc &&fn) {
+    template <ParallelForFunc TFunc> void ParallelFor(u32 count, u32 grainSize, TFunc &&fn) {
         ParallelForRange(count, grainSize, [&fn](u32 /*chunkIndex*/, u32 begin, u32 end) {
             for (u32 index = begin; index < end; ++index) {
                 fn(index);
