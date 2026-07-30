@@ -31,8 +31,8 @@ namespace Vulkyrie {
     public:
         /** @brief Constructs a stack with an initial chunk.
          * @param capacityBytes Size of the first chunk in bytes; rounded up to at least `MIN_CHUNK_BYTES`.
-         * @param tag Memory tag the backing chunks are attributed to. */
-        explicit StackAllocator(size_t capacityBytes, MemoryTag tag = MemoryTag::Untagged);
+         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+        StackAllocator(size_t capacityBytes, MemoryTag tag);
 
         ~StackAllocator();
 
@@ -98,10 +98,6 @@ namespace Vulkyrie {
             return _chunks.size();
         }
 
-        /** @brief Returns the subsystem this stack's memory is attributed to. */
-        [[nodiscard]] VE_INLINE MemoryTag GetTag() const {
-            return _tag;
-        }
 
     private:
         /** @brief Smallest chunk the stack will reserve. */
@@ -139,7 +135,7 @@ namespace Vulkyrie {
         size_t _highWaterMark = 0;
 
         /** @brief Memory tag the chunks are attributed to. */
-        MemoryTag _tag = MemoryTag::Untagged;
+        MemoryTag _tag;
     };
 
     /** @brief RAII rewind: takes a marker on construction and returns the stack to it on destruction.

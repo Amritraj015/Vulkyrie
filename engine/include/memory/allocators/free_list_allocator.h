@@ -28,8 +28,8 @@ namespace Vulkyrie {
     public:
         /** @brief Reserves a fixed region to allocate from.
          * @param capacityBytes Size of the region in bytes.
-         * @param tag Memory tag the region is attributed to. */
-        explicit FreeListAllocator(size_t capacityBytes, MemoryTag tag = MemoryTag::Untagged);
+         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+        FreeListAllocator(size_t capacityBytes, MemoryTag tag);
 
         ~FreeListAllocator();
 
@@ -98,10 +98,6 @@ namespace Vulkyrie {
          * between them means the free space is there but chopped up. */
         [[nodiscard]] size_t LargestFreeBlock() const;
 
-        /** @brief Returns the subsystem this region is attributed to. */
-        [[nodiscard]] VE_INLINE MemoryTag GetTag() const {
-            return _tag;
-        }
 
     private:
         /** @brief Header prefixing every block, free or allocated. `PrevSize` is the boundary tag that makes
@@ -171,7 +167,7 @@ namespace Vulkyrie {
         size_t _highWaterMark = 0;
 
         /** @brief Memory tag the region is attributed to. */
-        MemoryTag _tag = MemoryTag::Untagged;
+        MemoryTag _tag;
     };
 
 } // namespace Vulkyrie

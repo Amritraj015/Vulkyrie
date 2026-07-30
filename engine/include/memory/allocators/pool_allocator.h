@@ -25,8 +25,8 @@ namespace Vulkyrie {
          * @param blockSize Bytes per block. Rounded up to hold the free-list link and to satisfy `blockAlignment`.
          * @param blockAlignment Required alignment of each block; must be a power of two.
          * @param blocksPerChunk Blocks obtained per backing chunk. Larger means fewer, bigger reservations.
-         * @param tag Memory tag the backing chunks are attributed to. */
-        PoolAllocator(size_t blockSize, size_t blockAlignment, size_t blocksPerChunk, MemoryTag tag = MemoryTag::Untagged);
+         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+        PoolAllocator(size_t blockSize, size_t blockAlignment, size_t blocksPerChunk, MemoryTag tag);
 
         ~PoolAllocator();
 
@@ -102,10 +102,6 @@ namespace Vulkyrie {
             return _chunks.size();
         }
 
-        /** @brief Returns the subsystem this pool's memory is attributed to. */
-        [[nodiscard]] VE_INLINE MemoryTag GetTag() const {
-            return _tag;
-        }
 
     private:
         /** @brief Link stored inside a free block. A block must be at least this large, which is why tiny block
@@ -157,7 +153,7 @@ namespace Vulkyrie {
         size_t _peakUsedBlocks = 0;
 
         /** @brief Memory tag the chunks are attributed to. */
-        MemoryTag _tag = MemoryTag::Untagged;
+        MemoryTag _tag;
     };
 
 } // namespace Vulkyrie

@@ -29,8 +29,10 @@ namespace Vulkyrie {
     public:
         /** @brief Constructs an arena with an initial chunk of the requested size.
          * @param capacityBytes Size of the first chunk in bytes; rounded up to at least `MIN_CHUNK_BYTES`.
-         * @param tag Memory tag the backing chunks are attributed to. */
-        explicit LinearAllocator(size_t capacityBytes, MemoryTag tag = MemoryTag::Untagged);
+         * @param tag Subsystem the reservation is attributed to. Required rather than defaulted: an untagged
+         * pool is invisible in the memory report, which is the one question this whole subsystem exists to
+         * answer. */
+        LinearAllocator(size_t capacityBytes, MemoryTag tag);
 
         ~LinearAllocator();
 
@@ -92,10 +94,6 @@ namespace Vulkyrie {
             return _chunks.size();
         }
 
-        /** @brief Returns the subsystem this arena's memory is attributed to. */
-        [[nodiscard]] VE_INLINE MemoryTag GetTag() const {
-            return _tag;
-        }
 
     private:
         /** @brief Smallest chunk the arena will allocate, so a tiny requested capacity does not degrade into a
@@ -135,7 +133,7 @@ namespace Vulkyrie {
         size_t _highWaterMark = 0;
 
         /** @brief Memory tag the chunks are attributed to. */
-        MemoryTag _tag = MemoryTag::Untagged;
+        MemoryTag _tag;
     };
 
 } // namespace Vulkyrie
