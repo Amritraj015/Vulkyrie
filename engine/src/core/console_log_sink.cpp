@@ -5,10 +5,10 @@
 namespace Vulkyrie {
 
     constexpr std::string_view consoleLogPrefixes[] = {
-        "\033[41m[FATAL]: ", "\033[31m[ERROR]: ", "\033[33m[WARN]: ", "\033[32m[INFO]: ", "\033[34m[DEBUG]: ", "\033[90m[TRACE]: ",
+        "\033[41m[FATAL] ", "\033[31m[ERROR] ", "\033[33m[WARN] ", "\033[32m[INFO] ", "\033[34m[DEBUG] ", "\033[90m[TRACE] ",
     };
 
-    void ConsoleLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
+    void ConsoleLogSink::LogMessage(LogLevel logLevel, LogSite site, std::string_view fmt, std::format_args args) {
         std::array<char, LOG_BUFFER_SIZE> buffer;
 
         const std::string_view prefix = consoleLogPrefixes[static_cast<size_t>(logLevel)];
@@ -24,9 +24,14 @@ namespace Vulkyrie {
         std::memcpy(out, prefix.data(), prefixSize);
         out += prefixSize;
 
-        // Format the message directly into the remaining buffer space (truncating if needed) so
-        // logging never heap-allocates.
-        const size_t available = buffer.size() - reset.size() - prefixSize;
+        // "<file> (<line>): ", then the message. Both go straight into the remaining buffer space
+        // (truncating if needed) so logging never heap-allocates.
+        size_t available = buffer.size() - reset.size() - prefixSize;
+
+        const size_t siteSize = FormatSiteToBuffer(out, available, site.FileName, site.Line);
+        out += siteSize;
+        available -= siteSize;
+
         out += FormatToBuffer(out, available, fmt, args);
 
         // Append ANSI reset + newline

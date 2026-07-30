@@ -28,9 +28,9 @@ namespace Vulkyrie {
         return StatusCode::Successful;
     }
 
-    constexpr std::string_view fileLogPrefixes[] = { "[FATAL]:", "[ERROR]:", "[WARN]:", "[INFO]:", "[DEBUG]:", "[TRACE]:" };
+    constexpr std::string_view fileLogPrefixes[] = { "[FATAL] ", "[ERROR] ", "[WARN] ", "[INFO] ", "[DEBUG] ", "[TRACE] " };
 
-    void FileLogSink::LogMessage(LogLevel logLevel, std::string_view fmt, std::format_args args) {
+    void FileLogSink::LogMessage(LogLevel logLevel, LogSite site, std::string_view fmt, std::format_args args) {
         std::array<char, LOG_BUFFER_SIZE> buffer;
 
         const std::string_view prefix = fileLogPrefixes[static_cast<size_t>(logLevel)];
@@ -47,17 +47,16 @@ namespace Vulkyrie {
         std::memcpy(out, prefix.data(), prefixSize);
         out += prefixSize;
 
-        // Append separator if possible
-        if (static_cast<size_t>(end - out) > 1) {
-            *out++ = ' ';
-        }
-
         // Remaining writable space excluding newline
         const auto remaining = static_cast<size_t>(end - out);
-        const size_t available = remaining > 1 ? remaining - 1 : 0;
+        size_t available = remaining > 1 ? remaining - 1 : 0;
 
-        // Format the message directly into the remaining buffer space (truncating if needed) so
-        // logging never heap-allocates.
+        // "<file> (<line>): ", then the message. Both go straight into the remaining buffer space
+        // (truncating if needed) so logging never heap-allocates.
+        const size_t siteSize = FormatSiteToBuffer(out, available, site.FileName, site.Line);
+        out += siteSize;
+        available -= siteSize;
+
         out += FormatToBuffer(out, available, fmt, args);
 
         // Append newline
