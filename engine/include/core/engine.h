@@ -3,7 +3,6 @@
 #include "vlkypch.h"
 #include "audio/audio_system.h"
 #include "core/application.h"
-#include "renderer/renderer.h"
 
 namespace Vulkyrie {
     struct EngineConfig {
@@ -55,6 +54,5 @@ namespace Vulkyrie {
 
         Ref<Platform> _platform;
         Ref<AudioSystem> _audioSystem;
-        Ref<Renderer> _renderer;
     };
 } // namespace Vulkyrie

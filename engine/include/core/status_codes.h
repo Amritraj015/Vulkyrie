@@ -17,6 +17,7 @@ namespace Vulkyrie {
         UnsupportedLoggerType,        // Unsupported logger type error.
         FailedToCreateWindow,         // Failed to create window error.
         UnsupportedGraphicsAPI,       // Unsupported graphics API error.
+        RendererAlreadyInitialized,   // Renderer already initialized.
         FailedToInitializeGLAD,       // Failed to initialize GLAD error.
         FailedToCompileShaderProgram, // Failed to create shader program error.
         JobSystemAlreadyInitialized,  // JobSystem::Initialize called while an explicit instance is already running.

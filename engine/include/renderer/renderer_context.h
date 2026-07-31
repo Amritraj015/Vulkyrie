@@ -3,44 +3,39 @@
 #include "vlkypch.h"
 #include "core/status_codes.h"
 #include "core/graphics_api.h"
+#include "renderer/backends/renderer_backend.h"
 
 namespace Vulkyrie {
 
-    template <typename T> struct Handle {
+    class RendererContext final {
     public:
-        size_t Index;
-        u32 Generation;
-    };
-
-    struct BufferHandle : public Handle<BufferHandle> {};
-
-    class RendererContext {
-    public:
-        RendererContext(GraphicsAPI api);
+        RendererContext() = delete;
 
         VE_DELETE_MOVE_AND_COPY(RendererContext);
 
-        virtual ~RendererContext() = default;
+        [[nodiscard]] static StatusCode Create(GraphicsAPI graphicsApi);
+        [[nodiscard]] static StatusCode SwitchTo(GraphicsAPI otherGraphicsApi);
+        static void Dispose();
 
-        /** @brief Initializes the graphics context.
-         * @returns StatusCode indicating success or failure. */
-        virtual StatusCode Initialize() = 0;
-
-        /** @brief Swaps the front and back buffers, presenting the rendered image to the screen. */
-        inline virtual void SwapBuffers() {
+        [[nodiscard]] static constexpr VE_INLINE GraphicsAPI GetCurrentGraphicsAPI() {
+            return _currentGraphicsApi;
         }
 
-        /** @brief Creates a graphics context for the currently active graphics API.
-         * @returns A smart pointer to the created GraphicsContext.
-         */
-        static Scope<RendererContext> Create();
+        [[nodiscard]] static constexpr std::string_view GetCurrentGraphicsAPIName() {
+            switch (_currentGraphicsApi) {
+                case GraphicsAPI::OpenGL:
+                    return "OpenGL";
+                case GraphicsAPI::Vulkan:
+                    return "Vulkan";
+                default:
+                    return "Unknown";
+            }
+        }
 
-        virtual BufferHandle CreateBuffer(std::span<f32> data) = 0;
-        virtual BufferHandle CreateBuffer(size_t size, std::span<f32> data) = 0;
-        virtual void SetBufferData(const BufferHandle &handle, size_t startIndex, std::span<f32> data) = 0;
-        virtual void DestroyBuffer(const BufferHandle &handle) = 0;
-
-    protected:
-        RendererContext() = default;
+    private:
+        static GraphicsAPI _currentGraphicsApi;
+        static bool _initialized;
+        static RendererBackend *_rendererBackend;
     };
+
 } // namespace Vulkyrie

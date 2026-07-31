@@ -1,13 +1,20 @@
+#include "renderer/backends/open_gl/open_gl_renderer_backend.h"
+#include "renderer/open_gl/open_gl_frame_buffer.h"
+#include "renderer/open_gl/open_gl_index_buffer.h"
+#include "renderer/open_gl/open_gl_shader.h"
+#include "renderer/open_gl/open_gl_vertex_array.h"
+#include "renderer/open_gl/open_gl_vertex_buffer.h"
+#include "renderer/renderer_context.h"
 #include "core/application.h"
-#include "renderer/renderer.h"
-#include "renderer/open_gl/open_gl_renderer_context.h"
 
 namespace Vulkyrie {
-    OpenGLRendererContext::OpenGLRendererContext(void *windowHandle)
-        : _windowHandle(static_cast<GLFWwindow *>(windowHandle)) {
+
+    OpenGLRendererBackend::OpenGLRendererBackend(GraphicsAPI graphicsApi)
+        : RendererBackend(graphicsApi)
+        , _windowHandle(static_cast<GLFWwindow *>(Application::GetSingleton().GetWindowHandle())) {
     }
 
-    StatusCode OpenGLRendererContext::Initialize() {
+    StatusCode OpenGLRendererBackend::Initialize() {
         // Make the OpenGL context current.
         glfwMakeContextCurrent(_windowHandle);
 
@@ -111,35 +118,76 @@ namespace Vulkyrie {
 
         VINFO("Renderer Info");
         VINFO("*****************************************************************************************");
-        VINFO("API              | {}", GetCurrentGraphicsAPIName());
+        VINFO("API              | {}", RendererContext::GetCurrentGraphicsAPIName());
         VINFO("Version          | {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
         VINFO("Vendor           | {}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
         VINFO("Renderer         | {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
         VINFO("*****************************************************************************************");
 #endif
 
-        // TODO: This does not belong here. Move it to the renderer initialization.
         glViewport(0, 0, Application::GetSingleton().GetWindowWidth(), Application::GetSingleton().GetWindowHeight());
+
+        _indexBuffer = new OpenGLIndexBuffer();
+        // _frameBuffer = new OpenGLFrameBuffer();
+        // _shader = new OpenGLShader();
+        // _texture = new OpenGLTexture();
+        // _cubeMapTexture = new OpenGLCubeMapTexture();
+        // _vertexArray = new OpenGLVertexArray();
+        // _vertexBuffer = new OpenGLVertexBuffer();
 
         return StatusCode::Successful;
     }
 
-    void OpenGLRendererContext::SwapBuffers() {
+    OpenGLRendererBackend::~OpenGLRendererBackend() {
+        for (const auto &resource : _bufferResources) {
+            glDeleteBuffers(1, &resource.BufferID);
+        }
+
+        if (nullptr != _indexBuffer) {
+            delete _indexBuffer;
+        }
+
+        if (nullptr != _frameBuffer) {
+            delete _frameBuffer;
+        }
+
+        if (nullptr != _shader) {
+            delete _shader;
+        }
+
+        if (nullptr != _texture) {
+            delete _texture;
+        }
+
+        if (nullptr != _cubeMapTexture) {
+            delete _cubeMapTexture;
+        }
+
+        if (nullptr != _vertexArray) {
+            delete _vertexArray;
+        }
+
+        if (nullptr != _vertexBuffer) {
+            delete _vertexBuffer;
+        }
+    }
+
+    void OpenGLRendererBackend::SwapBuffers() {
         glfwSwapBuffers(_windowHandle);
     }
 
-    BufferHandle OpenGLRendererContext::CreateBuffer(std::span<f32> data) {
+    BufferHandle OpenGLRendererBackend::CreateBuffer(std::span<f32> data) {
         return CreateBuffer(data.size() * sizeof(f32), data);
     }
 
-    BufferHandle OpenGLRendererContext::CreateBuffer(size_t size, std::span<f32> data) {
-        size_t index;
+    BufferHandle OpenGLRendererBackend::CreateBuffer(size_t size, std::span<f32> data) {
+        u32 index;
 
         if (!_freeIndices.empty()) {
-            index = _freeIndices.back();
+            index = static_cast<u32>(_freeIndices.back());
             _freeIndices.pop_back();
         } else {
-            index = _bufferResources.size();
+            index = static_cast<u32>(_bufferResources.size());
             _bufferResources.emplace_back();
         }
 
@@ -150,21 +198,15 @@ namespace Vulkyrie {
         glCreateBuffers(1, &resource.BufferID);
         glNamedBufferStorage(resource.BufferID, size, data.data(), size > 0 ? GL_NONE : GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
 
-        return BufferHandle{ index, resource.Generation };
+        return BufferHandle(index, resource.Generation);
     }
 
-    void OpenGLRendererContext::SetBufferData(const BufferHandle &handle, size_t startIndex, std::span<f32> data) {
-        glNamedBufferSubData(_bufferResources[handle.Index].BufferID, startIndex * sizeof(f32), data.size() * sizeof(f32), data.data());
+    void OpenGLRendererBackend::SetBufferData(const BufferHandle &handle, size_t startIndex, std::span<f32> data) {
+        glNamedBufferSubData(_bufferResources[handle.Index()].BufferID, startIndex * sizeof(f32), data.size() * sizeof(f32), data.data());
     }
 
-    void OpenGLRendererContext::DestroyBuffer(const BufferHandle &handle) {
-        glDeleteBuffers(1, &_bufferResources[handle.Index].BufferID);
-    }
-
-    OpenGLRendererContext::~OpenGLRendererContext() {
-        for (const auto &resource : _bufferResources) {
-            glDeleteBuffers(1, &resource.BufferID);
-        }
+    void OpenGLRendererBackend::DestroyBuffer(const BufferHandle &handle) {
+        glDeleteBuffers(1, &_bufferResources[handle.Index()].BufferID);
     }
 
 } // namespace Vulkyrie

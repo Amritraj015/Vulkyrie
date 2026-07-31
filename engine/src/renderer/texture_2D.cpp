@@ -1,10 +1,11 @@
 #include "renderer/texture_2D.h"
 #include "renderer/open_gl/open_gl_texture_2D.h"
-#include "renderer/renderer.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
+
     Ref<Texture2D> Texture2D::Create(const TextureSpecification &specification) {
-        switch (GetCurrentGraphicsAPI()) {
+        switch (RendererContext::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLTexture2D>(specification);
             default:
@@ -13,11 +14,12 @@ namespace Vulkyrie {
     }
 
     Ref<Texture2D> Texture2D::Create(const std::filesystem::path &path) {
-        switch (GetCurrentGraphicsAPI()) {
+        switch (RendererContext::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLTexture2D>(path);
             default:
                 return nullptr;
         }
     }
+
 } // namespace Vulkyrie

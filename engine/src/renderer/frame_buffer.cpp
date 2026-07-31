@@ -1,12 +1,12 @@
 #include "vlkypch.h"
 #include "renderer/frame_buffer.h"
 #include "renderer/open_gl/open_gl_frame_buffer.h"
-#include "renderer/renderer.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
 
     Ref<FrameBuffer> FrameBuffer::Create(const FrameBufferSpecification &specification) {
-        switch (GetCurrentGraphicsAPI()) {
+        switch (RendererContext::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLFrameBuffer>(specification);
             case GraphicsAPI::Vulkan:

@@ -33,7 +33,6 @@
 #include "input/inputs.h"
 
 // Renderer includes
-#include "renderer/renderer.h"
 #include "renderer/shader.h"
 #include "renderer/camera.h"
 #include "renderer/buffer_element.h"

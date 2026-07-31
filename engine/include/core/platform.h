@@ -64,4 +64,5 @@ namespace Vulkyrie {
         /** @brief The event callback function for handling events. */
         EventCallbackFn _eventCallbackFn;
     };
+
 } // namespace Vulkyrie

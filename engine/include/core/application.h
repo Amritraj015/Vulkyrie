@@ -18,7 +18,7 @@ namespace Vulkyrie {
         Application(WindowProps windowProps);
 
         /** @brief Destructor to clean up the application and its resources. */
-        virtual ~Application() = default;
+        virtual ~Application();
 
         /** @brief Gets the singleton instance of the application.
          * @returns A reference to the application instance.
@@ -137,14 +137,14 @@ namespace Vulkyrie {
         /** @brief Gets the current time in seconds since the application started.
          * @returns The current time in seconds.
          */
-        [[nodiscard]] f32 GetTime() const {
+        [[nodiscard]] VE_INLINE f32 GetTime() const {
             return _platform->GetTime();
         }
 
         /** @brief Sets whether the application should capture the mouse when the window is focused.
          * @param capture True to capture the mouse on focus, false to not capture.
          */
-        void CaptureMouseOnFocus(bool capture) const {
+        void VE_INLINE CaptureMouseOnFocus(bool capture) const {
             _platform->CaptureMouseOnFocus(capture);
         }
 
@@ -160,7 +160,7 @@ namespace Vulkyrie {
         static Application *_instance;
 
         /** @brief The main application window. */
-        Ref<Platform> _platform;
+        Platform *_platform;
 
         /** @brief Window properties for the application. */
         WindowProps _windowProps;

@@ -1,12 +1,12 @@
 #include "vlkypch.h"
 #include "renderer/shader.h"
 #include "renderer/open_gl/open_gl_shader.h"
-#include "renderer/renderer.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
 
     Ref<Shader> Shader::Create(const std::filesystem::path &shaderSourcePath) {
-        switch (GetCurrentGraphicsAPI()) {
+        switch (RendererContext::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLShader>(shaderSourcePath);
             case GraphicsAPI::Vulkan:

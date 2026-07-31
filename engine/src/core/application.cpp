@@ -4,17 +4,24 @@
 #include "core/vulkyrie_glfw_platform.h"
 #include "events/application/window_closed_event.h"
 #include "events/event_dispatcher.h"
-#include "renderer/renderer.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
 
     Application *Application::_instance = nullptr;
 
     Application::Application(WindowProps windowProps)
-        : _platform(CreateRef<VulkyrieGLFWPlatform>(this->_windowProps, [this](Event &event) { this->OnEvent(event); }))
+        : _platform(new VulkyrieGLFWPlatform(this->_windowProps, [this](Event &event) { this->OnEvent(event); }))
         , _windowProps(std::move(windowProps))
         , _running(false) {
         _instance = this;
+    }
+
+    Application::~Application() {
+        // Dispose the renderer context.
+        RendererContext::Dispose();
+
+        delete _platform;
     }
 
     StatusCode Application::Run() {
@@ -31,7 +38,7 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
 
         // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
-        RETURN_ON_FAILURE(Initialize(_windowProps.GraphicsAPI));
+        RETURN_ON_FAILURE(RendererContext::Create(_windowProps.GraphicsAPI));
 
         // Mark the application as running.
         _running = true;

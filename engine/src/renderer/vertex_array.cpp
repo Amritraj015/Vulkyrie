@@ -1,11 +1,12 @@
 #include "vlkypch.h"
 #include "renderer/vertex_array.h"
 #include "renderer/open_gl/open_gl_vertex_array.h"
-#include "renderer/renderer.h"
+#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
+
     Ref<VertexArray> VertexArray::Create() {
-        switch (GetCurrentGraphicsAPI()) {
+        switch (RendererContext::GetCurrentGraphicsAPI()) {
             case GraphicsAPI::OpenGL:
                 return CreateRef<OpenGLVertexArray>();
             case GraphicsAPI::Vulkan:
@@ -16,4 +17,5 @@ namespace Vulkyrie {
 
         return nullptr;
     }
+
 } // namespace Vulkyrie
