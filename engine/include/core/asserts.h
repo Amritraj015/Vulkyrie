@@ -23,7 +23,7 @@
             VERROR("  Function: {}", __func__);                                                                                                                \
             VDEBUGBREAK();                                                                                                                                     \
         }                                                                                                                                                      \
-    } while (0)
+    } while (false)
 
 #define VASSERT_EXPR(condition, message, ...)                                                                                                                  \
     do {                                                                                                                                                       \
@@ -34,7 +34,7 @@
             VERROR("  Function: {}", __func__);                                                                                                                \
             VDEBUGBREAK();                                                                                                                                     \
         }                                                                                                                                                      \
-    } while (0)
+    } while (false)
 
 #else
 // clang-format on
@@ -42,9 +42,9 @@
 // Release: optional logging or no-op
 #define VASSERT(condition, message, ...)                                                                                                                       \
     do {                                                                                                                                                       \
-    } while (0)
+    } while (false)
 #define VASSERT_EXPR(condition, message, ...)                                                                                                                  \
     do {                                                                                                                                                       \
-    } while (0)
+    } while (false)
 
 #endif

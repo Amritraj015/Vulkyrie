@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
@@ -52,6 +53,8 @@ namespace Vulkyrie {
          * @param count Number of objects; defaults to one.
          * @returns Pointer to uninitialized storage, valid until the stack is rewound past it. */
         template <typename T> [[nodiscard]] T *AllocateArray(size_t count = 1) {
+            VASSERT(count <= SIZE_MAX / sizeof(T), "Stack allocator array allocation overflows size_t.");
+
             return static_cast<T *>(Allocate(sizeof(T) * count, alignof(T)));
         }
 

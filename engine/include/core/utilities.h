@@ -14,6 +14,22 @@ namespace Vulkyrie {
      */
     [[nodiscard]] std::optional<std::string> ReadTextFromFile(const std::filesystem::path &path);
 
+    /**
+     * @brief Packs two 32-bit unsigned integers into a unique 64-bit key.
+     *
+     * Places @p number1 in the upper 32 bits and @p number2 in the lower 32 bits
+     * of the returned value. Commonly used to efficiently generate hash or lookup
+     * keys from a pair of 32-bit identifiers.
+     *
+     * @param number1 The high 32-bit value.
+     * @param number2 The low 32-bit value.
+     *
+     * @return A 64-bit value containing both inputs.
+     */
+    [[nodiscard]] constexpr VE_INLINE u64 PackNumbers(u32 number1, u32 number2) {
+        return (static_cast<u64>(number1) << 32U) | static_cast<u64>(number2);
+    }
+
     /** @brief Pairs two 32-bit unsigned integers into a single 64-bit unsigned integer using a specific formula.
      *
      * The function takes two 32-bit unsigned integers, `number1` and `number2`, and combines them into a single 64-bit unsigned integer.
@@ -24,7 +40,7 @@ namespace Vulkyrie {
      * @param number2 The second 32-bit unsigned integer.
      * @returns A 64-bit unsigned integer that uniquely represents the pair of input numbers.
      */
-    [[nodiscard]] VE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
+    [[nodiscard]] constexpr VE_INLINE u64 PairNumbers(u32 number1, u32 number2) {
         VASSERT(number1 == std::max(number1, number2), "The first number must be greater than the second one.");
 
         u64 nb1 = number1;
