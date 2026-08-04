@@ -74,8 +74,17 @@ namespace {
         const AllocationHeader header{ base, size, CurrentMemoryTag(), kAllocationMagic };
         std::memcpy(reinterpret_cast<void *>(payloadAddress - headerSize), &header, headerSize);
 
+        void *payload = reinterpret_cast<void *>(payloadAddress);
+
         MemoryTracker::OnAllocation(header.Tag, static_cast<i64>(size));
-        return reinterpret_cast<void *>(payloadAddress);
+
+        // The deep table is a debug-tier addition on top of the counters above, never a replacement: attribution
+        // stays exact from the header alone when this is compiled out.
+#if VE_MEMORY_DEEP_TRACKING
+        MemoryTracker::OnAllocationDeep(payload, header.Tag, static_cast<i64>(size));
+#endif
+
+        return payload;
     }
 
     /** @brief Frees a pointer produced by TrackedAlloc and updates the tracker. */
@@ -89,6 +98,11 @@ namespace {
         std::memcpy(&header, reinterpret_cast<const void *>(payloadAddress - sizeof(AllocationHeader)), sizeof(AllocationHeader));
 
         VASSERT(header.Magic == kAllocationMagic, "operator delete: corrupted or foreign allocation header");
+
+#if VE_MEMORY_DEEP_TRACKING
+        // Before the free, while the pointer is still the one the table was keyed on.
+        MemoryTracker::OnFreeDeep(pointer);
+#endif
 
         MemoryTracker::OnFree(header.Tag, static_cast<i64>(header.Size));
         std::free(header.Base);
