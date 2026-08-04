@@ -32,7 +32,7 @@ TEST_CASE("StackAllocator - Typed Allocate and Emplace", "[memory][allocator][st
 
     const StackMarker marker = stack.GetMarker();
 
-    u32 *array = stack.Allocate<u32>(8);
+    u32 *array = stack.AllocateArray<u32>(8);
     REQUIRE(array != nullptr);
     REQUIRE(reinterpret_cast<uintptr_t>(array) % alignof(u32) == 0);
 

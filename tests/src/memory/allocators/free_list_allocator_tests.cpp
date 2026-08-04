@@ -43,7 +43,7 @@ TEST_CASE("FreeListAllocator - Allocations are distinct, aligned and non-overlap
 TEST_CASE("FreeListAllocator - Typed Allocate and Emplace propagate exhaustion", "[memory][allocator][freelist]") {
     FreeListAllocator allocator{ 4096, TAG };
 
-    u64 *array = allocator.Allocate<u64>(8);
+    u64 *array = allocator.AllocateArray<u64>(8);
     REQUIRE(array != nullptr);
     REQUIRE(reinterpret_cast<uintptr_t>(array) % alignof(u64) == 0);
 
@@ -58,7 +58,7 @@ TEST_CASE("FreeListAllocator - Typed Allocate and Emplace propagate exhaustion",
     // constructing into it.
     FreeListAllocator tiny{ 64, TAG };
 
-    REQUIRE(tiny.Allocate<u64>(4096) == nullptr);
+    REQUIRE(tiny.AllocateArray<u64>(4096) == nullptr);
     REQUIRE(tiny.Emplace<std::array<u64, 512>>() == nullptr);
 }
 

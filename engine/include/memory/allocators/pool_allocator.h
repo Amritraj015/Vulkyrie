@@ -10,7 +10,7 @@ namespace Vulkyrie {
      *
      * This is the right shape for the many-uniform-objects cases an engine is full of - contact manifolds,
      * broadphase tree nodes, particles, component records. For mixed sizes use `FreeListAllocator`; for bulk
-     * allocation that is released all at once use `LinearAllocator`.
+     * allocation that is released all at once use `ArenaAllocator`.
      *
      * The free list is threaded through the free blocks themselves, so an empty pool costs nothing beyond its
      * chunks. Running out of blocks appends a chunk rather than failing, and chunks are retained across `Reset` so
@@ -25,7 +25,7 @@ namespace Vulkyrie {
          * @param blockSize Bytes per block. Rounded up to hold the free-list link and to satisfy `blockAlignment`.
          * @param blockAlignment Required alignment of each block; must be a power of two.
          * @param blocksPerChunk Blocks obtained per backing chunk. Larger means fewer, bigger reservations.
-         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+         * @param tag Subsystem the reservation is attributed to; required, see `ArenaAllocator`. */
         PoolAllocator(size_t blockSize, size_t blockAlignment, size_t blocksPerChunk, MemoryTag tag);
 
         ~PoolAllocator();

@@ -15,7 +15,7 @@ namespace Vulkyrie {
 
     /** @brief A bump allocator that can also unwind, in LIFO order.
      *
-     * The difference from `LinearAllocator` is the middle ground it offers: an arena can only release everything,
+     * The difference from `ArenaAllocator` is the middle ground it offers: an arena can only release everything,
      * a general allocator can release anything, and a stack releases everything back to a marker. That fits
      * scoped scratch work - a subsystem takes a marker on entry, allocates freely, and rewinds on exit without
      * having to track individual allocations.
@@ -31,7 +31,7 @@ namespace Vulkyrie {
     public:
         /** @brief Constructs a stack with an initial chunk.
          * @param capacityBytes Size of the first chunk in bytes; rounded up to at least `MIN_CHUNK_BYTES`.
-         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+         * @param tag Subsystem the reservation is attributed to; required, see `ArenaAllocator`. */
         StackAllocator(size_t capacityBytes, MemoryTag tag);
 
         ~StackAllocator();
@@ -51,7 +51,7 @@ namespace Vulkyrie {
          * @tparam T The object type; only its size and alignment are used.
          * @param count Number of objects; defaults to one.
          * @returns Pointer to uninitialized storage, valid until the stack is rewound past it. */
-        template <typename T> [[nodiscard]] T *Allocate(size_t count = 1) {
+        template <typename T> [[nodiscard]] T *AllocateArray(size_t count = 1) {
             return static_cast<T *>(Allocate(sizeof(T) * count, alignof(T)));
         }
 
@@ -64,7 +64,7 @@ namespace Vulkyrie {
          * Nothing here runs the destructor: `FreeToMarker` and `Reset` rewind without destroying, so a
          * non-trivially-destructible `T` has to be destroyed by whoever emplaced it. */
         template <typename T, typename... TArgs> [[nodiscard]] T *Emplace(TArgs &&...args) {
-            return std::construct_at(Allocate<T>(), std::forward<TArgs>(args)...);
+            return std::construct_at(AllocateArray<T>(), std::forward<TArgs>(args)...);
         }
 
         /** @brief Returns the current top of the stack, for a later `FreeToMarker`. */

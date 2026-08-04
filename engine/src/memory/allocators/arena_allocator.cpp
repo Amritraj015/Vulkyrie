@@ -1,4 +1,4 @@
-#include "memory/allocators/linear_allocator.h"
+#include "memory/allocators/arena_allocator.h"
 
 #include "core/asserts.h"
 #include "memory/memory_tracker.h"
@@ -14,16 +14,16 @@ namespace Vulkyrie {
 
     } // namespace
 
-    LinearAllocator::LinearAllocator(size_t capacityBytes, MemoryTag tag)
+    ArenaAllocator::ArenaAllocator(size_t capacityBytes, MemoryTag tag)
         : _tag{ tag } {
         addChunk(capacityBytes);
     }
 
-    LinearAllocator::~LinearAllocator() {
+    ArenaAllocator::~ArenaAllocator() {
         releaseChunks();
     }
 
-    LinearAllocator::LinearAllocator(LinearAllocator &&other) noexcept
+    ArenaAllocator::ArenaAllocator(ArenaAllocator &&other) noexcept
         : _chunks{ std::move(other._chunks) }
         , _currentChunk{ other._currentChunk }
         , _chunkOffset{ other._chunkOffset }
@@ -38,7 +38,7 @@ namespace Vulkyrie {
         other._capacity = 0;
     }
 
-    LinearAllocator &LinearAllocator::operator=(LinearAllocator &&other) noexcept {
+    ArenaAllocator &ArenaAllocator::operator=(ArenaAllocator &&other) noexcept {
         if (this != &other) {
             releaseChunks();
 
@@ -64,8 +64,8 @@ namespace Vulkyrie {
         return *this;
     }
 
-    void *LinearAllocator::Allocate(size_t size, size_t alignment) {
-        VASSERT(alignment > 0 && (alignment & (alignment - 1)) == 0, "Linear allocator alignment must be a power of two.");
+    void *ArenaAllocator::Allocate(size_t size, size_t alignment) {
+        VASSERT(alignment > 0 && (alignment & (alignment - 1)) == 0, "Arena allocator alignment must be a power of two.");
 
         const Chunk &chunk = _chunks[_currentChunk];
         size_t offset = AlignUp(reinterpret_cast<size_t>(chunk.Memory) + _chunkOffset, alignment) - reinterpret_cast<size_t>(chunk.Memory);
@@ -104,7 +104,7 @@ namespace Vulkyrie {
         return result;
     }
 
-    void LinearAllocator::Reset() {
+    void ArenaAllocator::Reset() {
         MemoryTracker::OnPoolFree(_tag, static_cast<i64>(_used));
 
         _currentChunk = 0;
@@ -112,7 +112,7 @@ namespace Vulkyrie {
         _used = 0;
     }
 
-    void LinearAllocator::addChunk(size_t minimumBytes) {
+    void ArenaAllocator::addChunk(size_t minimumBytes) {
         // Double the previous chunk so a caller that keeps outgrowing the arena converges in a few cycles rather
         // than adding one small chunk at a time.
         const size_t previous = _chunks.empty() ? 0 : _chunks.back().Capacity;
@@ -122,7 +122,7 @@ namespace Vulkyrie {
         // conflated with bytes the subsystem has actually handed out. `_chunks` itself is an ordinary tracked
         // container - it is bookkeeping, not pooled storage.
         auto *memory = static_cast<std::byte *>(std::malloc(capacity));
-        VASSERT(memory != nullptr, "Linear allocator failed to reserve a chunk.");
+        VASSERT(memory != nullptr, "Arena allocator failed to reserve a chunk.");
 
         {
             VE_MEMORY_SCOPE(_tag);
@@ -134,7 +134,7 @@ namespace Vulkyrie {
         MemoryTracker::OnPoolReserve(_tag, static_cast<i64>(capacity));
     }
 
-    void LinearAllocator::releaseChunks() {
+    void ArenaAllocator::releaseChunks() {
         MemoryTracker::OnPoolFree(_tag, static_cast<i64>(_used));
         _used = 0;
 

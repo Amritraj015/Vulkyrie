@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include <memory/allocators/linear_allocator.h>
+#include <memory/allocators/arena_allocator.h>
 #include <memory/memory_tracker.h>
 
 #include <cstring>
@@ -13,8 +13,8 @@ namespace {
 
 } // namespace
 
-TEST_CASE("LinearAllocator - Allocations are aligned and distinct", "[memory][allocator]") {
-    LinearAllocator arena{ 4096, TAG };
+TEST_CASE("ArenaAllocator - Allocations are aligned and distinct", "[memory][allocator]") {
+    ArenaAllocator arena{ 4096, TAG };
 
     void *first = arena.Allocate(1, 1);
     void *second = arena.Allocate(8, 8);
@@ -31,12 +31,12 @@ TEST_CASE("LinearAllocator - Allocations are aligned and distinct", "[memory][al
     REQUIRE(static_cast<std::byte *>(second) >= static_cast<std::byte *>(first) + 1);
 }
 
-TEST_CASE("LinearAllocator - Typed Allocate and Emplace", "[memory][allocator]") {
-    LinearAllocator arena{ 4096, TAG };
+TEST_CASE("ArenaAllocator - Typed Allocate and Emplace", "[memory][allocator]") {
+    ArenaAllocator arena{ 4096, TAG };
 
     // Count defaults to one, so the same overload covers a single object and an array.
-    u64 *single = arena.Allocate<u64>();
-    u64 *array = arena.Allocate<u64>(16);
+    u64 *single = arena.AllocateArray<u64>();
+    u64 *array = arena.AllocateArray<u64>(16);
 
     REQUIRE(single != nullptr);
     REQUIRE(reinterpret_cast<uintptr_t>(single) % alignof(u64) == 0);
@@ -54,15 +54,15 @@ TEST_CASE("LinearAllocator - Typed Allocate and Emplace", "[memory][allocator]")
         f32 Second;
     };
 
-    Widget *widget = arena.Emplace<Widget>(7, 1.5f);
+    auto *widget = arena.Emplace<Widget>(7, 1.5f);
 
     REQUIRE(widget->First == 7);
     REQUIRE(widget->Second == 1.5f);
     REQUIRE(reinterpret_cast<uintptr_t>(widget) % alignof(Widget) == 0);
 }
 
-TEST_CASE("LinearAllocator - Reset rewinds without freeing", "[memory][allocator]") {
-    LinearAllocator arena{ 4096, TAG };
+TEST_CASE("ArenaAllocator - Reset rewinds without freeing", "[memory][allocator]") {
+    ArenaAllocator arena{ 4096, TAG };
 
     void *first = arena.Allocate(128, 16);
     const size_t capacityBefore = arena.Capacity();
@@ -78,8 +78,8 @@ TEST_CASE("LinearAllocator - Reset rewinds without freeing", "[memory][allocator
     REQUIRE(arena.Allocate(128, 16) == first);
 }
 
-TEST_CASE("LinearAllocator - Growth keeps earlier pointers valid", "[memory][allocator]") {
-    LinearAllocator arena{ 64, TAG };
+TEST_CASE("ArenaAllocator - Growth keeps earlier pointers valid", "[memory][allocator]") {
+    ArenaAllocator arena{ 64, TAG };
 
     // Chunked storage means outgrowing the arena appends storage rather than relocating what was handed out - the
     // property a std::vector-backed arena could not provide.
@@ -99,8 +99,8 @@ TEST_CASE("LinearAllocator - Growth keeps earlier pointers valid", "[memory][all
     }
 }
 
-TEST_CASE("LinearAllocator - Steady state stops allocating", "[memory][allocator]") {
-    LinearAllocator arena{ 256, TAG };
+TEST_CASE("ArenaAllocator - Steady state stops allocating", "[memory][allocator]") {
+    ArenaAllocator arena{ 256, TAG };
 
     const auto runFrame = [&arena] {
         for (i32 i = 0; i < 200; ++i) {
@@ -125,8 +125,8 @@ TEST_CASE("LinearAllocator - Steady state stops allocating", "[memory][allocator
     REQUIRE(arena.ChunkCount() == chunksBefore);
 }
 
-TEST_CASE("LinearAllocator - An allocation larger than a chunk still succeeds", "[memory][allocator]") {
-    LinearAllocator arena{ 128, TAG };
+TEST_CASE("ArenaAllocator - An allocation larger than a chunk still succeeds", "[memory][allocator]") {
+    ArenaAllocator arena{ 128, TAG };
 
     auto *block = static_cast<std::byte *>(arena.Allocate(64 * 1024, 32));
 
@@ -137,13 +137,13 @@ TEST_CASE("LinearAllocator - An allocation larger than a chunk still succeeds", 
     REQUIRE(static_cast<u8>(block[64 * 1024 - 1]) == 0xAB);
 }
 
-TEST_CASE("LinearAllocator - Reservation and usage are reported to the tracker", "[memory][allocator]") {
+TEST_CASE("ArenaAllocator - Reservation and usage are reported to the tracker", "[memory][allocator]") {
     const i64 reservedBefore = MemoryTracker::PoolReservedBytes(TAG);
     const i64 usedBefore = MemoryTracker::PoolUsedBytes(TAG);
     const i64 heapBefore = MemoryTracker::CurrentBytes(TAG);
 
     {
-        LinearAllocator arena{ 8192, TAG };
+        ArenaAllocator arena{ 8192, TAG };
 
         // The chunk is reported as reserved, not as bytes the subsystem has handed out.
         REQUIRE(MemoryTracker::PoolReservedBytes(TAG) == reservedBefore + 8192);

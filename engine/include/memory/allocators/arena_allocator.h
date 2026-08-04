@@ -25,21 +25,21 @@ namespace Vulkyrie {
      * an atomic off an operation that is already close to free.
      *
      * Not thread-safe: one arena belongs to one thread (or is externally synchronized). */
-    class LinearAllocator final {
+    class ArenaAllocator final {
     public:
         /** @brief Constructs an arena with an initial chunk of the requested size.
          * @param capacityBytes Size of the first chunk in bytes; rounded up to at least `MIN_CHUNK_BYTES`.
          * @param tag Subsystem the reservation is attributed to. Required rather than defaulted: an untagged
          * pool is invisible in the memory report, which is the one question this whole subsystem exists to
          * answer. */
-        LinearAllocator(size_t capacityBytes, MemoryTag tag);
+        ArenaAllocator(size_t capacityBytes, MemoryTag tag);
 
-        ~LinearAllocator();
+        ~ArenaAllocator();
 
-        VE_DELETE_COPY(LinearAllocator);
+        VE_DELETE_COPY(ArenaAllocator);
 
-        LinearAllocator(LinearAllocator &&other) noexcept;
-        LinearAllocator &operator=(LinearAllocator &&other) noexcept;
+        ArenaAllocator(ArenaAllocator &&other) noexcept;
+        ArenaAllocator &operator=(ArenaAllocator &&other) noexcept;
 
         /** @brief Carves an aligned block out of the arena, growing it with a new chunk if the current one is full.
          * @param size Bytes to allocate. Zero returns a non-null, non-dereferenceable pointer.
@@ -51,7 +51,7 @@ namespace Vulkyrie {
          * @tparam T The object type; only its size and alignment are used.
          * @param count Number of objects; defaults to one.
          * @returns Pointer to uninitialized storage, valid until the next `Reset`. */
-        template <typename T> [[nodiscard]] T *Allocate(size_t count = 1) {
+        template <typename T> [[nodiscard]] T *AllocateArray(size_t count = 1) {
             return static_cast<T *>(Allocate(sizeof(T) * count, alignof(T)));
         }
 
@@ -65,7 +65,7 @@ namespace Vulkyrie {
          * oversight - the frame graph, for instance, destroys its arena-held pass payloads through a stored
          * function pointer. */
         template <typename T, typename... TArgs> [[nodiscard]] T *Emplace(TArgs &&...args) {
-            return std::construct_at(Allocate<T>(), std::forward<TArgs>(args)...);
+            return std::construct_at(AllocateArray<T>(), std::forward<TArgs>(args)...);
         }
 
         /** @brief Releases every allocation at once by rewinding to the first chunk. Chunks are retained, so this

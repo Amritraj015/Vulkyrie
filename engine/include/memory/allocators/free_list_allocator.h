@@ -8,7 +8,7 @@ namespace Vulkyrie {
      * order, with adjacent free space merged back together.
      *
      * This is the fallback of the toolkit. It is strictly more capable and strictly slower than the others -
-     * allocation walks a free list, and freeing has to look at physical neighbours - so reach for `LinearAllocator`
+     * allocation walks a free list, and freeing has to look at physical neighbours - so reach for `ArenaAllocator`
      * when everything can be released at once, and `PoolAllocator` when the objects are uniform. What this one buys is a
      * bounded, self-contained heap: a subsystem can be given a fixed budget it cannot exceed, and its memory stays
      * in one contiguous region rather than scattered across the process heap.
@@ -28,7 +28,7 @@ namespace Vulkyrie {
     public:
         /** @brief Reserves a fixed region to allocate from.
          * @param capacityBytes Size of the region in bytes.
-         * @param tag Subsystem the reservation is attributed to; required, see `LinearAllocator`. */
+         * @param tag Subsystem the reservation is attributed to; required, see `ArenaAllocator`. */
         FreeListAllocator(size_t capacityBytes, MemoryTag tag);
 
         ~FreeListAllocator();
@@ -48,7 +48,7 @@ namespace Vulkyrie {
          * @tparam T The object type; only its size and alignment are used.
          * @param count Number of objects; defaults to one.
          * @returns Pointer to uninitialized storage, or nullptr when the region cannot satisfy the request. */
-        template <typename T> [[nodiscard]] T *Allocate(size_t count = 1) {
+        template <typename T> [[nodiscard]] T *AllocateArray(size_t count = 1) {
             return static_cast<T *>(Allocate(sizeof(T) * count, alignof(T)));
         }
 
@@ -61,7 +61,7 @@ namespace Vulkyrie {
          *
          * `Free` does not run the destructor; pair a non-trivial `T` with `std::destroy_at` before freeing. */
         template <typename T, typename... TArgs> [[nodiscard]] T *Emplace(TArgs &&...args) {
-            T *storage = Allocate<T>();
+            T *storage = AllocateArray<T>();
 
             return storage == nullptr ? nullptr : std::construct_at(storage, std::forward<TArgs>(args)...);
         }
