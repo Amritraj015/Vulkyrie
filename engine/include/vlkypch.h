@@ -6,9 +6,7 @@
 #include <cstdarg>
 
 #include <filesystem>
-#include <iostream>
 #include <memory>
-#include <memory.h>
 #include <utility>
 #include <compare>
 #include <algorithm>
@@ -27,9 +25,9 @@
 #include <unordered_set>
 #include <stack>
 #include <typeindex>
-#include <any>
 #include <span>
 #include <optional>
+#include <concepts>
 
 // GLM - OpenGL Mathematics
 #include <glm/glm.hpp>
@@ -43,20 +41,20 @@
 #include "debug/profiler.h"
 
 // Unsigned int types.
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+using u8 = std::uint8_t;
+using u16 = std::uint16_t;
+using u32 = std::uint32_t;
+using u64 = std::uint64_t;
 
 // Signed int types.
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+using i8 = std::int8_t;
+using i16 = std::int16_t;
+using i32 = std::int32_t;
+using i64 = std::int64_t;
 
 // Floating point types
-typedef float f32;
-typedef double f64;
+using f32 = float;
+using f64 = double;
 
 // Memory subsystem vocabulary: the thread-local scope stack, the VE_MEMORY_SCOPE macro, and the
 // linker anchor that keeps the global operator new/delete override from being dropped. Included
@@ -138,14 +136,4 @@ template <typename T, typename... Args> constexpr Scope<T> CreateScope(Args &&..
 template <typename T> using Ref = std::shared_ptr<T>;
 template <typename T, typename... Args> constexpr Ref<T> CreateRef(Args &&...args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
-}
-
-/** @brief Combines the hash of a value into an existing hash seed.
- * @tparam T The type of the value being hashed.
- * @param seed The existing hash seed to combine with.
- * @param v The value to hash and combine with the seed.
- */
-template <typename T> VE_INLINE void CombineHash(std::size_t &seed, const T &v) {
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }

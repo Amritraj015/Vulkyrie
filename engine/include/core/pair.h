@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vlkypch.h"
+#include "core/utilities.h"
 
 namespace Vulkyrie {
 
@@ -39,8 +39,8 @@ namespace std {
     public:
         size_t operator()(const Vulkyrie::Pair<T1, T2> &pair) const noexcept {
             size_t seed = 0;
-            CombineHash(seed, pair.First);
-            CombineHash(seed, pair.Second);
+            Vulkyrie::CombineHash(seed, pair.First);
+            Vulkyrie::CombineHash(seed, pair.Second);
             return seed;
         }
     };

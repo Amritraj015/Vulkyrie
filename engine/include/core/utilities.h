@@ -14,6 +14,16 @@ namespace Vulkyrie {
      */
     [[nodiscard]] std::optional<std::string> ReadTextFromFile(const std::filesystem::path &path);
 
+    /** @brief Combines the hash of a value into an existing hash seed.
+     * @tparam T The type of the value being hashed.
+     * @param seed The existing hash seed to combine with.
+     * @param v The value to hash and combine with the seed.
+     */
+    template <typename T> VE_INLINE void CombineHash(std::size_t &seed, const T &v) {
+        std::hash<T> hasher;
+        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
     /**
      * @brief Packs two 32-bit unsigned integers into a unique 64-bit key.
      *
