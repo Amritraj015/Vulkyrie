@@ -4,7 +4,7 @@
 #include "renderer/texture_2D.h"
 
 namespace Vulkyrie {
-    class RenderGraphTransientResources {
+    class FrameGraphTransientResources {
     public:
         void CreateTexture(const TextureSpecification &specification);
         void DestroyTexture(const TextureSpecification &specification);

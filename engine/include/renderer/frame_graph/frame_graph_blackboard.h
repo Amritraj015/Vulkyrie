@@ -2,74 +2,131 @@
 
 #include "vlkypch.h"
 #include "core/asserts.h"
+#include "memory/allocators/arena_allocator.h"
+#include "renderer/frame_graph/frame_graph_types.h"
 
 namespace Vulkyrie {
-    /** @brief The FrameGraphBlackboard class provides a type-safe storage mechanism for arbitrary data associated with a frame graph.
-     * It allows passes to store and retrieve data of any type without needing to define a specific structure for the blackboard.
-     */
+
+    /** @brief Type-keyed storage for data shared between passes, so a pass can publish its outputs (a G-buffer's
+     * handles, the shadow atlas) without the graph having to know about them.
+     *
+     * A blackboard holds a handful of entries, so a flat array with a linear search beats a hash map on every axis
+     * that matters here: `unordered_map<type_index, any>` allocated a node per `Set` plus a second allocation
+     * whenever the payload outgrew `std::any`'s small buffer - which most pass-data structs do. Entries live in an
+     * internal bump arena instead, whose chunked storage keeps references stable as the blackboard grows. */
     class FrameGraphBlackboard final {
     public:
-        FrameGraphBlackboard() = default;
-        ~FrameGraphBlackboard() = default;
+        /** @brief Constructs an empty blackboard.
+         * @param arenaBytes Initial size of the internal arena; it grows by chunking if a frame needs more. */
+        explicit FrameGraphBlackboard(size_t arenaBytes = 4096)
+            : _arena{ arenaBytes, MemoryTag::Rendering } {
+            _entries.reserve(INITIAL_ENTRY_CAPACITY);
+        }
 
-        FrameGraphBlackboard(const FrameGraphBlackboard &) = default;
-        FrameGraphBlackboard &operator=(const FrameGraphBlackboard &) = default;
+        ~FrameGraphBlackboard() {
+            runDestructors();
+        }
+
+        VE_DELETE_COPY(FrameGraphBlackboard);
 
         FrameGraphBlackboard(FrameGraphBlackboard &&) = default;
         FrameGraphBlackboard &operator=(FrameGraphBlackboard &&) = default;
 
-        /** @brief Stores a value of type T in the blackboard. The value is constructed in-place using the provided arguments.
-         * @tparam T The type of the value to store. Must not already exist in the blackboard.
-         * @tparam Args The types of the arguments to forward to the constructor of T.
-         * @param args The arguments to forward to the constructor of T.
-         * @returns A reference to the stored value of type T. */
-        template <typename T, typename... Args> T &Set(Args &&...args) {
-            VASSERT_EXPR(!Contains<T>(), "Blackboard already contains an entry for this type.");
+        /** @brief Stores a value of type T in the blackboard, constructed in place. It must not already exist.
+         * @returns A reference to the stored value, valid until the blackboard is cleared or destroyed. */
+        template <typename T, typename... TArgs> T &Set(TArgs &&...args) {
+            VASSERT(!Contains<T>(), "Blackboard already contains an entry for this type.");
 
-            return std::any_cast<T &>(_cache[typeid(T)] = T(std::forward<Args>(args)...));
+            T *value = _arena.Emplace<T>(std::forward<TArgs>(args)...);
+
+            Entry entry{ .TypeID = FrameGraphTypeID<T>(), .Data = value, .Destroy = nullptr };
+
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                entry.Destroy = [](void *data) { std::destroy_at(static_cast<T *>(data)); };
+            }
+
+            _entries.push_back(entry);
+
+            return *value;
         }
 
-        /** @brief Retrieves a reference to the value of type T stored in the blackboard.
-         * @tparam T The type of the value to retrieve. Must exist in the blackboard.
-         * @returns A reference to the stored value of type T. */
+        /** @brief Retrieves the value of type T. It must exist in the blackboard. */
         template <typename T> [[nodiscard]] T &Get() {
-            return const_cast<T &>(const_cast<const FrameGraphBlackboard *>(this)->Get<T>());
+            return const_cast<T &>(std::as_const(*this).template Get<T>());
         }
 
-        /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if it does not exist.
-         * @tparam T The type of the value to retrieve.
-         * @returns A pointer to the stored value of type T, or nullptr if it does not exist. */
-        template <typename T> [[nodiscard]] T *TryGet() {
-            return const_cast<T *>(const_cast<const FrameGraphBlackboard *>(this)->TryGet<T>());
-        }
-
-        /** @brief Retrieves a reference to the value of type T stored in the blackboard.
-         * @tparam T The type of the value to retrieve. Must exist in the blackboard.
-         * @returns A reference to the stored value of type T. */
+        /** @brief Retrieves the value of type T. It must exist in the blackboard. */
         template <typename T> [[nodiscard]] const T &Get() const {
-            VASSERT_EXPR(Contains<T>(), "Blackboard does not contain an entry for this type.");
+            const T *value = TryGet<T>();
 
-            return std::any_cast<const T &>(_cache.at(typeid(T)));
+            VASSERT(nullptr != value, "Blackboard does not contain an entry for this type.");
+
+            return *value;
         }
 
-        /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if it does not exist.
-         * @tparam T The type of the value to retrieve.
-         * @returns A pointer to the stored value of type T, or nullptr if it does not exist. */
+        /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if absent. */
+        template <typename T> [[nodiscard]] T *TryGet() {
+            return const_cast<T *>(std::as_const(*this).template TryGet<T>());
+        }
+
+        // TODO: This needs to be re-written, this sucks!
+        /** @brief Retrieves a pointer to the value of type T stored in the blackboard, or nullptr if absent. */
         template <typename T> [[nodiscard]] const T *TryGet() const {
-            auto it = _cache.find(typeid(T));
+            const u16 typeID = FrameGraphTypeID<T>();
 
-            return it != _cache.end() ? std::any_cast<const T>(&it->second) : nullptr;
+            for (const Entry &entry : _entries) {
+                if (entry.TypeID == typeID) {
+                    return static_cast<const T *>(entry.Data);
+                }
+            }
+
+            return nullptr;
         }
 
-        /** @brief Checks if the blackboard contains a value of type T.
-         * @tparam T The type of the value to check for.
-         * @returns true if the blackboard contains a value of type T, false otherwise. */
+        /** @brief Checks if the blackboard contains a value of type T. */
         template <typename T> [[nodiscard]] bool Contains() const {
-            return _cache.contains(typeid(T));
+            return TryGet<T>() != nullptr;
+        }
+
+        /** @brief Destroys every entry and rewinds the arena, keeping its chunks so the next frame allocates
+         * nothing. */
+        void Clear() {
+            runDestructors();
+            _entries.clear();
+            _arena.Reset();
+        }
+
+        /** @brief Returns the number of entries currently stored. */
+        [[nodiscard]] VE_INLINE size_t Size() const {
+            return _entries.size();
         }
 
     private:
-        /** @brief The underlying storage for the blackboard, mapping type indices to any values. */
-        std::unordered_map<std::type_index, std::any> _cache;
+        /** @brief Entries expected before the vector needs to grow; a blackboard with more than this is unusual. */
+        static constexpr size_t INITIAL_ENTRY_CAPACITY = 16;
+
+        /** @brief One stored value: its type id, its arena address, and how to destroy it. */
+        struct Entry {
+        public:
+            u16 TypeID = 0;
+            void *Data = nullptr;
+            void (*Destroy)(void *) = nullptr;
+        };
+
+        /** @brief Destroys every stored value. The arena storage is released separately. */
+        void runDestructors() {
+            for (Entry &entry : _entries) {
+                if (entry.Destroy != nullptr) {
+                    entry.Destroy(entry.Data);
+                }
+            }
+        }
+
+        /** @brief The stored entries, searched linearly. */
+        std::vector<Entry> _entries;
+
+        /** @brief Bump storage for the entry payloads; chunked, so references stay valid as it grows. */
+        ArenaAllocator _arena;
     };
+
 } // namespace Vulkyrie

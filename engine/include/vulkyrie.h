@@ -52,7 +52,7 @@
 // -----------------------------------------------------------
 #include "renderer/frame_graph/frame_graph.h"
 #include "renderer/frame_graph/frame_graph_blackboard.h"
-#include "renderer/frame_graph/frame_graph_traits.h"
+#include "renderer/frame_graph/frame_graph_concepts.h"
 #include "renderer/frame_graph/frame_graph_types.h"
 #include "renderer/frame_graph/resource_node.h"
 #include "renderer/frame_graph/resource_entry.h"

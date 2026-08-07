@@ -1,74 +1,71 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/frame_graph/pass_node.h"
 #include "renderer/frame_graph/frame_graph_types.h"
 
 namespace Vulkyrie {
-    class PassNode;
 
-    /** @brief Represents a resource node in the frame graph. Each resource node encapsulates information about a resource, such as its name, reference count,
-     * and the pass that creates it. Resource nodes are used for tracking dependencies and managing resource lifetimes within the frame graph. */
+    /** @brief One version of a resource as seen by the graph. Writing a resource produces a new `ResourceNode`
+     * pointing at the same `ResourceEntry` with a bumped version, which is what lets the graph order passes that
+     * modify the same underlying resource.
+     *
+     * Deliberately holds no `const` members: the graph reuses its node array across frames, which requires move
+     * assignment. */
     class ResourceNode final {
         friend class FrameGraph;
 
     public:
-        VE_DELETE_COPY(ResourceNode);
+        ResourceNode() = default;
 
-        ResourceNode(ResourceNode &&) = default;
-        ResourceNode &operator=(ResourceNode &&) = delete;
-
-        /** @brief Retrieves the name of the resource, which is a human-readable identifier for the resource. */
-        [[nodiscard]] VE_INLINE std::string_view GetName() const {
-            return _name;
-        }
-
-        /** @brief Retrieves the identifier associated with this resource node. */
-        [[nodiscard]] VE_INLINE ResourceID GetResourceID() const {
+        /** @brief Gets the ID (index) assigned to this resource by the frame graph. */
+        [[nodiscard]] VE_INLINE FrameGraphResourceID GetResourceID() const {
             return _resourceID;
         }
 
-        /** @brief Retrieves the identifier of the resource entry associated with this resource node. */
-        [[nodiscard]] VE_INLINE ResourceEntryID GetResourceEntryID() const {
+        /** @brief Returns the entry this node is a version of. */
+        [[nodiscard]] VE_INLINE FrameGraphResourceEntryID GetResourceEntryID() const {
             return _resourceEntryID;
         }
 
-    private:
-        /** @brief Constructs a ResourceNode with the specified name, resource ID, resource entry ID, and version.
-         * @param name The human-readable identifier for the resource.
-         * @param resourceID The unique identifier for this resource node in the graph, which is used for tracking dependencies and management within the
-         * frame graph.
-         * @param resourceEntryID The identifier of the resource entry associated with this resource node, which is used for tracking and management within
-         * the frame graph.
-         * @param version The version number of the resource, which is used for tracking changes and ensuring that resources are correctly updated and
-         * managed within the frame graph. */
-        explicit ResourceNode(const std::string_view name, ResourceID resourceID, ResourceEntryID resourceEntryID, u32 version, std::optional<PassID> createdBy)
-            : _name(name)
-            , _resourceID(resourceID)
-            , _resourceEntryID(resourceEntryID)
-            , _totalConsumers(0)
-            , _version{ version }
-            , _createdBy{ createdBy } {
+        /** @brief Returns the version this node represents. Version 1 is the resource as created. */
+        [[nodiscard]] VE_INLINE u32 GetVersion() const {
+            return _version;
         }
 
-        /** @brief The name of the resource, which is a human-readable identifier for the resource. */
-        const std::string_view _name;
+        /** @brief Returns the pass that produced this version, or an invalid id for an imported resource no pass
+         * has written yet. */
+        [[nodiscard]] VE_INLINE FrameGraphPassID GetProducer() const {
+            return _producer;
+        }
 
-        /** @brief The unique identifier for this resource node in the graph. */
-        const ResourceID _resourceID;
+    private:
+        /** @param resourceID This node's index in the graph, and its index into the graph's name array.
+         * @param resourceEntryID The entry holding the resource this node is a version of.
+         * @param version The version this node represents.
+         * @param producer The pass producing this version, or an invalid id when imported. */
+        ResourceNode(FrameGraphResourceID resourceID, FrameGraphResourceEntryID resourceEntryID, u32 version, FrameGraphPassID producer)
+            : _resourceID(resourceID)
+            , _resourceEntryID(resourceEntryID)
+            , _version{ version }
+            , _producer{ producer } {
+        }
 
-        /** @brief The identifier of the resource entry associated with this resource node. */
-        const ResourceEntryID _resourceEntryID;
+        /** @brief The ID (index) assigned to this resource by the frame graph. */
+        FrameGraphResourceID _resourceID{};
 
-        /** @brief The total number of passes that consume this resource.
-         * This is used for reference counting and determining when a resource can be culled. */
-        size_t _totalConsumers;
+        /** @brief The ID (index) of the associated "realized resource" assigned to this resource node by the frame graph. */
+        FrameGraphResourceEntryID _resourceEntryID{};
 
-        /** @brief The version number of the resource. */
-        u32 _version;
+        /** @brief Passes that consume this version. Drives the cull: a version nothing consumes cannot keep its producer alive. */
+        u32 _totalConsumers = 0;
 
-        /** @brief The ID of the pass node that creates this resource, or std::nullopt if imported.
-         * This is used for tracking dependencies and determining execution order in the frame graph. */
-        std::optional<PassID> _createdBy;
+        /** @brief Represents the current resource version. */
+        u32 _version = 0;
+
+        /** @brief The ID of the pass node that created this resource. */
+        FrameGraphPassID _producer{};
     };
+
+    static_assert(std::is_move_assignable_v<ResourceNode>, "ResourceNode must be move-assignable so the graph can reuse its node array across frames.");
+
 } // namespace Vulkyrie

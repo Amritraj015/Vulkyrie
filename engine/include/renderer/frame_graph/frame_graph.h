@@ -1,28 +1,70 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/frame_graph/frame_graph_traits.h"
-#include "renderer/frame_graph/pass_node.h"
-#include "renderer/frame_graph/resource_node.h"
-#include "renderer/frame_graph/resource_entry.h"
 #include "core/asserts.h"
+#include "core/static_string.h"
+#include "memory/allocators/arena_allocator.h"
+#include "renderer/frame_graph/frame_graph_concepts.h"
+#include "renderer/frame_graph/frame_graph_types.h"
+#include "renderer/frame_graph/pass_node.h"
+#include "renderer/frame_graph/resource_entry.h"
+#include "renderer/frame_graph/resource_node.h"
 
 namespace Vulkyrie {
-    class ResourceEntry;
 
-    /** @brief The FrameGraph class represents a directed acyclic graph of rendering passes and their resource dependencies.
-     * It provides methods for compiling the graph to determine execution order and culling unreferenced passes and resources,
-     * as well as executing the passes in the correct order while managing resource lifetimes. */
+    /** @brief Largest pass payload (`{ PassData, ExecuteFunc }`) the graph will place in the frame arena. Not a
+     * hard storage limit - the arena would happily take more - but a guard against a pass capturing large objects
+     * by value and quietly multiplying the arena's per-frame footprint. */
+    inline constexpr size_t FRAME_GRAPH_PASS_PAYLOAD_LIMIT = 1024;
+
+    /** @brief What the transient aliasing plan achieved for one compiled graph. */
+    struct FrameGraphAliasingReport {
+    public:
+        /** @brief Sum of every planned transient's size, i.e. what the frame would cost with no aliasing. */
+        u64 UnaliasedBytes = 0;
+
+        /** @brief Bytes actually required once resources with disjoint lifetimes share storage. */
+        u64 AliasedBytes = 0;
+
+        /** @brief The largest total size of the transients live at any one point in the execution order. No packing
+         * can do better than this, so it is the yardstick `AliasedBytes` is measured against: equal means the plan
+         * is optimal, and the gap between them is what a better packer could still recover. Alignment padding is
+         * not counted, so `AliasedBytes` may exceed it by the padding the placements needed. */
+        u64 PeakLiveBytes = 0;
+
+        /** @brief Number of transient resources included in the plan. */
+        u32 ResourceCount = 0;
+
+        /** @brief Returns the bytes aliasing saved over allocating every transient separately. */
+        [[nodiscard]] VE_INLINE u64 SavedBytes() const {
+            return UnaliasedBytes - AliasedBytes;
+        }
+    };
+
+    /** @brief A directed acyclic graph of rendering passes and their resource dependencies.
+     *
+     * `AddPass` declares passes and the resources they touch; `Compile` culls everything that cannot affect the
+     * frame, orders the survivors topologically, and works out resource lifetimes and barriers; `Execute` runs
+     * them. `Reset` returns the graph to empty while keeping every buffer and the frame arena, so a graph rebuilt
+     * each frame stops allocating entirely once it reaches steady state.
+     *
+     * Passes hold no containers of their own: the resources a pass creates, reads and writes live in graph-level
+     * arrays that each pass indexes with a `(begin, count)` range. This relies on `AddPass` running a pass's setup
+     * to completion before the next pass begins, which is asserted rather than assumed. */
     class FrameGraph final {
     public:
-        FrameGraph() = default;
-        ~FrameGraph() = default;
+        /** @brief Constructs a graph sized for the expected per-frame workload.
+         * @param config Reserve hints only; all three affect how many frames it takes to reach an allocation-free
+         * steady state, not what the graph can hold. */
+        explicit FrameGraph(const FrameGraphConfig &config = {});
 
         VE_DELETE_MOVE_AND_COPY(FrameGraph);
 
-        /** @brief Builder class provides an interface for defining the operations of a rendering pass within the frame graph. It allows users to create
-         * resources, register read and write accesses to resources, and specify side effects for the pass. The Builder is used within the context of
-         * defining a pass, and it interacts with the PassNode to track resource dependencies and manage the execution logic of the pass. */
+        ~FrameGraph();
+
+        /** @brief Defines what a single pass does with resources. Handed to a pass's setup function, which uses it
+         * to create resources and declare reads and writes; those declarations are the only thing the graph knows
+         * about the pass's dependencies. */
         class Builder final {
             friend class FrameGraph;
 
@@ -33,423 +75,495 @@ namespace Vulkyrie {
 
             ~Builder() = default;
 
-            /** @brief Creates a new resource in the frame graph with the specified name and descriptor, and returns its ResourceID.
-             * @tparam T The type of the resource backend, which must satisfy the FrameGraphResourceBackend concept.
-             * @param name A human-readable identifier for the resource, which can be used for debugging and profiling purposes.
-             * @param descriptor The descriptor containing the necessary information for creating and managing the resource. The specific fields and
-             * requirements of the descriptor will depend on the implementation of the resource backend and the requirements of the resource being
-             * created.
-             * @returns The ResourceID of the newly created resource, which can be used for referencing this resource in subsequent pass definitions. */
-            template <FrameGraphResourceBackend T> [[nodiscard]] ResourceID Create(const std::string_view name, const typename T::Descriptor &descriptor) {
-                const auto id = _frameGraph.Create<T>(ResourceEntry::Type::Transient, name, descriptor, T{}, _passNode.GetPassID());
-                return _passNode._creates.emplace_back(id);
+            /** @brief Creates a new transient resource owned by the graph, and registers this pass as its producer.
+             *
+             * Creating a resource implies writing it, so a pass that only creates still counts as producing one
+             * output. This is what makes the common `builder.Write(builder.Create<T>(...))` spelling behave
+             * identically to a bare `Create` rather than double-counting the output and defeating culling.
+             *
+             * @tparam T The resource type.
+             * @param name A human-readable identifier; must be a string literal, or an element of a literal table
+             * for a name that varies (`MIP_NAMES[level]`).
+             * @param descriptor The descriptor needed to materialize the resource.
+             * @param usage How this pass writes the resource; defaults to an unspecified usage, which produces no
+             * barrier.
+             * @returns A typed handle to the new resource. */
+            template <FrameGraphResourceType T>
+            [[nodiscard]] FrameGraphHandle<T> Create(StaticString name, const typename T::Descriptor &descriptor, const ResourceUsage &usage = {}) {
+                const FrameGraphResourceID id =
+                    _frameGraph.createResource<T>(ResourceEntry::Lifetime::Transient, name, descriptor, T{}, _passNode.GetPassID());
+
+                _frameGraph.registerCreate(_passNode, id);
+
+                return FrameGraphHandle<T>{ _frameGraph.registerWrite(_passNode, id, usage) };
             }
 
-            /** @brief Registers a read access to the specified resource with the given flags, and returns the ResourceID for chaining or further
-             * processing.
-             * @param resourceID The ID of the resource being read, which must be a valid ResourceID that has been created in the frame graph.
-             * @param flags Flags indicating the type of read operation. These flags can be used for optimization or to specify special handling for
-             * certain types of reads. The specific meaning and usage of the flags will depend on the implementation of the resource backend and the
-             * requirements of the resource being read. By default, this parameter is set to IGNORED_FLAGS, which indicates that no special handling is
-             * required for this read operation.
-             * @returns The ResourceID of the resource being read, which can be used for chaining calls or for further processing. */
-            [[nodiscard]] ResourceID Read(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
-                VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
-                return _passNode.Read(resourceID, flags);
+            /** @brief Registers a read access to a resource.
+             * @tparam T The resource type.
+             * @param handle The resource to read.
+             * @param usage How this pass reads it; the graph turns a change of usage into a barrier.
+             * @returns The same handle, for chaining. */
+            template <typename T> [[nodiscard]] FrameGraphHandle<T> Read(FrameGraphHandle<T> handle, const ResourceUsage &usage = {}) {
+                return FrameGraphHandle<T>{ readImpl(handle.ID, usage) };
             }
 
-            /** @brief Registers a write access to the specified resource with the given flags, and returns the ResourceID for chaining or further
-             * processing. If the resource is written to by multiple passes, it will be renamed to enforce a specific execution order of the passes.
-             * @param resourceID The ID of the resource being written to, which must be a valid ResourceID that has been created in the frame graph.
-             * @param flags Flags indicating the type of write operation. These flags can be used for optimization or to specify special handling for
-             * certain types of writes. The specific meaning and usage of the flags will depend on the implementation of the resource backend and the
-             * requirements of the resource being written to. By default, this parameter is set to IGNORED_FLAGS, which indicates that no special
-             * handling is required for this write operation.
-             * @returns The ResourceID of the resource being written to, which can be used for chaining calls or for further processing. */
-            [[nodiscard]] ResourceID Write(const ResourceID resourceID, i32 flags = IGNORED_FLAGS) {
-                VASSERT_EXPR(_frameGraph.IsValid(resourceID), "Resource ID is not valid in the frame graph.");
-
-                if (_frameGraph.GetResourceEntry(resourceID).IsImported()) {
-                    SetSideEffect();
-                }
-
-                if (_passNode.CreatesResource(resourceID)) {
-                    return _passNode.Write(resourceID, flags);
-                } else {
-                    // Writing to a texture produces a renamed handle.
-                    // This allows us to catch errors when resources are modified in
-                    // undefined order (when same resource is written by different passes).
-                    // Renaming resources enforces a specific execution order of the render
-                    // passes.
-                    ResourceID rID = _passNode.Read(resourceID, IGNORED_FLAGS);
-                    return _passNode.Write(_frameGraph.Clone(rID, _passNode.GetPassID()), flags);
-                }
+            /** @brief Registers a write access to a resource. Writing a resource this pass did not create renames
+             * it: the pass reads the current version and produces a new one, which is what forces passes that
+             * modify the same resource into a defined order.
+             * @tparam T The resource type.
+             * @param handle The resource to write.
+             * @param usage How this pass writes it.
+             * @returns A handle to the new version; the old handle must not be used afterwards. */
+            template <typename T> [[nodiscard]] FrameGraphHandle<T> Write(FrameGraphHandle<T> handle, const ResourceUsage &usage = {}) {
+                return FrameGraphHandle<T>{ writeImpl(handle.ID, usage) };
             }
 
-            /** @brief Marks the pass as having side effects, which means it performs operations that affect the state of the system or produce visible
-             * results. Passes with side effects should not be culled even if they have a reference count of zero. This method can be used to ensure
-             * that important passes are not accidentally culled during the compilation process, especially if they interact with external systems or
-             * produce results that are not directly consumed by other passes in the graph. */
-            Builder &SetSideEffect() {
+            /** @brief Marks the pass as having side effects, exempting it from culling. Needed for passes whose
+             * result is not consumed by any other pass in the graph - presenting, read-back, anything touching
+             * external state.
+             * @returns This builder, for chaining. */
+            Builder &MarkSideEffect() {
                 _passNode._hasSideEffects = true;
 
                 return *this;
             }
 
         private:
-            Builder(FrameGraph &fg, PassNode &node)
-                : _frameGraph{ fg }
-                , _passNode{ node } {
+            Builder(FrameGraph &frameGraph, PassNode &passNode)
+                : _frameGraph{ frameGraph }
+                , _passNode{ passNode } {
             }
+
+            /** @brief Type-erased read registration; the typed `Read` is a one-line wrapper over this so nothing
+             * beyond the wrapper is instantiated per resource type. */
+            [[nodiscard]] FrameGraphResourceID readImpl(FrameGraphResourceID resourceID, const ResourceUsage &usage);
+
+            /** @brief Type-erased write registration; see `readImpl`. */
+            [[nodiscard]] FrameGraphResourceID writeImpl(FrameGraphResourceID resourceID, const ResourceUsage &usage);
 
             FrameGraph &_frameGraph;
             PassNode &_passNode;
         };
 
-        /** @brief Compiles the frame graph by performing reference count calculation, resource culling, and execution order determination. */
-        void Compile() {
-            // REFERENCE COUNT CALCULATION
-            // First, we calculate the reference counts for each pass and resource node.
-            for (PassNode &passNode : _passNodes) {
-                // The reference count of a pass is determined by the number of resources it writes to and creates.
-                passNode._liveOutputCount = passNode._writes.size() + passNode._creates.size();
+        /** @brief Adds a pass to the graph.
+         *
+         * The setup function runs immediately and declares the pass's resource dependencies through the `Builder`.
+         * The execute function runs during `Execute`/`Record`, and receives the pass data, the graph (so it can
+         * resolve its handles to resource objects via `GetResource`), and the frame context.
+         *
+         * Both the pass data and the captured execute callable live in the graph's frame arena; the pass itself
+         * allocates nothing.
+         *
+         * Note for `RecordParallel`: execute functions may run concurrently with each other and must not mutate
+         * shared state without synchronization. Recording is order-independent - only submission is ordered.
+         *
+         * @tparam TPassData Data the setup function fills in and the execute function reads.
+         * @tparam TSetup Invocable as `setup(Builder &, TPassData &)`.
+         * @tparam TExecute Invocable as `execute(const TPassData &, FrameGraph &, const FrameGraphContext &)`.
+         * @param name A human-readable identifier; must be a string literal, or an element of a literal table for
+         * a name that varies (`CASCADE_NAMES[cascade]`).
+         * @param setup The setup function.
+         * @param execute The execute function.
+         * @returns A reference to the pass data, valid until the next `Reset`. */
+        template <typename TPassData, FrameGraphSetupFn<Builder, TPassData> TSetup, FrameGraphExecuteFn<TPassData> TExecute>
+        const TPassData &AddPass(StaticString name, TSetup &&setup, TExecute &&execute) {
+            using Callable = std::decay_t<TExecute>;
+            using Payload = FrameGraphPassPayload<TPassData, Callable>;
 
-                // The reference count of a resource is determined by the number of passes that read from it.
-                for (const auto [resourceId, _] : passNode._reads) {
-                    _resourceNodes[resourceId]._totalConsumers++;
-                }
+            static_assert(sizeof(Payload) <= FRAME_GRAPH_PASS_PAYLOAD_LIMIT, "Frame graph pass payload exceeds FRAME_GRAPH_PASS_PAYLOAD_LIMIT (1024 bytes).");
+
+            VASSERT(!_inSetup, "FrameGraph::AddPass is not re-entrant: a nested pass would interleave the graph-level access ranges.");
+            VASSERT(!_compiled, "FrameGraph::AddPass called after Compile(); call Reset() to start a new frame.");
+
+            auto *payload = _arena.Emplace<Payload>(std::forward<TExecute>(execute));
+
+            PassNode::DestroyFn destroyPayload = nullptr;
+
+            if constexpr (!std::is_trivially_destructible_v<Payload>) {
+                destroyPayload = [](void *p) { std::destroy_at(static_cast<Payload *>(p)); };
             }
 
-            // RESOURCE CULLING
-            // Next, we identify unreferenced resources and cull any passes that are only referenced by unreferenced resources.
-            std::stack<ResourceNode *> unreferencedResources;
+            PassNode &passNode = createPassNode(
+                name,
+                payload,
+                [](void *p, FrameGraph &graph, const FrameGraphContext &context) {
+                    auto *typed = static_cast<Payload *>(p);
+                    typed->Execute(std::as_const(typed->Data), graph, context);
+                },
+                destroyPayload);
 
-            // We start by pushing all resources with a reference count of zero onto the stack.
-            for (ResourceNode &resourceNode : _resourceNodes) {
-                if (resourceNode._totalConsumers == 0) {
-                    unreferencedResources.push(&resourceNode);
-                }
-            }
-
-            // We then repeatedly pop unreferenced resources from the stack and check their creators.
-            // If a creator pass has no side effects and its reference count drops to zero,
-            // we also consider it unreferenced and push any resources it reads from onto the stack.
-            while (!unreferencedResources.empty()) {
-                ResourceNode *unreferencedResource = unreferencedResources.top();
-                unreferencedResources.pop();
-
-                // If the resource has no creator (imported resource), skip it.
-                if (!unreferencedResource->_createdBy.has_value()) {
-                    continue;
-                }
-
-                PassNode &creator = _passNodes[unreferencedResource->_createdBy.value()];
-
-                // If the creator has side effects, we cannot cull it, so we skip to the next resource.
-                if (creator._hasSideEffects) {
-                    continue;
-                }
-
-                VASSERT_EXPR(creator._liveOutputCount >= 1, "Pass creator has no live outputs.");
-
-                // We decrement the reference count of the creator pass, and if it drops to zero, we consider it unreferenced.
-                if (--creator._liveOutputCount == 0) {
-                    for (const auto [resourceId, _] : creator._reads) {
-                        ResourceNode &consumedResource = _resourceNodes[resourceId];
-
-                        if (--consumedResource._totalConsumers == 0) {
-                            unreferencedResources.push(&consumedResource);
-                        }
-                    }
-                }
-            }
-
-            // RESOURCE LIFETIME ANALYSIS
-            // Finally, we determine the execution order of the passes based on their dependencies.
-            for (PassNode &passNode : _passNodes) {
-                // We only consider passes that will be executed (either have outputs or have side effects).
-                if (!passNode.CanExecute()) {
-                    continue;
-                }
-
-                // For resources that the pass creates, we set the creator pointer to the pass,
-                for (const ResourceID resourceId : passNode._creates) {
-                    GetResourceEntry(resourceId)._creator = &passNode;
-                }
-
-                // For resources that the pass writes to, we set the last used by pointer to the pass,
-                // as it is the last pass that modifies the resource.
-                for (const auto [resourceId, _] : passNode._writes) {
-                    GetResourceEntry(resourceId)._lastUsedBy = &passNode;
-                }
-
-                // For resources that the pass reads from, we also set the last used by pointer to the pass,
-                // as it is the last pass that consumes the resource before it is potentially destroyed.
-                for (const auto [resourceId, _] : passNode._reads) {
-                    GetResourceEntry(resourceId)._lastUsedBy = &passNode;
-                }
-            }
-        }
-
-        /** @brief Executes the frame graph by executing all passes in the determined execution order.
-         * @param context A pointer to any additional context needed for pass execution, such as a rendering context or command buffer.
-         * @param allocator A pointer to a memory allocator that can be used for resource creation and management during pass execution. */
-        void Execute(void *context, void *allocator) {
-            // We execute the passes in the order they were added to the graph,
-            // but we only execute those that have a positive reference count or have side effects.
-            for (const PassNode &passNode : _passNodes) {
-                if (!passNode.CanExecute()) {
-                    continue;
-                }
-
-                // Before executing the pass, we need to ensure that all resources it creates are created.
-                for (const ResourceID resourceId : passNode._creates) {
-                    GetResourceEntry(resourceId).Create(allocator);
-                }
-
-                // Perform pre-read operations for resources that the pass reads from.
-                for (const auto [resourceId, flags] : passNode._reads) {
-                    if (flags != IGNORED_FLAGS) {
-                        GetResourceEntry(resourceId).PreRead(flags, allocator);
-                    }
-                }
-
-                // Perform pre-write operations for resources that the pass writes to.
-                for (const auto [resourceId, flags] : passNode._writes) {
-                    if (flags != IGNORED_FLAGS) {
-                        GetResourceEntry(resourceId).PreWrite(flags, allocator);
-                    }
-                }
-
-                // Now we can execute the pass itself.
-                (*passNode._executeFunc)(context);
-
-                // After executing the pass, we can destroy any resources that are last used by this pass.
-                // The "Destroy" method will only be executed for Transient resources,
-                // as Persistent resources are expected to be managed externally and should not be automatically destroyed by the frame graph.
-                //
-                // TODO: This can be improved, as we are currently iterating over all resources for each pass, which can be inefficient. We can optimize
-                // this by keeping track of which resources are last used by each pass during the compilation phase, so we can directly access and
-                // destroy only those resources without having to iterate through the entire resource registry.
-                for (auto &resource : _resourceRegistry) {
-                    if (resource._lastUsedBy == &passNode) {
-                        resource.Destroy(allocator);
-                    }
-                }
-            }
-        }
-
-        /** @brief Adds a new pass to the frame graph with the specified name, setup function, and execution function, and returns a reference to the pass
-         * data associated with the newly added pass.
-         *
-         * @tparam PassData The type of the data associated with this pass, which can be used to store any necessary information for the pass during setup
-         * and execution.
-         *
-         * @tparam SetupFunc The type of the setup function, which must be invocable with a Builder reference and a PassData reference. The setup function
-         * is responsible for defining the resources that the pass creates, reads from, and writes to, as well as any side effects it may have. This
-         * function is called during the pass addition process to configure the pass's dependencies and behavior within the frame graph.
-         *
-         * @tparam ExecuteFunc The type of the execution function, which must be invocable with a const reference to PassData and a void pointer for
-         * context. The execution function contains the actual logic that will be executed when this pass is executed as part of the frame graph. This
-         * function is called during the execution phase of the frame graph, and it should perform the necessary operations for this pass based on the data
-         * provided in PassData and any additional context passed in as a void pointer. The execution function should be designed to work with the resources
-         * that have been defined in the setup function, and it should ensure that it correctly handles any dependencies and side effects associated with
-         * this pass. Additionally, the size of the execution function must be less than or equal to 1024 bytes, which is a constraint to ensure efficient
-         * storage and invocation of the execution logic within the frame graph.
-         *
-         * @param name A human-readable identifier for the pass, which can be used for debugging and profiling purposes.
-         * @param setupFunc The setup function that defines the resources and behavior of the pass.
-         * @param executeFunc The execution function that contains the logic to be executed for this pass during the execution phase of the frame graph.
-         *
-         * @returns A reference to the PassData associated with the newly added pass.
-         * */
-        template <typename PassData, typename SetupFunc, typename ExecuteFunc>
-            requires std::is_invocable_v<SetupFunc, Builder &, PassData &> && std::is_invocable_v<ExecuteFunc, const PassData &, void *> &&
-                     (sizeof(ExecuteFunc) <= 1024)
-        const PassData &AddPass(const std::string_view name, SetupFunc &&setupFunc, ExecuteFunc &&executeFunc) {
-            auto pass = std::make_unique<FrameGraphPass<PassData, ExecuteFunc>>(std::forward<ExecuteFunc>(executeFunc));
-            auto &passDataRef = pass->data;
-            auto &passNode = CreatePassNode(name, std::move(pass));
-
+            _inSetup = true;
             Builder builder{ *this, passNode };
-            setupFunc(builder, passDataRef);
+            setup(builder, payload->Data);
+            _inSetup = false;
 
-            return passDataRef;
+            // Each pass's accesses must be one contiguous run in each graph-level array. They are, because a pass's
+            // setup runs to completion before the next begins - this asserts that invariant rather than assuming it.
+            VASSERT(passNode._createBegin + passNode._createCount == _creates.size(), "Frame graph create range is not contiguous; was AddPass re-entered?");
+            VASSERT(passNode._readBegin + passNode._readCount == _reads.size(), "Frame graph read range is not contiguous; was AddPass re-entered?");
+            VASSERT(passNode._writeBegin + passNode._writeCount == _writes.size(), "Frame graph write range is not contiguous; was AddPass re-entered?");
+
+            return payload->Data;
         }
 
-        /** @brief Imports an externally managed resource into the frame graph with the specified name, descriptor, and resource instance, and returns its
-         * ResourceID.
-         * @tparam T The type of the resource backend, which must satisfy the FrameGraphResourceBackend concept.
-         * @param name A human-readable identifier for the resource, which can be used for debugging and profiling purposes.
-         * @param desc The descriptor containing the necessary information for creating and managing the resource. The specific fields and requirements of
-         * the descriptor will depend on the implementation of the resource backend and the requirements of the resource being imported.
-         * @param resource The actual resource instance that is being imported into the frame graph. This should be an instance of the type that satisfies
-         * the FrameGraphResourceBackend concept, and it should be initialized with any necessary information for managing the resource. Imported resources
-         * are expected to be managed externally and will not be automatically destroyed by the frame graph. */
-        template <FrameGraphResourceBackend T> ResourceID Import(const std::string_view name, const typename T::Descriptor &descriptor, T &&resource) {
-            return Create<T>(ResourceEntry::Type::Imported, name, descriptor, std::forward<T>(resource), std::nullopt);
+        /** @brief Brings an externally owned resource into the graph. The graph will schedule around it but never
+         * create or destroy it, and any pass that writes it is automatically treated as having side effects.
+         * @tparam T The resource type.
+         * @param name A human-readable identifier. Must be a string literal; see `AddPass` for names that vary.
+         * @param descriptor The descriptor describing the resource.
+         * @param resource The existing resource object, moved into the graph.
+         * @returns A typed handle to the imported resource. */
+        template <FrameGraphResourceType T> FrameGraphHandle<T> Import(StaticString name, const typename T::Descriptor &descriptor, T &&resource) {
+            return FrameGraphHandle<T>{ createResource<T>(
+                ResourceEntry::Lifetime::Imported, name, descriptor, std::forward<T>(resource), FrameGraphPassID{}) };
         }
+
+        /** @brief Culls, orders and analyses the graph: reference counting, dead-pass removal, a topological sort
+         * with cycle detection, resource lifetimes, per-pass release ranges, per-pass barrier batches, and the
+         * transient aliasing plan. Call once per frame; `Reset` starts the next one. */
+        void Compile();
+
+        /** @brief Runs the compiled graph on the calling thread, interleaving resource creation, barriers, pass
+         * execution and resource release in topological order. This is the path a backend without command-buffer
+         * recording (OpenGL) wants; see `Record`/`Submit` for the split form.
+         * @param context The frame context, forwarded unchanged to every pass and resource type. */
+        void Execute(const FrameGraphContext &context);
+
+        /** @brief Materializes every resource the frame needs and runs each surviving pass's execute function on
+         * the calling thread. Pairs with `Submit`.
+         * @param context The frame context, forwarded unchanged to every pass and resource type. */
+        void Record(const FrameGraphContext &context);
+
+        /** @brief Same as `Record`, but fans the pass execute functions out across the job system. Recording is
+         * order-independent, so all passes may record concurrently; only submission is ordered. Execute functions
+         * must not mutate shared state without synchronization.
+         *
+         * Anything a pass needs to allocate while recording must come from per-worker storage the backend owns and
+         * reaches through `FrameGraphContext::RenderContext` - the same place its per-thread command pool lives.
+         * The graph deliberately exposes no allocator here, because it does not know the worker count and cannot
+         * partition scratch correctly.
+         * @param context The frame context, forwarded unchanged to every pass and resource type. */
+        void RecordParallel(const FrameGraphContext &context);
+
+        /** @brief Walks the execution order emitting each pass's batched barriers, then releases every transient
+         * resource. Pairs with `Record`/`RecordParallel`.
+         * @param context The frame context, forwarded unchanged to every pass and resource type. */
+        void Submit(const FrameGraphContext &context);
+
+        /** @brief Returns the graph to empty while keeping every buffer's capacity and the frame arena's chunks,
+         * so the next frame runs without allocating. Runs the destructors of pass payloads and resource storage.
+         *
+         * Any transient resource still materialized is released first, which requires a context; use the
+         * `Reset(context)` overload if a frame was compiled but never executed. */
+        void Reset();
+
+        /** @brief Resets the graph, releasing any transient resource left materialized by an interrupted frame.
+         * @param context The frame context used to release still-live transients. */
+        void Reset(const FrameGraphContext &context);
+
+        /** @brief Resolves a typed handle to the resource object it refers to. Available during pass execution,
+         * which is what lets a pass actually bind the resources it declared.
+         * @tparam T The resource type; validated against the entry's recorded type in Debug builds. */
+        template <FrameGraphResourceType T> [[nodiscard]] T &GetResource(FrameGraphHandle<T> handle) {
+            return getResourceEntry(handle.ID).template GetResource<T>();
+        }
+
+        /** @brief Resolves a typed handle to the resource object it refers to.
+         * @tparam T The resource type. */
+        template <FrameGraphResourceType T> [[nodiscard]] const T &GetResource(FrameGraphHandle<T> handle) const {
+            return getResourceEntry(handle.ID).template GetResource<T>();
+        }
+
+        /** @brief Returns the descriptor a resource was created with.
+         * @tparam T The resource type. */
+        template <FrameGraphResourceType T> [[nodiscard]] const typename T::Descriptor &GetDescriptor(FrameGraphHandle<T> handle) const {
+            return getResourceEntry(handle.ID).template GetDescriptor<T>();
+        }
+
+        /** @brief Returns the compiled execution order as pass indices, empty until `Compile` has run. */
+        [[nodiscard]] VE_INLINE std::span<const u32> GetExecutionOrder() const {
+            return _executionOrder;
+        }
+
+        /** @brief Returns what the transient aliasing plan achieved, valid after `Compile`. */
+        [[nodiscard]] VE_INLINE const FrameGraphAliasingReport &GetAliasingReport() const {
+            return _aliasingReport;
+        }
+
+        /** @brief Returns the graph's per-frame arena for inspection - how much it holds, how often it has grown.
+         *
+         * Const on purpose. The arena backs pass payloads and resource storage, and is not synchronized; handing
+         * out a mutable reference would let a pass body allocate from it, which is a data race the moment
+         * `RecordParallel` runs those bodies concurrently. Allocation stays internal to the graph, and the compiler
+         * enforces it rather than a comment asking nicely. */
+        [[nodiscard]] VE_INLINE const ArenaAllocator &GetFrameArena() const {
+            return _arena;
+        }
+
+        /** @brief Returns the number of passes declared this frame, culled ones included. */
+        [[nodiscard]] VE_INLINE size_t GetPassCount() const {
+            return _passNodes.size();
+        }
+
+        /** @brief Returns the number of resource versions declared this frame. */
+        [[nodiscard]] VE_INLINE size_t GetResourceVersionCount() const {
+            return _resourceNodes.size();
+        }
+
+        /** @brief Returns a pass by index, for tooling and tests.
+         * @param passID The pass to look up. */
+        [[nodiscard]] VE_INLINE const PassNode &GetPassNode(FrameGraphPassID passID) const {
+            VASSERT(passID.IsValid() && passID.Get() < _passNodes.size(), "Pass ID is out of range.");
+
+            return _passNodes[passID.Get()];
+        }
+
+        /** @brief Returns a resource version by id, for tooling and tests.
+         * @param resourceID The resource version to look up. */
+        [[nodiscard]] VE_INLINE const ResourceNode &GetResourceNode(FrameGraphResourceID resourceID) const {
+            VASSERT(resourceID.IsValid() && resourceID.Get() < _resourceNodes.size(), "Resource ID is out of range.");
+
+            return _resourceNodes[resourceID.Get()];
+        }
+
+        /** @brief Returns the name a pass was declared with.
+         * @param passID The pass to look up. */
+        [[nodiscard]] VE_INLINE StaticString GetPassName(FrameGraphPassID passID) const {
+            VASSERT(passID.IsValid() && passID.Get() < _passNames.size(), "Pass ID is out of range.");
+
+            return _passNames[passID.Get()];
+        }
+
+        /** @brief Returns the name a resource version was declared with. Every version of a resource shares the
+         * name the first one was given.
+         * @param resourceID The resource version to look up. */
+        [[nodiscard]] VE_INLINE StaticString GetResourceName(FrameGraphResourceID resourceID) const {
+            VASSERT(resourceID.IsValid() && resourceID.Get() < _resourceNames.size(), "Resource ID is out of range.");
+
+            return _resourceNames[resourceID.Get()];
+        }
+
+        /** @brief Renders the compiled graph as a GraphViz DOT document: passes as boxes, resource versions as
+         * ellipses, culled nodes greyed out, edges labelled by access. Feeds `dot -Tpng` and the editor's frame
+         * graph view.
+         * @returns The DOT source. */
+        [[nodiscard]] std::string ToDot() const;
 
     private:
-        /** @brief A constant representing flags that indicate that no special handling is required for a read or write operation. This can be used as a
-         * default value for the flags parameter in the Read and Write methods, indicating that the operation should be treated as a standard read or write
-         * without any special optimizations or handling. The specific meaning and usage of this constant will depend on the implementation of the resource
-         * backend and the requirements of the resources being read or written to. */
-        static constexpr auto IGNORED_FLAGS = ~0;
+        friend class Builder;
 
-        /** @brief The pass nodes vector holds all the pass nodes in the frame graph. Each pass node represents a specific rendering pass that will be
-         * executed as part of the frame graph. The pass nodes are used for tracking dependencies and determining execution order during the compilation
-         * process. Each pass node contains information about the pass it represents, such as its name, unique identifier, reference count, side effect
-         * flag, execution function, and lists of resources it creates, reads from, and writes to. This information is crucial for determining execution
-         * order, culling unreferenced passes, and ensuring that passes are executed correctly based on their dependencies and side effects. */
+        /** @brief Creates a resource entry and its first version node.
+         * @param lifetime Whether the graph owns the resource's lifetime.
+         * @param name A human-readable identifier, stored by pointer.
+         * @param descriptor The descriptor needed to materialize the resource.
+         * @param resource The resource object, moved into an arena-allocated storage block.
+         * @param producer The pass producing the resource, or an invalid id when imported.
+         * @returns The id of the first version node. */
+        template <FrameGraphResourceType T>
+        [[nodiscard]] FrameGraphResourceID createResource(ResourceEntry::Lifetime lifetime,
+                                                          StaticString name,
+                                                          const typename T::Descriptor &descriptor,
+                                                          T &&resource,
+                                                          FrameGraphPassID producer) {
+            using Storage = FrameGraphResourceStorage<T>;
+
+            VASSERT(!_compiled, "FrameGraph resources cannot be declared after Compile(); call Reset() to start a new frame.");
+
+            auto *storage = _arena.Emplace<Storage>(descriptor, std::forward<T>(resource));
+
+            const auto entryID = FrameGraphResourceEntryID{ static_cast<u32>(_resourceEntries.size()) };
+            _resourceEntries.push_back(ResourceEntry::create<T>(lifetime, entryID, storage));
+
+            return createResourceNode(name, entryID, ResourceEntry::INITIAL_RESOURCE_VERSION, producer);
+        }
+
+        /** @brief Appends a pass node whose access ranges start at the current end of the graph-level arrays. */
+        [[nodiscard]] PassNode &createPassNode(StaticString name, void *payload, PassNode::InvokeFn invoke, PassNode::DestroyFn destroy);
+
+        /** @brief Appends a resource version node and links it to the previous version of the same entry. */
+        [[nodiscard]] FrameGraphResourceID createResourceNode(StaticString name, FrameGraphResourceEntryID entryID, u32 version, FrameGraphPassID producer);
+
+        /** @brief Records that a pass materializes a resource, adding it to the pass's create range. */
+        void registerCreate(PassNode &passNode, FrameGraphResourceID resourceID);
+
+        /** @brief Records a read, merging into an existing access if the pass already reads the resource. */
+        FrameGraphResourceID registerRead(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage);
+
+        /** @brief Records a write, merging into an existing access if the pass already writes the resource. */
+        FrameGraphResourceID registerWrite(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage);
+
+        /** @brief Produces the next version of a resource, so two passes writing it are forced into an order. */
+        [[nodiscard]] FrameGraphResourceID createNextVersion(FrameGraphResourceID resourceID, FrameGraphPassID producer);
+
+        /** @brief Checks that a handle refers to the current version of its resource; a stale handle means two
+         * passes were declared writing the same resource in an undefined order. */
+        [[nodiscard]] bool isCurrentVersion(FrameGraphResourceID resourceID) const;
+
+        /** @brief Returns whether a pass creates the given resource, scanning only that pass's create range. */
+        [[nodiscard]] bool passCreatesResource(const PassNode &passNode, FrameGraphResourceID resourceID) const;
+
+        // --- Compile stages -------------------------------------------------------------------------------
+
+        /** @brief Seeds pass output counts and resource consumer counts. */
+        void computeReferenceCounts();
+
+        /** @brief Removes passes whose outputs nothing consumes, and everything that only fed them. */
+        void cullUnreferencedPasses();
+
+        /** @brief Orders the surviving passes with Kahn's algorithm over the derived dependency edges. */
+        void buildExecutionOrder();
+
+        /** @brief Records first/last use of every resource, in execution-order positions, and fills each pass's
+         * release range. */
+        void computeResourceLifetimes();
+
+        /** @brief Packs transients with disjoint lifetimes into shared storage, and records which resources each
+         * one takes its bytes over from. Runs before `buildBarriers`, which needs those predecessors. */
+        void buildAliasingPlan();
+
+        /** @brief Walks the execution order turning usage changes into per-pass barrier batches, and marks the
+         * first use of every aliased transient so the backend discards the previous occupant's contents. */
+        void buildBarriers();
+
+        /** @brief Materializes every resource the frame needs, in first-use order. */
+        void prepareResources(const FrameGraphContext &context);
+
+        /** @brief Notifies the resource types of one pass's declared accesses. Always runs on the calling thread,
+         * even under `RecordParallel`: these are resource-state callbacks, so running them concurrently would
+         * require every resource type to be thread-safe. */
+        void runAccessHooks(u32 passIndex, const FrameGraphContext &context);
+
+        /** @brief Invokes one pass's execute function. This is the only part that runs concurrently under
+         * `RecordParallel`. */
+        void invokePassBody(u32 passIndex, const FrameGraphContext &context);
+
+        /** @brief Emits one pass's batched barriers, if the context provides a hook. */
+        void emitBarriers(u32 passIndex, const FrameGraphContext &context) const;
+
+        /** @brief Returns the entry backing a resource version. */
+        [[nodiscard]] VE_INLINE ResourceEntry &getResourceEntry(FrameGraphResourceID resourceID) {
+            VASSERT(resourceID.IsValid() && resourceID.Get() < _resourceNodes.size(), "Resource ID is out of range.");
+
+            return _resourceEntries[_resourceNodes[resourceID.Get()]._resourceEntryID.Get()];
+        }
+
+        /** @brief Returns the entry backing a resource version. */
+        [[nodiscard]] VE_INLINE const ResourceEntry &getResourceEntry(FrameGraphResourceID resourceID) const {
+            VASSERT(resourceID.IsValid() && resourceID.Get() < _resourceNodes.size(), "Resource ID is out of range.");
+
+            return _resourceEntries[_resourceNodes[resourceID.Get()]._resourceEntryID.Get()];
+        }
+
+        /** @brief Runs the destructors of every pass payload and resource storage block. The arena memory they
+         * occupy is released separately by `ArenaAllocator::Reset`. */
+        void runDestructors();
+
+        /** @brief One transient resource competing for storage in the aliasing plan, and the offset it was given. */
+        struct AliasCandidate {
+        public:
+            u32 EntryIndex = 0;
+            u64 Size = 0;
+            u64 Alignment = 1;
+            u32 FirstUse = 0;
+            u32 LastUse = 0;
+            u64 Offset = 0;
+        };
+
+        /** @brief Per-frame bump allocator backing pass payloads and resource storage. */
+        ArenaAllocator _arena;
+
+        /** @brief Every pass declared this frame, in declaration order. */
         std::vector<PassNode> _passNodes;
 
-        /** @brief The resource nodes vector holds all the resource nodes in the frame graph. Each resource node represents a specific instance of a
-         * resource that is used by the passes in the graph. The resource nodes are used for tracking dependencies and managing resource lifetimes during
-         * pass execution. Each resource node contains information about the resource it represents, such as its name, unique identifier, associated
-         * resource entry ID, reference count, version number, and pointers to the creator pass and any passes that consume it. This information is crucial
-         * for determining execution order, culling unreferenced resources, and ensuring that resources are correctly created and destroyed during pass
-         * execution. */
+        /** @brief Every resource version declared this frame. */
         std::vector<ResourceNode> _resourceNodes;
 
-        /** @brief The resource registry is a vector that holds all the resource entries in the frame graph. Each resource entry contains information about
-         * a specific resource, such as its type (Transient or Imported), version number, and associated resource entry ID. The resource registry is used
-         * for tracking and managing resources within the frame graph, allowing us to efficiently create, update, and destroy resources as needed during
-         * pass execution. */
-        std::vector<ResourceEntry> _resourceRegistry;
+        /** @brief Pass names, indexed by `FrameGraphPassID`. Kept out of `PassNode` so the compile and execute
+         * walks do not pull debug-only data through cache. */
+        std::vector<StaticString> _passNames;
 
-        /** @brief Creates a new resource entry in the frame graph with the specified type, name, descriptor, and resource, and returns its ResourceID.
-         * @tparam T The type of the resource backend, which must satisfy the FrameGraphResourceBackend concept.
-         * @param type The type of the resource (Transient or Imported), which indicates how the resource should be managed within the frame graph.
-         * Transient resources are created and destroyed automatically by the frame graph based on their usage, while Imported resources are expected to be
-         * managed externally and should not be automatically destroyed by the frame graph.
-         * @param name A human-readable identifier for the resource, which can be used for debugging and profiling purposes.
-         * @param desc The descriptor containing the necessary information for creating and managing the resource. The specific fields and requirements of
-         * the descriptor will depend on the implementation of the resource backend and the requirements of the resource being created.
-         * @param resource The actual resource associated with the backend. This should be an instance of the type that satisfies the
-         * FrameGraphResourceBackend concept, and it should be initialized with any necessary information for creating and managing the resource.
-         * @param creatorID Optional PassID of the pass that creates this resource. This is set at creation time for proper dependency tracking. */
-        template <FrameGraphResourceBackend T>
-        [[nodiscard]] ResourceID Create(const ResourceEntry::Type type,
-                                        const std::string_view name,
-                                        const typename T::Descriptor &desc,
-                                        T &&resource,
-                                        std::optional<PassID> creatorID = std::nullopt) {
-            const ResourceEntryID resourceEntryID = _resourceRegistry.size();
-            _resourceRegistry.push_back(ResourceEntry{ type, resourceEntryID, desc, std::forward<T>(resource) });
+        /** @brief Resource version names, indexed by `FrameGraphResourceID`. */
+        std::vector<StaticString> _resourceNames;
 
-            return CreateResourceNode(name, resourceEntryID, ResourceEntry::INITIAL_RESOURCE_VERSION, creatorID).GetResourceID();
-        }
+        /** @brief For each resource version, the node holding the next version of the same entry, or an invalid
+         * id. Lets `Compile` derive write-after-read edges without a per-entry search. */
+        std::vector<FrameGraphResourceID> _nextVersion;
 
-        /** @brief Creates a new pass node in the frame graph with the specified name and execution function,
-         * and returns a reference to the newly created pass node.
-         * @param name A human-readable identifier for the pass, which can be used for debugging and profiling purposes.
-         * @param base A unique pointer to a FrameGraphPassConcept that encapsulates the execution function for this pass. The execution function should be
-         * invocable with a const reference to PassData, which is the data associated with this pass. The specific implementation of the execution function
-         * will depend on the requirements of the pass being defined and the data it needs to operate on. */
-        [[nodiscard]] PassNode &CreatePassNode(const std::string_view name, std::unique_ptr<FrameGraphPassConcept> &&base) {
-            return _passNodes.emplace_back(PassNode{ name, _passNodes.size(), std::move(base) });
-        }
+        /** @brief Every resource entry declared this frame. */
+        std::vector<ResourceEntry> _resourceEntries;
 
-        /** @brief Creates a new resource node in the frame graph with the specified name and resource entry ID, and returns a reference to the newly
-         * created resource node. The resource node is associated with the given resource entry ID, which is used for tracking and management within the
-         * frame graph. The version number of the resource node is initialized to the provided version parameter, which can be used for tracking changes and
-         * ensuring that resources are correctly updated and managed within the frame graph. By default, the version number is set to
-         * ResourceEntry::INITIAL_RESOURCE_VERSION, which indicates that this is the initial version of the resource.
-         * @param creatorID Optional PassID of the pass that creates this resource. This is set at creation time rather than during compilation. */
-        [[nodiscard]] ResourceNode &CreateResourceNode(const std::string_view name,
-                                                       ResourceEntryID resourceEntryId,
-                                                       u32 version = ResourceEntry::INITIAL_RESOURCE_VERSION,
-                                                       std::optional<PassID> creatorID = std::nullopt) {
-            const ResourceID resourceID = _resourceNodes.size();
-            return _resourceNodes.emplace_back(ResourceNode{ name, resourceID, resourceEntryId, version, creatorID });
-        }
+        /** @brief Resources created by each pass, indexed by the pass's create range. */
+        std::vector<FrameGraphResourceID> _creates;
 
-        /** @brief Retrieves a non-const reference to the ResourceEntry associated with the specified ResourceID.
-         * @param id The ResourceID of the resource entry to retrieve, which must be a valid ResourceID that has been created in the frame graph.
-         * @returns A non-const reference to the ResourceEntry associated with the specified ResourceID.
-         * */
-        [[nodiscard]] ResourceEntry &GetResourceEntry(ResourceID id) {
-            return const_cast<ResourceEntry &>(const_cast<const FrameGraph *>(this)->GetResourceEntry(id));
-        }
+        /** @brief Resources read by each pass, indexed by the pass's read range. */
+        std::vector<ResourceAccess> _reads;
 
-        /** @brief Retrieves a const reference to the ResourceEntry associated with the specified ResourceNode.
-         * @param node The ResourceNode for which to retrieve the associated ResourceEntry. The ResourceNode must have a valid resource entry ID that
-         * corresponds to an entry in the resource registry.
-         * @returns A const reference to the ResourceEntry associated with the specified ResourceNode.
-         * */
-        [[nodiscard]] const ResourceEntry &GetResourceEntry(const ResourceNode &node) const {
-            VASSERT_EXPR(node._resourceEntryID < _resourceRegistry.size(), "Resource entry ID is out of range.");
-            return _resourceRegistry[node._resourceEntryID];
-        }
+        /** @brief Resources written by each pass, indexed by the pass's write range. */
+        std::vector<ResourceAccess> _writes;
 
-        /** @brief Retrieves a const reference to the ResourceEntry associated with the specified ResourceID.
-         * @param resourceID The ResourceID of the resource entry to retrieve, which must be a valid ResourceID that has been created in the frame graph.
-         * @returns A const reference to the ResourceEntry associated with the specified ResourceID.
-         * */
-        [[nodiscard]] const ResourceEntry &GetResourceEntry(ResourceID resourceID) const {
-            return GetResourceEntry(GetResourceNode(resourceID));
-        }
+        /** @brief Resources released after each pass, indexed by the pass's release range. Filled by `Compile`. */
+        std::vector<FrameGraphResourceEntryID> _releases;
 
-        /** @brief Retrieves a const reference to the ResourceNode associated with the specified ResourceID.
-         * @param resourceID The ResourceID of the resource node to retrieve, which must be a valid ResourceID that has been created in the frame graph.
-         * @returns A const reference to the ResourceNode associated with the specified ResourceID.
-         * */
-        [[nodiscard]] const ResourceNode &GetResourceNode(ResourceID resourceID) const {
-            VASSERT_EXPR(resourceID < _resourceNodes.size(), "Resource ID is out of range.");
-            return _resourceNodes[resourceID];
-        }
+        /** @brief Transitions emitted before each pass, indexed by the pass's barrier range. */
+        std::vector<ResourceBarrier> _barriers;
 
-        /** @brief Retrieves a non-const reference to the ResourceEntry associated with the specified ResourceNode.
-         * @param node The ResourceNode for which to retrieve the associated ResourceEntry.
-         * The ResourceNode must have a valid resource entry ID that corresponds to an entry in the resource registry.
-         * @returns A non-const reference to the ResourceEntry associated with the specified ResourceNode.
-         * */
-        [[nodiscard]] ResourceEntry &GetResourceEntry(const ResourceNode &node) {
-            return const_cast<ResourceEntry &>(const_cast<const FrameGraph *>(this)->GetResourceEntry(node));
-        }
+        /** @brief Surviving passes in topological order, as indices into `_passNodes`. */
+        std::vector<u32> _executionOrder;
 
-        /** @brief Checks if the specified resource ID is valid by comparing the version number of the resource node with the version number of the
-         * corresponding resource entry.
-         * This is used to ensure that resources are correctly tracked and managed within the frame graph, and to catch errors
-         * when resources are modified in undefined order. A resource ID is considered valid if the version number of the resource node matches the version
-         * number of the corresponding resource entry, which indicates that the resource has not been modified since it was last read or written to. If a
-         * resource ID is found to be invalid, it may indicate that there is an error in the pass definitions or in the way resources are being accessed,
-         * and it can help catch issues early in the development process.
-         *
-         * @param resourceID The ResourceID of the resource to check for validity, which must be a valid ResourceID that has been created in the frame
-         * graph.
-         * @returns `true` if the specified resource ID is valid; otherwise, `false
-         * */
-        [[nodiscard]] bool IsValid(ResourceID resourceID) const {
-            const ResourceNode &resourceNode = GetResourceNode(resourceID);
-            const ResourceEntry &resourceEntry = GetResourceEntry(resourceNode);
+        /** @brief Scratch: unmet predecessor count per pass, used by the topological sort. */
+        std::vector<u32> _inDegrees;
 
-            return resourceNode._version == resourceEntry._version;
-        }
+        /** @brief Scratch: the sort's ready set, kept as a min-heap on pass index so the resulting order stays as
+         * close to declaration order as the dependencies allow. */
+        std::vector<u32> _readyPasses;
 
-        /** @brief Clones the specified resource by creating a new resource node with the same name and resource entry ID,
-         * but with an incremented version number.
-         * This is used to enforce a specific execution order of passes that write to the same resource, as it allows us to catch errors when
-         * resources are modified in undefined order. By cloning a resource, we create a new version of it that can be written to by a different pass
-         * without affecting the original version that may still be read by other passes. The new resource node will have the same name and resource entry
-         * ID as the original, but its version number will be incremented to indicate that it is a new version of the resource.
-         *
-         * @param resourceID The ResourceID of the resource to clone, which must be a valid ResourceID that has been created in the frame graph.
-         * @param creatorID Optional PassID of the pass that creates this cloned resource. This is set at creation time for proper dependency tracking.
-         * @returns The ResourceID of the newly cloned resource, which can be used for referencing the new version of the resource in subsequent pass
-         * definitions. The cloned resource will have the same name and resource entry ID as the original, but with an incremented version number to
-         * indicate that it is a new version of the resource.
-         * */
-        [[nodiscard]] ResourceID Clone(ResourceID resourceID, std::optional<PassID> creatorID) {
-            const ResourceNode &node = GetResourceNode(resourceID);
-            ResourceEntry &entry = GetResourceEntry(node);
-            entry._version++;
+        /** @brief Scratch: dependency edges as `(predecessor, successor)` pairs. */
+        std::vector<std::pair<u32, u32>> _edges;
 
-            const ResourceNode &clone = CreateResourceNode(node._name, node._resourceEntryID, entry._version, creatorID);
+        /** @brief Scratch: resources whose consumer count has dropped to zero, driving the cull. */
+        std::vector<FrameGraphResourceID> _cullWorklist;
 
-            return clone.GetResourceID();
-        }
+        /** @brief Scratch: per-entry current usage, used to derive barriers. */
+        std::vector<ResourceUsage> _currentUsages;
+
+        /** @brief Scratch: number of resources released after each execution-order position, used to size the
+         * release ranges in one counting pass rather than re-scanning every entry per pass. */
+        std::vector<u32> _releaseCounts;
+
+        /** @brief For each entry, the most recent version node declared for it, used to link `_nextVersion`. */
+        std::vector<FrameGraphResourceID> _latestVersionOfEntry;
+
+        /** @brief Scratch: transients eligible for aliasing, sorted largest first by the plan. */
+        std::vector<AliasCandidate> _aliasCandidates;
+
+        /** @brief Scratch: indices into `_aliasCandidates` of everything already placed, ordered by assigned
+         * offset. Keeping it ordered is what lets the placement sweep stop at the first gap it finds. */
+        std::vector<u32> _aliasPlacements;
+
+        /** @brief Scratch: per-execution-position change in live transient bytes, summed into the plan's
+         * `PeakLiveBytes`. */
+        std::vector<i64> _aliasLiveDelta;
+
+        /** @brief Scratch: for each transient, the entries that previously occupied bytes it now takes over,
+         * indexed by the ranges below. Kept in side arrays rather than on `ResourceEntry` because only `Compile`
+         * reads them - `Execute` would otherwise drag them through cache for nothing. */
+        std::vector<FrameGraphResourceEntryID> _aliasPredecessors;
+
+        /** @brief Scratch: start of each entry's predecessor range, indexed by `FrameGraphResourceEntryID`. */
+        std::vector<u32> _aliasPredecessorBegin;
+
+        /** @brief Scratch: length of each entry's predecessor range, zeroed once `buildBarriers` has emitted that
+         * entry's discard so later accesses to it are ordinary transitions. */
+        std::vector<u32> _aliasPredecessorCount;
+
+        /** @brief What the aliasing plan achieved this frame. */
+        FrameGraphAliasingReport _aliasingReport;
+
+        /** @brief Whether `Compile` has run since the last `Reset`. */
+        bool _compiled = false;
+
+        /** @brief Whether a pass's setup function is currently running, guarding against re-entrant `AddPass`. */
+        bool _inSetup = false;
     };
 
 } // namespace Vulkyrie
