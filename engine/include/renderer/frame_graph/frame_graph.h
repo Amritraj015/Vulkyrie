@@ -478,19 +478,12 @@ namespace Vulkyrie {
         /** @brief Every resource version declared this frame. */
         std::vector<ResourceNode> _resourceNodes;
 
-        /** @brief Pass names, indexed by `FrameGraphPassID`. Kept out of `PassNode` so the compile and execute
-         * walks do not pull debug-only data through cache. */
-        std::vector<StaticString> _passNames;
-
-        /** @brief Resource version names, indexed by `FrameGraphResourceID`. */
-        std::vector<StaticString> _resourceNames;
+        /** @brief Every resource entry declared this frame. */
+        std::vector<ResourceEntry> _resourceEntries;
 
         /** @brief For each resource version, the node holding the next version of the same entry, or an invalid
          * id. Lets `Compile` derive write-after-read edges without a per-entry search. */
         std::vector<FrameGraphResourceID> _nextVersion;
-
-        /** @brief Every resource entry declared this frame. */
-        std::vector<ResourceEntry> _resourceEntries;
 
         /** @brief Resources created by each pass, indexed by the pass's create range. */
         std::vector<FrameGraphResourceID> _creates;
@@ -555,6 +548,13 @@ namespace Vulkyrie {
         /** @brief Scratch: length of each entry's predecessor range, zeroed once `buildBarriers` has emitted that
          * entry's discard so later accesses to it are ordinary transitions. */
         std::vector<u32> _aliasPredecessorCount;
+
+        /** @brief Pass names, indexed by `FrameGraphPassID`. Kept out of `PassNode` so the compile and execute
+         * walks do not pull debug-only data through cache. */
+        std::vector<StaticString> _passNames;
+
+        /** @brief Resource version names, indexed by `FrameGraphResourceID`. */
+        std::vector<StaticString> _resourceNames;
 
         /** @brief What the aliasing plan achieved this frame. */
         FrameGraphAliasingReport _aliasingReport;
