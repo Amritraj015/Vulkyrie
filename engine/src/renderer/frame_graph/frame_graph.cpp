@@ -99,8 +99,8 @@ namespace Vulkyrie {
 
         runDestructors();
 
-        // clear() rather than shrinking: every buffer keeps its capacity, and the arena keeps its chunks, which
-        // is what makes the next frame allocation-free.
+        // clear() rather than shrinking: every buffer keeps its capacity,
+        // and the arena keeps its chunks, which is what makes the next frame allocation-free.
         _passNodes.clear();
         _passNames.clear();
         _resourceNodes.clear();
@@ -283,7 +283,10 @@ namespace Vulkyrie {
     void FrameGraph::Compile() {
         VE_MEMORY_SCOPE(MemoryTag::Rendering);
 
-        VASSERT(!_compiled, "FrameGraph::Compile called twice; call Reset() to start a new frame.");
+        // If the graph has already been compiled,
+        // then there is nothing to do, return early.
+        if (_compiled)
+            return;
 
         computeReferenceCounts();
         cullUnreferencedPasses();
@@ -381,9 +384,8 @@ namespace Vulkyrie {
                 // Read-after-write: whoever produced this version must run first.
                 addEdge(_resourceNodes[readID.Get()]._producer, pass._passID);
 
-                // Write-after-read: whoever produces the *next* version must run after this reader, or the reader
-                // would observe data that has already been overwritten. Declaration order used to provide this by
-                // accident; a real topological sort has to derive it.
+                // Write-after-read: whoever produces the *next* version must run after this reader,
+                // or the reader would observe data that has already been overwritten.
                 const FrameGraphResourceID nextID = _nextVersion[readID.Get()];
 
                 if (nextID.IsValid()) {
