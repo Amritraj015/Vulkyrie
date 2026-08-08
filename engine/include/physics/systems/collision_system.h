@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/pair.h"
+#include "core/types/pair.h"
 #include "physics/collision/collider.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/rigid_body_component_store.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/asserts.h"
-#include "core/pair.h"
+#include "core/types/pair.h"
 
 namespace Vulkyrie {
 

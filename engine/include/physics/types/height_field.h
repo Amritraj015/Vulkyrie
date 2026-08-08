@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/asserts.h"
-#include "core/message.h"
+#include "core/types/message.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/types/half_edge_mesh.h"
 

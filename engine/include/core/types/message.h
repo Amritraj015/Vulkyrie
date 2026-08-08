@@ -11,6 +11,10 @@ namespace Vulkyrie {
         /** @brief The type of message. */
         Type type;
 
+        /** @brief Creates a new message.
+         * @param text The raw text for the message.
+         * @param type The type of message (Default - Error).
+         */
         Message(std::string text, Type type = Type::Error)
             : text(text)
             , type(type) {

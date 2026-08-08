@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/asserts.h"
-#include "core/static_string.h"
+#include "core/types/static_string.h"
 #include "memory/allocators/arena_allocator.h"
 #include "renderer/frame_graph/frame_graph_concepts.h"
 #include "renderer/frame_graph/frame_graph_types.h"
@@ -90,8 +90,7 @@ namespace Vulkyrie {
              * @returns A typed handle to the new resource. */
             template <FrameGraphResourceType T>
             [[nodiscard]] FrameGraphHandle<T> Create(StaticString name, const typename T::Descriptor &descriptor, const ResourceUsage &usage = {}) {
-                const FrameGraphResourceID id =
-                    _frameGraph.createResource<T>(ResourceEntry::Lifetime::Transient, name, descriptor, T{}, _passNode.GetPassID());
+                const FrameGraphResourceID id = _frameGraph.createResource<T>(ResourceEntry::Lifetime::Transient, name, descriptor, T{}, _passNode.GetPassID());
 
                 _frameGraph.registerCreate(_passNode, id);
 
@@ -214,8 +213,7 @@ namespace Vulkyrie {
          * @param resource The existing resource object, moved into the graph.
          * @returns A typed handle to the imported resource. */
         template <FrameGraphResourceType T> FrameGraphHandle<T> Import(StaticString name, const typename T::Descriptor &descriptor, T &&resource) {
-            return FrameGraphHandle<T>{ createResource<T>(
-                ResourceEntry::Lifetime::Imported, name, descriptor, std::forward<T>(resource), FrameGraphPassID{}) };
+            return FrameGraphHandle<T>{ createResource<T>(ResourceEntry::Lifetime::Imported, name, descriptor, std::forward<T>(resource), FrameGraphPassID{}) };
         }
 
         /** @brief Culls, orders and analyses the graph: reference counting, dead-pass removal, a topological sort
@@ -360,11 +358,8 @@ namespace Vulkyrie {
          * @param producer The pass producing the resource, or an invalid id when imported.
          * @returns The id of the first version node. */
         template <FrameGraphResourceType T>
-        [[nodiscard]] FrameGraphResourceID createResource(ResourceEntry::Lifetime lifetime,
-                                                          StaticString name,
-                                                          const typename T::Descriptor &descriptor,
-                                                          T &&resource,
-                                                          FrameGraphPassID producer) {
+        [[nodiscard]] FrameGraphResourceID
+        createResource(ResourceEntry::Lifetime lifetime, StaticString name, const typename T::Descriptor &descriptor, T &&resource, FrameGraphPassID producer) {
             using Storage = FrameGraphResourceStorage<T>;
 
             VASSERT(!_compiled, "FrameGraph resources cannot be declared after Compile(); call Reset() to start a new frame.");

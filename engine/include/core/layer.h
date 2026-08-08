@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/time_step.h"
-#include "core/uuid.h"
+#include "core/types/uuid.h"
 #include "events/event.h"
 
 namespace Vulkyrie {

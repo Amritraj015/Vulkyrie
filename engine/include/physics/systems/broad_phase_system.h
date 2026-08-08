@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/pair.h"
+#include "core/types/pair.h"
 #include "physics/collision/broadphase/dynamic_aabb_tree.h"
 #include "physics/components/collider_component_store.h"
 #include "physics/components/transform_component_store.h"

@@ -3,6 +3,7 @@
 #include "vlkypch.h"
 
 namespace Vulkyrie {
+
     class UUID final {
     public:
         UUID();
