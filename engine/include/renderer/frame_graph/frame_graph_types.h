@@ -1,53 +1,20 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/types/handle.h"
 
 #include <atomic>
-#include <limits>
 
 namespace Vulkyrie {
 
-    /** @brief A strongly-typed 32-bit index. `Tag` is phantom - it appears in no data member - so the struct is
-     * exactly one `u32` and register-passed, while still making a `FrameGraphPassID` and a `FrameGraphResourceID`
-     * mutually unassignable. */
-    template <typename Tag> struct TypedIndex {
-    public:
-        constexpr TypedIndex() noexcept = default;
-
-        constexpr explicit TypedIndex(u32 value) noexcept
-            : _value(value) {
-        }
-
-        [[nodiscard]] VE_INLINE explicit constexpr operator u32() const noexcept {
-            return _value;
-        }
-
-        /** @brief Returns the raw value, for use as an array subscript. */
-        [[nodiscard]] VE_INLINE constexpr u32 Get() const noexcept {
-            return _value;
-        }
-
-        /** @brief Checks whether the index refers to an element rather than being the invalid sentinel. */
-        [[nodiscard]] VE_INLINE constexpr bool IsValid() const noexcept {
-            return _value != INVALID_INDEX;
-        }
-
-        friend constexpr auto operator<=>(TypedIndex, TypedIndex) = default;
-
-    private:
-        static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
-
-        u32 _value = INVALID_INDEX;
-    };
-
     /** @brief Identifies a pass, in declaration order. */
-    using FrameGraphPassID = TypedIndex<struct FrameGraphPassTag>;
+    using FrameGraphPassID = Handle<struct FrameGraphPassTag>;
 
     /** @brief Identifies one version of a resource. */
-    using FrameGraphResourceID = TypedIndex<struct FrameGraphResourceTag>;
+    using FrameGraphResourceID = Handle<struct FrameGraphResourceTag>;
 
     /** @brief Identifies the entry backing a resource, shared by all its versions. */
-    using FrameGraphResourceEntryID = TypedIndex<struct FrameGraphResourceEntryTag>;
+    using FrameGraphResourceEntryID = Handle<struct FrameGraphResourceEntryTag>;
 
     static_assert(sizeof(FrameGraphPassID) == sizeof(u32), "FrameGraphPassID size must be equal to sizeof(u32).");
     static_assert(sizeof(FrameGraphResourceID) == sizeof(u32), "FrameGraphResourceID size must be equal to sizeof(u32).");

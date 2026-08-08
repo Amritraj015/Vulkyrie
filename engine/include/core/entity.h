@@ -69,7 +69,7 @@ namespace std {
     // Hash function for an Entity
     template <> struct hash<Vulkyrie::Entity> {
     public:
-        size_t operator()(const Vulkyrie::Entity &entity) const noexcept {
+        [[nodiscard]] constexpr size_t operator()(const Vulkyrie::Entity &entity) const noexcept {
             return static_cast<size_t>(entity.GetID());
         }
     };
