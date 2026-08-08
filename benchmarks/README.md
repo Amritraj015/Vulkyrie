@@ -14,11 +14,23 @@ presets turn them on.
 cmake --preset clang-benchmarks-release
 cmake --build --preset clang-benchmarks-release
 
-build/clang-benchmarks-release/benchmarks/benchmarks              # everything (~20 s)
+build/clang-benchmarks-release/benchmarks/benchmarks              # everything (~30 s)
 build/clang-benchmarks-release/benchmarks/benchmarks "[jobs]"     # one subsystem
 build/clang-benchmarks-release/benchmarks/benchmarks "[scaling]"  # only the worker-count sweeps
 build/clang-benchmarks-release/benchmarks/benchmarks --list-tests
+build/clang-benchmarks-release/benchmarks/benchmarks "[framegraph-large]"  # opt-in, see below
 ```
+
+A few cases are tagged `[.]`, which is Catch2's *hidden* marker: they are skipped by a bare run and
+by a subsystem filter, and only run when their own tag is named explicitly. `[framegraph-large]` is
+one — it compiles graphs of 200 to 600 passes to show how the compile stages grow, and takes ~6 s,
+taking a full run to ~36 s. Reach for it when changing the frame graph's compile stages; leave it
+out when the question is just whether something regressed.
+
+Hide any new case the same way if it is slow and narrow rather than part of the routine picture, and
+note that what makes a run slow is mostly the *number* of `BENCHMARK` rows, not how fast each one
+is: Catch2 spends a fixed warm-up and clock-estimation budget per row, so a dozen rows measuring a
+20 µs operation still cost seconds.
 
 **Always measure a Release build.** A Debug number describes the unoptimized build, not the design,
 and the sweeps take minutes instead of seconds. `all-debug` builds this target only so it cannot rot.
@@ -84,6 +96,12 @@ TEST_CASE("Broadphase insertion", "[physics]") {
 - **Compare against a baseline in the same file.** A number in isolation is noise; `687 us serial
   vs 63 us at 15 workers` is a result. The `[scaling]` cases always include a `synchronous` row.
 - **Keep setup out of the measured region** with `BENCHMARK_ADVANCED` + `Chronometer::measure`.
+- **Never measure an idempotent operation by repeating it.** Anything that latches —
+  `FrameGraph::Compile` guarding on `_compiled`, a cache that fills on first use — does the work once
+  and early-returns on every later call, so the mean reported is a predicted branch. This is silent:
+  the benchmark looks healthy and reads several orders of magnitude too fast. Give each run its own
+  fresh state instead, via the indexed overload `meter.measure([&](int run) { ... })` over a pool of
+  objects prepared outside the timed region — see `DeclaredGraphPool` in the frame graph benchmarks.
 - **Stay inside the pools.** The default job pool is 8192 slots; a benchmark that exhausts it
   measures the exhaustion-recovery path instead of the thing under test. Use `Bench::JobSystemScope`
   with an explicit `JobSystemConfig` if a benchmark genuinely needs bigger pools.
