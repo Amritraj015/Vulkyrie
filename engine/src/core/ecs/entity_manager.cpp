@@ -29,7 +29,7 @@ namespace Vulkyrie {
 
     void EntityManager::DestroyEntity(const Entity entity) {
         // Get the index of the entity to be destroyed.
-        const size_t index = static_cast<size_t>(entity.GetIndex());
+        const auto index = static_cast<size_t>(entity.GetIndex());
 
         // Increment the generation of the entity index to invalidate any existing entities with the same index and make it available for reuse.
         _generations[index]++;
