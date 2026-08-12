@@ -2,11 +2,11 @@
 
 #include "vlkypch.h"
 #include "core/platform.h"
-#include "core/window_props.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Vulkyrie {
+
     class VulkyrieGLFWPlatform final : public Platform {
     public:
         VulkyrieGLFWPlatform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn);
@@ -38,4 +38,5 @@ namespace Vulkyrie {
     private:
         GLFWwindow *_window;
     };
+
 } // namespace Vulkyrie

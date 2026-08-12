@@ -9,10 +9,12 @@ namespace Vulkyrie {
 
     Application *Application::sInstance = nullptr;
 
-    Application::Application(WindowProps windowProps)
-        : mPlatform(CreateScope<VulkyrieGLFWPlatform>(this->mWindowProps, [this](Event &event) { this->OnEvent(event); }))
-        , mWindowProps(std::move(windowProps))
+    Application::Application(const ApplicationSettings &appSettings)
+        : mAppSettings(appSettings)
         , mRunning(false) {
+
+        mPlatform = CreateScope<VulkyrieGLFWPlatform>(this->mWindowProps, [this](Event &event) { this->OnEvent(event); });
+
         sInstance = this;
     }
 
@@ -38,9 +40,9 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
 
         // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
-        RETURN_ON_FAILURE(RendererContext::Create(mWindowProps.GraphicsAPI));
+        RETURN_ON_FAILURE(RendererContext::Create(mAppSettings.GraphicsSettings.API));
 
-        mRenderer = Renderer::Create(mWindowProps.GraphicsAPI, {});
+        mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, {});
 
         // Mark the application as running.
         mRunning = true;
@@ -115,9 +117,6 @@ namespace Vulkyrie {
     }
 
     bool Application::OnWindowResized(const WindowResizedEvent &event) {
-        mWindowProps.Height = event.Height;
-        mWindowProps.Width = event.Width;
-
         mAppSettings.GraphicsSettings.WindowHeight = event.Height;
         mAppSettings.GraphicsSettings.WindowWidth = event.Width;
 

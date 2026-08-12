@@ -1,7 +1,7 @@
 #pragma once
 
+#include "core/types/application_types.h"
 #include "vlkypch.h"
-#include "core/window_props.h"
 #include "core/status_codes.h"
 #include "events/event.h"
 

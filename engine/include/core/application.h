@@ -2,7 +2,6 @@
 
 #include "core/platform.h"
 #include "core/types/application_types.h"
-#include "core/window_props.h"
 #include "core/layer_stack.h"
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
@@ -14,10 +13,10 @@ namespace Vulkyrie {
      * including window creation, event handling, and layer management. */
     class Application {
     public:
-        /** @brief Constructs a new Application with the given window properties and configuration.
-         * @param windowProps The properties for the application window.
+        /** @brief Constructs a new Application with the provided settings.
+         * @param appSettings The settings for the application to be created.
          */
-        explicit Application(WindowProps windowProps);
+        explicit Application(const ApplicationSettings &appSettings);
 
         /** @brief Destructor to clean up the application and its resources. */
         virtual ~Application();
@@ -118,14 +117,14 @@ namespace Vulkyrie {
          * @returns The width of the window in pixels.
          */
         [[nodiscard]] VE_INLINE u32 GetWindowWidth() const {
-            return mWindowProps.Width;
+            return mAppSettings.GraphicsSettings.WindowWidth;
         }
 
         /** @brief Gets the height of the application window.
          * @returns The height of the window in pixels.
          */
         [[nodiscard]] VE_INLINE u32 GetWindowHeight() const {
-            return mWindowProps.Height;
+            return mAppSettings.GraphicsSettings.WindowHeight;
         }
 
         /** @brief Gets the current time in seconds since the application started.
@@ -169,9 +168,6 @@ namespace Vulkyrie {
 
         /** @brief The application renderer. */
         Scope<Renderer> mRenderer;
-
-        /** @brief Window properties for the application. */
-        WindowProps mWindowProps;
 
         /** @brief Indicates whether the application is running. */
         bool mRunning;
