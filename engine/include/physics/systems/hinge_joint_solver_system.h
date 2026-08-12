@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "physics/components/hinge_joint_component_store.h"
 #include "physics/components/joint_component_store.h"
 #include "physics/components/rigid_body_component_store.h"

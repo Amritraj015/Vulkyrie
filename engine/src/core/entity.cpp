@@ -1,4 +1,4 @@
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "core/asserts.h"
 
 namespace Vulkyrie {

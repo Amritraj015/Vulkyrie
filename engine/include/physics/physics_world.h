@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/entity_manager.h"
+#include "core/ecs/entity_manager.h"
 #include "physics/components/ball_and_socket_joint_component_store.h"
 #include "physics/components/fixed_joint_component_store.h"
 #include "physics/components/hinge_joint_component_store.h"

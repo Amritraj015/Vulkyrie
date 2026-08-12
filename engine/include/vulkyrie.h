@@ -9,8 +9,8 @@
 #include "core/status_codes.h"
 #include "core/logger.h"
 #include "core/noise_generator.h"
-#include "core/entity.h"
-#include "core/entity_manager.h"
+#include "core/ecs/entity.h"
+#include "core/ecs/entity_manager.h"
 #include "core/utilities.h"
 
 // Debug includes

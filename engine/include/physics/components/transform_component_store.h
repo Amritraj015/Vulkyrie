@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "physics/components/component_store.h"
 
 namespace Vulkyrie {

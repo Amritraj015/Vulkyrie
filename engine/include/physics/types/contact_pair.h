@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/asserts.h"
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "physics/physics_constants.h"
 
 namespace Vulkyrie {

@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/asserts.h"
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "core/types/pair.h"
 #include "core/utilities.h"
 #include "physics/components/body_component_store.h"

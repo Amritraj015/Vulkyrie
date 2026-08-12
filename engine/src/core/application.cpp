@@ -4,71 +4,73 @@
 #include "core/vulkyrie_glfw_platform.h"
 #include "events/application/window_closed_event.h"
 #include "events/event_dispatcher.h"
-#include "renderer/renderer_context.h"
 
 namespace Vulkyrie {
 
-    Application *Application::_instance = nullptr;
+    Application *Application::sInstance = nullptr;
 
     Application::Application(WindowProps windowProps)
-        : _platform(new VulkyrieGLFWPlatform(this->_windowProps, [this](Event &event) { this->OnEvent(event); }))
-        , _windowProps(std::move(windowProps))
-        , _running(false) {
-        _instance = this;
+        : mPlatform(CreateScope<VulkyrieGLFWPlatform>(this->mWindowProps, [this](Event &event) { this->OnEvent(event); }))
+        , mWindowProps(std::move(windowProps))
+        , mRunning(false) {
+        sInstance = this;
     }
 
     Application::~Application() {
         // Dispose the renderer context.
         RendererContext::Dispose();
 
-        delete _platform;
+        // Dispose the platform.
+        mPlatform.reset();
     }
 
     StatusCode Application::Run() {
         // Try to create the application window, if it fails, return the status code.
-        RETURN_ON_FAILURE(_platform->CreateWindow());
+        RETURN_ON_FAILURE(mPlatform->CreateWindow());
 
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
-        VINFO("Name                          | {}", _windowProps.Title);
-        VINFO("Window Height requested       | {}", _windowProps.Height);
-        VINFO("Window Width requested        | {}", _windowProps.Width);
-        VINFO("Enable V-Sync                 | {}", _windowProps.EnableVSync);
+        VINFO("Name                          | {}", mWindowProps.Title);
+        VINFO("Window Height requested       | {}", mWindowProps.Height);
+        VINFO("Window Width requested        | {}", mWindowProps.Width);
+        VINFO("Enable V-Sync                 | {}", mWindowProps.EnableVSync);
         VINFO("*****************************************************************************************");
 
         // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
-        RETURN_ON_FAILURE(RendererContext::Create(_windowProps.GraphicsAPI));
+        RETURN_ON_FAILURE(RendererContext::Create(mWindowProps.GraphicsAPI));
+
+        mRenderer = Renderer::Create(mWindowProps.GraphicsAPI, {});
 
         // Mark the application as running.
-        _running = true;
+        mRunning = true;
         f32 lastFrameTime = 0.0F;
 
         // Raise the window created event.
-        WindowCreatedEvent event(_windowProps.Width, _windowProps.Height);
+        WindowCreatedEvent event(mWindowProps.Width, mWindowProps.Height);
         OnInit(event);
 
         // Main application loop.
-        while (_running) {
+        while (mRunning) {
             VLKY_PROFILE_SCOPE("MainApplicationLoop");
 
             {
                 VLKY_PROFILE_SCOPE("ApplicationLayerProcessQueuedOperations");
 
                 // Process any pending layer operations.
-                _layers.ProcessQueuedOperations();
+                mLayers.ProcessQueuedOperations();
             }
 
             {
                 VLKY_PROFILE_SCOPE("ApplicationLayerUpdate");
 
                 // Calculate the time since the last frame.
-                const f32 time = _platform->GetTime();
+                const f32 time = mPlatform->GetTime();
                 Timestep deltaTime(std::min(time - lastFrameTime, 0.1F)); // clamp MAX delta (100 ms)
                 lastFrameTime = time;
 
                 // Update each layer.
-                for (const auto &layer : _layers) {
+                for (const auto &layer : mLayers) {
                     layer->OnUpdate(deltaTime);
                 }
             }
@@ -77,7 +79,7 @@ namespace Vulkyrie {
                 VLKY_PROFILE_SCOPE("ApplicationWindowUpdate");
 
                 // Update the application window.
-                _platform->OnUpdate();
+                mPlatform->OnUpdate();
             }
         }
 
@@ -86,14 +88,14 @@ namespace Vulkyrie {
     }
 
     void Application::Stop() {
-        _running = false;
+        mRunning = false;
     }
 
     void Application::OnEvent(Event &event) {
         EventDispatcher dispatcher(event);
 
         // Propagate the event through the layers in reverse order (from top to bottom).
-        for (const auto &layer : std::ranges::reverse_view(_layers)) {
+        for (const auto &layer : std::ranges::reverse_view(mLayers)) {
             // If the event has been handled, stop propagating.
             if (event.handled) {
                 break;
@@ -113,8 +115,13 @@ namespace Vulkyrie {
     }
 
     bool Application::OnWindowResized(const WindowResizedEvent &event) {
-        _windowProps.Height = event.Height;
-        _windowProps.Width = event.Width;
+        mWindowProps.Height = event.Height;
+        mWindowProps.Width = event.Width;
+
+        mAppSettings.GraphicsSettings.WindowHeight = event.Height;
+        mAppSettings.GraphicsSettings.WindowWidth = event.Width;
+
+        mRenderer->OnWindowResize(event.Width, event.Height);
 
         return false;
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "physics/collision/shapes/aabb.h"
 #include "physics/collision/shapes/collision_shape.h"
 #include "physics/types/material.h"

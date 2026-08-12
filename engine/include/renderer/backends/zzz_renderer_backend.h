@@ -8,7 +8,6 @@
 #include "renderer/texture_2D.h"
 #include "renderer/texture_cube_map.h"
 #include "renderer/vertex_array.h"
-#include "renderer/backends/renderer_types.h"
 
 namespace Vulkyrie {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/entity.h"
+#include "core/ecs/entity.h"
 #include "physics/components/transform_component_store.h"
 #include "physics/collision/shapes/collision_shape.h"
 #include "physics/collision/narrowphase/narrow_phase_data_batch.h"

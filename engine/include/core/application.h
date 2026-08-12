@@ -1,10 +1,12 @@
 #pragma once
 
 #include "core/platform.h"
+#include "core/types/application_types.h"
 #include "core/window_props.h"
 #include "core/layer_stack.h"
 #include "events/application/window_created_event.h"
 #include "events/application/window_resized_event.h"
+#include "renderer/renderer.h"
 
 namespace Vulkyrie {
 
@@ -15,7 +17,7 @@ namespace Vulkyrie {
         /** @brief Constructs a new Application with the given window properties and configuration.
          * @param windowProps The properties for the application window.
          */
-        Application(WindowProps windowProps);
+        explicit Application(WindowProps windowProps);
 
         /** @brief Destructor to clean up the application and its resources. */
         virtual ~Application();
@@ -24,16 +26,8 @@ namespace Vulkyrie {
          * @returns A reference to the application instance.
          */
         [[nodiscard]] VE_INLINE static Application &GetSingleton() {
-            return *_instance;
+            return *sInstance;
         }
-
-        /** @brief Starts the application's main loop.
-         * @returns StatusCode indicating success or failure.
-         */
-        StatusCode Run();
-
-        /** @brief Stops the application. */
-        void Stop();
 
         /** @brief Pushes a new layer onto the layer stack if the application is running.
          * @tparam TLayer The type of layer to push.
@@ -42,7 +36,7 @@ namespace Vulkyrie {
         template <typename TLayer, typename... TArgs>
             requires std::derived_from<TLayer, Layer>
         void PushLayer(TArgs &&...args) {
-            _layers.QueuePushLayerOperation<TLayer>(std::forward<TArgs>(args)...);
+            mLayers.QueuePushLayerOperation<TLayer>(std::forward<TArgs>(args)...);
         }
 
         /** @brief Pushes a new overlay onto the layer stack if the application is running.
@@ -52,7 +46,7 @@ namespace Vulkyrie {
         template <typename TLayer, typename... TArgs>
             requires std::derived_from<TLayer, Layer>
         void PushOverlay(TArgs &&...args) {
-            _layers.QueuePushOverlayOperation<TLayer>(std::forward<TArgs>(args)...);
+            mLayers.QueuePushOverlayOperation<TLayer>(std::forward<TArgs>(args)...);
         }
 
         /** @brief Pops a layer from the layer stack.
@@ -62,7 +56,7 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires std::derived_from<TLayer, Layer>
         void PopLayer() {
-            return _layers.QueuePopLayerOperation<TLayer>();
+            return mLayers.QueuePopLayerOperation<TLayer>();
         }
 
         /** @brief Pops an overlay from the layer stack.
@@ -72,7 +66,7 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires std::derived_from<TLayer, Layer>
         void PopOverlay() {
-            return _layers.QueuePopOverlayOperation<TLayer>();
+            return mLayers.QueuePopOverlayOperation<TLayer>();
         }
 
         /** @brief Suspends a layer in the layer stack.
@@ -81,7 +75,7 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires(std::derived_from<TLayer, Layer>)
         void SuspendLayer() {
-            return _layers.QueueSuspendLayerOperation<TLayer>();
+            return mLayers.QueueSuspendLayerOperation<TLayer>();
         }
 
         /** @brief Resumes a suspended layer in the layer stack.
@@ -90,7 +84,7 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires(std::derived_from<TLayer, Layer>)
         void ResumeLayer() {
-            return _layers.QueueResumeLayerOperation<TLayer>();
+            return mLayers.QueueResumeLayerOperation<TLayer>();
         }
 
         /** @brief Checks if a layer of the specified type exists in the active or suspended layer stack.
@@ -100,7 +94,7 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires std::derived_from<TLayer, Layer>
         [[nodiscard]] bool HasLayer() const {
-            return _layers.HasLayer<TLayer>();
+            return mLayers.HasLayer<TLayer>();
         }
 
         /** @brief Gets a layer of the specified type from the layer stack.
@@ -110,43 +104,51 @@ namespace Vulkyrie {
         template <typename TLayer>
             requires(std::derived_from<TLayer, Layer>)
         [[nodiscard]] const TLayer *GetLayer() {
-            return _layers.GetActiveLayer<TLayer>();
+            return mLayers.GetActiveLayer<TLayer>();
         }
 
         /** @brief Gets the native window handle.
          * @returns A pointer to the native window.
          */
         [[nodiscard]] VE_INLINE void *GetWindowHandle() const {
-            return _platform->GetWindowHandle();
+            return mPlatform->GetWindowHandle();
         }
 
         /** @brief Gets the width of the application window.
          * @returns The width of the window in pixels.
          */
         [[nodiscard]] VE_INLINE u32 GetWindowWidth() const {
-            return _windowProps.Width;
+            return mWindowProps.Width;
         }
 
         /** @brief Gets the height of the application window.
          * @returns The height of the window in pixels.
          */
         [[nodiscard]] VE_INLINE u32 GetWindowHeight() const {
-            return _windowProps.Height;
+            return mWindowProps.Height;
         }
 
         /** @brief Gets the current time in seconds since the application started.
          * @returns The current time in seconds.
          */
         [[nodiscard]] VE_INLINE f32 GetTime() const {
-            return _platform->GetTime();
+            return mPlatform->GetTime();
         }
 
         /** @brief Sets whether the application should capture the mouse when the window is focused.
          * @param capture True to capture the mouse on focus, false to not capture.
          */
         void VE_INLINE CaptureMouseOnFocus(bool capture) const {
-            _platform->CaptureMouseOnFocus(capture);
+            mPlatform->CaptureMouseOnFocus(capture);
         }
+
+        /** @brief Starts the application's main loop.
+         * @returns StatusCode indicating success or failure.
+         */
+        [[nodiscard]] StatusCode Run();
+
+        /** @brief Stops the application. */
+        void Stop();
 
     protected:
         /** @brief Called when the application window is created.
@@ -157,19 +159,25 @@ namespace Vulkyrie {
 
     private:
         /** @brief The singleton instance of the application. */
-        static Application *_instance;
+        static Application *sInstance;
+
+        /** @brief Settings for this application. */
+        ApplicationSettings mAppSettings;
 
         /** @brief The main application window. */
-        Platform *_platform;
+        Scope<Platform> mPlatform;
+
+        /** @brief The application renderer. */
+        Scope<Renderer> mRenderer;
 
         /** @brief Window properties for the application. */
-        WindowProps _windowProps;
+        WindowProps mWindowProps;
 
         /** @brief Indicates whether the application is running. */
-        bool _running;
+        bool mRunning;
 
         /** @brief The layers in the stack. */
-        LayerStack _layers;
+        LayerStack mLayers;
 
         /** @brief Raises an event to be handled by the application or other systems.
          * @param event The event to raise.
