@@ -3,6 +3,7 @@
 #include "vlkypch.h"
 
 namespace Vulkyrie {
+
     /** @brief Texture wrapping modes for framebuffer attachments. */
     enum TextureSamplerWrapMode : u32 {
         /** @brief Repeat the texture when sampling outside the [0, 1] range. */
@@ -17,4 +18,5 @@ namespace Vulkyrie {
         /** @brief Mirror the texture when sampling outside the [0, 1] range. */
         MirroredRepeat,
     };
+
 } // namespace Vulkyrie

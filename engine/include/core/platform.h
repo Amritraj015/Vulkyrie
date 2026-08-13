@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/types/application_types.h"
 #include "vlkypch.h"
+#include "core/types/application_types.h"
 #include "core/status_codes.h"
 #include "events/event.h"
 
@@ -17,8 +17,8 @@ namespace Vulkyrie {
          * @param eventCallbackFn The callback function for handling events.
          */
         Platform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
-            : _windowProps(windowProps)
-            , _eventCallbackFn(eventCallbackFn) {
+            : mWindowProps(windowProps)
+            , mEventCallbackFn(eventCallbackFn) {
         }
 
         /** @brief Default constructor for the Window class. */
@@ -59,10 +59,10 @@ namespace Vulkyrie {
 
     protected:
         /** @brief The properties of the window. */
-        const WindowProps &_windowProps;
+        WindowProps mWindowProps;
 
         /** @brief The event callback function for handling events. */
-        EventCallbackFn _eventCallbackFn;
+        EventCallbackFn mEventCallbackFn;
     };
 
 } // namespace Vulkyrie

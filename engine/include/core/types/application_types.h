@@ -14,7 +14,7 @@ namespace Vulkyrie {
         u32 Width = 0;
 
         /** @brief Title of the window. */
-        std::string Title;
+        StaticString Title;
 
         /** @brief Whether to enable vertical synchronization (VSync) for the window. */
         bool EnableVSync = true;

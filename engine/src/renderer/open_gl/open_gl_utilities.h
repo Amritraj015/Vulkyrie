@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "renderer/texture_sampler_wrap_mode.h"
 #include "renderer/texture_filter_mode.h"
 

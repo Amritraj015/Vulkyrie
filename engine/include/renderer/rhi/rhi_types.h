@@ -167,7 +167,20 @@ namespace Vulkyrie {
     struct SamplerDescriptor;
     struct GraphicsPipelineDescriptor;
     struct ComputePipelineDescriptor;
-    struct RendererStatistics;
+
+    struct RendererStatistics {
+        u64 FrameIndex = 0;
+        u64 TransientBytesPeak = 0;
+        u32 PassesDeclared = 0;
+        u32 PassesCulled = 0;
+        u32 BarrierBatches = 0;
+        u32 DrawCalls = 0;
+        u32 PipelineBinds = 0;
+        f32 CpuRecordMs = 0.0f;
+        f32 GraphCompileMs = 0.0f;
+        f32 GpuFrameMs = 0.0f;
+        bool PlanCacheHit = false;
+    };
 
     struct HeapDescriptor {
         std::string_view DebugName;

@@ -35,16 +35,10 @@ namespace Vulkyrie {
         u32 _generation = 0;
     };
 
-    struct BufferTag;
-    struct IndexBufferTag;
-    struct TextureTag;
-    struct SamplerTag;
-    struct PipelineTag;
-
-    using BufferHandle = RendererResourceHandle<BufferTag>;
-    using IndexBufferHandle = RendererResourceHandle<IndexBufferTag>;
-    using TextureHandle = RendererResourceHandle<TextureTag>;
-    using SamplerHandle = RendererResourceHandle<SamplerTag>;
-    using PipelineHandle = RendererResourceHandle<PipelineTag>;
+    using BufferHandle = RendererResourceHandle<struct BufferTag>;
+    using IndexBufferHandle = RendererResourceHandle<struct IndexBufferTag>;
+    using TextureHandle = RendererResourceHandle<struct TextureTag>;
+    using SamplerHandle = RendererResourceHandle<struct SamplerTag>;
+    using PipelineHandle = RendererResourceHandle<struct PipelineTag>;
 
 } // namespace Vulkyrie

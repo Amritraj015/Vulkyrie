@@ -6,7 +6,9 @@ namespace Vulkyrie {
 
     template <RendererBackend B> class RendererImpl final : public Renderer {
     public:
-        explicit RendererImpl(const DeviceCreationInfo &info);
+        explicit RendererImpl(const DeviceCreationInfo &info)
+            : mDevice(info) {
+        }
 
         VE_DELETE_MOVE_AND_COPY(RendererImpl);
 
@@ -14,19 +16,28 @@ namespace Vulkyrie {
             mDevice.WaitIdle();
         }
 
-        [[nodiscard]] GraphicsAPI BackendType() const noexcept override;
-        [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const override;
+        [[nodiscard]] GraphicsAPI BackendType() const noexcept override {
+            return B::kType;
+        }
+
+        [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const override {
+            return mDevice.QueryCapabilities();
+        }
 
         void OnWindowResize(u32 width, u32 height) override;
         void Render() override;
         void WaitIdle() override;
 
-        [[nodiscard]] bool DeviceLost() override;
+        [[nodiscard]] bool DeviceLost() const noexcept override {
+            return mDevice.DeviceLost();
+        }
+
         [[nodiscard]] const RendererStatistics &GetStatistics() const noexcept override;
 
     private:
         Device<B> mDevice;
         typename B::Swapchain mSwapchain;
+        RendererStatistics stats;
     };
 
 } // namespace Vulkyrie

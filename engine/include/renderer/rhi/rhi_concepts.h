@@ -21,30 +21,6 @@ namespace Vulkyrie {
     };
 
     template <typename T>
-    concept ManagesTextures = requires(T &t, const TextureDescriptor &td, const TextureHandle th) {
-        { t.CreateTexture(td) } -> std::same_as<TextureHandle>;
-        { t.DestroyTexture(th) } -> std::same_as<bool>;
-    };
-
-    template <typename T>
-    concept ManagesBuffers = requires(T &t, const BufferDescriptor &bd, const BufferHandle bh) {
-        { t.CreateBuffer(bd) } -> std::same_as<BufferHandle>;
-        { t.DestroyBuffer(bh) } -> std::same_as<bool>;
-    };
-
-    template <typename T>
-    concept ManagesSamplers = requires(T &t, const SamplerDescriptor &sd, const SamplerHandle sh) {
-        { t.CreateSampler(sd) } -> std::same_as<SamplerHandle>;
-        { t.DestroySampler(sh) } -> std::same_as<bool>;
-    };
-
-    template <typename T>
-    concept ManagesShaders = requires(T &t, const ShaderBlob &blob, const ShaderHandle sh) {
-        { t.CreateShader(blob) } -> std::same_as<ShaderHandle>;
-        { t.DestroyShader(sh) } -> std::same_as<bool>;
-    };
-
-    template <typename T>
     concept ManagesPipelines = requires(T &t, const GraphicsPipelineDescriptor &gpd, const ComputePipelineDescriptor &cpd, const PipelineHandle ph) {
         { t.CreateGraphicsPipeline(gpd) } -> std::same_as<PipelineHandle>;
         { t.CreateComputePipeline(cpd) } -> std::same_as<PipelineHandle>;
@@ -98,10 +74,6 @@ namespace Vulkyrie {
     template <typename T>
     concept RHIDevice = HasDeviceLifetime<T>   // Satisfies device lifetime concept
                         && ManagesHeap<T>      // and manages heap
-                        && ManagesTextures<T>  // and manages textures
-                        && ManagesBuffers<T>   // and manages buffers
-                        && ManagesSamplers<T>  // and manages samples
-                        && ManagesShaders<T>   // and manages shaders
                         && ManagesPipelines<T> // and manages pipelines
                         && ManagesBindless<T>  // and manages bindles resources
                         && PlacesResources<T>  // and satisfies placement resources concept

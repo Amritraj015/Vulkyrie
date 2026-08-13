@@ -21,7 +21,7 @@ namespace Vulkyrie {
         virtual void Render() = 0;
         virtual void WaitIdle() = 0;
 
-        [[nodiscard]] virtual bool DeviceLost() = 0;
+        [[nodiscard]] virtual bool DeviceLost() const noexcept = 0;
         [[nodiscard]] virtual const RendererStatistics &GetStatistics() const noexcept = 0;
 
     protected:

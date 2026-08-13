@@ -346,7 +346,7 @@ namespace Vulkyrie {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-        if (_windowProps.GraphicsAPI == GraphicsAPI::OpenGL) {
+        if (mWindowProps.GraphicsAPI == GraphicsAPI::OpenGL) {
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #if defined(VULKYRIE_DEBUG)
@@ -354,11 +354,11 @@ namespace Vulkyrie {
 #endif
         }
 
-        const i32 width = static_cast<i32>(_windowProps.Width);
-        const i32 height = static_cast<i32>(_windowProps.Height);
+        const i32 width = static_cast<i32>(mWindowProps.Width);
+        const i32 height = static_cast<i32>(mWindowProps.Height);
 
         // GLFW window creation
-        _window = glfwCreateWindow(width, height, _windowProps.Title.c_str(), nullptr, nullptr);
+        _window = glfwCreateWindow(width, height, mWindowProps.Title.Data(), nullptr, nullptr);
 
         // Check if window creation failed.
         if (nullptr == _window) {
@@ -372,7 +372,7 @@ namespace Vulkyrie {
         }
 
         // Set the window user pointer to this instance.
-        glfwSetWindowUserPointer(_window, &_eventCallbackFn);
+        glfwSetWindowUserPointer(_window, &mEventCallbackFn);
 
         // Set window event callbacks.
         glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, i32 width, i32 height) {

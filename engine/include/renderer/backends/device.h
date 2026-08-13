@@ -13,7 +13,14 @@ namespace Vulkyrie {
 
     template <RendererBackend B> class Device {
     public:
-        explicit Device(const DeviceCreationInfo &info);
+        explicit Device(const DeviceCreationInfo &info)
+            : mShaderCompiler()
+            , mContext(CreateScrop<typename B::Context>(info))
+            , mDeletionQueue(CreateScope<DeletionQueue<B>>(mContext))
+            , mTransients(CreateScope<TransientPool<B>>(mContext, mDeletionQueue))
+            , mShaders(mContext, mShaderCompiler, mDeletionQueue)
+            , mPipelines(mContext, mShaders, mDeletionQueue) {
+        }
 
         VE_DELETE_MOVE_AND_COPY(Device);
 
@@ -78,12 +85,12 @@ namespace Vulkyrie {
         }
 
     private:
+        ShaderCompiler mShaderCompiler;
         Scope<typename B::Context> mContext;
         Scope<DeletionQueue<B>> mDeletionQueue;
         Scope<TransientPool<B>> mTransients;
         Scope<ShaderModuleCache<B>> mShaders;
         Scope<PipelineCache<B>> mPipelines;
-        ShaderCompiler mShaderCompiler;
     };
 
 } // namespace Vulkyrie

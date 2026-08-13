@@ -13,7 +13,15 @@ namespace Vulkyrie {
         : mAppSettings(appSettings)
         , mRunning(false) {
 
-        mPlatform = CreateScope<VulkyrieGLFWPlatform>(this->mWindowProps, [this](Event &event) { this->OnEvent(event); });
+        const WindowProps windowProps = {
+            .Height = appSettings.GraphicsSettings.WindowHeight,
+            .Width = appSettings.GraphicsSettings.WindowWidth,
+            .Title = appSettings.Name,
+            .EnableVSync = appSettings.GraphicsSettings.EnableVSync,
+            .GraphicsAPI = appSettings.GraphicsSettings.API,
+        };
+
+        mPlatform = CreateScope<VulkyrieGLFWPlatform>(windowProps, [this](Event &event) { this->OnEvent(event); });
 
         sInstance = this;
     }
@@ -33,10 +41,9 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
-        VINFO("Name                          | {}", mWindowProps.Title);
-        VINFO("Window Height requested       | {}", mWindowProps.Height);
-        VINFO("Window Width requested        | {}", mWindowProps.Width);
-        VINFO("Enable V-Sync                 | {}", mWindowProps.EnableVSync);
+        VINFO("Name                 | {}", mAppSettings.Name);
+        VINFO("Window Dimensions    | {} x {}", mAppSettings.GraphicsSettings.WindowHeight, mAppSettings.GraphicsSettings.WindowWidth);
+        VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
         // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
@@ -49,7 +56,7 @@ namespace Vulkyrie {
         f32 lastFrameTime = 0.0F;
 
         // Raise the window created event.
-        WindowCreatedEvent event(mWindowProps.Width, mWindowProps.Height);
+        WindowCreatedEvent event(mAppSettings.GraphicsSettings.WindowWidth, mAppSettings.GraphicsSettings.WindowHeight);
         OnInit(event);
 
         // Main application loop.
