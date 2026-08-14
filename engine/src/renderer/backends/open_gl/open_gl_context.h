@@ -33,10 +33,15 @@ namespace Vulkyrie {
             return mCapabilities;
         }
 
+        [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
+            return mContextCreated;
+        }
+
         bool DeviceLost() const;
 
     private:
         DeviceCapabilities mCapabilities;
+        bool mContextCreated;
     };
 
 } // namespace Vulkyrie

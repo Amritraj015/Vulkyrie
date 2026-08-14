@@ -16,11 +16,11 @@ namespace Vulkyrie {
             mDevice.WaitIdle();
         }
 
-        [[nodiscard]] GraphicsAPI BackendType() const noexcept override {
+        [[nodiscard]] VE_INLINE GraphicsAPI BackendType() const noexcept override {
             return B::kType;
         }
 
-        [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const override {
+        [[nodiscard]] VE_INLINE const DeviceCapabilities &QueryCapabilities() const override {
             return mDevice.QueryCapabilities();
         }
 
@@ -34,16 +34,20 @@ namespace Vulkyrie {
             // TODO: drive the frame graph once render passes exist.
         }
 
-        void WaitIdle() override {
+        VE_INLINE void WaitIdle() override {
             mDevice.WaitIdle();
         }
 
-        [[nodiscard]] bool DeviceLost() const noexcept override {
+        [[nodiscard]] VE_INLINE bool DeviceLost() const noexcept override {
             return mDevice.DeviceLost();
         }
 
-        [[nodiscard]] const RendererStatistics &GetStatistics() const noexcept override {
+        [[nodiscard]] VE_INLINE const RendererStatistics &GetStatistics() const noexcept override {
             return stats;
+        }
+
+        [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept override {
+            return mDevice.ContextCreated();
         }
 
     private:

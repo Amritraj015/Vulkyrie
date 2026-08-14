@@ -188,8 +188,8 @@ so tag at the clear per-subsystem entry points with a single `VE_MEMORY_SCOPE(..
 | --- | --- |
 | `Physics` | [engine/src/physics/physics_world.cpp](engine/src/physics/physics_world.cpp) `PhysicsWorld::Update` (~line 54) |
 | `Audio` | [engine/src/audio/audio_system.cpp](engine/src/audio/audio_system.cpp) `AudioSystem::Update` (~line 108) + init (~line 10, `alcOpenDevice`) |
-| `Assets` | [engine/src/renderer/open_gl/open_gl_model.cpp](engine/src/renderer/open_gl/open_gl_model.cpp) — around the assimp `ReadFile` import |
-| `Rendering` | [engine/src/renderer/open_gl/open_gl_renderer_context.cpp](engine/src/renderer/open_gl/open_gl_renderer_context.cpp) — the per-frame draw/submit entry |
+| `Assets` | ~~`engine/src/renderer/open_gl/open_gl_model.cpp`~~ — retired to `backup/open_gl_model.cppbak` with the pre-pivot renderer; needs a new home once asset loading exists on the new backend |
+| `Rendering` | ~~`engine/src/renderer/open_gl/open_gl_renderer_context.cpp`~~ — retired with the pre-pivot renderer. The replacement site is `RendererImpl<B>::Render()`, currently a no-op; see [vulkan-renderer-architecture.md](vulkan-renderer-architecture.md) |
 
 Keep it light; broad centralized tagging via `Engine` is a later phase once it owns the subsystems.
 

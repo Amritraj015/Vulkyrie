@@ -7,7 +7,7 @@ namespace Vulkyrie {
 
     class VulkanContext final {
     public:
-        explicit VulkanContext (const DeviceCreationInfo &info);
+        explicit VulkanContext(const DeviceCreationInfo &info);
 
         VulkanImage CreateImage(const ImageDescriptor &descriptor);
         VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
@@ -26,8 +26,13 @@ namespace Vulkyrie {
         const DeviceCapabilities &QueryCapabilities() const;
         bool DeviceLost() const;
 
+        [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
+            return mContextCreated;
+        }
+
     private:
         DeviceCapabilities mCapabilities;
+        bool mContextCreated;
     };
 
 } // namespace Vulkyrie

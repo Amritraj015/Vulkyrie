@@ -149,14 +149,31 @@ and `JointsPositionCorrectionTechnique`.
 
 ### Renderer (`engine/{include,src}/renderer/`)
 
-The active backend is OpenGL (`src/renderer/open_gl/`), built around a frame-graph abstraction
-(`include/renderer/frame_graph/`, with resource types under `frame_graph/resources/`). A `src/renderer/vulkan/`
-backend exists for future work but is not the primary target yet — check its state before assuming it is functional.
+**The renderer is mid-rewrite and currently draws nothing.** Every target builds and runs, but both backends
+are stubs and `RendererImpl<B>::Render()` is a no-op — a green build proves the templates instantiate, not
+that anything renders. The pre-pivot OpenGL renderer is parked under `renderer/backup/` as `.hbak`/`.cppbak`
+files, out of the build.
+
+The RHI is **compile-time polymorphic**. `Renderer` (`include/renderer/renderer.h`) is the only virtual
+dispatch boundary, chosen once at startup from `GraphicsAPI` by `Renderer::Create`. Below it,
+`RendererImpl<B>` (`src/renderer/renderer_impl.h`) and `Device<B>` (`include/renderer/backends/device.h`) are
+templates over a backend trait struct, constrained by the `RendererBackend` concept
+(`include/renderer/backends/backend_concepts.h`). The two trait structs — `VulkanBackend` and `OpenGLBackend`,
+under `src/renderer/backends/{vulkan,open_gl}/` — are each `static_assert`ed against the concept next to the
+explicit `template class RendererImpl<…>;` instantiation in their `*_renderer.cpp`. Vulkan is the target
+backend; OpenGL is a conformance stub. No Vulkan dependency exists yet (`vcpkg.json` has no `vulkan`/`volk`).
+
+Two mature, independent subsystems the renderer reuses rather than rebuilds, each with its own README that is
+the source of truth for its area: the **frame graph** (`include/renderer/frame_graph/`, resource types under
+`frame_graph/resources/`) and the **job system** (`include/core/jobs/`). The frame graph is not yet wired to
+the backend architecture.
+
+Plans and current state live in `.claude/plans/vulkan-renderer-architecture.md`.
 
 ### Code style
 
 Public API surfaces use Doxygen-style `/** @brief ... */` comments (including `@param`/`@returns`), even when the
 behavior seems self-explanatory from the name — match this when adding or changing public methods. Methods and
-types are `PascalCase`; private/protected members use a leading-underscore `_camelCase` (no `m_` prefix). Trivial
+types are `PascalCase`; private/protected members use the standard naming convention i.e. `mMemberName`. Trivial
 accessors are typically `[[nodiscard]] VE_INLINE`. Classes that hold references or are otherwise non-copyable use
 `VE_DELETE_MOVE_AND_COPY(TypeName);` rather than manually deleting each special member.

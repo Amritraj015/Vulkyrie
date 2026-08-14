@@ -26,11 +26,6 @@ namespace Vulkyrie {
         sInstance = this;
     }
 
-    Application::~Application() {
-        // Dispose the platform.
-        mPlatform.reset();
-    }
-
     StatusCode Application::Run() {
         // Try to create the application window, if it fails, return the status code.
         RETURN_ON_FAILURE(mPlatform->CreateWindow());
@@ -43,7 +38,14 @@ namespace Vulkyrie {
         VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
+        // Try to initialzed the renderer.
+        // TODO: Create and pass the actual device creation info.
         mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, {});
+
+        // Return an error status code if the renderer context failed to initialized.
+        if (!mRenderer->ContextCreated()) {
+            return StatusCode::FailedToInitializeRendererContext;
+        }
 
         // Mark the application as running.
         mRunning = true;
@@ -79,6 +81,15 @@ namespace Vulkyrie {
             }
 
             {
+                VLKY_PROFILE_SCOPE("ApplicationRender");
+
+                // Render the application.
+                mRenderer->Render();
+            }
+
+            {
+                // TODO: May need to remove this.
+                // TODO: Probably not needed for Vulkan.
                 VLKY_PROFILE_SCOPE("ApplicationWindowUpdate");
 
                 // Update the application window.

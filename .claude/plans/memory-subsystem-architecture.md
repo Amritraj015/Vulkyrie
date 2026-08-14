@@ -39,11 +39,12 @@ execution, not an implementation task.
   `VULKYRIE_DEBUG`, a compile def set for Debug in `engine/CMakeLists.txt`) is exactly where a
   global heap hook belongs.
 - **Subsystems** are sibling module directories: `core, renderer, audio, physics, input, events,
-  networking, materials` (+ `platform`). `Engine` (`core/engine.h`) already owns `Platform`,
-  `Audio`, and `Renderer` via `Ref<>`, and **will own every subsystem, including Physics** — the
-  design target is engine-owned subsystems. `PhysicsWorld` simply isn't wired into `Engine` yet
-  (today it's constructed at the example/game layer); that wiring is expected. This means the
-  attribution/lifecycle model can be **centralized in `Engine`**: as `Engine` constructs each
+  networking, materials` (+ `platform`). **`Engine` (`core/engine.h`) no longer exists** — it was
+  deleted, and `Application` (`core/application.h`) is the sole lifecycle owner. Read every mention of
+  `Engine` below as `Application`. It owns `Platform` and `Renderer` via smart pointers, and the design
+  target of subsystem-owned lifetimes is unchanged. `PhysicsWorld` still isn't wired in (today it's
+  constructed at the example/game layer); that wiring is expected. This means the
+  attribution/lifecycle model can be **centralized in the owner**: as it constructs each
   subsystem it registers it with the tracker, and it can wrap each subsystem's per-frame `Update`
   in a `VE_MEMORY_SCOPE(<tag>)` from one place rather than relying on each subsystem to tag itself.
 - **Editor is ImGui-based** (`editor/src/vulkyrie_layer_ui.cpp`, layer-stack overlays) — the host

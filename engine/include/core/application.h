@@ -19,7 +19,7 @@ namespace Vulkyrie {
         explicit Application(const ApplicationSettings &appSettings);
 
         /** @brief Destructor to clean up the application and its resources. */
-        virtual ~Application();
+        virtual ~Application() = default;
 
         /** @brief Gets the singleton instance of the application.
          * @returns A reference to the application instance.

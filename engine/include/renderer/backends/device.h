@@ -30,58 +30,62 @@ namespace Vulkyrie {
             }
         }
 
-        [[nodiscard]] typename B::Context &Context() noexcept {
+        [[nodiscard]] VE_INLINE typename B::Context &Context() noexcept {
             return *mContext;
         };
 
-        [[nodiscard]] const typename B::Context &Context() const noexcept {
+        [[nodiscard]] VE_INLINE const typename B::Context &Context() const noexcept {
             return *mContext;
         };
 
-        [[nodiscard]] typename B::Queue &GetGraphicsQueue() noexcept {
+        [[nodiscard]] VE_INLINE typename B::Queue &GetGraphicsQueue() noexcept {
             return mContext->GetGraphicsQueue();
         }
 
-        [[nodiscard]] typename B::Queue &GetTransferQueue() noexcept {
+        [[nodiscard]] VE_INLINE typename B::Queue &GetTransferQueue() noexcept {
             return mContext->GetTransferQueue();
         }
 
-        [[nodiscard]] typename B::Queue &GetComputeQueue() noexcept {
+        [[nodiscard]] VE_INLINE typename B::Queue &GetComputeQueue() noexcept {
             return mContext->GetComputeQueue();
         }
 
-        [[nodiscard]] auto &GetHeap() noexcept
+        [[nodiscard]] VE_INLINE auto &GetHeap() noexcept
             requires(B::kUsesBindlessHeap)
         {
             return mContext->GetHeap();
         }
 
-        [[nodiscard]] ShaderModuleCache<B> &GetShaders() noexcept {
+        [[nodiscard]] VE_INLINE ShaderModuleCache<B> &GetShaders() noexcept {
             return *mShaders;
         }
 
-        [[nodiscard]] PipelineCache<B> &GetPipelines() noexcept {
+        [[nodiscard]] VE_INLINE PipelineCache<B> &GetPipelines() noexcept {
             return *mPipelines;
         }
 
-        [[nodiscard]] TransientPool<B> &GetTransients() noexcept {
+        [[nodiscard]] VE_INLINE TransientPool<B> &GetTransients() noexcept {
             return *mTransients;
         }
 
-        [[nodiscard]] DeletionQueue<B> &GetDeletionQueue() noexcept {
+        [[nodiscard]] VE_INLINE DeletionQueue<B> &GetDeletionQueue() noexcept {
             return *mDeletionQueue;
         }
 
-        [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const noexcept {
+        [[nodiscard]] VE_INLINE const DeviceCapabilities &QueryCapabilities() const noexcept {
             return mContext->QueryCapabilities();
         }
 
-        void WaitIdle() const {
+        VE_INLINE void WaitIdle() const {
             mContext->WaitIdle();
         }
 
-        [[nodiscard]] bool DeviceLost() const noexcept {
+        [[nodiscard]] VE_INLINE bool DeviceLost() const noexcept {
             return mContext->DeviceLost();
+        }
+
+        [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
+            return mContext->ContextCreated();
         }
 
     private:

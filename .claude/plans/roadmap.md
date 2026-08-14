@@ -1,76 +1,86 @@
 # Vulkyrie — Cross-Plan Roadmap
 
-Sequencing for the three architecture plans in this directory. These plans are deliberately
-interlocked: two shared foundations underpin the rest, and after those the two big tracks are
-largely independent and can be reordered by priority.
+Sequencing for the architecture plans in this directory. They are deliberately interlocked: two shared
+foundations underpin the rest, and after those the two big tracks are largely independent and can be
+reordered by priority.
+
+**Both shared foundations are now built.** Memory Phase 0 and the shared job system — the two hard
+cross-dependencies this roadmap was originally written to sequence — are done, so the critical path
+below is history rather than guidance. What remains is a straight choice between the two tracks.
 
 ## The plans
 
 - [Physics performance & parallelism](physics-performance-parallelism-architecture.md) — optimize the
   existing rigid-body engine (fixed-step + determinism, job system, parallel collision/solver, SIMD).
 - [Memory subsystem](memory-subsystem-architecture.md) — per-subsystem memory tracking, allocator
-  toolkit, budgets, leak detection, HUD.
-- [Vulkan renderer](vulkan-renderer-architecture.md) — greenfield multi-threaded Vulkan RHI + backend,
-  frame graph, render thread, stats/metrics.
+  toolkit, budgets, leak detection, HUD. **Phase 0 done.**
+- [Vulkan renderer](vulkan-renderer-architecture.md) — multi-threaded Vulkan RHI behind a
+  concepts-checked, compile-time-polymorphic backend seam; frame graph, render thread, stats/metrics.
+  Scaffolding built, no Vulkan yet — see
+  [phase-0 bring-up](vulkan-renderer-phase-0-bring-up.md).
+- [Shared job system](shared-job-system-implementation-plan.md) — **done**; see
+  [core/jobs/README.md](engine/include/core/jobs/README.md).
+- [Frame graph](frame-graph-performance-and-correctness-plan.md) — **done**; see
+  [frame_graph/README.md](engine/include/renderer/frame_graph/README.md).
 
-## The two hard cross-dependencies
+## The two cross-dependencies (both satisfied)
 
-Everything else is independent enough to reorder; these two are shared foundations that multiple
-plans build on, so they come first.
+These were the shared foundations everything else waited on. Both are now built, and are recorded here
+because they still explain *why* the tracks are shaped the way they are.
 
-1. **Shared job system** (`core/jobs/`) — required by physics parallelism (physics Phase 3+) **and**
-   the renderer's threaded command recording (renderer Phase 4). Defined as physics Phase 2, but it
-   is generic engine infra, not physics-specific.
-2. **Memory tracker + `GpuVram` bucket** — the renderer's VMA allocator reports into it (renderer
-   Phase 1) and physics' per-frame arenas come from its allocator toolkit (physics Phase 5). Memory
-   Phase 0 is small and self-contained.
+1. **Shared job system** (`core/jobs/`) — required by physics parallelism (physics Phase 3+) **and** the
+   renderer's threaded command recording (renderer Phase 4). **Built.** `FrameGraph::RecordParallel`
+   already fans pass bodies across it; what it now waits on is a backend to record into.
+2. **Memory tracker + `GpuVram` bucket** — the renderer's VMA allocator reports into it (renderer Phase
+   1) and physics' per-frame arenas come from its allocator toolkit (physics Phase 5). **Phase 0 built.**
 
 ```mermaid
 graph TD
-    M0[Memory Phase 0<br/>tracker + global new/delete + GpuVram] --> JOBS[Shared job system<br/>core/jobs/]
-    M0 --> RP1[Renderer P1: RHI + VMA→GpuVram]
-    JOBS --> PP3[Physics P3+: parallel collision/solver]
+    M0["Memory Phase 0 ✔<br/>tracker + global new/delete + GpuVram"] --> RP1[Renderer P1: RHI + VMA→GpuVram]
+    JOBS["Shared job system ✔<br/>core/jobs/"] --> PP3[Physics P3+: parallel collision/solver]
     JOBS --> RP4[Renderer P4: threaded recording]
+    FG["Frame graph ✔<br/>renderer/frame_graph/"] --> RP3[Renderer P3: frame graph on Vulkan]
     M2[Memory P2: allocator toolkit] --> PP5[Physics P5: SIMD + arenas]
     PP0[Physics P0–1: measure + fixed-step<br/>determinism, single-threaded] -.independent, cheap wins.-> PP3
+
+    classDef done fill:#d7f2d7,stroke:#40a040,color:#1a1a1a
+    class M0,JOBS,FG done
 ```
 
 ## Recommended order
 
-1. **Memory — Phase 0** (tracker + global `new`/`delete` override + `GpuVram` bucket enum).
-   Small and self-contained; gives allocation visibility for everything after. **Do it first to
-   de-risk the one real build hazard early — the static-library `operator new` linker drop** (see the
-   memory plan's whole-archive/anchor mitigation).
-2. **Shared job system** (`core/jobs/`). The keystone — unblocks both big parallel efforts and is
-   independently testable. Build once, correctly.
-3. **Physics track** — Phase 0 (measure) → Phase 1 (fixed-step / determinism / data-layout cleanup)
-   → Phase 3 (parallel collision) → Phase 4 (modern solver) → Phase 5 (SIMD + adopt memory arenas).
-   Before the renderer because it is an **existing, working system**: lower risk, faster wins, and it
-   **load-tests the job system and memory tracking on a contained workload** before the greenfield
-   renderer relies on them. *Physics Phases 0–1 are single-threaded and independent — pull them
-   forward as cheap stability wins anytime.*
-4. **Renderer track** — Phase 0 (bootstrap) → 1 (RHI + VMA) → 2 (shaders) → 3 (frame graph) →
-   4 (threading) → 5 (stats) → 6+ (bindless, GPU-driven, PBR/shadows/post). The largest, greenfield,
-   highest-uncertainty effort — build it on infra already proven by the physics track. Its Phases 0–3
-   need neither the job system nor physics; it only needs the job system at Phase 4 and the `GpuVram`
-   bucket at Phase 1.
-5. **Memory — Phases 2–5** (allocator toolkit, third-party hooks, budgets, HUD). Slot in incrementally
-   as physics/renderer start wanting arenas and as you want the visibility surfaced. Not on anyone's
-   critical path.
+Steps 1 and 2 of the original plan — Memory Phase 0, then the shared job system — are **done**. What
+follows is the remaining sequence.
 
-## The one thing that would reorder this
+1. ~~**Memory — Phase 0**~~ (tracker + global `new`/`delete` override + `GpuVram` bucket enum). **Done.**
+2. ~~**Shared job system**~~ (`core/jobs/`). **Done**, and independently load-tested by the frame graph's
+   `RecordParallel` path.
+3. **Physics track** — Phase 0 (measure) → Phase 1 (fixed-step / determinism / data-layout cleanup) →
+   Phase 3 (parallel collision) → Phase 4 (modern solver) → Phase 5 (SIMD + adopt memory arenas). Ahead
+   of the renderer because it is an **existing, working system**: lower risk, faster wins, and it
+   **load-tests the job system and memory tracking on a contained workload**. *Physics Phases 0–1 are
+   single-threaded and independent — pull them forward as cheap stability wins anytime.*
+4. **Renderer track** — Phase 0 (Vulkan bring-up) → 1 (RHI real) → 2 (shaders) → 3 (frame graph on
+   Vulkan) → 4 (threading) → 5 (stats) → 6+ (bindless, GPU-driven, PBR/shadows/post). The largest and
+   highest-uncertainty effort. It needs the job system at Phase 4 and the `GpuVram` bucket at Phase 1 —
+   both now available, so it is unblocked at every phase.
+5. **Memory — Phases 2–5** (allocator toolkit, third-party hooks, budgets, HUD). Slot in incrementally as
+   physics and the renderer start wanting arenas. Not on anyone's critical path.
 
-The default above (**physics before renderer**) is the lower-risk path that proves the shared
-foundations first. If the near-term goal is instead a **visible, demoable modern engine**, flip steps
-3 and 4:
+## What would reorder this
 
-> Memory Phase 0 → Renderer Phases 0–3 → shared job system → Renderer Phase 4+ → physics as the
-> parallel/later track.
+The default (**physics before renderer**) is the lower-risk path. If the near-term goal is instead a
+**visible, demoable modern engine**, swap steps 3 and 4 — the renderer track is unblocked at every phase,
+so nothing structural prevents taking it first.
 
-The renderer's early phases block on nothing but Memory Phase 0, so this is a clean alternative when
-the renderer is the headline you're chasing.
+One consideration that did not exist when this roadmap was written: **the engine currently draws
+nothing.** The pre-pivot OpenGL renderer is in `backup/`, both backend `Context` implementations are
+stubs, and `RendererImpl<B>::Render()` is a no-op — every target builds and runs, but there is no render
+path. If having a picture on screen matters in the near term, that argues for the renderer track, and
+for treating "restore a working render path for editor/sandbox" as its own scheduled item rather than
+something a renderer phase will pick up for free.
 
-## Critical path, in one line
+## Where things stand, in one line
 
-**Memory P0 → shared job system → (physics track ‖ renderer track).**
-Do those two foundations first; sequence the two tracks by whichever matters more to you.
+**Both shared foundations are built; physics and renderer are independent tracks, sequenced by
+priority.**

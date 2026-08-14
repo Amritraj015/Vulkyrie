@@ -82,6 +82,7 @@ namespace Vulkyrie {
             { cb.WaitIdle() } -> std::same_as<void>;
             { cb.QueryCapabilities() } -> std::convertible_to<const DeviceCapabilities &>;
             { cb.DeviceLost() } -> std::same_as<bool>;
+            { cb.ContextCreated() } -> std::same_as<bool>;
         };
 
         template <typename B>

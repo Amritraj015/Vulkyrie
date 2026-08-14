@@ -1,12 +1,30 @@
 # Shared Job System (`core/jobs/`) — Implementation Plan
 
+> ## ✅ Executed — kept as a record
+>
+> **The job system is built.** The live source of truth is
+> [core/jobs/README.md](engine/include/core/jobs/README.md); this document is kept for the
+> *reasoning* behind the design, not as a description of current state.
+>
+> It is in use: `FrameGraph::RecordParallel()` fans render-pass bodies across it, and the frame graph's
+> own allocation-free design deliberately mirrors this system's trampoline-dispatch pattern
+> (`InvokeFn = void(*)(void*)`, inline payload, null `Destroy` for trivially-destructible captures).
+> Benchmarks live in `benchmarks/src/core/jobs/`; tests in `tests/src/core/jobs/`.
+>
+> **The dependency direction has flipped.** This plan was written with the renderer blocking on the job
+> system. The job system is now done and the renderer is the laggard: parallel command-buffer recording
+> waits on a Vulkan backend to record *into*, not on scheduling infrastructure. See
+> [vulkan-renderer-architecture.md](vulkan-renderer-architecture.md) §4.
+
+---
+
 ## Context
 
-Per the [roadmap](roadmap.md), the critical path is **Memory P0 → shared job system → (physics ‖ renderer)**.
-Memory Phase 0 is now **implemented and verified** (`engine/{include,src}/memory/`: `MemoryTag`,
-cheap-tier `MemoryTracker`, header-prefix global `operator new`/`delete` with the linker anchor,
-`VE_MEMORY_SCOPE` in the PCH, shutdown report, `tests/src/memory/memory_tracker_tests.cpp`). The
-next keystone is the job system.
+Per the [roadmap](roadmap.md), the critical path was **Memory P0 → shared job system → (physics ‖
+renderer)**. Memory Phase 0 was implemented and verified first (`engine/{include,src}/memory/`:
+`MemoryTag`, cheap-tier `MemoryTracker`, header-prefix global `operator new`/`delete` with the linker
+anchor, `VE_MEMORY_SCOPE` in the PCH, shutdown report, `tests/src/memory/memory_tracker_tests.cpp`). The
+job system was the next keystone.
 
 It is **the** shared foundation: the [physics plan](physics-performance-parallelism-architecture.md)
 defines it as Phase 2 and blocks Phases 3–5 (parallel broadphase/narrowphase, island + graph-colored
