@@ -32,7 +32,7 @@ namespace Vulkyrie {
 
         template <typename B>
         concept RendererBackendConstants = requires {
-            // { B::kName } -> std::convertible_to<StaticString>;
+            { B::kName } -> std::convertible_to<StaticString>;
             { B::kType } -> std::convertible_to<GraphicsAPI>;
             { B::kFramesInFlight } -> std::convertible_to<u32>;
 
