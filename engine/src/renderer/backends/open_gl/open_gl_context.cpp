@@ -7,14 +7,30 @@ namespace Vulkyrie {
     OpenGLContext::OpenGLContext(const DeviceCreationInfo &info)
         : mCapabilities()
         , mContextCreated(false) {
+
+        auto *window = static_cast<GLFWwindow *>(info.NativeWindow);
+
         // Make the OpenGL context current.
-        glfwMakeContextCurrent(static_cast<GLFWwindow *>(info.NativeWindow));
+        glfwMakeContextCurrent(window);
+
+        // Check if the OpenGL context is current.
+        if (glfwGetCurrentContext() != window) {
+            VFATAL("Could not make OpenGL context current.");
+
+            mContextCreated = false;
+
+            return;
+        }
 
         // GLAD: load all OpenGL function pointers
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
             VFATAL("Failed to initialize GLAD");
 
+            glfwMakeContextCurrent(nullptr);
+
             mContextCreated = false;
+
+            return;
         }
 
 #if defined(VULKYRIE_DEBUG)
