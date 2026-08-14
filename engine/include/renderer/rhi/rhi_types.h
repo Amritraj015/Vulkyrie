@@ -223,6 +223,8 @@ namespace Vulkyrie {
     struct DeviceCreationInfo {
         void *NativeWindow = nullptr;
         void *NativeDisplay = nullptr;
+        u16 WindowWidth = 800;
+        u16 WindowHeight = 600;
 
         u32 MaxBuffers = 65536;
         u32 MaxTextures = 262144;
