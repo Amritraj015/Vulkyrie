@@ -23,13 +23,13 @@ namespace Vulkyrie {
         VE_INLINE void Push(B::Pipeline);
         VE_INLINE void Push(B::ShaderModule);
 
-        VE_INLINE void Flush();
+        VE_INLINE void Flush() {};
         VE_INLINE void Collect(size_t currentFrameIndex);
 
         [[nodiscard]] VE_INLINE size_t PendingCount() const noexcept;
 
     private:
-        struct Bucket;
+        struct Bucket {};
 
         typename B::Context &mContext;
         Bucket mBuckets[B::kFramesInFlight];

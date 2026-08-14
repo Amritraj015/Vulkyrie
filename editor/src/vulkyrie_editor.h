@@ -3,9 +3,11 @@
 #include <vulkyrie.h>
 
 namespace Vulkyrie::Editor {
+
     class VulkyrieEditor : public Application {
     public:
-        VulkyrieEditor(const WindowProps &windowProps);
+        VulkyrieEditor(const ApplicationSettings &settings);
         ~VulkyrieEditor() override = default;
     };
+
 } // namespace Vulkyrie::Editor

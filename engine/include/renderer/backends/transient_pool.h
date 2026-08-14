@@ -15,7 +15,7 @@ namespace Vulkyrie {
 
         VE_DELETE_MOVE_AND_COPY(TransientPool);
 
-        ~TransientPool();
+        ~TransientPool() = default;
 
     private:
         B::Context &mContext;

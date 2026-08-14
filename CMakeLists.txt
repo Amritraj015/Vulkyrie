@@ -50,7 +50,6 @@ endif()
 # Examples/Games based on the Vulkyrie engine
 # -------------------------------------
 if(VULKYRIE_BUILD_EXAMPLES)
-    add_subdirectory(examples/asteroids)
     add_subdirectory(examples/sandbox)
 endif()
 

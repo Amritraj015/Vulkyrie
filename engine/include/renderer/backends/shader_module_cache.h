@@ -16,7 +16,7 @@ namespace Vulkyrie {
 
         VE_DELETE_MOVE_AND_COPY(ShaderModuleCache);
 
-        ~ShaderModuleCache();
+        ~ShaderModuleCache() = default;
 
         [[nodiscard]] VE_INLINE B::ShaderModule Get() const;
 

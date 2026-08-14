@@ -1,14 +1,15 @@
 #pragma once
 
 #include <vulkyrie.h>
-#include "sandbox_void_layer.h"
+// #include "sandbox_void_layer.h"
 
 namespace Sandbox {
+    using namespace Vulkyrie;
 
     class SandboxApplication : public Application {
     public:
-        SandboxApplication(const WindowProps &windowProps)
-            : Application(windowProps) {
+        SandboxApplication(const ApplicationSettings &settings)
+            : Application(settings) {
         }
 
         ~SandboxApplication() override {
@@ -19,8 +20,8 @@ namespace Sandbox {
             // PushLayer<SandboxLayerShadowMapping>();
             // PushLayer<SandboxLayerFrameBuffer>();
             // PushLayer<SandboxLayerCubes>();
-            PushLayer<SandboxLayerSphere>();
-            PushOverlay<SandboxVoidLayer>();
+            // PushLayer<SandboxLayerSphere>();
+            // PushOverlay<SandboxVoidLayer>();
 
             return true;
         }

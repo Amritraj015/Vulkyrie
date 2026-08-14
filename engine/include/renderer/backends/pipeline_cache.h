@@ -16,7 +16,7 @@ namespace Vulkyrie {
 
         VE_DELETE_MOVE_AND_COPY(PipelineCache);
 
-        ~PipelineCache();
+        ~PipelineCache() = default;
 
         [[nodiscard]] VE_INLINE B::Pipeline Get(const GraphicsPipelineDescriptor &descriptor) const;
         [[nodiscard]] VE_INLINE B::Pipeline Get(const ComputePipelineDescriptor &descriptor) const;

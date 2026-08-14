@@ -2,8 +2,9 @@
 #include "vulkyrie_layer_ui.h"
 
 namespace Vulkyrie::Editor {
-    VulkyrieEditor::VulkyrieEditor(const WindowProps &windowProps)
-        : Application(windowProps) {
+
+    VulkyrieEditor::VulkyrieEditor(const ApplicationSettings &settings)
+        : Application(settings) {
         PushOverlay<VulkyrieLayerUI>();
     }
 

@@ -24,15 +24,27 @@ namespace Vulkyrie {
             return mDevice.QueryCapabilities();
         }
 
-        void OnWindowResize(u32 width, u32 height) override;
-        void Render() override;
-        void WaitIdle() override;
+        void OnWindowResize(u32 width, u32 height) override {
+            // TODO: recreate the swapchain once one exists; no-op until the frame graph owns presentation.
+            (void)width;
+            (void)height;
+        }
+
+        void Render() override {
+            // TODO: drive the frame graph once render passes exist.
+        }
+
+        void WaitIdle() override {
+            mDevice.WaitIdle();
+        }
 
         [[nodiscard]] bool DeviceLost() const noexcept override {
             return mDevice.DeviceLost();
         }
 
-        [[nodiscard]] const RendererStatistics &GetStatistics() const noexcept override;
+        [[nodiscard]] const RendererStatistics &GetStatistics() const noexcept override {
+            return stats;
+        }
 
     private:
         Device<B> mDevice;

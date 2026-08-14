@@ -3,13 +3,15 @@
 using namespace Vulkyrie;
 
 Application *CreateApplication() {
-    WindowProps windowProps = {
-        .Height = 800,
-        .Width = 1500,
-        .Title = "Sandbox (Powered by The Vulkyrie Game Engine)",
-        .EnableVSync = false,
-        .GraphicsAPI = GraphicsAPI::OpenGL,
+    Vulkyrie::ApplicationSettings settings = {
+        .Name = "Sandbox (Powered by The Vulkyrie Game Engine)",
+        .GraphicsSettings = {
+            .API = GraphicsAPI::OpenGL,
+            .WindowHeight = 800,
+            .WindowWidth = 1500,
+            .EnableVSync = false,
+        },
     };
 
-    return new Sandbox::SandboxApplication(windowProps);
+    return new Sandbox::SandboxApplication(settings);
 }

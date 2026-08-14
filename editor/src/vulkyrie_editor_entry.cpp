@@ -4,12 +4,15 @@
 using namespace Vulkyrie;
 
 Application *CreateApplication() {
-    WindowProps windowProps = {
-        .Height = 800,
-        .Width = 1500,
-        .Title = "Vulkyrie Editor",
-        .GraphicsAPI = GraphicsAPI::OpenGL,
+    ApplicationSettings settings = {
+        .Name = "Vulkyrie Editor",
+        .GraphicsSettings = {
+            .API = GraphicsAPI::OpenGL,
+            .WindowHeight = 800,
+            .WindowWidth = 1500,
+            .EnableVSync = false,
+        },
     };
 
-    return new Vulkyrie::Editor::VulkyrieEditor(windowProps);
+    return new Vulkyrie::Editor::VulkyrieEditor(settings);
 }

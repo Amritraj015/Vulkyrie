@@ -27,9 +27,6 @@ namespace Vulkyrie {
     }
 
     Application::~Application() {
-        // Dispose the renderer context.
-        RendererContext::Dispose();
-
         // Dispose the platform.
         mPlatform.reset();
     }
@@ -45,9 +42,6 @@ namespace Vulkyrie {
         VINFO("Window Dimensions    | {} x {}", mAppSettings.GraphicsSettings.WindowHeight, mAppSettings.GraphicsSettings.WindowWidth);
         VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
-
-        // Try to initialize the renderer with the specified graphics API, if it fails, return the status code.
-        RETURN_ON_FAILURE(RendererContext::Create(mAppSettings.GraphicsSettings.API));
 
         mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, {});
 

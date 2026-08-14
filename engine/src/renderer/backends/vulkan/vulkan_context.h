@@ -5,8 +5,10 @@
 
 namespace Vulkyrie {
 
-    class VulkanContext {
+    class VulkanContext final {
     public:
+        explicit VulkanContext (const DeviceCreationInfo &info);
+
         VulkanImage CreateImage(const ImageDescriptor &descriptor);
         VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
         VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
@@ -25,6 +27,7 @@ namespace Vulkyrie {
         bool DeviceLost() const;
 
     private:
+        DeviceCapabilities mCapabilities;
     };
 
 } // namespace Vulkyrie

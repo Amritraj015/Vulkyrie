@@ -1,5 +1,3 @@
-#pragma once
-
 #include "vlkypch.h"
 #include "renderer/renderer_impl.h"
 #include "renderer/backends/backend_concepts.h"

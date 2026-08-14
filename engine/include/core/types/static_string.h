@@ -64,3 +64,10 @@ namespace Vulkyrie {
     static_assert(std::is_trivially_copyable_v<StaticString>, "StaticString must be trivially copyable so nodes stay cheap to move.");
 
 } // namespace Vulkyrie
+
+/** @brief Formats a StaticString the same way as std::string_view. */
+template <> struct std::formatter<Vulkyrie::StaticString> : std::formatter<std::string_view> {
+    template <typename FormatContext> auto format(const Vulkyrie::StaticString &value, FormatContext &ctx) const {
+        return std::formatter<std::string_view>::format(value.View(), ctx);
+    }
+};

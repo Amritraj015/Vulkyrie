@@ -1,6 +1,5 @@
 #include "renderer/renderer_context.h"
 #include "renderer/backends/open_gl/open_gl_renderer_backend.h"
-#include "renderer/backends/vulkan/vulkan_renderer_backend.h"
 
 namespace Vulkyrie {
 
@@ -28,7 +27,7 @@ namespace Vulkyrie {
                 _initialized = true;
                 break;
             case GraphicsAPI::Vulkan:
-                _rendererBackend = new VulkanRendererBackend(graphicsApi);
+                // _rendererBackend = new VulkanRendererBackend(graphicsApi);
 
                 RETURN_ON_FAILURE(_rendererBackend->Initialize());
 

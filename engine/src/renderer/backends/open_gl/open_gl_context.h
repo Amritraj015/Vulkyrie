@@ -6,7 +6,7 @@
 
 namespace Vulkyrie {
 
-    class OpenGLContext {
+    class OpenGLContext final {
     public:
         explicit OpenGLContext(const DeviceCreationInfo &info);
 

@@ -48,7 +48,7 @@ namespace Vulkyrie {
 
     void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer> &vertexBuffer) {
         // Cast to OpenGL-specific buffer
-        const OpenGLVertexBuffer &openGLVertexBuffer = static_cast<const OpenGLVertexBuffer &>(*vertexBuffer);
+        const auto &openGLVertexBuffer = static_cast<const OpenGLVertexBuffer &>(*vertexBuffer);
         const u32 vboID = openGLVertexBuffer.GetVertexBufferID();
 
         const BufferLayout &layout = vertexBuffer->GetLayout();

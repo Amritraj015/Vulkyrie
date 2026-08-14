@@ -15,11 +15,11 @@ namespace Vulkyrie {
     public:
         explicit Device(const DeviceCreationInfo &info)
             : mShaderCompiler()
-            , mContext(CreateScrop<typename B::Context>(info))
-            , mDeletionQueue(CreateScope<DeletionQueue<B>>(mContext))
-            , mTransients(CreateScope<TransientPool<B>>(mContext, mDeletionQueue))
-            , mShaders(mContext, mShaderCompiler, mDeletionQueue)
-            , mPipelines(mContext, mShaders, mDeletionQueue) {
+            , mContext(CreateScope<typename B::Context>(info))
+            , mDeletionQueue(CreateScope<DeletionQueue<B>>(*mContext))
+            , mTransients(CreateScope<TransientPool<B>>(*mContext, *mDeletionQueue))
+            , mShaders(CreateScope<ShaderModuleCache<B>>(*mContext, mShaderCompiler, *mDeletionQueue))
+            , mPipelines(CreateScope<PipelineCache<B>>(*mContext, *mShaders, *mDeletionQueue)) {
         }
 
         VE_DELETE_MOVE_AND_COPY(Device);
@@ -57,19 +57,19 @@ namespace Vulkyrie {
         }
 
         [[nodiscard]] ShaderModuleCache<B> &GetShaders() noexcept {
-            return mShaders;
+            return *mShaders;
         }
 
         [[nodiscard]] PipelineCache<B> &GetPipelines() noexcept {
-            return mPipelines;
+            return *mPipelines;
         }
 
         [[nodiscard]] TransientPool<B> &GetTransients() noexcept {
-            return mPipelines;
+            return *mTransients;
         }
 
         [[nodiscard]] DeletionQueue<B> &GetDeletionQueue() noexcept {
-            return mDeletionQueue;
+            return *mDeletionQueue;
         }
 
         [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const noexcept {
