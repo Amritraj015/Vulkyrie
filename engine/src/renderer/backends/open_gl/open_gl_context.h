@@ -12,7 +12,7 @@ namespace Vulkyrie {
 
         VE_DELETE_MOVE_AND_COPY(OpenGLContext);
 
-        ~OpenGLContext();
+        ~OpenGLContext() = default;
 
         [[nodiscard]] OpenGLImage CreateImage(const ImageDescriptor &descriptor);
         [[nodiscard]] OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor);

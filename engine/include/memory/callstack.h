@@ -9,7 +9,7 @@ namespace Vulkyrie {
     /** @brief Master switch for per-allocation callstack capture. Off by default even in Debug: capturing a stack
      * costs hundreds of nanoseconds to microseconds per allocation, which is a different order of overhead from the
      * deep table itself. Turn it on when hunting a specific leak, not as a standing configuration. */
-#define VE_MEMORY_CALLSTACKS 1
+#define VE_MEMORY_CALLSTACKS 0
 
 #if !defined(VE_MEMORY_CALLSTACKS)
 #define VE_MEMORY_CALLSTACKS 0

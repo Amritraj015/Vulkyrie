@@ -5,6 +5,16 @@
 
 namespace Vulkyrie {
 
+    struct WindowHandle final {
+        WindowHandle(void *nativeWindow = nullptr, void *nativeDisplay = nullptr)
+            : NativeWindow(nativeWindow)
+            , NativeDisplay(nativeDisplay) {
+        }
+
+        void *NativeWindow;
+        void *NativeDisplay;
+    };
+
     struct WindowProps final {
     public:
         /** @brief Starting height of the window. */

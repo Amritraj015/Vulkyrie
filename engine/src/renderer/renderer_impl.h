@@ -13,7 +13,9 @@ namespace Vulkyrie {
         VE_DELETE_MOVE_AND_COPY(RendererImpl);
 
         ~RendererImpl() override {
-            mDevice.WaitIdle();
+            if (mDevice.ContextCreated()) {
+                mDevice.WaitIdle();
+            }
         }
 
         [[nodiscard]] VE_INLINE GraphicsAPI BackendType() const noexcept override {

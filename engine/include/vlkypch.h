@@ -56,6 +56,8 @@ using i64 = std::int64_t;
 using f32 = float;
 using f64 = double;
 
+using usize = std::size_t;
+
 // Memory subsystem vocabulary: the thread-local scope stack, the VE_MEMORY_SCOPE macro, and the
 // linker anchor that keeps the global operator new/delete override from being dropped. Included
 // here (after the integer typedefs) so it is force-included into every engine translation unit.

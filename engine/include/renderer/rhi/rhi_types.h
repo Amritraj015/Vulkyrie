@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/types/application_types.h"
 #include "core/types/handle.h"
 
 namespace Vulkyrie {
@@ -221,10 +222,31 @@ namespace Vulkyrie {
     // -------------------------------------------------------------------
 
     struct DeviceCreationInfo {
-        void *NativeWindow = nullptr;
-        void *NativeDisplay = nullptr;
-        u16 WindowWidth = 800;
-        u16 WindowHeight = 600;
+        DeviceCreationInfo(WindowHandle windowHandle,
+                           u32 surfaceWidth = 800,
+                           u32 surfaceHeight = 600,
+                           u32 maxBuffers = 65536,
+                           u32 maxTextures = 262144,
+                           u32 maxPipelines = 16384,
+                           u32 maxSamplers = 256,
+                           bool enableValidation = false,
+                           bool preferDiscreteGpu = true,
+                           bool enableVSync = false)
+            : WindowHandle(windowHandle)
+            , SurfaceWidth(surfaceWidth)
+            , SurfaceHeight(surfaceHeight)
+            , MaxBuffers(maxBuffers)
+            , MaxTextures(maxTextures)
+            , MaxPipelines(maxPipelines)
+            , MaxSamplers(maxSamplers)
+            , EnableValidation(enableValidation)
+            , PreferDiscreteGpu(preferDiscreteGpu)
+            , EnableVSync(enableVSync) {
+        }
+
+        WindowHandle WindowHandle;
+        u32 SurfaceWidth = 800;
+        u32 SurfaceHeight = 600;
 
         u32 MaxBuffers = 65536;
         u32 MaxTextures = 262144;
@@ -233,7 +255,7 @@ namespace Vulkyrie {
 
         bool EnableValidation = false;
         bool PreferDiscreteGpu = true;
-        bool VSync = false;
+        bool EnableVSync = false;
 
         // u32 FramesInFlight = 2; // 2 for latency, 3 to hide a spiky CPU frame
         // bool EnableGpuValidation = false;

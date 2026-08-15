@@ -8,7 +8,7 @@ namespace Vulkyrie {
         : mCapabilities()
         , mContextCreated(false) {
 
-        auto *window = static_cast<GLFWwindow *>(info.NativeWindow);
+        auto *window = static_cast<GLFWwindow *>(info.WindowHandle.NativeWindow);
 
         // Make the OpenGL context current.
         glfwMakeContextCurrent(window);
@@ -134,12 +134,65 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
 #endif
 
-        glViewport(0, 0, info.WindowWidth, info.WindowHeight);
+        glViewport(0, 0, info.SurfaceWidth, info.SurfaceHeight);
 
         mContextCreated = true;
     }
 
-    OpenGLContext::~OpenGLContext() = default;
+    OpenGLImage CreateImage(const ImageDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    OpenGLShaderModule CreateShaderModule(const ShaderBlob &blob) {
+        (void)blob;
+        return {};
+    }
+
+    OpenGLPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    OpenGLPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    bool DestroyImage(OpenGLImage image) {
+        (void)image;
+        return true;
+    }
+
+    bool DestroyBuffer(OpenGLBuffer buffer) {
+        (void)buffer;
+        return true;
+    }
+
+    bool DestroySampler(OpenGLSampler sampler) {
+        (void)sampler;
+        return true;
+    }
+
+    bool DestroyShaderModule(OpenGLShaderModule shaderModule) {
+        (void)shaderModule;
+        return true;
+    }
+
+    bool CreatePipeline(OpenGLPipeline pipeline) {
+        (void)pipeline;
+        return true;
+    }
 
     void OpenGLContext::WaitIdle() const {
         glFinish();

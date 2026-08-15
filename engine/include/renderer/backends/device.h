@@ -25,7 +25,7 @@ namespace Vulkyrie {
         VE_DELETE_MOVE_AND_COPY(Device);
 
         ~Device() {
-            if (nullptr != mContext) {
+            if (nullptr != mContext && mContext->ContextCreated()) {
                 mContext->WaitIdle();
             }
         }

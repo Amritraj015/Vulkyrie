@@ -38,9 +38,14 @@ namespace Vulkyrie {
         VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
+        const DeviceCreationInfo info = DeviceCreationInfo{
+            WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
+            mAppSettings.GraphicsSettings.WindowWidth,
+            mAppSettings.GraphicsSettings.WindowHeight,
+        };
+
         // Try to initialzed the renderer.
-        // TODO: Create and pass the actual device creation info.
-        mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, {});
+        mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, info);
 
         // Return an error status code if the renderer context failed to initialized.
         if (!mRenderer->ContextCreated()) {
