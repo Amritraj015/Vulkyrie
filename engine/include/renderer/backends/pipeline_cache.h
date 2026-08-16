@@ -24,7 +24,7 @@ namespace Vulkyrie {
         VE_INLINE void PreCompile(std::span<const GraphicsPipelineDescriptor> descriptors);
 
         [[nodiscard]] VE_INLINE bool LoadFromDisk(const std::filesystem::path path);
-        [[nodiscard]] VE_INLINE bool LoadFromDisk(const std::filesystem::path path) const;
+        [[nodiscard]] VE_INLINE bool SaveToDisk(const std::filesystem::path path) const;
 
         [[nodiscard]] VE_INLINE size_t Size() const noexcept;
 

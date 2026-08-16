@@ -95,10 +95,12 @@ namespace Vulkyrie {
 
         template <std::ranges::input_range R> constexpr HashBuilder &Values(R &&range) noexcept {
             u64 count = 0;
+
             for (const auto &value : range) {
                 Value(value);
                 ++count;
             }
+
             return Word(count);
         }
 

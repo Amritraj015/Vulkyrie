@@ -17,19 +17,55 @@ namespace Vulkyrie {
             Flush();
         }
 
-        VE_INLINE void Push(B::Image);
-        VE_INLINE void Push(B::Buffer);
-        VE_INLINE void Push(B::Sampler);
-        VE_INLINE void Push(B::Pipeline);
-        VE_INLINE void Push(B::ShaderModule);
+        VE_INLINE void Push(B::Image image) {
+            mBuckets[mCurrent].Images.push_back(image);
+        }
+
+        VE_INLINE void Push(B::Buffer buffer) {
+            mBuckets[mCurrent].Buffers.push_back(buffer);
+        }
+
+        VE_INLINE void Push(B::Sampler sampler) {
+            mBuckets[mCurrent].Samplers.push_back(sampler);
+        }
+
+        VE_INLINE void Push(B::Pipeline pipeline) {
+            mBuckets[mCurrent].Pipelines.push_back(pipeline);
+        }
+
+        VE_INLINE void Push(B::ShaderModule shaderModule) {
+            mBuckets[mCurrent].ShaderModules.push_back(shaderModule);
+        }
 
         VE_INLINE void Flush() {};
-        VE_INLINE void Collect(size_t currentFrameIndex);
+        VE_INLINE void Collect(usize currentFrameIndex);
 
-        [[nodiscard]] VE_INLINE size_t PendingCount() const noexcept;
+        [[nodiscard]] VE_INLINE usize PendingCount() const noexcept {
+            usize count;
+
+            for (const auto &bucket : mBuckets) {
+                count += bucket.Images.size() + bucket.Buffers.size() + bucket.Samplers.size() + bucket.Pipelines.size() + bucket.ShaderModules.size();
+            }
+
+            return count;
+        }
 
     private:
-        struct Bucket {};
+        struct Bucket final {
+            std::vector<typename B::Image> Images;
+            std::vector<typename B::Buffer> Buffers;
+            std::vector<typename B::Sampler> Samplers;
+            std::vector<typename B::Pipeline> Pipelines;
+            std::vector<typename B::ShaderModule> ShaderModules;
+
+            VE_INLINE void Clear() const {
+                Images.clear();
+                Buffers.clear();
+                Samplers.clear();
+                Pipelines.clear();
+                ShaderModules.clear();
+            }
+        };
 
         typename B::Context &mContext;
         Bucket mBuckets[B::kFramesInFlight];
