@@ -1,13 +1,13 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/backends/backend_concepts.h"
-#include "renderer/backends/deletion_queue.h"
-#include "renderer/backends/pipeline_cache.h"
-#include "renderer/backends/shader_compiler.h"
-#include "renderer/backends/shader_module_cache.h"
-#include "renderer/backends/transient_pool.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/common/deletion_queue.h"
+#include "renderer/common/pipeline_cache.h"
+#include "renderer/common/shader_module_cache.h"
+#include "renderer/common/transient_pool.h"
 #include "renderer/rhi/rhi_types.h"
+#include "renderer/shaders/shader_compiler.h"
 
 namespace Vulkyrie {
 

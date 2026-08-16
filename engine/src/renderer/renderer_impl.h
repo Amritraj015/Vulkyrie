@@ -1,6 +1,6 @@
-#include "renderer/backends/device.h"
 #include "renderer/renderer.h"
-#include "renderer/backends/backend_concepts.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/common/device.h"
 
 namespace Vulkyrie {
 

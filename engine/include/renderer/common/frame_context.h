@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/backends/backend_concepts.h"
+#include "renderer/backend_concepts.h"
 
 namespace Vulkyrie {
 

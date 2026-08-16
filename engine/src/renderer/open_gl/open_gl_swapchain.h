@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/types/application_types.h"
-#include "renderer/backends/open_gl/open_gl_context.h"
+#include "renderer/open_gl/open_gl_context.h"
 
 namespace Vulkyrie {
 

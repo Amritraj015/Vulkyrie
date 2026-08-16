@@ -1,7 +1,7 @@
 #include "vlkypch.h"
 #include "renderer/renderer_impl.h"
-#include "renderer/backends/backend_concepts.h"
-#include "renderer/backends/open_gl/open_gl_backend.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/open_gl/open_gl_backend.h"
 
 namespace Vulkyrie {
 

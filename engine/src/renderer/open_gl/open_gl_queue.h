@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/backends/open_gl/open_gl_command_list.h"
+#include "renderer/open_gl/open_gl_command_list.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {

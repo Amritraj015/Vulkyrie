@@ -1,8 +1,8 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/backends/backend_concepts.h"
-#include "renderer/backends/deletion_queue.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/common/deletion_queue.h"
 
 namespace Vulkyrie {
 

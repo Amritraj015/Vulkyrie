@@ -1,8 +1,8 @@
 #pragma once
 
-#include "renderer/backends/backend_concepts.h"
-#include "renderer/backends/deletion_queue.h"
-#include "renderer/backends/shader_compiler.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/common/deletion_queue.h"
+#include "renderer/shaders/shader_compiler.h"
 
 namespace Vulkyrie {
 

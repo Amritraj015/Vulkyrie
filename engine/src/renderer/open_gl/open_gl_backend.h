@@ -2,12 +2,12 @@
 
 #include "core/graphics_api.h"
 #include "core/types/static_string.h"
-#include "renderer/backends/open_gl/open_gl_command_list.h"
-#include "renderer/backends/open_gl/open_gl_context.h"
-#include "renderer/backends/open_gl/open_gl_pool.h"
-#include "renderer/backends/open_gl/open_gl_queue.h"
-#include "renderer/backends/open_gl/open_gl_swapchain.h"
-#include "renderer/backends/open_gl/open_gl_types.h"
+#include "renderer/open_gl/open_gl_command_list.h"
+#include "renderer/open_gl/open_gl_context.h"
+#include "renderer/open_gl/open_gl_pool.h"
+#include "renderer/open_gl/open_gl_queue.h"
+#include "renderer/open_gl/open_gl_swapchain.h"
+#include "renderer/open_gl/open_gl_types.h"
 
 namespace Vulkyrie {
 

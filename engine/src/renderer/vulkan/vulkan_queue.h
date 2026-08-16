@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
-#include "renderer/backends/vulkan/vulkan_command_list.h"
+#include "renderer/vulkan/vulkan_command_list.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {

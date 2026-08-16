@@ -2,12 +2,12 @@
 
 #include "core/graphics_api.h"
 #include "core/types/static_string.h"
-#include "renderer/backends/vulkan/vulkan_command_list.h"
-#include "renderer/backends/vulkan/vulkan_context.h"
-#include "renderer/backends/vulkan/vulkan_pool.h"
-#include "renderer/backends/vulkan/vulkan_queue.h"
-#include "renderer/backends/vulkan/vulkan_swapchain.h"
-#include "renderer/backends/vulkan/vulkan_types.h"
+#include "renderer/vulkan/vulkan_command_list.h"
+#include "renderer/vulkan/vulkan_context.h"
+#include "renderer/vulkan/vulkan_pool.h"
+#include "renderer/vulkan/vulkan_queue.h"
+#include "renderer/vulkan/vulkan_swapchain.h"
+#include "renderer/vulkan/vulkan_types.h"
 
 namespace Vulkyrie {
 

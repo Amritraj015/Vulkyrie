@@ -1,7 +1,7 @@
 #include "vlkypch.h"
 #include "renderer/renderer_impl.h"
-#include "renderer/backends/backend_concepts.h"
-#include "renderer/backends/vulkan/vulkan_backend.h"
+#include "renderer/backend_concepts.h"
+#include "renderer/vulkan/vulkan_backend.h"
 
 namespace Vulkyrie {
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/utilities/hash_builder.h"
 #include "renderer/rhi/rhi_types.h"
-#include "vlkypch.h"
 
 namespace Vulkyrie {
 

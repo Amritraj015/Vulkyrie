@@ -1,8 +1,8 @@
 #pragma once
 
-#include "renderer/rhi/resource_types.h"
 #include "vlkypch.h"
-#include "renderer/backends/open_gl/open_gl_types.h"
+#include "renderer/open_gl/open_gl_types.h"
+#include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {

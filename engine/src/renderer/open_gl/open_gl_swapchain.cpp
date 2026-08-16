@@ -1,4 +1,4 @@
-#include "renderer/backends/open_gl/open_gl_swapchain.h"
+#include "renderer/open_gl/open_gl_swapchain.h"
 
 namespace Vulkyrie {
 

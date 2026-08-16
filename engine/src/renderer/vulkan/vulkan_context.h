@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer/backends/vulkan/vulkan_types.h"
+#include "renderer/vulkan/vulkan_types.h"
 #include "renderer/rhi/pipeline_types.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
