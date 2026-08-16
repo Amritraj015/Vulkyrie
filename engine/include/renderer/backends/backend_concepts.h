@@ -2,6 +2,8 @@
 
 #include "core/types/static_string.h"
 #include "core/graphics_api.h"
+#include "renderer/rhi/pipeline_types.h"
+#include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {
@@ -55,7 +57,7 @@ namespace Vulkyrie {
         template <typename B>
         concept RendererBackendContextOps = requires(typename B::Context &c,
                                                      const typename B::Context &cb,
-                                                     const ImageDescriptor &id,
+                                                     const TextureDescriptor &td,
                                                      const BufferDescriptor &bd,
                                                      const SamplerDescriptor &sd,
                                                      const ShaderBlob &blob,
@@ -66,7 +68,7 @@ namespace Vulkyrie {
                                                      const typename B::Sampler &sampler,
                                                      const typename B::Pipeline &pipeline,
                                                      const typename B::ShaderModule &shaderModule) {
-            { c.CreateImage(id) } -> std::same_as<typename B::Image>;
+            { c.CreateImage(td) } -> std::same_as<typename B::Image>;
             { c.CreateBuffer(bd) } -> std::same_as<typename B::Buffer>;
             { c.CreateSampler(sd) } -> std::same_as<typename B::Sampler>;
             { c.CreateShaderModule(blob) } -> std::same_as<typename B::ShaderModule>;
