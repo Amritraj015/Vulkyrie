@@ -17,7 +17,7 @@ namespace Vulkyrie {
             : mShaderCompiler()
             , mContext(CreateScope<typename B::Context>(info))
             , mDeletionQueue(CreateScope<DeletionQueue<B>>(*mContext, info))
-            , mTransients(CreateScope<TransientPool<B>>(*mContext, *mDeletionQueue))
+            , mTransients(CreateScope<TransientPool<B>>(*mContext, *mDeletionQueue, info.MaxTextures, info.MaxBuffers))
             , mShaders(CreateScope<ShaderModuleCache<B>>(*mContext, mShaderCompiler, *mDeletionQueue))
             , mPipelines(CreateScope<PipelineCache<B>>(*mContext, *mShaders, *mDeletionQueue)) {
         }

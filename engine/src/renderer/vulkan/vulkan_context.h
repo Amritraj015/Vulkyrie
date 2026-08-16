@@ -1,9 +1,10 @@
 #pragma once
 
-#include "renderer/vulkan/vulkan_types.h"
+#include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/pipeline_types.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
+#include "renderer/vulkan/vulkan_types.h"
 
 namespace Vulkyrie {
 

@@ -139,57 +139,57 @@ namespace Vulkyrie {
         mContextCreated = true;
     }
 
-    OpenGLImage CreateImage(const TextureDescriptor &descriptor) {
+    OpenGLImage OpenGLContext::CreateImage(const TextureDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }
 
-    OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor) {
+    OpenGLBuffer OpenGLContext::CreateBuffer(const BufferDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }
 
-    OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor) {
+    OpenGLSampler OpenGLContext::CreateSampler(const SamplerDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }
 
-    OpenGLShaderModule CreateShaderModule(const ShaderBlob &blob) {
+    OpenGLShaderModule OpenGLContext::CreateShaderModule(const ShaderBlob &blob) {
         (void)blob;
         return {};
     }
 
-    OpenGLPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor) {
+    OpenGLPipeline OpenGLContext::CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }
 
-    OpenGLPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor) {
+    OpenGLPipeline OpenGLContext::CreateComputePipeline(const ComputePipelineDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }
 
-    bool DestroyImage(OpenGLImage image) {
+    bool OpenGLContext::DestroyImage(OpenGLImage image) {
         (void)image;
         return true;
     }
 
-    bool DestroyBuffer(OpenGLBuffer buffer) {
+    bool OpenGLContext::DestroyBuffer(OpenGLBuffer buffer) {
         (void)buffer;
         return true;
     }
 
-    bool DestroySampler(OpenGLSampler sampler) {
+    bool OpenGLContext::DestroySampler(OpenGLSampler sampler) {
         (void)sampler;
         return true;
     }
 
-    bool DestroyShaderModule(OpenGLShaderModule shaderModule) {
+    bool OpenGLContext::DestroyShaderModule(OpenGLShaderModule shaderModule) {
         (void)shaderModule;
         return true;
     }
 
-    bool CreatePipeline(OpenGLPipeline pipeline) {
+    bool OpenGLContext::CreatePipeline(OpenGLPipeline pipeline) {
         (void)pipeline;
         return true;
     }
@@ -199,6 +199,16 @@ namespace Vulkyrie {
     }
 
     bool OpenGLContext::DeviceLost() const {
+        switch (glGetGraphicsResetStatus()) {
+            case GL_NO_ERROR:
+                return false;
+
+            case GL_GUILTY_CONTEXT_RESET:
+            case GL_INNOCENT_CONTEXT_RESET:
+            case GL_UNKNOWN_CONTEXT_RESET:
+                return true;
+        }
+
         return false;
     }
 

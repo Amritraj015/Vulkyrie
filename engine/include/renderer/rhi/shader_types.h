@@ -20,14 +20,14 @@ namespace Vulkyrie {
         friend bool operator==(const ShaderKey &, const ShaderKey &) = default;
     };
 
-    [[nodiscard]] constexpr u64 HashShaderKey(const ShaderKey &k) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashShaderKey(const ShaderKey &k) noexcept {
         HashBuilder hb;
 
         return hb.Value(k.SourceHash).Value(k.DefineHash).Value(k.ShaderStage).Value(k.ShaderTarget).Finish();
     }
 
     struct ShaderKeyHasher final {
-        [[nodiscard]] constexpr usize operator()(const ShaderKey &k) const noexcept {
+        [[nodiscard]] VE_INLINE constexpr usize operator()(const ShaderKey &k) const noexcept {
             return static_cast<usize>(HashShaderKey(k));
         }
     };

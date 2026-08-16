@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/rhi/formats.h"
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/rhi/shader_types.h"
 
@@ -9,6 +10,7 @@ namespace Vulkyrie {
     enum class CullMode : u8 { None, Front, Back };
     enum class FrontFace : u8 { CounterClockwise, Clockwise };
     enum class PolygonFillMode : u8 { Fill, Line, Point };
+    enum class BlendOp : u8 { Add, Subtract, ReverseSubtract, Min, Max };
     enum class BlendFactor : u8 {
         Zero,
         One,
@@ -30,7 +32,6 @@ namespace Vulkyrie {
         Src1Alpha,
         OneMinusSrc1Alpha,
     };
-    enum class BlendOp : u8 { Add, Subtract, ReverseSubtract, Min, Max };
 
     struct RasterState final {
         f32 DepthBiasConstant = 0.0f;
@@ -92,7 +93,7 @@ namespace Vulkyrie {
         // StaticString DebugName; // not hashed
     };
 
-    [[nodiscard]] constexpr u64 HashDescriptor(const GraphicsPipelineDescriptor &d) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const GraphicsPipelineDescriptor &d) noexcept {
         HashBuilder hb;
 
         hb.Value(d.VertexShader.SourceHash)
@@ -146,7 +147,7 @@ namespace Vulkyrie {
             .Finish();
     }
 
-    [[nodiscard]] constexpr u64 HashDescriptor(const ComputePipelineDescriptor &d) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const ComputePipelineDescriptor &d) noexcept {
         HashBuilder hb;
 
         return hb.Value(d.ComputeShader.SourceHash)

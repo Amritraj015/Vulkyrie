@@ -2,6 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/graphics_api.h"
+#include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {

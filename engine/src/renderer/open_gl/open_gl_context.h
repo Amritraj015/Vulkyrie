@@ -2,6 +2,7 @@
 
 #include "vlkypch.h"
 #include "renderer/open_gl/open_gl_types.h"
+#include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 

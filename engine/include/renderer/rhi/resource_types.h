@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/rhi/formats.h"
 #include "vlkypch.h"
 #include "core/utilities/hash_builder.h"
 #include "renderer/rhi/rhi_types.h"
@@ -19,11 +20,11 @@ namespace Vulkyrie {
         TransientAttach = BIT(6)
     };
 
-    [[nodiscard]] constexpr TextureUsage operator|(TextureUsage a, TextureUsage b) noexcept {
+    [[nodiscard]] VE_INLINE constexpr TextureUsage operator|(TextureUsage a, TextureUsage b) noexcept {
         return static_cast<TextureUsage>(static_cast<u32>(a) | static_cast<u32>(b));
     }
 
-    [[nodiscard]] constexpr bool HasFlag(TextureUsage a, TextureUsage b) noexcept {
+    [[nodiscard]] VE_INLINE constexpr bool HasFlag(TextureUsage a, TextureUsage b) noexcept {
         return 0 != (static_cast<u32>(a) & static_cast<u32>(b));
     }
 
@@ -39,11 +40,11 @@ namespace Vulkyrie {
         DeviceAddress = BIT(7),
     };
 
-    [[nodiscard]] constexpr BufferUsage operator|(BufferUsage a, BufferUsage b) noexcept {
+    [[nodiscard]] VE_INLINE constexpr BufferUsage operator|(BufferUsage a, BufferUsage b) noexcept {
         return static_cast<BufferUsage>(static_cast<u32>(a) | static_cast<u32>(b));
     }
 
-    [[nodiscard]] constexpr bool HasFlag(BufferUsage a, BufferUsage b) noexcept {
+    [[nodiscard]] VE_INLINE constexpr bool HasFlag(BufferUsage a, BufferUsage b) noexcept {
         return 0 != (static_cast<u32>(a) & static_cast<u32>(b));
     }
 
@@ -95,7 +96,7 @@ namespace Vulkyrie {
         bool CompareEnable = false;
     };
 
-    [[nodiscard]] constexpr u64 HashDescriptor(const TextureDescriptor &d) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const TextureDescriptor &d) noexcept {
         HashBuilder hb;
 
         return hb.Value(d.Width)
@@ -110,13 +111,13 @@ namespace Vulkyrie {
             .Finish();
     }
 
-    [[nodiscard]] constexpr u64 HashDescriptor(const BufferDescriptor &d) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const BufferDescriptor &d) noexcept {
         HashBuilder hb;
 
         return hb.Value(d.Size).Value(d.Usage).Value(d.Domain).Finish();
     }
 
-    [[nodiscard]] constexpr u64 HashDescriptor(const SamplerDescriptor &d) noexcept {
+    [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const SamplerDescriptor &d) noexcept {
         HashBuilder hb;
 
         return hb.Value(d.MipLodBias)
