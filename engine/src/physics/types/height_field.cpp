@@ -10,7 +10,7 @@ namespace Vulkyrie {
         size_t totalColumns, size_t totalRows, const void *heightFieldData, HeightDataType dataType, std::vector<Message> &messages, f32 integerHeightScale) {
 
         if (totalColumns < 2 || totalRows < 2) {
-            messages.push_back(Message("The number of grid columns and grid rows must be at least two", Message::Type::Error));
+            messages.push_back(Message("The number of grid columns and grid rows must be at least two", Message::MessageType::Error));
 
             return false;
         }

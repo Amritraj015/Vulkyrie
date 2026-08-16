@@ -6,9 +6,11 @@
 
 namespace Vulkyrie {
 
+    inline constexpr u32 INVALID_RENDERER_INDEX = std::numeric_limits<u32>::max();
+
     enum class ShaderStage : u8 { Vertex, Fragment, Compute, Task, Mesh, RayGen, Miss, ClosestHit, AnyHit, Count };
     enum class CompareOp : u8 { Never, Less, Equal, LessEqual, Greater, NotEqual, GreaterEqual, Always };
-    // enum class IndexType : u8 { Uint16, Uint32 };
+    // enum class IndexType : u8 { UInt8, UInt16, UInt32 };
     // enum class LoadOp : u8 { Load, Clear, DontCare };
     // enum class StoreOp : u8 { Store, DontCare, Resolve };
 

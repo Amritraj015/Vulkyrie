@@ -6,9 +6,20 @@ namespace Vulkyrie {
 
     template <RendererBackend B> class DeletionQueue {
     public:
-        explicit DeletionQueue(typename B::Context &context) noexcept
+        explicit DeletionQueue(typename B::Context &context, const DeviceCreationInfo &info) noexcept
             : mContext(context)
             , mCurrent(0) {
+
+            const usize minSize = 100;
+            const usize maxSize = 1000;
+
+            for (auto &b : mBuckets) {
+                b.Images.reserve(std::clamp(usize(info.MaxTextures / 2), minSize, maxSize));
+                b.Buffers.reserve(std::clamp(usize(info.MaxBuffers / 2), minSize, maxSize));
+                b.Samplers.reserve(std::clamp(usize(info.MaxSamplers / 2), minSize, maxSize));
+                b.Pipelines.reserve(std::clamp(usize(info.MaxPipelines / 2), minSize, maxSize));
+                b.ShaderModules.reserve(std::clamp(usize(info.MaxPipelines / 2), minSize, maxSize));
+            }
         }
 
         VE_DELETE_MOVE_AND_COPY(DeletionQueue);
@@ -37,14 +48,22 @@ namespace Vulkyrie {
             mBuckets[mCurrent].ShaderModules.push_back(shaderModule);
         }
 
-        VE_INLINE void Flush() {};
-        VE_INLINE void Collect(usize currentFrameIndex);
+        VE_INLINE void Flush() {
+            for (auto &b : mBuckets) {
+                b.Clear();
+            }
+        }
+
+        // VE_INLINE void Collect(usize currentFrameIndex) {
+        //     // TODO: destroy bucket (completedFrameIndex % kFramesInFlight) via mCtx.
+        //     mCurrent = static_cast<u32>((currentFrameIndex + 1) % B::kFramesInFlight);
+        // }
 
         [[nodiscard]] VE_INLINE usize PendingCount() const noexcept {
             usize count;
 
-            for (const auto &bucket : mBuckets) {
-                count += bucket.Images.size() + bucket.Buffers.size() + bucket.Samplers.size() + bucket.Pipelines.size() + bucket.ShaderModules.size();
+            for (const auto &b : mBuckets) {
+                count += b.Images.size() + b.Buffers.size() + b.Samplers.size() + b.Pipelines.size() + b.ShaderModules.size();
             }
 
             return count;
@@ -58,7 +77,7 @@ namespace Vulkyrie {
             std::vector<typename B::Pipeline> Pipelines;
             std::vector<typename B::ShaderModule> ShaderModules;
 
-            VE_INLINE void Clear() const {
+            VE_INLINE void Clear() {
                 Images.clear();
                 Buffers.clear();
                 Samplers.clear();

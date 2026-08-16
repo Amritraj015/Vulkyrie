@@ -6,8 +6,6 @@
 
 namespace Vulkyrie {
 
-    constexpr u32 OPEN_GL_INVALID_INDEX = std::numeric_limits<u32>::max();
-
     struct OpenGLImage final {
         GLuint Texture = 0;
         GLenum Target = 0;
@@ -15,7 +13,7 @@ namespace Vulkyrie {
         u32 Width = 0;
         u32 Height = 0;
         u32 Depth = 0;
-        u32 BindlessIndex = OPEN_GL_INVALID_INDEX;
+        u32 BindlessIndex = INVALID_RENDERER_INDEX;
         u16 Mips = 0;
         u16 Layers = 0;
 
@@ -29,7 +27,7 @@ namespace Vulkyrie {
         GLenum Target = 0;
         u64 Size = 0;
         void *Mapped = nullptr;
-        u32 BindlessIndex = OPEN_GL_INVALID_INDEX;
+        u32 BindlessIndex = INVALID_RENDERER_INDEX;
 
         [[nodiscard]] VE_INLINE bool Valid() const noexcept {
             return 0 != Buffer;

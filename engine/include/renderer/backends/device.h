@@ -16,7 +16,7 @@ namespace Vulkyrie {
         explicit Device(const DeviceCreationInfo &info)
             : mShaderCompiler()
             , mContext(CreateScope<typename B::Context>(info))
-            , mDeletionQueue(CreateScope<DeletionQueue<B>>(*mContext))
+            , mDeletionQueue(CreateScope<DeletionQueue<B>>(*mContext, info))
             , mTransients(CreateScope<TransientPool<B>>(*mContext, *mDeletionQueue))
             , mShaders(CreateScope<ShaderModuleCache<B>>(*mContext, mShaderCompiler, *mDeletionQueue))
             , mPipelines(CreateScope<PipelineCache<B>>(*mContext, *mShaders, *mDeletionQueue)) {
