@@ -1,17 +1,13 @@
 #pragma once
 
+#include "vlkypch.h"
 #include "core/types/application_types.h"
 #include "core/types/handle.h"
 
 namespace Vulkyrie {
 
-    enum class ShaderStage : u8 { Vertex, Fragment, Compute, Task, Mesh, RayGen, Miss, ClosestHit, AnyHit };
-    // enum class CullMode : u8 { None, Front, Back };
-    // enum class FrontFace : u8 { CounterClockwise, Clockwise };
-    // enum class FillMode : u8 { Solid, Wireframe };
-    // enum class CompareOp : u8 { Never, Less, Equal, LessEqual, Greater, NotEqual, GreaterEqual, Always };
-    // enum class BlendFactor : u8 { Zero, One, SrcColor, InvSrcColor, DstColor, InvDstColor, SrcAlpha, InvSrcAlpha, DstAlpha, InvDstAlpha };
-    // enum class BlendOp : u8 { Add, Subtract, RevSubtract, Min, Max };
+    enum class ShaderStage : u8 { Vertex, Fragment, Compute, Task, Mesh, RayGen, Miss, ClosestHit, AnyHit, Count };
+    enum class CompareOp : u8 { Never, Less, Equal, LessEqual, Greater, NotEqual, GreaterEqual, Always };
     // enum class IndexType : u8 { Uint16, Uint32 };
     // enum class LoadOp : u8 { Load, Clear, DontCare };
     // enum class StoreOp : u8 { Store, DontCare, Resolve };
@@ -30,6 +26,13 @@ namespace Vulkyrie {
         Compute,  // async compute
         Transfer, // DMA / upload, often over PCIe without touching the shader cores
         Count,
+    };
+
+    enum class SampleCount : u8 {
+        X1 = BIT(0),
+        X2 = BIT(1),
+        X4 = BIT(2),
+        X8 = BIT(3),
     };
 
     enum class Format : u16 {
@@ -115,24 +118,6 @@ namespace Vulkyrie {
     //     return Any(a & kWrites);
     // }
 
-    enum class MemoryLocation : u8 {
-        DeviceLocal,  // VRAM. Everything the GPU reads more than once.
-        HostUpload,   // write-combined, CPU-write / GPU-read. Staging + per-frame constants.
-        HostReadback, // cached, GPU-write / CPU-read. Query results, screenshots, GPU feedback.
-        DeviceUpload, // resizable BAR: VRAM the CPU can write directly. Best for small hot updates.
-    };
-
-    enum class HeapUsage : u32 {
-        None = 0,
-        Buffers = 1u << 0,
-        Textures = 1u << 1,      // non-render-target textures
-        RenderTargets = 1u << 2, // color/depth attachments, and MSAA targets
-    };
-
-    [[nodiscard]] constexpr HeapUsage operator|(HeapUsage a, HeapUsage b) noexcept {
-        return static_cast<HeapUsage>(static_cast<u32>(a) | static_cast<u32>(b));
-    }
-
     using BufferHandle = GenerationalHandle<struct BufferTag>;
     using TextureHandle = GenerationalHandle<struct TextureTag>;
     using SamplerHandle = GenerationalHandle<struct SamplerTag>;
@@ -162,13 +147,6 @@ namespace Vulkyrie {
     static_assert(std::is_trivially_copyable_v<BindlessIndex>);
 
     // -------------------------------------------------------------------
-    // TODO: Finish these up.
-    struct BufferDescriptor;
-    struct ImageDescriptor;
-    struct SamplerDescriptor;
-    struct GraphicsPipelineDescriptor;
-    struct ComputePipelineDescriptor;
-
     struct RendererStatistics {
         u64 FrameIndex = 0;
         u64 TransientBytesPeak = 0;
@@ -183,13 +161,6 @@ namespace Vulkyrie {
         bool PlanCacheHit = false;
     };
 
-    struct HeapDescriptor {
-        std::string_view DebugName;
-        u64 SizeBytes = 0;
-        MemoryLocation Location = MemoryLocation::DeviceLocal;
-        HeapUsage Usage = HeapUsage::RenderTargets;
-    };
-
     struct ResourceFootprint {
         u64 SizeBytes = 0;
         u64 Alignment = 0;
@@ -201,22 +172,6 @@ namespace Vulkyrie {
         ShaderStage stage = ShaderStage::Compute;
         std::string_view entryPoint = "main";
         u64 contentHash = 0; // computed by the cooker, not at load time
-    };
-
-    struct TextureSubresource {
-        u32 BaseMip = 0;
-        u32 MipCount = std::numeric_limits<u32>::max();
-        u32 BaseLayer = 0;
-        u32 LayerCount = std::numeric_limits<u32>::max();
-    };
-
-    struct TimelineValue {
-        u64 Value = 0;
-        QueueType Queue = QueueType::Graphics;
-
-        [[nodiscard]] constexpr bool operator<=(const TimelineValue &o) const noexcept {
-            return Value <= o.Value;
-        }
     };
 
     // -------------------------------------------------------------------
@@ -265,37 +220,52 @@ namespace Vulkyrie {
         // require non-reallocating storage; see core/SlotMap.h.
     };
 
-    struct DeviceCapabilities {
-        u64 VRAMBudgetBytes = 0;
-        u32 MaxBindlessTextures = 0;
-        u32 MaxBindlessBuffers = 0;
-        u32 SubgroupSize = 0;
+    struct DeviceCapabilities final {
+        char DeviceName[256]{};
+        char DriverInfo[256]{};
+        u32 VendorId = 0;
+        u32 DeviceId = 0;
+        u64 DeviceLocalMemoryBytes = 0;
+        u64 HostVisibleMemoryBytes = 0;
+        u32 MaxTexture2DDim = 0;
+        u32 MaxTextureArrayLayers = 0;
+        u32 MaxColorAttachments = 0;
+        u32 MaxBoundDescriptors = 0; // bindless heap capacity
+        u32 MaxPushConstantBytes = 0;
+        u32 MaxComputeWorkgroup[3]{};
+        u64 MinUniformBufferAlign = 0;
+        u64 MinStorageBufferAlign = 0;
+        u64 OptimalBufferCopyAlign = 0;
+        u32 TimestampValidBits = 0;
         f32 TimestampPeriodNs = 0.0f;
-        bool MeshShaders = false;
-        bool RayTracing = false;
-        bool AsyncCompute = false;
-        bool DrawIndirectCount = false; // load the draw count from a GPU buffer
-        bool ResizableBar = false;
-        bool Int16Shader = false;
-        bool WaveIntrinsics = false;
-        bool ConservativeRaster = false;
-    };
 
-    struct MemoryStats {
-        u64 deviceLocalUsed = 0;
-        u64 deviceLocalBudget = 0;
-        u64 hostVisibleUsed = 0;
-        u64 allocationCount = 0;
-        u64 blockCount = 0;
-    };
+        // Descriptor indexing adequate for the bindless heap. On a backend with
+        // kUsesBindlessHeap this is a PRECONDITION, not a branch: device selection
+        // rejects adapters that report false, and Renderer::Create falls through
+        // to the next backend.
+        bool DescriptorIndexingSupported = false;
 
-    // struct Viewport {
-    //     f32 X = 0;
-    //     f32 Y = 0;
-    //     f32 Width = 0;
-    //     f32 Height = 0;
-    //     f32 MinDepth = 0.0f;
-    //     f32 MaxDepth = 1.0f;
-    // };
+        // Genuinely per-device. Branch on these; never assume from the backend.
+        bool HasDedicatedComputeQueue = false;
+        bool HasDedicatedTransferQueue = false;
+        bool SupportsIndirectCount = false;
+        bool SupportsMeshShaders = false;
+        bool SupportsDynamicRendering = false;
+        bool SupportsHostQueryReset = false;
+
+        // u64 VRAMBudgetBytes = 0;
+        // u32 MaxBindlessTextures = 0;
+        // u32 MaxBindlessBuffers = 0;
+        // u32 SubgroupSize = 0;
+        // f32 TimestampPeriodNs = 0.0f;
+        // bool MeshShaders = false;
+        // bool RayTracing = false;
+        // bool AsyncCompute = false;
+        // bool DrawIndirectCount = false; // load the draw count from a GPU buffer
+        // bool ResizableBar = false;
+        // bool Int16Shader = false;
+        // bool WaveIntrinsics = false;
+        // bool ConservativeRaster = false;
+    };
 
 } // namespace Vulkyrie

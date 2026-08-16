@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/rhi/resource_types.h"
 #include "vlkypch.h"
 #include "renderer/backends/open_gl/open_gl_types.h"
 #include "renderer/rhi/rhi_types.h"
@@ -14,7 +15,7 @@ namespace Vulkyrie {
 
         ~OpenGLContext() = default;
 
-        [[nodiscard]] OpenGLImage CreateImage(const ImageDescriptor &descriptor);
+        [[nodiscard]] OpenGLImage CreateImage(const TextureDescriptor &descriptor);
         [[nodiscard]] OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor);
         [[nodiscard]] OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor);
         [[nodiscard]] OpenGLShaderModule CreateShaderModule(const ShaderBlob &blob);

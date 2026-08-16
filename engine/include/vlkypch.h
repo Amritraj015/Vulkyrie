@@ -124,6 +124,8 @@ using usize = std::size_t;
     VE_DELETE_COPY(type);                                                                                                                                      \
     VE_DELETE_MOVE(type)
 
+#define BIT(x) 1u << x
+
 /** @brief A scoped pointer type alias using std::unique_ptr.
  * @tparam T The type of the object being pointed to.
  */

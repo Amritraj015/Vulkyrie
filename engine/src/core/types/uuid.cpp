@@ -1,4 +1,4 @@
-#include "core/types/uuid.h"
+#include "core/utilities/uuid.h"
 
 namespace Vulkyrie {
 

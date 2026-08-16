@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/rhi/pipeline_types.h"
 #include "vlkypch.h"
 #include <glad/glad.h>
 
@@ -44,13 +45,17 @@ namespace Vulkyrie {
     };
 
     struct OpenGLPipeline final {
-        // GLuint Program = 0;
-        // GLuint VAO = 0;
-        // bool IsComplete = false;
-        //
-        // [[nodiscard]] VE_INLINE bool Valid() const noexcept {
-        //     return 0 != Program;
-        // }
+        GLuint Program = 0;
+        GLuint VAO = 0;
+        bool IsComplete = false;
+
+        RasterState Raster{};
+        DepthStencilState DepthStencil{};
+        BlendState Blend{};
+
+        [[nodiscard]] VE_INLINE bool Valid() const noexcept {
+            return 0 != Program;
+        }
     };
 
     struct OpenGLShaderModule final {

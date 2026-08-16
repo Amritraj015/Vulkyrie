@@ -139,7 +139,7 @@ namespace Vulkyrie {
         mContextCreated = true;
     }
 
-    OpenGLImage CreateImage(const ImageDescriptor &descriptor) {
+    OpenGLImage CreateImage(const TextureDescriptor &descriptor) {
         (void)descriptor;
         return {};
     }

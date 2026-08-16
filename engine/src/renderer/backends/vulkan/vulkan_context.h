@@ -1,6 +1,8 @@
 #pragma once
 
 #include "renderer/backends/vulkan/vulkan_types.h"
+#include "renderer/rhi/pipeline_types.h"
+#include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 
 namespace Vulkyrie {
@@ -9,7 +11,7 @@ namespace Vulkyrie {
     public:
         explicit VulkanContext(const DeviceCreationInfo &info);
 
-        VulkanImage CreateImage(const ImageDescriptor &descriptor);
+        VulkanImage CreateImage(const TextureDescriptor &descriptor);
         VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
         VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
         VulkanShaderModule CreateShaderModule(const ShaderBlob &blob);
