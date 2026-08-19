@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vlkypch.h"
+#include "core/asserts.h"
 #include "renderer/backend_concepts.h"
 #include "renderer/common/deletion_queue.h"
 
@@ -41,8 +42,8 @@ namespace Vulkyrie {
 
             // Buckets are keyed by descriptor hash; reserving the map avoids rehashing
             // when the first frame introduces every distinct descriptor at once.
-            mImages.FreeByHash.reserve(imageCount);
-            mBuffers.FreeByHash.reserve(bufferCount);
+            mImages.EntriesByHash.reserve(imageCount);
+            mBuffers.EntriesByHash.reserve(bufferCount);
         }
 
         VE_DELETE_MOVE_AND_COPY(TransientPool);
@@ -58,21 +59,15 @@ namespace Vulkyrie {
         }
 
         [[nodiscard]] ImageAcquisition Acquire(const TextureDescriptor &descriptor, LifeTime lifetime = {}) {
-            // TODO: Finish this.
-            (void)lifetime;
-
             const u64 hash = HashDescriptor(descriptor);
-            const auto handle = acquireFrom(mImages, hash, [&] { return mContext.CreateImage(descriptor); }, mStats.ImagesCreatedThisFrame);
+            const auto handle = acquireFrom(mImages, hash, lifetime, [&] { return mContext.CreateImage(descriptor); }, mStats.ImagesCreatedThisFrame);
 
             return ImageAcquisition{ handle, true };
         }
 
         [[nodiscard]] typename B::Buffer Acquire(const BufferDescriptor &descriptor, LifeTime lifetime = {}) {
-            // TODO: Finish this.
-            (void)lifetime;
-
             const u64 hash = HashDescriptor(descriptor);
-            return acquireFrom(mBuffers, hash, [&] { return mContext.CreateBuffer(descriptor); }, mStats.BuffersCreatedThisFrame);
+            return acquireFrom(mBuffers, hash, lifetime, [&] { return mContext.CreateBuffer(descriptor); }, mStats.BuffersCreatedThisFrame);
         }
 
         void ResetFrame() {
@@ -106,12 +101,22 @@ namespace Vulkyrie {
             u64 DescriptorHash = 0;
             // u64 SizeInBytes = 0;
             u64 LastUsedFrame = 0;
+
+            /** @brief The execution-order interval this entry was last handed out for. Only meaningful when
+             * `LastUsedFrame == mFrameIndex`; an entry from an earlier frame carries no interval that this
+             * frame's requests could conflict with. */
+            LifeTime Interval{};
+
             bool InUse = false;
         };
 
+        /** @brief All entries of one resource kind, indexed by descriptor hash. An entry's slot in `Entries` is
+         * assigned once and, unlike a classic free-list, is never removed from `EntriesByHash` on acquire - within
+         * a frame the same slot can be handed out again for a later, disjoint interval, which is what lets several
+         * same-descriptor transients with non-overlapping lifetimes share one underlying resource. */
         template <typename TResource> struct Pool {
             std::vector<Entry<TResource>> Entries;
-            std::unordered_map<u64, std::vector<u32>> FreeByHash;
+            std::unordered_map<u64, std::vector<u32>> EntriesByHash;
         };
 
         B::Context &mContext;
@@ -121,16 +126,25 @@ namespace Vulkyrie {
         Stats mStats{};
         u64 mFrameIndex = 0;
 
-        template <typename Resource, typename CreateFn> Resource acquireFrom(Pool<Resource> &pool, u64 descriptorHash, CreateFn &&create, u32 &createdCounter) {
-            if (auto it = pool.FreeByHash.find(descriptorHash); it != pool.FreeByHash.end() && !it->second.empty()) {
-                const auto index = it->second.back();
-                it->second.pop_back();
+        template <typename Resource, typename CreateFn>
+        Resource acquireFrom(Pool<Resource> &pool, u64 descriptorHash, LifeTime lifetime, CreateFn &&create, u32 &createdCounter) {
+            VASSERT(lifetime.Valid(), "TransientPool::Acquire: lifetime.LastUse must be >= lifetime.FirstUse.");
 
-                auto &e = pool.Entries[index];
-                e.InUse = true;
-                e.LastUsedFrame = mFrameIndex;
+            auto &indices = pool.EntriesByHash[descriptorHash];
 
-                return e.Handle;
+            for (const u32 index : indices) {
+                Entry<Resource> &e = pool.Entries[index];
+
+                const bool fromEarlierFrame = e.LastUsedFrame != mFrameIndex;
+                const bool disjointThisFrame = lifetime.FirstUse > e.Interval.LastUse || lifetime.LastUse < e.Interval.FirstUse;
+
+                if (fromEarlierFrame || disjointThisFrame) {
+                    e.InUse = true;
+                    e.LastUsedFrame = mFrameIndex;
+                    e.Interval = lifetime;
+
+                    return e.Handle;
+                }
             }
 
             Entry<Resource> e{};
@@ -138,20 +152,17 @@ namespace Vulkyrie {
             e.Handle = create();
             e.InUse = true;
             e.LastUsedFrame = mFrameIndex;
+            e.Interval = lifetime;
             pool.Entries.push_back(e);
+            indices.push_back(static_cast<u32>(pool.Entries.size() - 1));
             ++createdCounter;
 
             return e.Handle;
         }
 
         template <typename Resource> void resetPool(Pool<Resource> &pool) {
-            for (auto &[hash, indices] : pool.FreeByHash) {
-                indices.clear();
-            }
-
-            for (u32 i = 0; i < static_cast<u32>(pool.Entries.size()); ++i) {
-                pool.Entries[i].InUse = false;
-                pool.FreeByHash[pool.Entries[i].DescriptorHash].push_back(i);
+            for (auto &e : pool.Entries) {
+                e.InUse = false;
             }
         }
 
@@ -190,16 +201,14 @@ namespace Vulkyrie {
             // Re-size the resource vector storage.
             pool.Entries.resize(write);
 
-            // Now, we will need to invalidate every index stored in `FreeByHash`
+            // Now, we will need to invalidate every index stored in `EntriesByHash`
             // and rebuild the indicies cache.
-            for (auto &[hash, indices] : pool.FreeByHash) {
+            for (auto &[hash, indices] : pool.EntriesByHash) {
                 indices.clear();
             }
 
             for (u32 i = 0; i < pool.Entries.size(); ++i) {
-                if (!pool.Entries[i].InUse) {
-                    pool.FreeByHash[pool.Entries[i].DescriptorHash].push_back(i);
-                }
+                pool.EntriesByHash[pool.Entries[i].DescriptorHash].push_back(i);
             }
         }
     };
