@@ -4,6 +4,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <renderer/frame_graph/frame_graph.h>
 
+#include "renderer/support/mock_backend.h"
+
 #include <string>
 #include <vector>
 
@@ -11,8 +13,13 @@ using namespace Vulkyrie;
 
 namespace {
 
-    /** @brief A backend with a POD descriptor and no callbacks, so a benchmark measures the graph rather than the
-     * backend. Reports memory requirements so the aliasing planner is exercised too. */
+    // Not MockBackend: that one cannot record in parallel, so RecordParallel against it degrades to Record, and
+    // its command list allocates a string per barrier batch - which would make these rows a measurement of the mock
+    // rather than of the graph.
+    using Backend = RendererTests::MockParallelBackend;
+
+    /** @brief A resource type with a POD descriptor and no callbacks, so a benchmark measures the graph rather than
+     * the backend. Reports memory requirements so the aliasing planner is exercised too. */
     struct BenchTexture {
     public:
         struct Descriptor {
@@ -21,10 +28,10 @@ namespace {
             u32 Height = 0;
         };
 
-        void Create(const Descriptor &, const FrameGraphContext &) {
+        void Acquire(const Descriptor &, ResourceLifetime, const FrameGraphContext<Backend> &) {
         }
 
-        void Destroy(const Descriptor &, const FrameGraphContext &) {
+        void Release(const FrameGraphContext<Backend> &) {
         }
 
         [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) const {
@@ -32,7 +39,45 @@ namespace {
         }
     };
 
-    using TextureHandle = FrameGraphHandle<BenchTexture>;
+    using BenchTextureHandle = FrameGraphHandle<BenchTexture>;
+
+    /** @brief The device and frame a benchmark's graph executes against. Nothing here is measured - the mock
+     * backend does no work - but the graph needs a typed context to run at all. */
+    struct BenchDevice {
+    public:
+        DeviceCreationInfo Info{ WindowHandle{}, 800, 600, 64, 64, 16, 16 };
+        Device<Backend> Dev{ Info };
+
+        // One command list per worker, because RecordParallel asserts there are at least as many as the job system
+        // has workers - two passes sharing a list would race.
+        FrameContext<Backend> Frame{ Dev.Context(), 0, JobSystem::WorkerCount(), 0 };
+        FrameGraphContext<Backend> Context{ Dev, Frame };
+    };
+
+    /** @brief Pass data for a body doing a fixed amount of busy work. Pass bodies are function pointers, so what
+     * they accumulate into travels here rather than in a capture. */
+    struct WorkPassData {
+    public:
+        BenchTextureHandle Output;
+        u64 *Sink = nullptr;
+        u32 Pass = 0;
+    };
+
+    /** @brief Pass data for a body that only marks that it ran. */
+    struct SinkPassData {
+    public:
+        u64 *Sink = nullptr;
+    };
+
+    /** @brief Busy-work body, kept out of line so every pass shares one function pointer. */
+    void RunBusyWork(const WorkPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+        *data.Sink += Bench::BusyWork(data.Pass, Bench::TINY_WORK);
+    }
+
+    /** @brief Minimal body: proves the pass ran without measuring anything but the dispatch. */
+    template <typename TPassData> void BumpSink(const TPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+        ++*data.Sink;
+    }
 
     /** @brief Passes in the synthetic graph, matching the plan's 40-pass / 60-resource reference shape. */
     constexpr u32 PASS_COUNT = 40;
@@ -53,37 +98,34 @@ namespace {
      * @param graph The graph to populate.
      * @param sink Accumulator the pass bodies write to, keeping their work from being optimized away.
      * @param passCount Producer passes to declare, one output texture each. */
-    void DeclareSyntheticGraph(FrameGraph &graph, u64 &sink, u32 passCount = PASS_COUNT) {
-        std::vector<TextureHandle> outputs;
+    void DeclareSyntheticGraph(FrameGraph<Backend> &graph, u64 &sink, u32 passCount = PASS_COUNT) {
+        std::vector<BenchTextureHandle> outputs;
         outputs.reserve(passCount);
 
-        struct PassData {
-            TextureHandle Output;
-        };
-
-        struct PresentData {};
-
         for (u32 pass = 0; pass < passCount; ++pass) {
-            graph.AddPass<PassData>(
+            graph.AddPass<WorkPassData>(
                 "Pass",
-                [&outputs, pass](FrameGraph::Builder &builder, PassData &data) {
+                [&outputs, &sink, pass](FrameGraph<Backend>::Builder &builder, WorkPassData &data) {
                     for (u32 read = 0; read < READS_PER_PASS && read < pass; ++read) {
                         (void)builder.Read(outputs[pass - read - 1]);
                     }
 
                     data.Output = builder.Create<BenchTexture>("Target", BenchTexture::Descriptor{ 1920, 1080 });
+                    data.Sink = &sink;
+                    data.Pass = pass;
                     outputs.push_back(data.Output);
                 },
-                [&sink, pass](const PassData &, FrameGraph &, const FrameGraphContext &) { sink += Bench::BusyWork(pass, Bench::TINY_WORK); });
+                &RunBusyWork);
         }
 
-        graph.AddPass<PresentData>(
+        graph.AddPass<SinkPassData>(
             "Present",
-            [&outputs](FrameGraph::Builder &builder, PresentData &) {
+            [&outputs, &sink](FrameGraph<Backend>::Builder &builder, SinkPassData &data) {
                 (void)builder.Read(outputs.back());
+                data.Sink = &sink;
                 builder.MarkSideEffect();
             },
-            [&sink](const PresentData &, FrameGraph &, const FrameGraphContext &) { sink += 1; });
+            &BumpSink<SinkPassData>);
     }
 
     /** @brief Declares a graph where half the passes feed the present chain and half are dead ends, so the cull
@@ -91,42 +133,41 @@ namespace {
      * @param graph The graph to populate.
      * @param sink Accumulator the pass bodies write to.
      * @param passCount Live passes to declare; the same number of dead ones is declared alongside them. */
-    void DeclareHalfDeadGraph(FrameGraph &graph, u64 &sink, u32 passCount = PASS_COUNT) {
-        std::vector<TextureHandle> live;
+    void DeclareHalfDeadGraph(FrameGraph<Backend> &graph, u64 &sink, u32 passCount = PASS_COUNT) {
+        std::vector<BenchTextureHandle> live;
         live.reserve(passCount);
 
-        struct PassData {
-            TextureHandle Output;
-        };
-
-        struct PresentData {};
-
         for (u32 pass = 0; pass < passCount; ++pass) {
-            graph.AddPass<PassData>(
+            graph.AddPass<WorkPassData>(
                 "Live",
-                [&live, pass](FrameGraph::Builder &builder, PassData &data) {
+                [&live, &sink, pass](FrameGraph<Backend>::Builder &builder, WorkPassData &data) {
                     if (pass > 0) {
                         (void)builder.Read(live[pass - 1]);
                     }
 
                     data.Output = builder.Create<BenchTexture>("Live", BenchTexture::Descriptor{ 512, 512 });
+                    data.Sink = &sink;
                     live.push_back(data.Output);
                 },
-                [&sink](const PassData &, FrameGraph &, const FrameGraphContext &) { ++sink; });
+                &BumpSink<WorkPassData>);
 
-            graph.AddPass<PassData>(
+            graph.AddPass<WorkPassData>(
                 "Dead",
-                [](FrameGraph::Builder &builder, PassData &data) { data.Output = builder.Create<BenchTexture>("Dead", BenchTexture::Descriptor{ 512, 512 }); },
-                [&sink](const PassData &, FrameGraph &, const FrameGraphContext &) { ++sink; });
+                [&sink](FrameGraph<Backend>::Builder &builder, WorkPassData &data) {
+                    data.Output = builder.Create<BenchTexture>("Dead", BenchTexture::Descriptor{ 512, 512 });
+                    data.Sink = &sink;
+                },
+                &BumpSink<WorkPassData>);
         }
 
-        graph.AddPass<PresentData>(
+        graph.AddPass<SinkPassData>(
             "Present",
-            [&live](FrameGraph::Builder &builder, PresentData &) {
+            [&live, &sink](FrameGraph<Backend>::Builder &builder, SinkPassData &data) {
                 (void)builder.Read(live.back());
+                data.Sink = &sink;
                 builder.MarkSideEffect();
             },
-            [&sink](const PresentData &, FrameGraph &, const FrameGraphContext &) { ++sink; });
+            &BumpSink<SinkPassData>);
     }
 
     /** @brief Builds `count` graphs, each declared but left uncompiled, so `Compile` can be timed on its own.
@@ -144,12 +185,12 @@ namespace {
      * @param declare Builder invoked as `declare(graph, sink)` to populate each graph.
      * @param sink Accumulator the pass bodies write to.
      * @returns The declared, uncompiled graphs, one per measured run. */
-    template <typename TDeclare> [[nodiscard]] std::vector<Scope<FrameGraph>> DeclaredGraphPool(u32 count, u32 passCount, TDeclare &&declare, u64 &sink) {
-        std::vector<Scope<FrameGraph>> pool;
+    template <typename TDeclare> [[nodiscard]] std::vector<Scope<FrameGraph<Backend>>> DeclaredGraphPool(u32 count, u32 passCount, TDeclare &&declare, u64 &sink) {
+        std::vector<Scope<FrameGraph<Backend>>> pool;
         pool.reserve(count);
 
         for (u32 i = 0; i < count; ++i) {
-            Scope<FrameGraph> graph = CreateScope<FrameGraph>(ConfigFor(passCount));
+            Scope<FrameGraph<Backend>> graph = CreateScope<FrameGraph<Backend>>(ConfigFor(passCount));
             declare(*graph, sink);
             pool.push_back(std::move(graph));
         }
@@ -162,7 +203,7 @@ namespace {
      * @param meter The chronometer for the calling benchmark.
      * @param passCount Producer passes to declare. */
     void MeasureFullFrameCycle(Catch::Benchmark::Chronometer meter, u32 passCount) {
-        FrameGraph graph{ ConfigFor(passCount) };
+        FrameGraph<Backend> graph{ ConfigFor(passCount) };
         u64 sink = 0;
 
         // A warm-up frame so the arena and every node array reach their high-water mark before anything is timed;
@@ -189,11 +230,11 @@ namespace {
     void MeasureCompileOnly(Catch::Benchmark::Chronometer meter, u32 passCount) {
         u64 sink = 0;
 
-        std::vector<Scope<FrameGraph>> pool = DeclaredGraphPool(
-            static_cast<u32>(meter.runs()), passCount, [passCount](FrameGraph &graph, u64 &s) { DeclareSyntheticGraph(graph, s, passCount); }, sink);
+        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
+            static_cast<u32>(meter.runs()), passCount, [passCount](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s, passCount); }, sink);
 
         meter.measure([&pool](int run) {
-            FrameGraph &graph = *pool[static_cast<size_t>(run)];
+            FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 
             return graph.GetExecutionOrder().size();
@@ -204,7 +245,7 @@ namespace {
 
 TEST_CASE("Frame graph construction", "[framegraph]") {
     BENCHMARK_ADVANCED("Declare 41 passes into a warm graph")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
 
         // One warm-up frame so the arena and every node array reach their high-water mark; what is measured is the
@@ -223,7 +264,7 @@ TEST_CASE("Frame graph construction", "[framegraph]") {
     BENCHMARK_ADVANCED("Declare 41 passes into a fresh graph")(Catch::Benchmark::Chronometer meter) {
         // The cold path, for comparison: every buffer and the arena grow from nothing.
         meter.measure([] {
-            FrameGraph graph;
+            FrameGraph<Backend> graph;
             u64 sink = 0;
             DeclareSyntheticGraph(graph, sink);
             return sink + graph.GetPassCount();
@@ -236,11 +277,11 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
         u64 sink = 0;
 
         // One freshly declared graph per run - see DeclaredGraphPool for why a single graph cannot be reused.
-        std::vector<Scope<FrameGraph>> pool =
-            DeclaredGraphPool(static_cast<u32>(meter.runs()), PASS_COUNT, [](FrameGraph &graph, u64 &s) { DeclareSyntheticGraph(graph, s); }, sink);
+        std::vector<Scope<FrameGraph<Backend>>> pool =
+            DeclaredGraphPool(static_cast<u32>(meter.runs()), PASS_COUNT, [](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s); }, sink);
 
         meter.measure([&pool](int run) {
-            FrameGraph &graph = *pool[static_cast<size_t>(run)];
+            FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 
             return graph.GetExecutionOrder().size();
@@ -248,7 +289,7 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
     };
 
     BENCHMARK_ADVANCED("Declare + compile a full frame")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
 
         DeclareSyntheticGraph(graph, sink);
@@ -267,27 +308,30 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
 
 TEST_CASE("Frame graph execution", "[framegraph]") {
     BENCHMARK_ADVANCED("Execute 41 passes (serial, fused)")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
         DeclareSyntheticGraph(graph, sink);
         graph.Compile();
 
-        meter.measure([&graph, &sink] {
-            graph.Execute(FrameGraphContext{});
+        BenchDevice device;
+
+        meter.measure([&graph, &sink, &device] {
+            graph.Execute(device.Context);
             return sink;
         });
     };
 
     BENCHMARK_ADVANCED("Record + Submit (serial)")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
         DeclareSyntheticGraph(graph, sink);
         graph.Compile();
 
-        meter.measure([&graph, &sink] {
-            const FrameGraphContext context{};
-            graph.Record(context);
-            graph.Submit(context);
+        BenchDevice device;
+
+        meter.measure([&graph, &sink, &device] {
+            graph.Record(device.Context);
+            graph.Submit(device.Context);
             return sink;
         });
     };
@@ -295,48 +339,55 @@ TEST_CASE("Frame graph execution", "[framegraph]") {
     BENCHMARK_ADVANCED("Record + Submit (parallel)")(Catch::Benchmark::Chronometer meter) {
         // The pass bodies here are deliberately tiny, so this row mostly reports the fan-out overhead rather than
         // a speed-up. It is the baseline the number to beat once passes record real command buffers.
-        FrameGraph graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         std::atomic<u64> sink{ 0 };
 
-        std::vector<TextureHandle> outputs;
+        std::vector<BenchTextureHandle> outputs;
         outputs.reserve(PASS_COUNT);
 
-        struct PassData {
-            TextureHandle Output;
+        // Concurrent bodies accumulate into an atomic, reached through the pass data like every other body.
+        struct AtomicPassData {
+            BenchTextureHandle Output;
+            std::atomic<u64> *Sink = nullptr;
+            u32 Pass = 0;
         };
 
-        struct PresentData {};
-
         for (u32 pass = 0; pass < PASS_COUNT; ++pass) {
-            graph.AddPass<PassData>(
+            graph.AddPass<AtomicPassData>(
                 "Pass",
-                [&outputs, pass](FrameGraph::Builder &builder, PassData &data) {
+                [&outputs, &sink, pass](FrameGraph<Backend>::Builder &builder, AtomicPassData &data) {
                     for (u32 read = 0; read < READS_PER_PASS && read < pass; ++read) {
                         (void)builder.Read(outputs[pass - read - 1]);
                     }
 
                     data.Output = builder.Create<BenchTexture>("Target", BenchTexture::Descriptor{ 1920, 1080 });
+                    data.Sink = &sink;
+                    data.Pass = pass;
                     outputs.push_back(data.Output);
                 },
-                [&sink, pass](const PassData &, FrameGraph &, const FrameGraphContext &) {
-                    sink.fetch_add(Bench::BusyWork(pass, Bench::SMALL_WORK), std::memory_order_relaxed);
+                [](const AtomicPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+                    data.Sink->fetch_add(Bench::BusyWork(data.Pass, Bench::SMALL_WORK), std::memory_order_relaxed);
                 });
         }
 
-        graph.AddPass<PresentData>(
+        graph.AddPass<AtomicPassData>(
             "Present",
-            [&outputs](FrameGraph::Builder &builder, PresentData &) {
+            [&outputs, &sink](FrameGraph<Backend>::Builder &builder, AtomicPassData &data) {
                 (void)builder.Read(outputs.back());
+                data.Sink = &sink;
                 builder.MarkSideEffect();
             },
-            [&sink](const PresentData &, FrameGraph &, const FrameGraphContext &) { sink.fetch_add(1, std::memory_order_relaxed); });
+            [](const AtomicPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+                data.Sink->fetch_add(1, std::memory_order_relaxed);
+            });
 
         graph.Compile();
 
-        meter.measure([&graph, &sink] {
-            const FrameGraphContext context{};
-            graph.RecordParallel(context);
-            graph.Submit(context);
+        BenchDevice device;
+
+        meter.measure([&graph, &sink, &device] {
+            graph.RecordParallel(device.Context);
+            graph.Submit(device.Context);
             return sink.load(std::memory_order_relaxed);
         });
     };
@@ -347,11 +398,11 @@ TEST_CASE("Frame graph culling", "[framegraph]") {
         u64 sink = 0;
 
         // Twice PASS_COUNT passes are declared, so the graph is sized for the live and dead halves together.
-        std::vector<Scope<FrameGraph>> pool = DeclaredGraphPool(
-            static_cast<u32>(meter.runs()), PASS_COUNT * 2, [](FrameGraph &graph, u64 &s) { DeclareHalfDeadGraph(graph, s); }, sink);
+        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
+            static_cast<u32>(meter.runs()), PASS_COUNT * 2, [](FrameGraph<Backend> &graph, u64 &s) { DeclareHalfDeadGraph(graph, s); }, sink);
 
         meter.measure([&pool](int run) {
-            FrameGraph &graph = *pool[static_cast<size_t>(run)];
+            FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 
             return graph.GetExecutionOrder().size();

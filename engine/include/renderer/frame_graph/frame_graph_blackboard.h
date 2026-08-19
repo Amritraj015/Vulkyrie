@@ -19,8 +19,8 @@ namespace Vulkyrie {
         /** @brief Constructs an empty blackboard.
          * @param arenaBytes Initial size of the internal arena; it grows by chunking if a frame needs more. */
         explicit FrameGraphBlackboard(size_t arenaBytes = 4096)
-            : _arena{ arenaBytes, MemoryTag::Rendering } {
-            _entries.reserve(INITIAL_ENTRY_CAPACITY);
+            : mArena{ arenaBytes, MemoryTag::Rendering } {
+            mEntries.reserve(INITIAL_ENTRY_CAPACITY);
         }
 
         ~FrameGraphBlackboard() {
@@ -37,7 +37,7 @@ namespace Vulkyrie {
         template <typename T, typename... TArgs> T &Set(TArgs &&...args) {
             VASSERT(!Contains<T>(), "Blackboard already contains an entry for this type.");
 
-            T *value = _arena.Emplace<T>(std::forward<TArgs>(args)...);
+            T *value = mArena.Emplace<T>(std::forward<TArgs>(args)...);
 
             Entry entry{ .TypeID = FrameGraphTypeID<T>(), .Data = value, .Destroy = nullptr };
 
@@ -45,7 +45,7 @@ namespace Vulkyrie {
                 entry.Destroy = [](void *data) { std::destroy_at(static_cast<T *>(data)); };
             }
 
-            _entries.push_back(entry);
+            mEntries.push_back(entry);
 
             return *value;
         }
@@ -74,7 +74,7 @@ namespace Vulkyrie {
         template <typename T> [[nodiscard]] const T *TryGet() const {
             const u16 typeID = FrameGraphTypeID<T>();
 
-            for (const Entry &entry : _entries) {
+            for (const Entry &entry : mEntries) {
                 if (entry.TypeID == typeID) {
                     return static_cast<const T *>(entry.Data);
                 }
@@ -92,13 +92,13 @@ namespace Vulkyrie {
          * nothing. */
         void Clear() {
             runDestructors();
-            _entries.clear();
-            _arena.Reset();
+            mEntries.clear();
+            mArena.Reset();
         }
 
         /** @brief Returns the number of entries currently stored. */
         [[nodiscard]] VE_INLINE size_t Size() const {
-            return _entries.size();
+            return mEntries.size();
         }
 
     private:
@@ -115,7 +115,7 @@ namespace Vulkyrie {
 
         /** @brief Destroys every stored value. The arena storage is released separately. */
         void runDestructors() {
-            for (Entry &entry : _entries) {
+            for (Entry &entry : mEntries) {
                 if (entry.Destroy != nullptr) {
                     entry.Destroy(entry.Data);
                 }
@@ -123,10 +123,10 @@ namespace Vulkyrie {
         }
 
         /** @brief The stored entries, searched linearly. */
-        std::vector<Entry> _entries;
+        std::vector<Entry> mEntries;
 
         /** @brief Bump storage for the entry payloads; chunked, so references stay valid as it grows. */
-        ArenaAllocator _arena;
+        ArenaAllocator mArena;
     };
 
 } // namespace Vulkyrie

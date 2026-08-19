@@ -189,7 +189,7 @@ namespace Vulkyrie {
         return true;
     }
 
-    bool OpenGLContext::CreatePipeline(OpenGLPipeline pipeline) {
+    bool OpenGLContext::DestroyPipeline(OpenGLPipeline pipeline) {
         (void)pipeline;
         return true;
     }

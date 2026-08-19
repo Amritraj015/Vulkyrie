@@ -23,7 +23,7 @@ namespace Vulkyrie {
         bool DestroyBuffer(VulkanBuffer buffer);
         bool DestroySampler(VulkanSampler sampler);
         bool DestroyShaderModule(VulkanShaderModule shaderModule);
-        bool CreatePipeline(VulkanPipeline pipeline);
+        bool DestroyPipeline(VulkanPipeline pipeline);
 
         void WaitIdle() const;
         const DeviceCapabilities &QueryCapabilities() const;

@@ -1,4 +1,4 @@
-#include "transient_pool_test_support.h"
+#include "../support/mock_backend.h"
 
 #include "renderer/common/deletion_queue.h"
 #include "renderer/common/transient_pool.h"
@@ -6,7 +6,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 using namespace Vulkyrie;
-using namespace Vulkyrie::TransientPoolTests;
+using namespace Vulkyrie::RendererTests;
 
 namespace {
 
@@ -17,7 +17,7 @@ namespace {
         TransientPool<MockBackend> Pool{ Context, Deletion, 8, 8 };
     };
 
-    using LifeTime = TransientPool<MockBackend>::LifeTime;
+    using LifeTime = ResourceLifetime;
 
     constexpr TextureDescriptor SOME_TEXTURE{ .Width = 1920, .Height = 1080 };
     constexpr TextureDescriptor OTHER_TEXTURE{ .Width = 256, .Height = 256 };

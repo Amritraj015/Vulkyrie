@@ -25,6 +25,11 @@ target_include_directories(benchmarks PRIVATE
     # Rooted at src/ so any benchmark, at any depth, includes the shared scaffolding the same way:
     # #include "support/benchmark_support.h".
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+    # The mock RendererBackend lives with the tests and is shared rather than duplicated: it is the only complete
+    # implementation of the RendererBackend concept in the tree, so a second copy would silently drift the moment
+    # the concept changes.
+    ${CMAKE_SOURCE_DIR}/tests/src
 )
 
 # ---------------------------

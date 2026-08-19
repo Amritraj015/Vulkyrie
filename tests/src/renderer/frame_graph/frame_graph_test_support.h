@@ -1,70 +1,82 @@
 #pragma once
 
-// Mock resource backends and the recording sink shared by every frame graph test file.
+// Mock resource types and the graph fixture shared by every frame graph test file. The resource types record what
+// the graph did to them through `context.Device.Context()` - the same route a real resource type takes to reach its
+// backend - so the tests exercise the typed context rather than a side channel.
 #include <vulkyrie.h>
 
+#include "../support/mock_backend.h"
+
+#include "renderer/frame_graph/frame_graph.h"
+
+#include <atomic>
 #include <string>
 #include <vector>
 
 namespace Vulkyrie::FrameGraphTests {
 
-    /** @brief Collects everything the graph did to its resources, in order, so a test can assert on the exact
-     * sequence rather than on individual flags. Threaded through `FrameGraphContext::TransientResources`. */
-    struct Recorder {
+    using Backend = RendererTests::MockBackend;
+    using AliasingBackend = RendererTests::MockAliasingBackend;
+    using MockContext = RendererTests::MockContext;
+
+    /** @brief Appends an event to the device's log. */
+    template <RendererBackend B> void RecordEvent(const FrameGraphContext<B> &context, std::string event) {
+        context.Device.Context().Events.push_back(std::move(event));
+    }
+
+    /** @brief Where a test pass body reports what ran.
+     *
+     * Pass bodies cannot capture, so a test wires one of these up in `setup` - which may capture, because it runs
+     * immediately and is never stored - and the body reads it back out of the pass data. Every field is optional;
+     * a body touches only the ones its test cares about. */
+    struct PassProbe {
     public:
-        /** @brief Every backend callback, in the order it fired. */
-        std::vector<std::string> Events;
+        /** @brief Bumped once per execution. */
+        i32 *Counter = nullptr;
 
-        /** @brief One entry per `EmitBarriers` call, describing the batch it carried. */
-        std::vector<std::string> BarrierBatches;
+        /** @brief Bumped once per execution, for the parallel paths where several bodies run at once. */
+        std::atomic<i32> *AtomicCounter = nullptr;
 
-        /** @brief Returns only the create/destroy events, for lifetime assertions that should not be disturbed by
-         * the access hooks. */
-        [[nodiscard]] std::vector<std::string> Lifecycle() const {
-            std::vector<std::string> filtered;
+        /** @brief Set to true on execution. */
+        bool *Flag = nullptr;
 
-            for (const std::string &event : Events) {
-                if (event.starts_with("Create:") || event.starts_with("Destroy:")) {
-                    filtered.push_back(event);
-                }
-            }
+        /** @brief Appended with `Label` on execution, for asserting on the compiled order. */
+        std::vector<std::string> *Order = nullptr;
 
-            return filtered;
-        }
+        /** @brief Appended with `IntLabel` on execution. */
+        std::vector<int> *IntOrder = nullptr;
+
+        const char *Label = "";
+
+        int IntLabel = 0;
     };
 
-    /** @brief Records an event if the context carries a recorder. */
-    inline void RecordEvent(const FrameGraphContext &context, std::string event) {
-        if (context.TransientResources != nullptr) {
-            static_cast<Recorder *>(context.TransientResources)->Events.push_back(std::move(event));
-        }
-    }
+    /** @brief The shared captureless pass body: reports through whatever its probe has wired up.
+     *
+     * Passed as `&RunProbe<PassData>` - a plain function pointer, which is exactly what the graph requires and what
+     * a capturing lambda could never be. */
+    template <typename TPassData> void RunProbe(const TPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+        const PassProbe &probe = data.Probe;
 
-    /** @brief Barrier hook that appends one line per pass batch. */
-    inline void RecordBarriers(const FrameGraphContext &context, std::span<const ResourceBarrier> barriers) {
-        if (context.TransientResources == nullptr) {
-            return;
+        if (nullptr != probe.Counter) {
+            ++*probe.Counter;
         }
 
-        auto *recorder = static_cast<Recorder *>(context.TransientResources);
-        std::string line = "Batch(" + std::to_string(barriers.size()) + "):";
-
-        for (const ResourceBarrier &barrier : barriers) {
-            line +=
-                " e" + std::to_string(barrier.Entry.Get()) + "[" + std::to_string(barrier.Before.Layout) + "->" + std::to_string(barrier.After.Layout) + "]";
-
-            // A discard names the stages it waits on rather than a layout it comes from, so print those instead.
-            if (barrier.AliasingTransition) {
-                line += "{discard,waitStages=" + std::to_string(barrier.Before.Stages) + "}";
-            }
+        if (nullptr != probe.AtomicCounter) {
+            probe.AtomicCounter->fetch_add(1, std::memory_order_relaxed);
         }
 
-        recorder->BarrierBatches.push_back(std::move(line));
-    }
+        if (nullptr != probe.Flag) {
+            *probe.Flag = true;
+        }
 
-    /** @brief Builds a context pointing at a recorder, with the barrier hook wired up. */
-    [[nodiscard]] inline FrameGraphContext MakeContext(Recorder &recorder) {
-        return FrameGraphContext{ .RenderContext = nullptr, .TransientResources = &recorder, .EmitBarriers = &RecordBarriers };
+        if (nullptr != probe.Order) {
+            probe.Order->push_back(probe.Label);
+        }
+
+        if (nullptr != probe.IntOrder) {
+            probe.IntOrder->push_back(probe.IntLabel);
+        }
     }
 
     struct MockTextureDescriptor {
@@ -74,34 +86,41 @@ namespace Vulkyrie::FrameGraphTests {
         std::string Format;
     };
 
-    /** @brief A texture backend that records every callback and reports memory requirements, so it exercises the
-     * lifecycle hooks, the access hooks and the aliasing planner at once. */
+    /** @brief A texture that records every callback and reports memory requirements, so it exercises the lifecycle
+     * hooks, the access hooks and the aliasing planner at once. */
     struct MockTexture {
     public:
         using Descriptor = MockTextureDescriptor;
 
-        bool Created = false;
-        bool Destroyed = false;
+        bool Acquired = false;
+        bool Released = false;
+        ResourceLifetime Lifetime{};
         i32 PreReadCount = 0;
         i32 PreWriteCount = 0;
 
-        void Create(const Descriptor &descriptor, const FrameGraphContext &context) {
-            Created = true;
-            Destroyed = false;
-            RecordEvent(context, "Create:" + extent(descriptor));
+        void Acquire(const Descriptor &descriptor, ResourceLifetime lifetime, const FrameGraphContext<Backend> &context) {
+            Acquired = true;
+            Released = false;
+            Lifetime = lifetime;
+
+            // Remembered rather than re-derived on release, which is the whole reason `Release` needs no
+            // descriptor: a resource that has been acquired already knows what it is.
+            mExtent = extent(descriptor);
+
+            RecordEvent(context, "Acquire:" + mExtent);
         }
 
-        void Destroy(const Descriptor &descriptor, const FrameGraphContext &context) {
-            Destroyed = true;
-            RecordEvent(context, "Destroy:" + extent(descriptor));
+        void Release(const FrameGraphContext<Backend> &context) {
+            Released = true;
+            RecordEvent(context, "Release:" + mExtent);
         }
 
-        void PreRead(const ResourceUsage &usage, const FrameGraphContext &context) {
+        void PreRead(const ResourceUsage &usage, const FrameGraphContext<Backend> &context) {
             ++PreReadCount;
             RecordEvent(context, "PreRead:layout=" + std::to_string(usage.Layout));
         }
 
-        void PreWrite(const ResourceUsage &usage, const FrameGraphContext &context) {
+        void PreWrite(const ResourceUsage &usage, const FrameGraphContext<Backend> &context) {
             ++PreWriteCount;
             RecordEvent(context, "PreWrite:layout=" + std::to_string(usage.Layout));
         }
@@ -114,29 +133,32 @@ namespace Vulkyrie::FrameGraphTests {
         [[nodiscard]] static std::string extent(const Descriptor &descriptor) {
             return std::to_string(descriptor.Width) + "x" + std::to_string(descriptor.Height);
         }
+
+        /** @brief What this texture was last acquired as, so release can name itself. */
+        std::string mExtent;
     };
 
-    /** @brief A minimal backend: no access hooks, no memory requirements. Exercises the paths where the graph must
-     * cope with a backend that opts into nothing. */
+    /** @brief A minimal resource type: no access hooks, no memory requirements. Exercises the paths where the graph
+     * must cope with a type that opts into nothing. */
     struct MockBuffer {
     public:
         using Descriptor = size_t; // Size in bytes.
 
-        bool Created = false;
-        bool Destroyed = false;
+        bool Acquired = false;
+        bool Released = false;
 
-        void Create(const Descriptor &descriptor, const FrameGraphContext &context) {
-            Created = true;
-            RecordEvent(context, "CreateBuffer:" + std::to_string(descriptor));
+        void Acquire(const Descriptor &descriptor, ResourceLifetime, const FrameGraphContext<Backend> &context) {
+            Acquired = true;
+            RecordEvent(context, "AcquireBuffer:" + std::to_string(descriptor));
         }
 
-        void Destroy(const Descriptor &descriptor, const FrameGraphContext &context) {
-            Destroyed = true;
-            RecordEvent(context, "DestroyBuffer:" + std::to_string(descriptor));
+        void Release(const FrameGraphContext<Backend> &context) {
+            Released = true;
+            RecordEvent(context, "ReleaseBuffer");
         }
     };
 
-    /** @brief A backend whose descriptor owns no heap memory, so a test can attribute every byte the graph
+    /** @brief A resource type whose descriptor owns no heap memory, so a test can attribute every byte the graph
      * allocates to the graph itself rather than to the descriptor. */
     struct MockPodTexture {
     public:
@@ -146,30 +168,32 @@ namespace Vulkyrie::FrameGraphTests {
             u32 Height = 0;
         };
 
-        void Create(const Descriptor &, const FrameGraphContext &) {
+        void Acquire(const Descriptor &, ResourceLifetime, const FrameGraphContext<Backend> &) {
         }
 
-        void Destroy(const Descriptor &, const FrameGraphContext &) {
+        void Release(const FrameGraphContext<Backend> &) {
         }
     };
 
-    /** @brief A texture backend that takes the placed `Create`, so a test can assert on the offsets the aliasing
-     * plan actually hands the backend rather than only on the totals the report publishes. */
-    struct MockPlacedTexture {
+    /** @brief A texture that takes the placed `Acquire`, so a test can assert on the offsets the aliasing plan
+     * hands the resource type rather than only on the totals the report publishes. */
+    template <RendererBackend B> struct MockPlacedTextureFor {
     public:
         using Descriptor = MockTextureDescriptor;
 
         ResourcePlacement Placement{};
-        bool Created = false;
+        ResourceLifetime Lifetime{};
+        bool Acquired = false;
 
-        void Create(const Descriptor &descriptor, ResourcePlacement placement, const FrameGraphContext &context) {
+        void Acquire(const Descriptor &descriptor, ResourceLifetime lifetime, ResourcePlacement placement, const FrameGraphContext<B> &context) {
             Placement = placement;
-            Created = true;
-            RecordEvent(context, "Create:" + std::to_string(descriptor.Width) + "@" + (placement.IsAliased ? std::to_string(placement.Offset) : "unplaced"));
+            Lifetime = lifetime;
+            Acquired = true;
+            RecordEvent(context, "Acquire:" + std::to_string(descriptor.Width) + "@" + (placement.IsAliased ? std::to_string(placement.Offset) : "unplaced"));
         }
 
-        void Destroy(const Descriptor &, const FrameGraphContext &context) {
-            RecordEvent(context, "Destroy");
+        void Release(const FrameGraphContext<B> &context) {
+            RecordEvent(context, "Release");
         }
 
         [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) const {
@@ -177,15 +201,70 @@ namespace Vulkyrie::FrameGraphTests {
         }
     };
 
-    static_assert(FrameGraphResourceType<MockTexture>, "MockTexture must satisfy the backend concept.");
-    static_assert(FrameGraphResourceType<MockBuffer>, "MockBuffer must satisfy the backend concept.");
-    static_assert(FrameGraphResourceType<MockPodTexture>, "PodTexture must satisfy the backend concept.");
-    static_assert(HasPreRead<MockTexture> && HasPreWrite<MockTexture>, "MockTexture implements both access hooks.");
-    static_assert(!HasPreRead<MockBuffer> && !HasPreWrite<MockBuffer>, "MockBuffer opts out of the access hooks.");
+    /** @brief The placed texture on a backend that cannot honour an offset, so it is always handed an unplaced
+     * placement no matter what the plan computed. */
+    using MockPlacedTexture = MockPlacedTextureFor<Backend>;
+
+    /** @brief The placed texture on a backend that can bind two resources to one allocation, so the plan's offsets
+     * actually reach it. */
+    using MockAliasedTexture = MockPlacedTextureFor<AliasingBackend>;
+
+    /** @brief Everything a frame graph test needs to execute a graph: a mock device, one frame's command lists, and
+     * the typed context tying them together. */
+    template <RendererBackend B> struct GraphFixtureFor {
+    public:
+        explicit GraphFixtureFor(const FrameGraphConfig &config = {})
+            : Graph(config) {
+        }
+
+        DeviceCreationInfo Info{ WindowHandle{}, 800, 600, 64, 64, 16, 16 };
+        Device<B> Dev{ Info };
+        FrameContext<B> Frame{ Dev.Context(), 0, 1, 0 };
+        FrameGraph<B> Graph;
+        FrameGraphContext<B> Context{ Dev, Frame };
+
+        /** @brief Everything the mock resource types recorded, in order. */
+        [[nodiscard]] const std::vector<std::string> &Events() const {
+            return Dev.Context().Events;
+        }
+
+        /** @brief Only the acquire/release events. */
+        [[nodiscard]] std::vector<std::string> Lifecycle() const {
+            return Dev.Context().Lifecycle();
+        }
+
+        /** @brief One entry per `EmitBarriers` call the graph made, describing the batch it carried. */
+        [[nodiscard]] const std::vector<std::string> &BarrierBatches() {
+            return Frame.AcquireCommandList(0, QueueType::Graphics).BarrierBatches;
+        }
+    };
+
+    using GraphFixture = GraphFixtureFor<Backend>;
+
+    using AliasingGraphFixture = GraphFixtureFor<AliasingBackend>;
+
+    static_assert(FrameGraphResourceType<MockTexture, Backend>, "MockTexture must satisfy the resource concept.");
+    static_assert(FrameGraphResourceType<MockBuffer, Backend>, "MockBuffer must satisfy the resource concept.");
+    static_assert(FrameGraphResourceType<MockPodTexture, Backend>, "MockPodTexture must satisfy the resource concept.");
+    static_assert(HasPreRead<MockTexture, Backend> && HasPreWrite<MockTexture, Backend>, "MockTexture implements both access hooks.");
+    static_assert(!HasPreRead<MockBuffer, Backend> && !HasPreWrite<MockBuffer, Backend>, "MockBuffer opts out of the access hooks.");
     static_assert(HasMemoryRequirements<MockTexture>, "MockTexture reports memory requirements.");
     static_assert(!HasMemoryRequirements<MockBuffer>, "MockBuffer does not report memory requirements.");
-    static_assert(FrameGraphResourceType<MockPlacedTexture>, "PlacedTexture must satisfy the backend concept through the placed Create.");
-    static_assert(HasPlacedCreate<MockPlacedTexture> && !HasPlainCreate<MockPlacedTexture>, "PlacedTexture takes only the placed Create.");
-    static_assert(HasPlainCreate<MockTexture> && !HasPlacedCreate<MockTexture>, "MockTexture takes only the plain Create.");
+    static_assert(FrameGraphResourceType<MockPlacedTexture, Backend>, "MockPlacedTexture must satisfy the resource concept through the placed Acquire.");
+    static_assert(HasPlacedAcquire<MockPlacedTexture, Backend> && !HasPlainAcquire<MockPlacedTexture, Backend>,
+                  "MockPlacedTexture takes only the placed Acquire.");
+    static_assert(FrameGraphResourceType<MockAliasedTexture, AliasingBackend>, "MockAliasedTexture must satisfy the resource concept.");
+    static_assert(HasPlainAcquire<MockTexture, Backend> && !HasPlacedAcquire<MockTexture, Backend>, "MockTexture takes only the plain Acquire.");
+
+    /** @brief Whether a resource type's lifetime hooks are reachable through a const reference - which is all a
+     * pass body ever gets. Named rather than written inline so the check is a concept substitution rather than a
+     * hard error. */
+    template <typename T, typename B>
+    concept LifetimeReachableThroughConst = requires(const T &resource, const FrameGraphContext<B> &context) { resource.Release(context); };
+
+    // The whole point of handing pass bodies a const view: a resource type's Acquire and Release are non-const, so
+    // a pass cannot reach them and cannot take part in a lifetime the graph just finished planning.
+    static_assert(!LifetimeReachableThroughConst<MockTexture, Backend>,
+                  "A pass must not be able to release a resource through the const view it is given.");
 
 } // namespace Vulkyrie::FrameGraphTests

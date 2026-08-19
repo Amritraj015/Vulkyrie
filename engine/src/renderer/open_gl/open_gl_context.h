@@ -27,7 +27,7 @@ namespace Vulkyrie {
         [[nodiscard]] bool DestroyBuffer(OpenGLBuffer buffer);
         [[nodiscard]] bool DestroySampler(OpenGLSampler sampler);
         [[nodiscard]] bool DestroyShaderModule(OpenGLShaderModule shaderModule);
-        [[nodiscard]] bool CreatePipeline(OpenGLPipeline pipeline);
+        [[nodiscard]] bool DestroyPipeline(OpenGLPipeline pipeline);
 
         void WaitIdle() const;
 
