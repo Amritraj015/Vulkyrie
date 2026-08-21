@@ -9,27 +9,27 @@ namespace Vulkyrie {
     private:
         static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
 
-        u32 _value = INVALID_INDEX;
+        u32 mValue = INVALID_INDEX;
 
     public:
         constexpr Handle() noexcept = default;
 
         constexpr explicit Handle(u32 value) noexcept
-            : _value(value) {
+            : mValue(value) {
         }
 
         [[nodiscard]] VE_INLINE explicit constexpr operator u32() const noexcept {
-            return _value;
+            return mValue;
         }
 
         /** @brief Returns the raw value, for use as an array subscript. */
         [[nodiscard]] VE_INLINE constexpr u32 Get() const noexcept {
-            return _value;
+            return mValue;
         }
 
         /** @brief Checks whether the index refers to an element rather than being the invalid sentinel. */
         [[nodiscard]] VE_INLINE constexpr bool IsValid() const noexcept {
-            return _value != INVALID_INDEX;
+            return mValue != INVALID_INDEX;
         }
 
         friend constexpr auto operator<=>(Handle, Handle) = default;
@@ -44,31 +44,31 @@ namespace Vulkyrie {
         static constexpr u32 MAX_GENERATION = (1u << GENERATION_BITS) - 1u;
         static constexpr u32 INVALID_BITS = 0xFFFFFFFFu;
 
-        u32 _bits = INVALID_BITS;
+        u32 mBits = INVALID_BITS;
 
     public:
         constexpr GenerationalHandle() noexcept = default;
 
         constexpr explicit GenerationalHandle(u32 index, u32 generation) noexcept
-            : _bits((generation << INDEX_BITS) | (index & INDEX_MASK)) {
+            : mBits((generation << INDEX_BITS) | (index & INDEX_MASK)) {
             VASSERT(index <= MAX_INDEX, "index exceeds handle index capacity");
             VASSERT(generation <= MAX_GENERATION, "generation exceeds handle generation capacity");
         }
 
         [[nodiscard]] VE_INLINE constexpr u32 GetBits() const noexcept {
-            return _bits;
+            return mBits;
         }
 
         [[nodiscard]] VE_INLINE constexpr u32 Index() const noexcept {
-            return _bits & INDEX_MASK;
+            return mBits & INDEX_MASK;
         }
 
         [[nodiscard]] VE_INLINE constexpr u32 Generation() const noexcept {
-            return _bits >> INDEX_BITS;
+            return mBits >> INDEX_BITS;
         }
 
         [[nodiscard]] VE_INLINE constexpr bool IsValid() const noexcept {
-            return _bits != INVALID_BITS;
+            return mBits != INVALID_BITS;
         }
 
         friend constexpr auto operator<=>(GenerationalHandle, GenerationalHandle) = default;

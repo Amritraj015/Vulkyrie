@@ -8,7 +8,7 @@
 namespace Vulkyrie {
 
     /** @brief The arena block a resource owns: its descriptor followed by the resource object. */
-    template <FrameGraphResourceType T> struct FrameGraphResourceStorage final {
+    template <typename T> struct FrameGraphResourceStorage final {
     public:
         FrameGraphResourceStorage(const typename T::Descriptor &descriptor, T &&resource)
             : Descriptor(descriptor)
@@ -19,250 +19,193 @@ namespace Vulkyrie {
         T Resource;
     };
 
-    /** @brief The backing store for one resource: the type-erased resource object plus the lifetime and access
-     * bookkeeping the graph needs. Several `ResourceNode` versions can point at a single entry.
+    /** @brief The backing store for one resource: the type-erased resource object and the trampolines that reach
+     * it. Several `ResourceNode` versions can point at a single entry, and the entry's compile-time state -
+     * lifetime, alias placement, version - lives beside it in `detail::EntryState`, which `Compile` owns.
      *
      * Type erasure is by function pointer rather than by virtual dispatch: the storage lives in the frame arena and
      * the entry holds trampolines for it. Optional hooks are null when the resource type does not implement them,
-     * so a type without `PreRead` costs an inspected pointer rather than an indirect call into an empty body. */
-    class ResourceEntry final {
-        friend class FrameGraph;
+     * so a type without `PreRead` costs an inspected pointer rather than an indirect call into an empty body.
+     *
+     * @tparam B The renderer backend resources are acquired against. */
+    template <RendererBackend B> class ResourceEntry final {
+        template <RendererBackend> friend class FrameGraph;
+        template <RendererBackend> friend class FrameGraphResources;
 
     public:
-        /** @brief Whether the graph owns the resource's lifetime. */
-        enum class Lifetime : u32 {
-            /** @brief Created and destroyed by the graph, within the frame. */
-            Transient,
+        /** @brief Takes the resource from the transient pool, or binds it to the storage the aliasing plan gave it. */
+        using AcquireFn = void (*)(void *storage, ResourceLifetime lifetime, ResourcePlacement placement, const FrameGraphContext<B> &context);
 
-            /** @brief Owned externally; the graph neither creates nor destroys it. */
-            Imported
-        };
-
-        /** @brief Materializes the resource.
-         *
-         * Takes the entry rather than the storage so the placement is read inside the trampoline, which knows at
-         * compile time whether the resource type wants it. Passing the placement in would make every type pay to
-         * load and forward two values most of them discard; this way the plain-`Create` path is byte-identical to
-         * one that has never heard of aliasing. */
-        using CreateFn = void (*)(ResourceEntry &entry, const FrameGraphContext &context);
-
-        /** @brief Releases the resource. */
-        using DestroyResourceFn = void (*)(void *storage, const FrameGraphContext &context);
+        /** @brief Returns the resource to the pool. */
+        using ReleaseFn = void (*)(void *storage, const FrameGraphContext<B> &context);
 
         /** @brief Notifies the resource type of an upcoming access. */
-        using AccessFn = void (*)(void *storage, const ResourceUsage &usage, const FrameGraphContext &context);
+        using AccessFn = void (*)(void *storage, const ResourceUsage &usage, const FrameGraphContext<B> &context);
 
         /** @brief Runs the storage block's destructor; null when it is trivially destructible. */
         using DestructStorageFn = void (*)(void *storage);
 
-        /** @brief Reports the memory the resource needs, for transient aliasing. */
+        /** @brief Reports the memory the resource needs, for the byte-packing aliasing plan. */
         using MemoryRequirementsFn = ResourceMemoryRequirements (*)(const void *storage);
 
         ResourceEntry() = default;
 
-        [[nodiscard]] VE_INLINE FrameGraphResourceEntryID GetResourceEntryID() const {
-            return _resourceEntryID;
-        }
-
-        /** @brief Whether the graph creates and destroys this resource within the frame. */
-        [[nodiscard]] VE_INLINE bool IsTransient() const {
-            return _lifetime == Lifetime::Transient;
-        }
-
-        /** @brief Whether the resource is owned outside the graph. */
-        [[nodiscard]] VE_INLINE bool IsImported() const {
-            return _lifetime == Lifetime::Imported;
-        }
-
-        /** @brief Returns the current version; each write produces the next one. */
-        [[nodiscard]] VE_INLINE u32 GetVersion() const {
-            return _version;
-        }
-
         /** @brief Returns the stored resource object.
+         *
+         * Const only, and deliberately so. `Acquire` and `Release` are non-const members of the resource type, so a
+         * pass body holding one of these can neither materialize nor release a resource behind the graph's back -
+         * the lifetime is the graph's to manage, and the compiler enforces that rather than a comment asking nicely.
+         *
          * @tparam T The type the resource was created with. Naming a different type is a programming error; it is
          * caught by an assertion in Debug and is undefined behavior in Release, which is why callers should come
          * through a typed `FrameGraphHandle<T>` rather than a raw id. */
-        template <FrameGraphResourceType T> [[nodiscard]] T &GetResource() {
-            VASSERT(_resourceTypeID == FrameGraphTypeID<T>(), "Frame graph resource accessed as the wrong resource type.");
-            return static_cast<FrameGraphResourceStorage<T> *>(_storage)->Resource;
-        }
+        template <FrameGraphResourceType<B> T> [[nodiscard]] const T &GetResource() const {
+            VASSERT(mResourceTypeID == FrameGraphTypeID<T>(), "Frame graph resource accessed as the wrong resource type.");
 
-        /** @brief Returns the stored resource object.
-         * @tparam T The type the resource was created with. */
-        template <FrameGraphResourceType T> [[nodiscard]] const T &GetResource() const {
-            VASSERT(_resourceTypeID == FrameGraphTypeID<T>(), "Frame graph resource accessed as the wrong resource type.");
-            return static_cast<const FrameGraphResourceStorage<T> *>(_storage)->Resource;
+            return static_cast<const FrameGraphResourceStorage<T> *>(pStorage)->Resource;
         }
 
         /** @brief Returns the descriptor the resource was created with.
          * @tparam T The type the resource was created with. */
-        template <FrameGraphResourceType T> [[nodiscard]] const typename T::Descriptor &GetDescriptor() const {
-            VASSERT(_resourceTypeID == FrameGraphTypeID<T>(), "Frame graph resource accessed as the wrong resource type.");
-            return static_cast<const FrameGraphResourceStorage<T> *>(_storage)->Descriptor;
+        template <FrameGraphResourceType<B> T> [[nodiscard]] const typename T::Descriptor &GetDescriptor() const {
+            VASSERT(mResourceTypeID == FrameGraphTypeID<T>(), "Frame graph resource accessed as the wrong resource type.");
+
+            return static_cast<const FrameGraphResourceStorage<T> *>(pStorage)->Descriptor;
         }
 
     private:
         /** @brief Wires an entry to an arena-constructed storage block of a concrete resource type.
-         * @param lifetime Whether the graph owns the resource's lifetime.
-         * @param resourceEntryID This entry's index in the graph's entry array.
          * @param storage The arena block holding the descriptor and resource object. */
-        template <FrameGraphResourceType T>
-        static ResourceEntry create(Lifetime lifetime, FrameGraphResourceEntryID resourceEntryID, FrameGraphResourceStorage<T> *storage) {
+        template <FrameGraphResourceType<B> T> [[nodiscard]] static ResourceEntry create(FrameGraphResourceStorage<T> *storage) {
             using Storage = FrameGraphResourceStorage<T>;
 
             ResourceEntry entry;
-            entry._storage = storage;
-            entry._lifetime = lifetime;
-            entry._resourceEntryID = resourceEntryID;
-            entry._version = INITIAL_RESOURCE_VERSION;
-            entry._resourceTypeID = FrameGraphTypeID<T>();
+            entry.pStorage = storage;
+            entry.mResourceTypeID = FrameGraphTypeID<T>();
 
-            entry._create = [](ResourceEntry &e, const FrameGraphContext &context) {
-                auto *typed = static_cast<Storage *>(e._storage);
+            entry.mAcquireFn = [](void *s, ResourceLifetime lifetime, ResourcePlacement placement, const FrameGraphContext<B> &context) {
+                auto *typed = static_cast<Storage *>(s);
 
-                if constexpr (HasPlacedCreate<T>) {
-                    typed->Resource.Create(typed->Descriptor, ResourcePlacement{ .Offset = e._aliasOffset, .IsAliased = e._isAliased }, context);
+                if constexpr (HasPlacedAcquire<T, B>) {
+                    typed->Resource.Acquire(typed->Descriptor, lifetime, placement, context);
                 } else {
-                    typed->Resource.Create(typed->Descriptor, context);
+                    (void)placement;
+                    typed->Resource.Acquire(typed->Descriptor, lifetime, context);
                 }
             };
 
-            entry._destroyResource = [](void *s, const FrameGraphContext &context) {
-                auto *typed = static_cast<Storage *>(s);
-                typed->Resource.Destroy(typed->Descriptor, context);
-            };
+            entry.mReleaseFn = [](void *s, const FrameGraphContext<B> &context) { static_cast<Storage *>(s)->Resource.Release(context); };
 
             // Null rather than an empty body: the execute loop skips the call entirely instead of paying an
             // indirect jump into a function that does nothing.
-            if constexpr (HasPreRead<T>) {
-                entry._preRead = [](void *s, const ResourceUsage &usage, const FrameGraphContext &context) {
+            if constexpr (HasPreRead<T, B>) {
+                entry.mPreReadFn = [](void *s, const ResourceUsage &usage, const FrameGraphContext<B> &context) {
                     static_cast<Storage *>(s)->Resource.PreRead(usage, context);
                 };
             }
 
-            if constexpr (HasPreWrite<T>) {
-                entry._preWrite = [](void *s, const ResourceUsage &usage, const FrameGraphContext &context) {
+            if constexpr (HasPreWrite<T, B>) {
+                entry.mPreWriteFn = [](void *s, const ResourceUsage &usage, const FrameGraphContext<B> &context) {
                     static_cast<Storage *>(s)->Resource.PreWrite(usage, context);
                 };
             }
 
             if constexpr (HasMemoryRequirements<T>) {
-                entry._memoryRequirements = [](const void *s) {
+                entry.mMemoryRequirementsFn = [](const void *s) {
                     const auto *typed = static_cast<const Storage *>(s);
+
                     return typed->Resource.GetMemoryRequirements(typed->Descriptor);
                 };
             }
 
             if constexpr (!std::is_trivially_destructible_v<Storage>) {
-                entry._destructStorage = [](void *s) { std::destroy_at(static_cast<Storage *>(s)); };
+                entry.mDestructStorageFn = [](void *s) { std::destroy_at(static_cast<Storage *>(s)); };
             }
 
             return entry;
         }
 
-        /** @brief Materializes the resource. Only transients are created; imported ones already exist. */
-        VE_INLINE void createResource(const FrameGraphContext &context) {
-            if (!_isLive && _lifetime == Lifetime::Transient) {
-                _create(*this, context);
-                _isLive = true;
+        /** @brief Takes the resource from the pool. Only transients are acquired; imported ones already exist.
+         * @param isTransient Whether the graph owns this resource's lifetime, from `detail::EntryState`.
+         * @param lifetime The execution-order interval the resource is live over.
+         * @param placement Where the byte-packing plan put it, if anywhere. */
+        VE_INLINE void acquireResource(bool isTransient, ResourceLifetime lifetime, ResourcePlacement placement, const FrameGraphContext<B> &context) {
+            if (!mIsLive && isTransient) {
+                mAcquireFn(pStorage, lifetime, placement, context);
+                mIsLive = true;
             }
         }
 
-        /** @brief Releases the resource. Only transients are destroyed; imported ones are managed externally. */
-        VE_INLINE void destroyResource(const FrameGraphContext &context) {
-            if (_isLive && _lifetime == Lifetime::Transient) {
-                _destroyResource(_storage, context);
-                _isLive = false;
+        /** @brief Returns the resource to the pool. Only transients are released; imported ones are managed
+         * externally. */
+        VE_INLINE void releaseResource(bool isTransient, const FrameGraphContext<B> &context) {
+            if (mIsLive && isTransient) {
+                mReleaseFn(pStorage, context);
+                mIsLive = false;
             }
         }
 
         /** @brief Notifies the resource type of an upcoming read, if it implements the hook. */
-        VE_INLINE void preRead(const ResourceUsage &usage, const FrameGraphContext &context) {
-            if (nullptr != _preRead) {
-                _preRead(_storage, usage, context);
+        VE_INLINE void preRead(const ResourceUsage &usage, const FrameGraphContext<B> &context) {
+            if (nullptr != mPreReadFn) {
+                mPreReadFn(pStorage, usage, context);
             }
         }
 
         /** @brief Notifies the resource type of an upcoming write, if it implements the hook. */
-        VE_INLINE void preWrite(const ResourceUsage &usage, const FrameGraphContext &context) {
-            if (nullptr != _preWrite) {
-                _preWrite(_storage, usage, context);
+        VE_INLINE void preWrite(const ResourceUsage &usage, const FrameGraphContext<B> &context) {
+            if (nullptr != mPreWriteFn) {
+                mPreWriteFn(pStorage, usage, context);
             }
         }
 
-        /** @brief Returns the resource's memory requirements, or nullopt when the resource type does not report
-         * them - in which case it is excluded from the aliasing plan. */
-        [[nodiscard]] VE_INLINE std::optional<ResourceMemoryRequirements> getMemoryRequirements() const {
-            if (nullptr == _memoryRequirements) {
-                return std::nullopt;
+        /** @brief Returns the resource's memory requirements, or a zero size when the resource type does not report
+         * them - in which case it is excluded from the byte-packing plan. */
+        [[nodiscard]] VE_INLINE ResourceMemoryRequirements getMemoryRequirements() const {
+            if (nullptr == mMemoryRequirementsFn) {
+                return ResourceMemoryRequirements{};
             }
 
-            return _memoryRequirements(_storage);
+            return mMemoryRequirementsFn(pStorage);
         }
 
         /** @brief Runs the storage block's destructor if it has one. The arena releases the storage itself. */
         VE_INLINE void destructStorage() {
-            if (nullptr != _destructStorage) {
-                _destructStorage(_storage);
+            if (nullptr != mDestructStorageFn) {
+                mDestructStorageFn(pStorage);
             }
         }
 
-        static constexpr u32 INITIAL_RESOURCE_VERSION = 1U;
+        /** @brief Whether the resource is currently materialized. */
+        [[nodiscard]] VE_INLINE bool isLive() const noexcept {
+            return mIsLive;
+        }
 
         /** @brief Arena block holding `{ Descriptor, T }`. Not owned - the arena owns it. */
-        void *_storage = nullptr;
+        void *pStorage = nullptr;
 
-        CreateFn _create = nullptr;
+        AcquireFn mAcquireFn = nullptr;
 
-        DestroyResourceFn _destroyResource = nullptr;
+        ReleaseFn mReleaseFn = nullptr;
 
         /** @brief Read hook, or null when the resource type does not implement one. */
-        AccessFn _preRead = nullptr;
+        AccessFn mPreReadFn = nullptr;
 
         /** @brief Write hook, or null when the resource type does not implement one. */
-        AccessFn _preWrite = nullptr;
+        AccessFn mPreWriteFn = nullptr;
 
         /** @brief Storage destructor, or null when the storage block is trivially destructible. */
-        DestructStorageFn _destructStorage = nullptr;
+        DestructStorageFn mDestructStorageFn = nullptr;
 
         /** @brief Memory-requirements query, or null when the resource type does not report them. */
-        MemoryRequirementsFn _memoryRequirements = nullptr;
-
-        /** @brief The ID (index) assigned to this resource entry by the frame graph. */
-        FrameGraphResourceEntryID _resourceEntryID{};
-
-        /** @brief Bumped by each write, so stale handles can be detected. */
-        u32 _version = INITIAL_RESOURCE_VERSION;
-
-        /** @brief Execution-order position of the first pass that touches this resource, or `~0U` if unused.
-         * Together with `_lastUseIndex` this is the interval the aliasing allocator packs. */
-        u32 _firstUseIndex = std::numeric_limits<u32>::max();
-
-        /** @brief Execution-order position of the last pass that touches this resource, or `~0U` if unused. The
-         * resource is released after that pass. */
-        u32 _lastUseIndex = std::numeric_limits<u32>::max();
-
-        /** @brief Offset the transient aliasing plan assigned, meaningful only when `_isAliased` is set. Held
-         * unpacked rather than as a `ResourcePlacement` so the flag can share the tail padding below instead of
-         * costing the entry another eight bytes of alignment; `createResource` reassembles the pair in registers. */
-        u64 _aliasOffset = 0;
-
-        /** @brief Lifetime of this resource. */
-        Lifetime _lifetime = Lifetime::Transient;
+        MemoryRequirementsFn mMemoryRequirementsFn = nullptr;
 
         /** @brief Resource type id, used to validate `GetResource<T>()` in Debug builds. */
-        u16 _resourceTypeID = 0;
+        u16 mResourceTypeID = 0;
 
-        /** @brief Whether the resource is currently materialized. Guards against a double create or a double
-         * destroy when a resource's last user appears more than once. */
-        bool _isLive = false;
-
-        /** @brief Whether the aliasing plan placed this resource. Sits here, in the padding after `_isLive`, so it
-         * is free. */
-        bool _isAliased = false;
+        /** @brief Guards against a double acquire or a double release when a resource's last user appears more
+         * than once. */
+        bool mIsLive = false;
     };
-
-    static_assert(std::is_move_assignable_v<ResourceEntry>, "ResourceEntry must be move-assignable so the graph can reuse its entries across frames.");
 
 } // namespace Vulkyrie

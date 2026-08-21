@@ -23,11 +23,11 @@ namespace Vulkyrie {
         [[nodiscard]] OpenGLPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
         [[nodiscard]] OpenGLPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
 
-        [[nodiscard]] bool DestroyImage(OpenGLImage image);
-        [[nodiscard]] bool DestroyBuffer(OpenGLBuffer buffer);
-        [[nodiscard]] bool DestroySampler(OpenGLSampler sampler);
-        [[nodiscard]] bool DestroyShaderModule(OpenGLShaderModule shaderModule);
-        [[nodiscard]] bool DestroyPipeline(OpenGLPipeline pipeline);
+        void DestroyImage(OpenGLImage image);
+        void DestroyBuffer(OpenGLBuffer buffer);
+        void DestroySampler(OpenGLSampler sampler);
+        void DestroyShaderModule(OpenGLShaderModule shaderModule);
+        void DestroyPipeline(OpenGLPipeline pipeline);
 
         void WaitIdle() const;
 

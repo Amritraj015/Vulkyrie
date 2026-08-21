@@ -1,13 +1,15 @@
 #include "renderer/renderer.h"
 #include "renderer/backend_concepts.h"
 #include "renderer/common/device.h"
+#include "renderer/frame_graph/frame_graph.h"
 
 namespace Vulkyrie {
 
     template <RendererBackend B> class RendererImpl final : public Renderer {
     public:
         explicit RendererImpl(const DeviceCreationInfo &info)
-            : mDevice(info) {
+            : mDevice(info)
+            , mFrames(makeFrames(mDevice.Context(), info, std::make_index_sequence<B::kFramesInFlight>{})) {
         }
 
         VE_DELETE_MOVE_AND_COPY(RendererImpl);
@@ -33,7 +35,18 @@ namespace Vulkyrie {
         }
 
         void Render() override {
-            // TODO: drive the frame graph once render passes exist.
+            mDevice.GetDeletionQueue().Collect(mStats.FrameIndex);
+            mDevice.GetTransients().ResetFrame();
+            mFrameGraph.Reset();
+            mFrameGraph.Compile();
+
+            auto &frame = mFrames[mStats.FrameIndex % B::kFramesInFlight];
+
+            FrameGraphContext<B> frameGraphContext{ .Device = mDevice, .Frame = frame };
+
+            mFrameGraph.Execute(frameGraphContext);
+
+            ++mStats.FrameIndex;
         }
 
         VE_INLINE void WaitIdle() override {
@@ -45,7 +58,7 @@ namespace Vulkyrie {
         }
 
         [[nodiscard]] VE_INLINE const RendererStatistics &GetStatistics() const noexcept override {
-            return stats;
+            return mStats;
         }
 
         [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept override {
@@ -53,9 +66,25 @@ namespace Vulkyrie {
         }
 
     private:
+        /** @brief Constructs one `FrameContext` per frame in flight, each told which slot it owns.
+         *
+         * A `FrameContext` is not default-constructible - it cannot size its command lists without knowing the
+         * worker count - so the array is built by expanding the pack directly into aggregate initialisation, where
+         * each element is initialised in place from a prvalue rather than moved into position.
+         * @param context The backend context the frames record against.
+         * @param info Creation info; supplies the worker count.
+         * @returns The per-frame contexts, indexed by slot. */
+        template <size_t... TSlots>
+        [[nodiscard]] static std::array<FrameContext<B>, sizeof...(TSlots)>
+        makeFrames(typename B::Context &context, const DeviceCreationInfo &info, std::index_sequence<TSlots...>) {
+            return std::array<FrameContext<B>, sizeof...(TSlots)>{ FrameContext<B>{ context, static_cast<u32>(TSlots), info.WorkerCount, 0 }... };
+        }
+
         Device<B> mDevice;
         typename B::Swapchain mSwapchain;
-        RendererStatistics stats;
+        RendererStatistics mStats;
+        FrameGraph<B> mFrameGraph;
+        std::array<FrameContext<B>, B::kFramesInFlight> mFrames;
     };
 
 } // namespace Vulkyrie

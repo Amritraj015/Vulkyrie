@@ -97,9 +97,11 @@ namespace Vulkyrie {
                            u32 maxTextures = 262144,
                            u32 maxPipelines = 16384,
                            u32 maxSamplers = 256,
+                           u32 workerCount = 1,
                            bool enableValidation = false,
                            bool preferDiscreteGpu = true,
-                           bool enableVSync = false)
+                           bool enableVSync = false
+                        )
             : WindowHandle(windowHandle)
             , SurfaceWidth(surfaceWidth)
             , SurfaceHeight(surfaceHeight)
@@ -107,6 +109,7 @@ namespace Vulkyrie {
             , MaxTextures(maxTextures)
             , MaxPipelines(maxPipelines)
             , MaxSamplers(maxSamplers)
+            , WorkerCount(workerCount)
             , EnableValidation(enableValidation)
             , PreferDiscreteGpu(preferDiscreteGpu)
             , EnableVSync(enableVSync) {
@@ -121,9 +124,12 @@ namespace Vulkyrie {
         u32 MaxPipelines = 16384;
         u32 MaxSamplers = 256;
 
+        u32 WorkerCount = 1;
+
         bool EnableValidation = false;
         bool PreferDiscreteGpu = true;
         bool EnableVSync = false;
+
 
         // u32 FramesInFlight = 2; // 2 for latency, 3 to hide a spiky CPU frame
         // bool EnableGpuValidation = false;

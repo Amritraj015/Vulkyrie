@@ -19,11 +19,11 @@ namespace Vulkyrie {
         VulkanPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
         VulkanPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
 
-        bool DestroyImage(VulkanImage image);
-        bool DestroyBuffer(VulkanBuffer buffer);
-        bool DestroySampler(VulkanSampler sampler);
-        bool DestroyShaderModule(VulkanShaderModule shaderModule);
-        bool DestroyPipeline(VulkanPipeline pipeline);
+        void DestroyImage(VulkanImage image);
+        void DestroyBuffer(VulkanBuffer buffer);
+        void DestroySampler(VulkanSampler sampler);
+        void DestroyShaderModule(VulkanShaderModule shaderModule);
+        void DestroyPipeline(VulkanPipeline pipeline);
 
         void WaitIdle() const;
         const DeviceCapabilities &QueryCapabilities() const;

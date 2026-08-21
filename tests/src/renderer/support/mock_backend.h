@@ -57,8 +57,8 @@ namespace Vulkyrie::RendererTests {
             std::string line = "Batch(" + std::to_string(barriers.size()) + "):";
 
             for (const ResourceBarrier &barrier : barriers) {
-                line += " e" + std::to_string(barrier.Entry.Get()) + "[" + std::to_string(barrier.Before.Layout) + "->" +
-                        std::to_string(barrier.After.Layout) + "]";
+                line += " e" + std::to_string(barrier.Entry.Get()) + "[" + std::to_string(barrier.Before.Layout) + "->" + std::to_string(barrier.After.Layout) +
+                        "]";
 
                 // A discard names the stages it waits on rather than a layout it comes from, so print those instead.
                 if (barrier.AliasingTransition) {
@@ -120,24 +120,19 @@ namespace Vulkyrie::RendererTests {
             return MockPipeline{};
         }
 
-        [[nodiscard]] bool DestroyImage(MockImage) {
-            return true;
+        void DestroyImage(MockImage) {
         }
 
-        [[nodiscard]] bool DestroyBuffer(MockBuffer) {
-            return true;
+        void DestroyBuffer(MockBuffer) {
         }
 
-        [[nodiscard]] bool DestroySampler(MockSampler) {
-            return true;
+        void DestroySampler(MockSampler) {
         }
 
-        [[nodiscard]] bool DestroyShaderModule(MockShaderModule) {
-            return true;
+        void DestroyShaderModule(MockShaderModule) {
         }
 
-        [[nodiscard]] bool DestroyPipeline(MockPipeline) {
-            return true;
+        void DestroyPipeline(MockPipeline) {
         }
 
         void WaitIdle() const {

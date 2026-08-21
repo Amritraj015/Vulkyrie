@@ -169,29 +169,24 @@ namespace Vulkyrie {
         return {};
     }
 
-    bool OpenGLContext::DestroyImage(OpenGLImage image) {
+    void OpenGLContext::DestroyImage(OpenGLImage image) {
         (void)image;
-        return true;
     }
 
-    bool OpenGLContext::DestroyBuffer(OpenGLBuffer buffer) {
+    void OpenGLContext::DestroyBuffer(OpenGLBuffer buffer) {
         (void)buffer;
-        return true;
     }
 
-    bool OpenGLContext::DestroySampler(OpenGLSampler sampler) {
+    void OpenGLContext::DestroySampler(OpenGLSampler sampler) {
         (void)sampler;
-        return true;
     }
 
-    bool OpenGLContext::DestroyShaderModule(OpenGLShaderModule shaderModule) {
+    void OpenGLContext::DestroyShaderModule(OpenGLShaderModule shaderModule) {
         (void)shaderModule;
-        return true;
     }
 
-    bool OpenGLContext::DestroyPipeline(OpenGLPipeline pipeline) {
+    void OpenGLContext::DestroyPipeline(OpenGLPipeline pipeline) {
         (void)pipeline;
-        return true;
     }
 
     void OpenGLContext::WaitIdle() const {

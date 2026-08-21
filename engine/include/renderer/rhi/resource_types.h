@@ -96,6 +96,29 @@ namespace Vulkyrie {
         bool CompareEnable = false;
     };
 
+    /** @brief The execution-order interval over which a transient resource is live, as positions in the order its
+     * producer walks. Two resources whose intervals are disjoint can share one underlying allocation.
+     *
+     * Shared between the frame graph, which derives the interval while compiling, and `TransientPool`, which uses
+     * it to decide whether an existing resource can be handed out again within the same frame. */
+    struct ResourceLifetime final {
+        u32 FirstUse = 0;
+        u32 LastUse = 0;
+
+        [[nodiscard]] constexpr bool Valid() const noexcept {
+            return LastUse >= FirstUse;
+        }
+
+        /** @brief Whether this interval and `other` never overlap, so one resource can back both. */
+        [[nodiscard]] constexpr bool DisjointFrom(ResourceLifetime other) const noexcept {
+            return FirstUse > other.LastUse || LastUse < other.FirstUse;
+        }
+
+        friend constexpr bool operator==(ResourceLifetime, ResourceLifetime) = default;
+    };
+
+    static_assert(std::is_trivially_copyable_v<ResourceLifetime>, "ResourceLifetime must be trivially copyable so it can be passed in registers.");
+
     [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const TextureDescriptor &d) noexcept {
         HashBuilder hb;
 

@@ -2,6 +2,7 @@
 
 #include "core/graphics_api.h"
 #include "core/types/static_string.h"
+#include "renderer/rhi/barrier_types.h"
 #include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/pipeline_types.h"
 #include "renderer/rhi/resource_types.h"
@@ -76,11 +77,11 @@ namespace Vulkyrie {
             { c.CreateGraphicsPipeline(gpd) } -> std::same_as<typename B::Pipeline>;
             { c.CreateComputePipeline(cpd) } -> std::same_as<typename B::Pipeline>;
 
-            { c.DestroyImage(image) } -> std::same_as<bool>;
-            { c.DestroyBuffer(buffer) } -> std::same_as<bool>;
-            { c.DestroySampler(sampler) } -> std::same_as<bool>;
-            { c.DestroyShaderModule(shaderModule) } -> std::same_as<bool>;
-            { c.CreatePipeline(pipeline) } -> std::same_as<bool>;
+            { c.DestroyImage(image) } -> std::same_as<void>;
+            { c.DestroyBuffer(buffer) } -> std::same_as<void>;
+            { c.DestroySampler(sampler) } -> std::same_as<void>;
+            { c.DestroyShaderModule(shaderModule) } -> std::same_as<void>;
+            { c.DestroyPipeline(pipeline) } -> std::same_as<void>;
 
             { cb.WaitIdle() } -> std::same_as<void>;
             { cb.QueryCapabilities() } -> std::convertible_to<const DeviceCapabilities &>;
@@ -89,9 +90,14 @@ namespace Vulkyrie {
         };
 
         template <typename B>
-        concept RendererBackendCommandOps = requires(typename B::CommandList &cl) {
+        concept RendererBackendCommandOps = requires(typename B::CommandList &cl, std::span<const ResourceBarrier> barriers) {
             { cl.Begin() } -> std::same_as<void>;
             { cl.End() } -> std::same_as<void>;
+
+            // One call per pass carrying every transition, rather than one per resource. A backend without
+            // barrier objects (GL, kHasExplicitBarriers == false) implements this as an empty body -- the
+            // requirement is on the shape, not on the work.
+            { cl.EmitBarriers(barriers) } -> std::same_as<void>;
         };
 
         template <typename B>

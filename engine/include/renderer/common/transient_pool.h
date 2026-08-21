@@ -4,6 +4,7 @@
 #include "core/asserts.h"
 #include "renderer/backend_concepts.h"
 #include "renderer/common/deletion_queue.h"
+#include "renderer/rhi/resource_types.h"
 
 namespace Vulkyrie {
 
@@ -21,15 +22,6 @@ namespace Vulkyrie {
         struct ImageAcquisition final {
             typename B::Image Image{};
             bool RequiresDiscard = true;
-        };
-
-        struct LifeTime final {
-            u32 FirstUse = 0;
-            u32 LastUse = 0;
-
-            [[nodiscard]] constexpr bool Valid() const noexcept {
-                return LastUse >= FirstUse;
-            }
         };
 
         explicit TransientPool(B::Context &context, DeletionQueue<B> &deletionQueue, size_t imageCount, size_t bufferCount) noexcept
@@ -58,14 +50,14 @@ namespace Vulkyrie {
             }
         }
 
-        [[nodiscard]] ImageAcquisition Acquire(const TextureDescriptor &descriptor, LifeTime lifetime = {}) {
+        [[nodiscard]] ImageAcquisition Acquire(const TextureDescriptor &descriptor, ResourceLifetime lifetime = {}) {
             const u64 hash = HashDescriptor(descriptor);
             const auto handle = acquireFrom(mImages, hash, lifetime, [&] { return mContext.CreateImage(descriptor); }, mStats.ImagesCreatedThisFrame);
 
             return ImageAcquisition{ handle, true };
         }
 
-        [[nodiscard]] typename B::Buffer Acquire(const BufferDescriptor &descriptor, LifeTime lifetime = {}) {
+        [[nodiscard]] typename B::Buffer Acquire(const BufferDescriptor &descriptor, ResourceLifetime lifetime = {}) {
             const u64 hash = HashDescriptor(descriptor);
             return acquireFrom(mBuffers, hash, lifetime, [&] { return mContext.CreateBuffer(descriptor); }, mStats.BuffersCreatedThisFrame);
         }
@@ -105,7 +97,7 @@ namespace Vulkyrie {
             /** @brief The execution-order interval this entry was last handed out for. Only meaningful when
              * `LastUsedFrame == mFrameIndex`; an entry from an earlier frame carries no interval that this
              * frame's requests could conflict with. */
-            LifeTime Interval{};
+            ResourceLifetime Interval{};
 
             bool InUse = false;
         };
@@ -127,7 +119,7 @@ namespace Vulkyrie {
         u64 mFrameIndex = 0;
 
         template <typename Resource, typename CreateFn>
-        Resource acquireFrom(Pool<Resource> &pool, u64 descriptorHash, LifeTime lifetime, CreateFn &&create, u32 &createdCounter) {
+        Resource acquireFrom(Pool<Resource> &pool, u64 descriptorHash, ResourceLifetime lifetime, CreateFn &&create, u32 &createdCounter) {
             VASSERT(lifetime.Valid(), "TransientPool::Acquire: lifetime.LastUse must be >= lifetime.FirstUse.");
 
             auto &indices = pool.EntriesByHash[descriptorHash];
@@ -136,7 +128,7 @@ namespace Vulkyrie {
                 Entry<Resource> &e = pool.Entries[index];
 
                 const bool fromEarlierFrame = e.LastUsedFrame != mFrameIndex;
-                const bool disjointThisFrame = lifetime.FirstUse > e.Interval.LastUse || lifetime.LastUse < e.Interval.FirstUse;
+                const bool disjointThisFrame = lifetime.DisjointFrom(e.Interval);
 
                 if (fromEarlierFrame || disjointThisFrame) {
                     e.InUse = true;
