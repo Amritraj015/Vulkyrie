@@ -3,8 +3,15 @@
 using namespace Vulkyrie;
 
 Application *CreateApplication() {
-    Vulkyrie::ApplicationSettings settings = {
+    const Vulkyrie::ApplicationInfo appInfo{
         .Name = "Sandbox (Powered by The Vulkyrie Game Engine)",
+        .MajorVersion = 1,
+        .MinorVersion = 0,
+        .PatchVersion = 0,
+    };
+
+    const Vulkyrie::ApplicationSettings settings = {
+        .Application = appInfo,
         .GraphicsSettings = {
             .API = GraphicsAPI::OpenGL,
             .WindowHeight = 800,

@@ -17,6 +17,8 @@ namespace Vulkyrie {
 
         ~OpenGLContext() = default;
 
+        StatusCode Initialize();
+
         [[nodiscard]] OpenGLImage CreateImage(const TextureDescriptor &descriptor);
         [[nodiscard]] OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor);
         [[nodiscard]] OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor);
@@ -52,6 +54,7 @@ namespace Vulkyrie {
         bool DeviceLost() const;
 
     private:
+        DeviceCreationInfo mDeviceCreationInfo;
         DeviceCapabilities mCapabilities;
         bool mContextCreated;
     };

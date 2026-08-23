@@ -6,12 +6,17 @@
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/vulkan/vulkan_types.h"
+#include <volk.h>
 
 namespace Vulkyrie {
 
     class VulkanContext final {
     public:
         explicit VulkanContext(const DeviceCreationInfo &info);
+
+        ~VulkanContext();
+
+        StatusCode Initialize();
 
         VulkanImage CreateImage(const TextureDescriptor &descriptor);
         VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
@@ -48,6 +53,9 @@ namespace Vulkyrie {
         }
 
     private:
+        VkInstance mVkInstance;
+        VkDevice mVkDevice;
+        DeviceCreationInfo mDeviceCreationInfo;
         DeviceCapabilities mCapabilities;
         bool mContextCreated;
     };

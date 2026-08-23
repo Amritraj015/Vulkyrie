@@ -4,8 +4,15 @@
 using namespace Vulkyrie;
 
 Application *CreateApplication() {
-    ApplicationSettings settings = {
+    const Vulkyrie::ApplicationInfo appInfo{
         .Name = "Vulkyrie Editor",
+        .MajorVersion = 1,
+        .MinorVersion = 0,
+        .PatchVersion = 0,
+    };
+
+    const ApplicationSettings settings = {
+        .Application = appInfo,
         .GraphicsSettings = {
             .API = GraphicsAPI::OpenGL,
             .WindowHeight = 800,

@@ -70,6 +70,7 @@ namespace Vulkyrie {
                                                      const typename B::Sampler &sampler,
                                                      const typename B::Pipeline &pipeline,
                                                      const typename B::ShaderModule &shaderModule) {
+            { c.Initialize() } -> std::same_as<StatusCode>;
             { c.CreateImage(td) } -> std::same_as<typename B::Image>;
             { c.CreateBuffer(bd) } -> std::same_as<typename B::Buffer>;
             { c.CreateSampler(sd) } -> std::same_as<typename B::Sampler>;

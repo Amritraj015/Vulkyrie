@@ -13,10 +13,13 @@ namespace Vulkyrie {
     } // namespace
 
     OpenGLContext::OpenGLContext(const DeviceCreationInfo &info)
-        : mCapabilities()
+        : mDeviceCreationInfo(info)
+        , mCapabilities()
         , mContextCreated(false) {
+    }
 
-        auto *window = static_cast<GLFWwindow *>(info.WindowHandle.NativeWindow);
+    StatusCode OpenGLContext::Initialize() {
+        auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
 
         // Make the OpenGL context current.
         glfwMakeContextCurrent(window);
@@ -27,7 +30,7 @@ namespace Vulkyrie {
 
             mContextCreated = false;
 
-            return;
+            return StatusCode::FailedToInitializeRendererContext;
         }
 
         // GLAD: load all OpenGL function pointers
@@ -38,7 +41,7 @@ namespace Vulkyrie {
 
             mContextCreated = false;
 
-            return;
+            return StatusCode::FailedToInitializeGLAD;
         }
 
 #if defined(VULKYRIE_DEBUG)
@@ -142,11 +145,11 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
 #endif
 
-        glViewport(0, 0, info.SurfaceWidth, info.SurfaceHeight);
+        glViewport(0, 0, mDeviceCreationInfo.SurfaceWidth, mDeviceCreationInfo.SurfaceHeight);
 
         mContextCreated = true;
 
-        return;
+        return StatusCode::Successful;
     }
 
     OpenGLImage OpenGLContext::CreateImage(const TextureDescriptor &descriptor) {

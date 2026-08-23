@@ -5,13 +5,33 @@
     "assimp",
     {
       "name": "imgui",
-      "features": ["docking-experimental", "glfw-binding", "opengl3-binding"]
+      "features": [
+        "docking-experimental",
+        "glfw-binding",
+        "opengl3-binding",
+        "vulkan-binding"
+      ]
     },
-    "glfw3",
-    "glad",
+    { "name": "glfw3", "features": ["wayland"], "platform": "linux" },
+    { "name": "glfw3", "platform": "!linux" },
+    { "name": "glad", "features": ["gl-api-46"] },
     "glm",
     "stb",
     "openal-soft",
-    "catch2"
-  ]
+    "volk",
+    "vulkan-memory-allocator",
+    "directx-dxc",
+    "spirv-reflect",
+    "vulkan-validationlayers"
+  ],
+  "features": {
+    "tests": {
+      "description": "Unit tests",
+      "dependencies": ["catch2"]
+    },
+    "tools": {
+      "description": "vulkaninfo, vkcube",
+      "dependencies": ["vulkan-tools"]
+    }
+  }
 }

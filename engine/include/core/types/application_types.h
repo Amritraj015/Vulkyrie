@@ -51,8 +51,15 @@ namespace Vulkyrie {
         u8 SensitivityY;
     };
 
-    struct ApplicationSettings {
+    struct ApplicationInfo {
         StaticString Name;
+        u32 MajorVersion;
+        u32 MinorVersion;
+        u32 PatchVersion;
+    };
+
+    struct ApplicationSettings {
+        ApplicationInfo Application;
         GraphicsSettings GraphicsSettings;
         AudioSettings AudioSettings;
         KeyboardSettings KeyboardSettings;

@@ -84,7 +84,8 @@ namespace Vulkyrie {
     // -------------------------------------------------------------------
 
     struct DeviceCreationInfo {
-        DeviceCreationInfo(WindowHandle windowHandle,
+        DeviceCreationInfo(const ApplicationInfo &info,
+                           WindowHandle windowHandle,
                            u32 surfaceWidth = 800,
                            u32 surfaceHeight = 600,
                            u32 maxBuffers = 65536,
@@ -94,9 +95,9 @@ namespace Vulkyrie {
                            u32 workerCount = 1,
                            bool enableValidation = false,
                            bool preferDiscreteGpu = true,
-                           bool enableVSync = false
-                        )
-            : WindowHandle(windowHandle)
+                           bool enableVSync = false)
+            : ApplicationInfo(info)
+            , WindowHandle(windowHandle)
             , SurfaceWidth(surfaceWidth)
             , SurfaceHeight(surfaceHeight)
             , MaxBuffers(maxBuffers)
@@ -109,6 +110,7 @@ namespace Vulkyrie {
             , EnableVSync(enableVSync) {
         }
 
+        ApplicationInfo ApplicationInfo;
         WindowHandle WindowHandle;
         u32 SurfaceWidth = 800;
         u32 SurfaceHeight = 600;
@@ -125,7 +127,6 @@ namespace Vulkyrie {
         bool EnableValidation = false;
         bool PreferDiscreteGpu = true;
         bool EnableVSync = false;
-
 
         // u32 FramesInFlight = 2; // 2 for latency, 3 to hide a spiky CPU frame
         // bool EnableGpuValidation = false;

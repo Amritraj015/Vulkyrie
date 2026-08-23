@@ -82,6 +82,7 @@
       "name": "target-all",
       "hidden": true,
       "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES": "tests",
         "VULKYRIE_BUILD_EXAMPLES": "ON",
         "VULKYRIE_BUILD_EDITOR": "ON",
         "VULKYRIE_BUILD_CLI": "ON",
@@ -111,6 +112,7 @@
       "name": "target-tests",
       "hidden": true,
       "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES": "tests",
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",
         "VULKYRIE_BUILD_TESTS": "ON"
@@ -120,6 +122,7 @@
       "name": "target-benchmarks",
       "hidden": true,
       "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES": "tests",
         "VULKYRIE_BUILD_EXAMPLES": "OFF",
         "VULKYRIE_BUILD_EDITOR": "OFF",
         "VULKYRIE_BUILD_CLI": "OFF",

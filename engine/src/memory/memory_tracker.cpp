@@ -91,7 +91,7 @@ namespace Vulkyrie {
          * this file cannot control. A table with a destructor would be gone by then and every late free would
          * touch freed memory. Leaking one fixed-size structure at exit is the correct trade. */
         [[nodiscard]] DeepTable &Table() {
-            static DeepTable *table = ::new (std::malloc(sizeof(DeepTable))) DeepTable{};
+            static auto *table = ::new (std::malloc(sizeof(DeepTable))) DeepTable{};
             return *table;
         }
 

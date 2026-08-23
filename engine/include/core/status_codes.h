@@ -18,9 +18,11 @@ namespace Vulkyrie {
         FailedToCreateWindow,              // Failed to create window error.
         UnsupportedGraphicsAPI,            // Unsupported graphics API error.
         RendererAlreadyInitialized,        // Renderer already initialized.
-        FailedToInitializeRendererContext, // Failed to initialize rendere context.
+        FailedToInitializeRendererContext, // Failed to initialize renderer context.
         FailedToInitializeGLAD,            // Failed to initialize GLAD error.
         FailedToCompileShaderProgram,      // Failed to create shader program error.
         JobSystemAlreadyInitialized,       // JobSystem::Initialize called while an explicit instance is already running.
+        FailedToInitializeVolk,            // Failed to initialize Volk.
+        FailedToCreateVulkanInstance,      // Failed to Create Vulkan instance.
     };
 } // namespace Vulkyrie

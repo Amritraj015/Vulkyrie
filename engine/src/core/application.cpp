@@ -33,12 +33,13 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
-        VINFO("Name                 | {}", mAppSettings.Name);
+        VINFO("Name                 | {}", mAppSettings.Application.Name);
         VINFO("Window Dimensions    | {} x {}", mAppSettings.GraphicsSettings.WindowHeight, mAppSettings.GraphicsSettings.WindowWidth);
         VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
         const DeviceCreationInfo info = DeviceCreationInfo{
+            mAppSettings.Application,
             WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
             mAppSettings.GraphicsSettings.WindowWidth,
             mAppSettings.GraphicsSettings.WindowHeight,

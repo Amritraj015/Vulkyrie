@@ -22,7 +22,8 @@ target_include_directories(engine
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${Stb_INCLUDE_DIR}
+        # ${Stb_INCLUDE_DIR}
+        ${STB_INCLUDE_DIRS} # Defined in Dependencies.cmake in the root directory.
 )
 
 # ---------------------------
@@ -33,6 +34,10 @@ target_link_libraries(engine
         Threads::Threads
         glfw
         glad::glad
+        volk::volk
+        volk::volk_headers
+        GPUOpen::VulkanMemoryAllocator
+        unofficial::spirv-reflect
         glm::glm
         assimp::assimp
         OpenAL::OpenAL
@@ -46,6 +51,9 @@ target_compile_definitions(engine
         VULKYRIE_EXPORTS
         $<$<CONFIG:Debug>:VULKYRIE_DEBUG>
         VULKYRIE_LOG_LEVEL=${VULKYRIE_LOG_LEVEL}
+        VK_NO_PROTOTYPES
+        GLM_ENABLE_EXPERIMENTAL
+        GLFW_INCLUDE_NONE
 )
 
 # ---------------------------
@@ -55,6 +63,26 @@ target_precompile_headers(engine
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/vlkypch.h
 )
+
+# ---------------------------
+# Shader compilation
+# ---------------------------
+# set(VULKYRIE_SHADER_OUT "${CMAKE_BINARY_DIR}/shaders")
+# file(MAKE_DIRECTORY "${VULKYRIE_SHADER_OUT}")
+#
+# function(vulkyrie_add_shader target src stage entry)
+#     get_filename_component(name "${src}" NAME_WE)
+#     set(out "${VULKYRIE_SHADER_OUT}/${name}.${stage}.spv")
+#     add_custom_command(
+#         OUTPUT  "${out}"
+#         COMMAND "${DIRECTX_DXC_TOOL}" -spirv -T ${stage} -E ${entry}
+#                 -fspv-target-env=vulkan1.3
+#                 "${CMAKE_CURRENT_SOURCE_DIR}/${src}" -Fo "${out}"
+#         DEPENDS "${src}"
+#         COMMENT "DXC ${src}"
+#         VERBATIM)
+#     target_sources(${target} PRIVATE "${out}")
+# endfunction()
 
 # ---------------------------
 # Warnings & Errors (Propagate)

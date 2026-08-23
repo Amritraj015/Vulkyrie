@@ -6,6 +6,9 @@
 namespace Vulkyrie {
 
     inline constexpr StaticString VE_K_ENGINE_NAME = "Vulkyrie Engine";
+    inline constexpr u32 VE_K_ENGINE_MAJOR_VERSION = 1;
+    inline constexpr u32 VE_K_ENGINE_MINOR_VERSION = 0;
+    inline constexpr u32 VE_K_ENGINE_PATCH_VERSION = 0;
 
     /**
      * @brief The difference between 1.0f and the next representable f32 value
