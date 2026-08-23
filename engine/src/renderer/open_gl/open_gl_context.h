@@ -17,9 +17,6 @@ namespace Vulkyrie {
 
         ~OpenGLContext() = default;
 
-        StatusCode Initialize();
-        void SetWindowHints() const;
-
         [[nodiscard]] OpenGLImage CreateImage(const TextureDescriptor &descriptor);
         [[nodiscard]] OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor);
         [[nodiscard]] OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor);
