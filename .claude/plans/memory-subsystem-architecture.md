@@ -7,7 +7,7 @@ Vulkyrie currently has **no memory subsystem**. Every allocation goes straight t
 (GLFW, assimp, OpenAL, ImGui, STB, glm) with **no accounting whatsoever**. There is no way to
 answer "how much memory is Physics using vs. Rendering?", no leak detection, no budgets, and no
 visibility into allocation hot spots. `main.cpp` even carries a commented-out global
-`operator new` override under `VULKYRIE_DEBUG` — the intent was already there, unbuilt.
+`operator new` override under `VE_DEBUG` — the intent was already there, unbuilt.
 
 The goal is a first-class **Memory subsystem** that (1) tracks memory usage **per engine
 subsystem** (Physics, Rendering, Audio, Core, …), (2) ships the must-have tooling around it
@@ -36,7 +36,7 @@ execution, not an implementation task.
   and `Application::GetSingleton()` show the established bootstrap/singleton conventions. The
   memory tracker must initialize **before** any subsystem allocates and report at shutdown.
 - **Existing global-override seam.** The commented-out `operator new` in `main.cpp` (guarded by
-  `VULKYRIE_DEBUG`, a compile def set for Debug in `engine/CMakeLists.txt`) is exactly where a
+  `VE_DEBUG`, a compile def set for Debug in `engine/CMakeLists.txt`) is exactly where a
   global heap hook belongs.
 - **Subsystems** are sibling module directories: `core, renderer, audio, physics, input, events,
   networking, materials` (+ `platform`). **`Engine` (`core/engine.h`) no longer exists** — it was

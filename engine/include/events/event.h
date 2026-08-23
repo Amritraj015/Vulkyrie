@@ -10,7 +10,7 @@ namespace Vulkyrie {
         virtual ~Event() = default;
 
         /** @brief Indicates whether the event has been handled. */
-        bool handled = false;
+        bool Handled = false;
 
         /** @brief Gets the event type. */
         [[nodiscard]] inline virtual EventType GetEventType() const = 0;

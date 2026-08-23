@@ -185,7 +185,7 @@ namespace Vulkyrie {
         std::vector<u64> &overlappingPairsOne = _colliderComponentStore.GetOverlappingPairsAtIndex(colliderOneIndex);
         std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairsAtIndex(colliderTwoIndex);
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         VASSERT(std::find(overlappingPairsOne.begin(), overlappingPairsOne.end(), pairID) == overlappingPairsOne.end(),
                 "Trying to add a pair with a pair ID that already exists in the overlapping pairs of the first collider.");
 
@@ -233,7 +233,7 @@ namespace Vulkyrie {
     void OverlappingPairs::RemoveConvexPairWithIndex(size_t pairIndex, bool removeFromColliders) {
         const size_t convexPairsCount = _convexPairs.size();
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         std::vector<u64> &overlappingPairsOne = _colliderComponentStore.GetOverlappingPairs(_convexPairs[pairIndex].ColliderOneEntity);
         std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(_convexPairs[pairIndex].ColliderTwoEntity);
 
@@ -274,7 +274,7 @@ namespace Vulkyrie {
     void OverlappingPairs::RemoveConcavePairWithIndex(size_t pairIndex, bool removeFromColliders) {
         const size_t concavePairsCount = _concavePairs.size();
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         std::vector<u64> &overlappingPairsOne = _colliderComponentStore.GetOverlappingPairs(_concavePairs[pairIndex].ColliderOneEntity);
         std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(_concavePairs[pairIndex].ColliderTwoEntity);
 
@@ -332,7 +332,7 @@ namespace Vulkyrie {
     void OverlappingPairs::removeDisabledConvexPairWithIndex(size_t pairIndex, bool removeFromColliders) {
         const ConvexOverlappingPair &pairToRemove = _disabledConvexPairs[pairIndex];
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         std::vector<u64> &overlappingPairsOne = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderOneEntity);
         std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 
@@ -373,7 +373,7 @@ namespace Vulkyrie {
     void OverlappingPairs::removeDisabledConcavePairWithIndex(size_t pairIndex, bool removeFromColliders) {
         const ConcaveOverlappingPair &pairToRemove = _disabledConcavePairs[pairIndex];
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         std::vector<u64> &overlappingPairsOne = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderOneEntity);
         std::vector<u64> &overlappingPairsTwo = _colliderComponentStore.GetOverlappingPairs(pairToRemove.ColliderTwoEntity);
 

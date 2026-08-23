@@ -21,6 +21,10 @@ namespace Vulkyrie {
             }
         }
 
+        [[nodiscard]] virtual StatusCode InitializeContext() override {
+            return mDevice.Context().Initialize();
+        }
+
         [[nodiscard]] VE_INLINE GraphicsAPI BackendType() const noexcept override {
             return B::kType;
         }

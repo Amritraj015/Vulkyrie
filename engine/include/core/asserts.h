@@ -11,7 +11,7 @@
 #define VDEBUGBREAK() std::abort()
 #endif
 
-#ifdef VULKYRIE_DEBUG
+#ifdef VE_DEBUG
 
 // clang-format off
 #define VASSERT(condition, message, ...)                                                                                                                       \

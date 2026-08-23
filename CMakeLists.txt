@@ -2,7 +2,7 @@
 # Global configuration
 # -------------------------------------
 cmake_minimum_required(VERSION 4.2)
-project(vulkyrie)
+project(vulkyrie VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 26)
 
 # -------------------------------------

@@ -15,7 +15,7 @@ namespace Vulkyrie {
      * a debug session and not for a shipping frame - the cheap counters stay exact either way, so turning this off
      * loses leak detection and hot spots but never loses attribution. */
 #if !defined(VE_MEMORY_DEEP_TRACKING)
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
 #define VE_MEMORY_DEEP_TRACKING 1
 #else
 #define VE_MEMORY_DEEP_TRACKING 0

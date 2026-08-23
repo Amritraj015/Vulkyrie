@@ -2,7 +2,7 @@
 // VASSERT (the correct, loud behavior), so the tests only compile in release, where the guarantee
 // under test is *containment*: misuse must degrade to a bounded, harmless outcome — never a wild
 // out-of-bounds pool access (the FinishJob closed-sentinel regression) and never a livelock.
-#if !defined(VULKYRIE_DEBUG)
+#if !defined(VE_DEBUG)
 
 #include "core/jobs/job_system.h"
 
@@ -243,4 +243,4 @@ TEST_CASE("Manual: a builder job that exhausts the pool from inside its own body
     FAIL("unreachable - the builder job must abort the process");
 }
 
-#endif // !defined(VULKYRIE_DEBUG)
+#endif // !defined(VE_DEBUG)

@@ -15,6 +15,7 @@ namespace Vulkyrie {
 
         [[nodiscard]] static Scope<Renderer> Create(const GraphicsAPI api, const DeviceCreationInfo &info);
 
+        [[nodiscard]] virtual StatusCode InitializeContext() = 0;
         [[nodiscard]] virtual GraphicsAPI BackendType() const noexcept = 0;
         [[nodiscard]] virtual const DeviceCapabilities &QueryCapabilities() const = 0;
 

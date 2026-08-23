@@ -18,8 +18,8 @@ namespace Vulkyrie {
         template <typename T, typename F>
             requires std::derived_from<T, Event> && std::is_invocable_r_v<bool, F, T &>
         bool Dispatch(F &&func) {
-            if (_event.GetEventType() == T::GetStaticEventType() && !_event.handled) {
-                _event.handled |= func(static_cast<T &>(_event));
+            if (_event.GetEventType() == T::GetStaticEventType() && !_event.Handled) {
+                _event.Handled |= func(static_cast<T &>(_event));
 
                 return true;
             }

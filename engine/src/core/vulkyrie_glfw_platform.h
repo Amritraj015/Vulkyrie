@@ -21,7 +21,7 @@ namespace Vulkyrie {
         void SetVSync(bool enable) override;
 
         VE_INLINE void OnUpdate() const override {
-            glfwSwapBuffers(_window);
+            // glfwSwapBuffers(_window);
             glfwPollEvents();
         }
 

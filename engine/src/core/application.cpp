@@ -48,6 +48,10 @@ namespace Vulkyrie {
         // Try to initialzed the renderer.
         mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, info);
 
+        // Initialize the renderer context.
+        RETURN_ON_FAILURE(mRenderer->InitializeContext());
+
+        // TODO: This probably can be removed because the line above will return on context initialization failure.
         // Return an error status code if the renderer context failed to initialized.
         if (!mRenderer->ContextCreated()) {
             return StatusCode::FailedToInitializeRendererContext;
@@ -117,7 +121,7 @@ namespace Vulkyrie {
         // Propagate the event through the layers in reverse order (from top to bottom).
         for (const auto &layer : std::ranges::reverse_view(mLayers)) {
             // If the event has been handled, stop propagating.
-            if (event.handled) {
+            if (event.Handled) {
                 break;
             }
 
@@ -135,10 +139,10 @@ namespace Vulkyrie {
     }
 
     bool Application::OnWindowResized(const WindowResizedEvent &event) {
+        mRenderer->OnWindowResize(event.Width, event.Height);
+
         mAppSettings.GraphicsSettings.WindowHeight = event.Height;
         mAppSettings.GraphicsSettings.WindowWidth = event.Width;
-
-        mRenderer->OnWindowResize(event.Width, event.Height);
 
         return false;
     }

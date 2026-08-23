@@ -41,7 +41,7 @@ report → light scope-sprinkling at subsystem entry points → a Catch2 reconci
   singleton, so pre-`main` allocations (from other globals' dynamic init) are still counted.
 - **Auto-compiled module:** [engine/CMakeLists.txt](engine/CMakeLists.txt) uses
   `file(GLOB_RECURSE ... src/*.cpp CONFIGURE_DEPENDS)` → new `engine/src/memory/*.cpp` compiles
-  with **no CMakeLists edit**. `VULKYRIE_DEBUG` is a `PUBLIC` compile def for the Debug config.
+  with **no CMakeLists edit**. `VE_DEBUG` is a `PUBLIC` compile def for the Debug config.
 - **PCH vocabulary:** [engine/include/vlkypch.h](engine/include/vlkypch.h) force-included into every TU;
   `u8/i64/f32`, `VE_INLINE`, `VE_DELETE_MOVE_AND_COPY`, `Scope`/`Ref` live here.
 - **Bootstrap:** [engine/src/main.cpp](engine/src/main.cpp) — Logger init → `CreateApplication()` →

@@ -604,7 +604,7 @@ namespace Vulkyrie {
 
             state->Workers.clear();
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
             for (u32 i = 0; i < state->MaxJobs; ++i) {
                 VASSERT(state->Jobs[i].Finished.load(std::memory_order_acquire),
                         "JobSystem::Shutdown with unfinished job in slot {} - a created job was never scheduled or never waited on.",
@@ -677,7 +677,7 @@ namespace Vulkyrie {
 
         CreateState(config, workerCount, false);
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         const JobSystemState &state = *gState.load(std::memory_order_acquire);
         VINFO("Job system initialized: {} worker thread(s) + main, {} job slots, {} dependency edges.", workerCount, state.MaxJobs, state.MaxEdges);
 #endif

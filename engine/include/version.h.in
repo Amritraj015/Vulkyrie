@@ -1,0 +1,13 @@
+#pragma once
+
+#include "core/types/static_string.h"
+
+namespace Vulkyrie {
+
+    inline constexpr StaticString kEngineName = "@PROJECT_NAME@";
+    inline constexpr u32 kEngineMajorVersion = @PROJECT_VERSION_MAJOR@;
+    inline constexpr u32 kEngineMinorVersion = @PROJECT_VERSION_MINOR@;
+    inline constexpr u32 kEnginePatchVersion = @PROJECT_VERSION_PATCH@;
+    inline constexpr StaticString kEngineVersionString = "@PROJECT_VERSION@";
+
+} // namespace Vulkyrie

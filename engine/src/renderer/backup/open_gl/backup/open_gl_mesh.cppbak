@@ -139,7 +139,7 @@ namespace Vulkyrie {
             _textureUniformNames.emplace_back(std::move(name));
         }
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         // ========================================
         // Debug Validation
         // ========================================

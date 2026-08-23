@@ -44,7 +44,7 @@ namespace Vulkyrie {
             return StatusCode::FailedToInitializeGLAD;
         }
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
         i32 contextFlags = 0;
         glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
 

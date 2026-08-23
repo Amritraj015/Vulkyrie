@@ -13,8 +13,8 @@
 #define VULKYRIE_DEBUG_LEVEL_LOG 4
 #define VULKYRIE_TRACE_LEVEL_LOG 5
 
-#if not defined(VULKYRIE_LOG_LEVEL)
-#define VULKYRIE_LOG_LEVEL VULKYRIE_ERROR_LEVEL_LOG
+#if not defined(VE_LOG_LEVEL)
+#define VE_LOG_LEVEL VULKYRIE_ERROR_LEVEL_LOG
 #endif
 
 namespace Vulkyrie {
@@ -100,28 +100,28 @@ namespace Vulkyrie {
 #define VERROR(fmt, ...) Logger::Log(LogLevel::Error, VE_LOG_SITE, fmt __VA_OPT__(,) __VA_ARGS__)
 
 // Logs a warning message if warning level logs are enabled else noop.
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_WARN_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_WARN_LEVEL_LOG
 #define VWARN(fmt, ...) Logger::Log(LogLevel::Warn, VE_LOG_SITE, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
 #define VWARN(fmt, ...)
 #endif
 
 // Logs an info message if info level logs are enabled else noop.
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
 #define VINFO(fmt, ...) Logger::Log(LogLevel::Info, VE_LOG_SITE, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
 #define VINFO(fmt, ...)
 #endif
 
 // Logs a debug message if debug level logs are enabled else noop.
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_DEBUG_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_DEBUG_LEVEL_LOG
 #define VDEBUG(fmt, ...) Logger::Log(LogLevel::Debug, VE_LOG_SITE, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
 #define VDEBUG(fmt, ...)
 #endif
 
 // Logs a trace message if trace level logs are enabled else noop.
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_TRACE_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_TRACE_LEVEL_LOG
 #define VTRACE(fmt, ...) Logger::Log(LogLevel::Trace, VE_LOG_SITE, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
 #define VTRACE(fmt, ...)

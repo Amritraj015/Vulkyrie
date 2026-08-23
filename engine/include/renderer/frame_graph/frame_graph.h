@@ -190,7 +190,7 @@ namespace Vulkyrie {
             mCore.SetInSetup(false);
 
             // The following function is just used for debug assertions.
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
             mCore.AssertContiguousRanges(passNode);
 #endif
 

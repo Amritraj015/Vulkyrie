@@ -82,7 +82,7 @@ using usize = std::size_t;
 // Windows OS.
 #define VE_PLATFORM_WINDOWS 1
 
-#if defined(VULKYRIE_EXPORTS)
+#if defined(VE_EXPORTS)
 #define VE_API __declspec(dllexport)
 #else
 #define VE_API __declspec(dllimport)

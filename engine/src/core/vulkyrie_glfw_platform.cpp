@@ -337,18 +337,22 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkyrieGLFWPlatform::CreateWindow() {
-        // GLFW: initialize and configure
-        glfwInit();
-
         // Set GLFW error callback.
         glfwSetErrorCallback([](i32 errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
+
+        // GLFW: initialize and configure
+        const i32 result = glfwInit();
+
+        if (GLFW_FALSE == result) {
+            return StatusCode::FailedToInitializeGLFW;
+        }
 
         if (mWindowProps.GraphicsAPI == GraphicsAPI::OpenGL) {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
         } else if (mWindowProps.GraphicsAPI == GraphicsAPI::Vulkan) {
@@ -381,7 +385,7 @@ namespace Vulkyrie {
             const u32 newHeight = static_cast<u32>(height);
 
             // Reset the height and width of the viewport.
-            glViewport(0, 0, newWidth, newHeight);
+            // glViewport(0, 0, newWidth, newHeight);
 
             // Create the window resize event.
             WindowResizedEvent event(newWidth, newHeight);

@@ -14,6 +14,15 @@ add_library(engine STATIC ${ENGINE_SOURCES})
 target_compile_features(engine PUBLIC cxx_std_26)
 
 # ---------------------------
+# Engine Version Constants.
+# ---------------------------
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/vulkyrie_version.h
+    @ONLY
+)
+
+# ---------------------------
 # Include Paths
 # ---------------------------
 target_include_directories(engine
@@ -22,6 +31,7 @@ target_include_directories(engine
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_BINARY_DIR}/generated
         # ${Stb_INCLUDE_DIR}
         ${STB_INCLUDE_DIRS} # Defined in Dependencies.cmake in the root directory.
 )
@@ -48,9 +58,10 @@ target_link_libraries(engine
 # ---------------------------
 target_compile_definitions(engine
     PUBLIC
-        VULKYRIE_EXPORTS
-        $<$<CONFIG:Debug>:VULKYRIE_DEBUG>
-        VULKYRIE_LOG_LEVEL=${VULKYRIE_LOG_LEVEL}
+        VE_EXPORTS
+        $<$<CONFIG:Debug>:VE_DEBUG>
+        $<$<CONFIG:Debug>:VE_ENABLE_RENDERER_VALIDATION>
+        VE_LOG_LEVEL=${VE_LOG_LEVEL}
         VK_NO_PROTOTYPES
         GLM_ENABLE_EXPERIMENTAL
         GLFW_INCLUDE_NONE

@@ -33,7 +33,7 @@ TEST_CASE("MemoryTracker - Deep tracking is on in debug builds", "[memory][deep]
     // documents which side of the switch this build is on rather than asserting one.
     INFO("deep tracking: " << MemoryTracker::DeepTrackingEnabled() << ", callstacks: " << CallstacksEnabled());
 
-#if defined(VULKYRIE_DEBUG)
+#if defined(VE_DEBUG)
     REQUIRE(MemoryTracker::DeepTrackingEnabled());
 #endif
 

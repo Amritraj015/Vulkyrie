@@ -121,8 +121,8 @@ the codebase:
 - All engine code lives in namespace `Vulkyrie`.
 
 Logging (`core/logger.h`) uses `VFATAL/VERROR/VWARN/VINFO/VDEBUG/VTRACE(fmt, ...)` macros (std::format-style),
-compiled out below the `VULKYRIE_LOG_LEVEL` definition. Assertions (`core/asserts.h`) use `VASSERT`/`VASSERT_EXPR`,
-which log via `VERROR` and trap (`VDEBUGBREAK`); both are no-ops unless `VULKYRIE_DEBUG` is defined (Debug builds only).
+compiled out below the `VE_LOG_LEVEL` definition. Assertions (`core/asserts.h`) use `VASSERT`/`VASSERT_EXPR`,
+which log via `VERROR` and trap (`VDEBUGBREAK`); both are no-ops unless `VE_DEBUG` is defined (Debug builds only).
 
 ### Custom ECS
 
