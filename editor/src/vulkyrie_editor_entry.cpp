@@ -12,7 +12,7 @@ Application *CreateApplication() {
     };
 
     const ApplicationSettings settings = {
-        .Application = appInfo,
+        .GeneralSettings = appInfo,
         .GraphicsSettings = {
             .API = GraphicsAPI::OpenGL,
             .WindowHeight = 800,

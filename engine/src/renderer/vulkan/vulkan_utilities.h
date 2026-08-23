@@ -2,10 +2,11 @@
 
 namespace Vulkyrie {
 
-#define VE_VK_CHECK(expr, errorMessage, statusCode)                                                                                                            \
+#define VE_VK_CHECK(expr, statusCode)                                                                                                                          \
     do {                                                                                                                                                       \
-        if (VK_SUCCESS != (expr)) {                                                                                                                            \
-            VERROR(errorMessage);                                                                                                                              \
+        const auto result = (expr);                                                                                                                            \
+        if (VK_SUCCESS != result) {                                                                                                                            \
+            VERROR("Vulkan Error Code: {}", std::to_underlying(result));                                                                                       \
             return statusCode;                                                                                                                                 \
         }                                                                                                                                                      \
     } while (false)

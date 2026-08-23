@@ -11,9 +11,9 @@ Application *CreateApplication() {
     };
 
     const Vulkyrie::ApplicationSettings settings = {
-        .Application = appInfo,
+        .GeneralSettings = appInfo,
         .GraphicsSettings = {
-            .API = GraphicsAPI::OpenGL,
+            .API = GraphicsAPI::Vulkan,
             .WindowHeight = 800,
             .WindowWidth = 1500,
             .EnableVSync = false,

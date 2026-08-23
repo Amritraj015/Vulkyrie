@@ -16,7 +16,7 @@ namespace Vulkyrie {
         const WindowProps windowProps = {
             .Height = appSettings.GraphicsSettings.WindowHeight,
             .Width = appSettings.GraphicsSettings.WindowWidth,
-            .Title = appSettings.Application.Name,
+            .Title = appSettings.GeneralSettings.Name,
             .EnableVSync = appSettings.GraphicsSettings.EnableVSync,
             .GraphicsAPI = appSettings.GraphicsSettings.API,
         };
@@ -33,13 +33,13 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
-        VINFO("Name                 | {}", mAppSettings.Application.Name);
+        VINFO("Name                 | {}", mAppSettings.GeneralSettings.Name);
         VINFO("Window Dimensions    | {} x {}", mAppSettings.GraphicsSettings.WindowHeight, mAppSettings.GraphicsSettings.WindowWidth);
         VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
         const DeviceCreationInfo info = DeviceCreationInfo{
-            mAppSettings.Application,
+            mAppSettings.GeneralSettings,
             WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
             mAppSettings.GraphicsSettings.WindowWidth,
             mAppSettings.GraphicsSettings.WindowHeight,

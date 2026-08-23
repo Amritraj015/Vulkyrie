@@ -59,7 +59,7 @@ namespace Vulkyrie {
     };
 
     struct ApplicationSettings {
-        ApplicationInfo Application;
+        ApplicationInfo GeneralSettings;
         GraphicsSettings GraphicsSettings;
         AudioSettings AudioSettings;
         KeyboardSettings KeyboardSettings;
