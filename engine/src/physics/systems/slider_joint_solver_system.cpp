@@ -166,7 +166,7 @@ namespace Vulkyrie {
 
             // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic;
             // a singular K means the constraint is degenerate and has no unique impulse solution this step.
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _sliderJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat2(kTranslation, kTranslationDet));
@@ -180,7 +180,7 @@ namespace Vulkyrie {
             _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
             const f32 kRotationDet = glm::determinant(kRotation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(kRotation, kRotationDet));
@@ -639,7 +639,7 @@ namespace Vulkyrie {
             _sliderJointStore.SetInverseMassRotationMatrixAtIndex(i, invKRotation);
             const f32 kRotationDet = glm::determinant(kRotation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKRotation = InverseMat3(kRotation, kRotationDet);
@@ -680,7 +680,7 @@ namespace Vulkyrie {
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
             // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic.
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKTranslation = InverseMat2(kTranslation, kTranslationDet);

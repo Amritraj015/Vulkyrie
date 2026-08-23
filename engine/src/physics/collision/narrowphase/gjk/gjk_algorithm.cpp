@@ -78,7 +78,7 @@ namespace Vulkyrie {
             if (lastFrameData.IsValid && lastFrameData.WasUsingGJKAlgorithm) {
                 v = lastFrameData.GJKSeparatingAxis;
 
-                VASSERT(glm::length2(v) > VE_MACHINE_EPSILON, "Invalid separating axis from last frame: length is too small.");
+                VASSERT(glm::length2(v) > VE_K_MACHINE_EPSILON, "Invalid separating axis from last frame: length is too small.");
             } else {
                 // If no cached data, use arbitrary initial direction (upward)
                 v = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -173,7 +173,7 @@ namespace Vulkyrie {
 
                 // If distance improvement is too small, we've converged
                 // This prevents infinite loops when progress stalls due to numerical precision
-                if (previousDistanceSquared - distanceSquared <= VE_MACHINE_EPSILON * previousDistanceSquared) {
+                if (previousDistanceSquared - distanceSquared <= VE_K_MACHINE_EPSILON * previousDistanceSquared) {
                     // Back up the closest point from simplex
                     simplex.BackupClosestPointInSimplex(v);
 
@@ -186,7 +186,7 @@ namespace Vulkyrie {
                     break;
                 }
 
-            } while (!simplex.IsFull() && distanceSquared > VE_MACHINE_EPSILON * simplex.GetMaxLengthSquareOfAPoint());
+            } while (!simplex.IsFull() && distanceSquared > VE_K_MACHINE_EPSILON * simplex.GetMaxLengthSquareOfAPoint());
             // Loop continues while:
             // 1. Simplex has room for more points (not full = less than 4 vertices)
             // 2. Distance to origin is above epsilon threshold (relative to simplex size)
@@ -200,7 +200,7 @@ namespace Vulkyrie {
 
             // ----- Handle Shallow Penetration (Contact in Margin) -----
 
-            if (collisionDetected && distanceSquared > VE_MACHINE_EPSILON) {
+            if (collisionDetected && distanceSquared > VE_K_MACHINE_EPSILON) {
                 // Objects are close but not deeply penetrating
 
                 // Compute the closest points on both objects (without margins)
@@ -235,7 +235,7 @@ namespace Vulkyrie {
                 }
 
                 // Reject contact if normal is degenerate (zero length)
-                if (glm::length2(normal) < VE_MACHINE_EPSILON) {
+                if (glm::length2(normal) < VE_K_MACHINE_EPSILON) {
                     VASSERT(gjkResults.size() == i, "GJK results vector size must be equal to i");
                     gjkResults.push_back(GJKResult::Separated);
 

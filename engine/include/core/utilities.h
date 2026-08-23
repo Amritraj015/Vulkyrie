@@ -72,7 +72,7 @@ namespace Vulkyrie {
         const glm::vec3 lineDirection = lineEnd - lineStart;
         const f32 lineLengthSquared = glm::length2(lineDirection);
 
-        if (lineLengthSquared < VE_MACHINE_EPSILON) {
+        if (lineLengthSquared < VE_K_MACHINE_EPSILON) {
             // The line segment is degenerate (start and end are the same point), so return the start point.
             return lineStart;
         }
@@ -99,7 +99,7 @@ namespace Vulkyrie {
         const glm::vec3 ab = lineEnd - lineStart;
         const f32 lineLengthSquared = glm::length2(ab);
 
-        if (lineLengthSquared < VE_MACHINE_EPSILON) {
+        if (lineLengthSquared < VE_K_MACHINE_EPSILON) {
             return glm::length2(point - lineStart);
         }
 
@@ -153,7 +153,7 @@ namespace Vulkyrie {
      * @returns True if the vectors are parallel (or nearly parallel), false otherwise.
      */
     [[nodiscard]] VE_INLINE bool AreParallelVectors(const glm::vec3 &v1, const glm::vec3 &v2) {
-        return glm::length2(glm::cross(v1, v2)) < VE_MACHINE_EPSILON * VE_MACHINE_EPSILON;
+        return glm::length2(glm::cross(v1, v2)) < VE_K_MACHINE_EPSILON * VE_K_MACHINE_EPSILON;
     }
 
     /** @brief Determines if two vectors are orthogonal by checking if the absolute value of their dot product is below a small threshold.
@@ -197,20 +197,20 @@ namespace Vulkyrie {
         f32 s, t; // Parametric values on segment 1 and segment 2 respectively.
 
         // If both segments degenerate into points, return the two endpoints.
-        if (seg1LengthSquared <= VE_MACHINE_EPSILON && seg2LengthSquared <= VE_MACHINE_EPSILON) {
+        if (seg1LengthSquared <= VE_K_MACHINE_EPSILON && seg2LengthSquared <= VE_K_MACHINE_EPSILON) {
             closestPointSegmentOne = segmentOneStart;
             closestPointSegmentTwo = segmentTwoStart;
             return;
         }
 
-        if (seg1LengthSquared <= VE_MACHINE_EPSILON) {
+        if (seg1LengthSquared <= VE_K_MACHINE_EPSILON) {
             // Segment 1 is a point: fix s = 0 and find the closest point on segment 2.
             s = 0.0f;
             t = std::clamp(d2DotR / seg2LengthSquared, 0.0f, 1.0f);
         } else {
             const f32 d1DotR = glm::dot(seg1Direction, originOffset); // c: used for projecting onto segment 1.
 
-            if (seg2LengthSquared <= VE_MACHINE_EPSILON) {
+            if (seg2LengthSquared <= VE_K_MACHINE_EPSILON) {
                 // Segment 2 is a point: fix t = 0 and find the closest point on segment 1.
                 t = 0.0f;
                 s = std::clamp(-d1DotR / seg1LengthSquared, 0.0f, 1.0f);
@@ -422,7 +422,7 @@ namespace Vulkyrie {
      * @param determinant The pre-computed determinant of m.
      * @returns The inverse of m. */
     [[nodiscard]] VE_INLINE glm::mat3 InverseMat3(const glm::mat3 &m, f32 determinant) {
-        VASSERT(std::abs(determinant) > VE_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(std::abs(determinant) > VE_K_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
 
         const f32 invDet = f32(1.0) / determinant;
         glm::mat3 inv;
@@ -448,7 +448,7 @@ namespace Vulkyrie {
      * @param determinant The pre-computed determinant of m.
      * @returns The inverse of m. */
     [[nodiscard]] VE_INLINE glm::mat2 InverseMat2(const glm::mat2 &m, f32 determinant) {
-        VASSERT(std::abs(determinant) > VE_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(std::abs(determinant) > VE_K_MACHINE_EPSILON, "determinant must be greater than VE_MACHINE_EPSILON.");
 
         const f32 invDet = f32(1.0) / determinant;
 
@@ -486,7 +486,7 @@ namespace Vulkyrie {
      * @returns A unit vector orthogonal to v.
      */
     [[nodiscard]] VE_INLINE glm::vec3 GetOrthogonalUnitVector(const glm::vec3 &v) {
-        VASSERT(glm::dot(v, v) > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON, "Length of the vector must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(glm::dot(v, v) > VE_K_MACHINE_EPSILON * VE_K_MACHINE_EPSILON, "Length of the vector must be greater than VE_MACHINE_EPSILON.");
 
         switch (GetMinAxis(glm::vec3(std::abs(v.x), std::abs(v.y), std::abs(v.z)))) {
             case Axis::X: {

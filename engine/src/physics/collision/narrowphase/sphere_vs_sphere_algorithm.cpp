@@ -48,7 +48,7 @@ namespace Vulkyrie {
                         glm::vec3 contactNormal(0.0f);
 
                         // If the centers are not extremely close, compute contact normal and intersection points normally.
-                        if (distanceSquared > VE_MACHINE_EPSILON) {
+                        if (distanceSquared > VE_K_MACHINE_EPSILON) {
                             // Transform the center of each sphere into the other's local space.
                             const glm::vec3 centerSphereTwoInBodyOneLocalSpace = transformOneInverse * shapeTwoTransform.Position;
                             const glm::vec3 centerSphereOneInBodyTwoLocalSpace = transformTwoInverse * shapeOneTransform.Position;

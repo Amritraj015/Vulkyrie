@@ -15,7 +15,7 @@ namespace Vulkyrie {
         if (_margin != f32(0.0)) {
             glm::vec3 unitVector(0.0f, -1.0f, 0.0f);
 
-            if (glm::length2(unitVector) > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON) {
+            if (glm::length2(unitVector) > VE_K_MACHINE_EPSILON * VE_K_MACHINE_EPSILON) {
                 unitVector = glm::normalize(direction);
             }
 

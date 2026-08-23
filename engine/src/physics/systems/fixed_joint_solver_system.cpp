@@ -77,7 +77,7 @@ namespace Vulkyrie {
             _fixedJointStore.SetInverseMassTranslationMatrixAtIndex(i, glm::mat3(0));
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _fixedJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat3(kTranslation, kTranslationDet));
@@ -101,7 +101,7 @@ namespace Vulkyrie {
             _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat3(0));
 
             const f32 kRotationDet = glm::determinant(kRotation);
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat3(kRotation, kRotationDet));
@@ -341,7 +341,7 @@ namespace Vulkyrie {
 
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKTranslation = InverseMat3(kTranslation, kTranslationDet);
@@ -392,7 +392,7 @@ namespace Vulkyrie {
             _fixedJointStore.SetInverseMassRotationMatrixAtIndex(i, invKRotation);
             const f32 kRotationDet = glm::determinant(kRotation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKRotation = InverseMat3(kRotation, kRotationDet);

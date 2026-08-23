@@ -102,7 +102,7 @@ namespace Vulkyrie {
 
             // Skip the inverse (leave it zeroed) if the mass matrix is singular or both bodies are non-dynamic;
             // a singular K means the constraint is degenerate and has no unique impulse solution this step.
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, InverseMat3(kTranslation, kTranslationDet));
@@ -137,7 +137,7 @@ namespace Vulkyrie {
             _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, glm::mat2(0));
 
             // Same singular/non-dynamic guard as the translation mass matrix above.
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, InverseMat2(kRotation, kRotationDet));
@@ -567,7 +567,7 @@ namespace Vulkyrie {
             _hingeJointStore.SetInverseMassRotationMatrixAtIndex(i, invKRotation);
             const f32 kRotationDet = glm::determinant(kRotation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kRotationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kRotationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKRotation = InverseMat2(kRotation, kRotationDet);
@@ -608,7 +608,7 @@ namespace Vulkyrie {
             _hingeJointStore.SetInverseMassTranslationMatrixAtIndex(i, invKTranslation);
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     invKTranslation = InverseMat3(kTranslation, kTranslationDet);

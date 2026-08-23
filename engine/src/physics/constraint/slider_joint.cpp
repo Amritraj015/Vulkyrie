@@ -173,7 +173,7 @@ namespace Vulkyrie {
     }
 
     glm::vec3 SliderJoint::GetReactionForce(Timestep timestep) const {
-        VASSERT(VE_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
+        VASSERT(VE_K_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
 
         SliderJointComponentStore &sliderJointStore = _physicsWorld.GetSliderJointComponentStore();
 
@@ -198,7 +198,7 @@ namespace Vulkyrie {
     }
 
     glm::vec3 SliderJoint::GetReactionTorque(Timestep timestep) const {
-        VASSERT(VE_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
+        VASSERT(VE_K_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
 
         return _physicsWorld.GetSliderJointComponentStore().GetImpulseRotation(_entity) / timestep.GetSeconds();
     }

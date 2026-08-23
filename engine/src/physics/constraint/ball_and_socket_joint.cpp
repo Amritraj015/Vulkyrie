@@ -84,14 +84,14 @@ namespace Vulkyrie {
     }
 
     glm::vec3 BallAndSocketJoint::GetReactionForce(Timestep timestep) const {
-        VASSERT(timestep.GetSeconds() > VE_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(timestep.GetSeconds() > VE_K_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
 
         // Convert the accumulated translational impulse (N·s) to a force (N) by dividing by dt.
         return _physicsWorld.GetBallAndSocketJointComponentStore().GetImpulse(_entity) / timestep.GetSeconds();
     }
 
     glm::vec3 BallAndSocketJoint::GetReactionTorque([[maybe_unused]] Timestep timestep) const {
-        VASSERT(timestep.GetSeconds() > VE_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(timestep.GetSeconds() > VE_K_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
 
         // A ball-and-socket joint constrains only translation, so it produces no reaction torque.
         return glm::vec3(0.0f, 0.0f, 0.0f);

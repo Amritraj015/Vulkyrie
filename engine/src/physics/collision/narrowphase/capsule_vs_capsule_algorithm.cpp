@@ -75,7 +75,7 @@ namespace Vulkyrie {
                         glm::vec3 normalCapsuleTwoSpaceNormalized;
                         glm::vec3 segmentOneToTwo;
 
-                        if (segmentDistanceSquared > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON) {
+                        if (segmentDistanceSquared > VE_K_MACHINE_EPSILON * VE_K_MACHINE_EPSILON) {
                             // Compute a perpendicular vector from segment 1 to segment 2.
                             segmentOneToTwo = capsuleTwoSegmentStart - pointOnSegmentOne;
                             normalCapsuleTwoSpaceNormalized = glm::normalize(segmentOneToTwo);
@@ -137,7 +137,7 @@ namespace Vulkyrie {
 
                 if (data.ReportContacts) {
 
-                    if (closestPointsDistanceSquare > VE_MACHINE_EPSILON) {
+                    if (closestPointsDistanceSquare > VE_K_MACHINE_EPSILON) {
                         // General case: the inner segments have a well-defined separating direction.
                         const f32 closestPointsDistance = std::sqrt(closestPointsDistanceSquare);
                         closestPointSegmentOneToTwo /= closestPointsDistance;
@@ -148,7 +148,7 @@ namespace Vulkyrie {
 
                         const glm::vec3 normalWorld = data.ShapeTwoToWorldTransform.Rotation * closestPointSegmentOneToTwo;
 
-                        const f32 penetrationDepth = std::max(radiusSum - closestPointsDistance, VE_MACHINE_EPSILON);
+                        const f32 penetrationDepth = std::max(radiusSum - closestPointsDistance, VE_K_MACHINE_EPSILON);
 
                         batch.AddContactPoint(i, normalWorld, penetrationDepth, contactPointCapsuleOneLocal, contactPointCapsuleTwoLocal);
 
@@ -159,7 +159,8 @@ namespace Vulkyrie {
                             // Use the vector from the nearest extreme point of segment 1 to the
                             // closest point on segment 2 as the contact normal.
                             const f32 squareDistToSegStart = glm::length2(capsuleOneSegmentStart - closestPointCapsuleTwoSegment);
-                            const glm::vec3 capsuleOneExtremePoint = squareDistToSegStart > VE_MACHINE_EPSILON ? capsuleOneSegmentStart : capsuleOneSegmentEnd;
+                            const glm::vec3 capsuleOneExtremePoint =
+                                squareDistToSegStart > VE_K_MACHINE_EPSILON ? capsuleOneSegmentStart : capsuleOneSegmentEnd;
 
                             const glm::vec3 normalCapsuleTwoSpace = glm::normalize(closestPointCapsuleTwoSegment - capsuleOneExtremePoint);
 

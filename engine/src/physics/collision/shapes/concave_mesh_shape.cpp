@@ -94,7 +94,7 @@ namespace Vulkyrie {
 
             const f32 normalLength = glm::length(normal);
 
-            VASSERT(VE_MACHINE_EPSILON < normalLength, "Normal length be greater than VE_MACHINE_EPSILON.");
+            VASSERT(VE_K_MACHINE_EPSILON < normalLength, "Normal length be greater than VE_MACHINE_EPSILON.");
 
             normal /= normalLength;
 

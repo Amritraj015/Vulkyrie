@@ -334,7 +334,7 @@ namespace Vulkyrie {
             const f32 w = (d00 * d21 - d01 * d20) / denom;
             const f32 u = 1.0f - v - w;
 
-            if (u > VE_MACHINE_EPSILON && v > VE_MACHINE_EPSILON && w > VE_MACHINE_EPSILON) {
+            if (u > VE_K_MACHINE_EPSILON && v > VE_K_MACHINE_EPSILON && w > VE_K_MACHINE_EPSILON) {
                 // If the contact point is strictly inside the triangle, we can directly use the triangle's normal for the contact normal.
                 return _normal;
             }
@@ -346,7 +346,7 @@ namespace Vulkyrie {
             // length against MACHINE_EPSILON (not MACHINE_EPSILON²) means we reject any vector shorter than
             // sqrt(MACHINE_EPSILON) ≈ 3.4e-4 — the threshold below which normalization amplifies floating-point
             // noise enough to produce a meaningless direction. Fall back to the flat triangle normal.
-            if (glm::length2(smoothNormal) < VE_MACHINE_EPSILON) {
+            if (glm::length2(smoothNormal) < VE_K_MACHINE_EPSILON) {
                 return _normal;
             }
 

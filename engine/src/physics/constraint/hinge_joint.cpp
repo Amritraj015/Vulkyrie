@@ -34,8 +34,10 @@ namespace Vulkyrie {
             hingeAxisInBodyTwoLocalSpace = glm::normalize(glm::inverse(bodyTwoTransform.Rotation) * jointData.RotationAxisInWorldSpace);
         }
 
-        VASSERT(hingeJointStore.GetLowerLimit(_entity) <= f32(0) && hingeJointStore.GetLowerLimit(_entity) >= f32(-2.0) * std::numbers::pi_v<f32>, "Invalid lower limit.");
-        VASSERT(hingeJointStore.GetUpperLimit(_entity) >= f32(0) && hingeJointStore.GetUpperLimit(_entity) <= f32(2.0) * std::numbers::pi_v<f32>, "Invalid upper limit.");
+        VASSERT(hingeJointStore.GetLowerLimit(_entity) <= f32(0) && hingeJointStore.GetLowerLimit(_entity) >= f32(-2.0) * std::numbers::pi_v<f32>,
+                "Invalid lower limit.");
+        VASSERT(hingeJointStore.GetUpperLimit(_entity) >= f32(0) && hingeJointStore.GetUpperLimit(_entity) <= f32(2.0) * std::numbers::pi_v<f32>,
+                "Invalid upper limit.");
 
         hingeJointStore.SetLocalSpaceAnchorPointOnBodyOne(_entity, anchorPointInBodyOneLocalSpace);
         hingeJointStore.SetLocalSpaceAnchorPointOnBodyTwo(_entity, anchorPointInBodyTwoLocalSpace);
@@ -158,13 +160,13 @@ namespace Vulkyrie {
     }
 
     glm::vec3 HingeJoint::GetReactionForce(Timestep timestep) const {
-        VASSERT(VE_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
+        VASSERT(VE_K_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
 
         return _physicsWorld.GetHingeJointComponentStore().GetImpulseTranslation(_entity) / timestep.GetSeconds();
     }
 
     glm::vec3 HingeJoint::GetReactionTorque(Timestep timestep) const {
-        VASSERT(VE_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
+        VASSERT(VE_K_MACHINE_EPSILON <= timestep.GetSeconds(), "timestep must be greater than machine epsilon.");
 
         // Use index-based accessors to avoid a second map lookup for each field.
         HingeJointComponentStore &hingeJointStore = _physicsWorld.GetHingeJointComponentStore();

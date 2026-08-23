@@ -68,7 +68,7 @@ namespace Vulkyrie {
             _basStore.SetInverseMassMatrixAtIndex(i, glm::mat3(0));
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
                     _basStore.SetInverseMassMatrixAtIndex(i, InverseMat3(kTranslation, kTranslationDet));
@@ -343,7 +343,7 @@ namespace Vulkyrie {
             // Skip correction if the mass matrix is singular (degenerate configuration — no unique solution exists).
             const f32 kTranslationDet = glm::determinant(kTranslation);
 
-            if (VE_MACHINE_EPSILON < std::abs(kTranslationDet)) {
+            if (VE_K_MACHINE_EPSILON < std::abs(kTranslationDet)) {
                 if (BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyOneIndex) ||
                     BodyType::Dynamic == _rigidBodyStore.GetBodyTypeAtIndex(bodyTwoIndex)) {
 

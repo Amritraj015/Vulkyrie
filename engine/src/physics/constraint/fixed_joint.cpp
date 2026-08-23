@@ -40,14 +40,14 @@ namespace Vulkyrie {
     }
 
     glm::vec3 FixedJoint::GetReactionForce(Timestep timestep) const {
-        VASSERT(timestep.GetSeconds() > VE_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(timestep.GetSeconds() > VE_K_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
 
         // Convert the accumulated translational impulse (N·s) to a force (N) by dividing by dt.
         return _physicsWorld.GetFixedJointComponentStore().GetImpulseTranslation(_entity) / timestep.GetSeconds();
     }
 
     glm::vec3 FixedJoint::GetReactionTorque(Timestep timestep) const {
-        VASSERT(timestep.GetSeconds() > VE_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
+        VASSERT(timestep.GetSeconds() > VE_K_MACHINE_EPSILON, "Timestep must be greater than VE_MACHINE_EPSILON.");
 
         // Convert the accumulated rotational impulse (N·m·s) to a torque (N·m) by dividing by dt.
         return _physicsWorld.GetFixedJointComponentStore().GetImpulseRotation(_entity) / timestep.GetSeconds();

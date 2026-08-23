@@ -55,7 +55,7 @@ namespace Vulkyrie {
                     glm::vec3 contactPointSphereLocal;
                     glm::vec3 contactPointCapsuleLocal;
 
-                    if (distanceSquared > VE_MACHINE_EPSILON) {
+                    if (distanceSquared > VE_K_MACHINE_EPSILON) {
                         // General case: sphere center is not on the capsule inner segment.
                         const f32 distance = glm::sqrt(distanceSquared);
                         vectorBetweenSphereAndCapsule = glm::normalize(vectorBetweenSphereAndCapsule);

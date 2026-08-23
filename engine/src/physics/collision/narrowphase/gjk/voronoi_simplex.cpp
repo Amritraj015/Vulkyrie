@@ -311,9 +311,9 @@ namespace Vulkyrie {
         // Edges from vertex A
         const glm::vec3 AB = b - a;
         const glm::vec3 AC = c - a;
-        const glm::vec3 AP = -a;  // Vector from A to origin
-        const f32 d1 = glm::dot(AB, AP);  // Project AP onto AB
-        const f32 d2 = glm::dot(AC, AP);  // Project AP onto AC
+        const glm::vec3 AP = -a;         // Vector from A to origin
+        const f32 d1 = glm::dot(AB, AP); // Project AP onto AB
+        const f32 d2 = glm::dot(AC, AP); // Project AP onto AC
 
         // Check if origin is in the Voronoi region of vertex A
         // (both projections are negative, meaning origin is "behind" both edges from A)
@@ -324,9 +324,9 @@ namespace Vulkyrie {
         }
 
         // Check Voronoi region of vertex B
-        const glm::vec3 BP = -b;  // Vector from B to origin
-        const f32 d3 = glm::dot(AB, BP);  // Project BP onto AB
-        const f32 d4 = glm::dot(AC, BP);  // Project BP onto AC (from B's perspective: BC direction)
+        const glm::vec3 BP = -b;         // Vector from B to origin
+        const f32 d3 = glm::dot(AB, BP); // Project BP onto AB
+        const f32 d4 = glm::dot(AC, BP); // Project BP onto AC (from B's perspective: BC direction)
 
         // Origin is in the Voronoi region of vertex B
         if (d3 >= 0.0f && d4 <= d3) {
@@ -340,7 +340,7 @@ namespace Vulkyrie {
 
         if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
 
-            VASSERT(std::abs(d1 - d3) > VE_MACHINE_EPSILON, "Degenerate triangle: vertices A and B are too close to each other.");
+            VASSERT(std::abs(d1 - d3) > VE_K_MACHINE_EPSILON, "Degenerate triangle: vertices A and B are too close to each other.");
 
             bitsUsedPoints = 3; // Vertices A and B are used (bits 0 and 1 set)
             // Compute parametric position along edge AB
@@ -350,9 +350,9 @@ namespace Vulkyrie {
         }
 
         // Check Voronoi region of vertex C
-        const glm::vec3 CP = -c;  // Vector from C to origin
+        const glm::vec3 CP = -c; // Vector from C to origin
         const f32 d5 = glm::dot(AB, CP);
-        const f32 d6 = glm::dot(AC, CP);  // Project CP onto AC
+        const f32 d6 = glm::dot(AC, CP); // Project CP onto AC
 
         // Origin is in the Voronoi region of vertex C
         if (d6 >= 0.0f && d5 <= d6) {
@@ -365,7 +365,7 @@ namespace Vulkyrie {
         const f32 vb = d5 * d2 - d1 * d6;
         if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
 
-            VASSERT(std::abs(d2 - d6) > VE_MACHINE_EPSILON, "Degenerate triangle: vertices A and C are too close to each other.");
+            VASSERT(std::abs(d2 - d6) > VE_K_MACHINE_EPSILON, "Degenerate triangle: vertices A and C are too close to each other.");
 
             bitsUsedPoints = 5; // Vertices A and C are used (bits 0 and 2 set)
             // Compute parametric position along edge AC
@@ -377,7 +377,7 @@ namespace Vulkyrie {
         // Check if origin is in the Voronoi region of edge BC
         const f32 va = d3 * d6 - d5 * d4;
         if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
-            VASSERT(std::abs((d4 - d3) + (d5 - d6)) > VE_MACHINE_EPSILON, "Degenerate triangle: vertices B and C are too close to each other.");
+            VASSERT(std::abs((d4 - d3) + (d5 - d6)) > VE_K_MACHINE_EPSILON, "Degenerate triangle: vertices B and C are too close to each other.");
 
             bitsUsedPoints = 6; // Vertices B and C are used (bits 1 and 2 set)
             // Compute parametric position along edge BC
@@ -434,7 +434,7 @@ namespace Vulkyrie {
         if (isOriginOutsideFaceABC == 0 && isOriginOutsideFaceACD == 0 && isOriginOutsideFaceADB == 0 && isOriginOutsideFaceBDC == 0) {
 
             // The origin is inside the tetrahedron - it is the closest point
-            return false;  // false = not outside
+            return false; // false = not outside
         }
 
         // Origin is outside at least one face - find which face is closest
@@ -458,11 +458,11 @@ namespace Vulkyrie {
 
                 // Map triangle vertices (A,B,C) to tetrahedron vertices (0,1,2,3)
                 // barycentricCoordsAB = (A, B), barycentricCoordsCD = (C, D)
-                barycentricCoordsAB.x = triangleBarycentricCoords[0];  // Contribution from A
-                barycentricCoordsAB.y = triangleBarycentricCoords[1];  // Contribution from B
+                barycentricCoordsAB.x = triangleBarycentricCoords[0]; // Contribution from A
+                barycentricCoordsAB.y = triangleBarycentricCoords[1]; // Contribution from B
 
-                barycentricCoordsCD.x = triangleBarycentricCoords[2];  // Contribution from C
-                barycentricCoordsCD.y = 0.0;                    // No contribution from D
+                barycentricCoordsCD.x = triangleBarycentricCoords[2]; // Contribution from C
+                barycentricCoordsCD.y = 0.0;                          // No contribution from D
 
                 bitsUsedPoints = tempUsedVertices;
             }
@@ -482,11 +482,11 @@ namespace Vulkyrie {
                 closestSquareDistance = squareDist;
 
                 // Map triangle vertices (A,C,D) to tetrahedron vertices
-                barycentricCoordsAB.x = triangleBarycentricCoords[0];  // Contribution from A
-                barycentricCoordsAB.y = 0.0f;                   // No contribution from B
+                barycentricCoordsAB.x = triangleBarycentricCoords[0]; // Contribution from A
+                barycentricCoordsAB.y = 0.0f;                         // No contribution from B
 
-                barycentricCoordsCD.x = triangleBarycentricCoords[1];  // Contribution from C
-                barycentricCoordsCD.y = triangleBarycentricCoords[2];  // Contribution from D
+                barycentricCoordsCD.x = triangleBarycentricCoords[1]; // Contribution from C
+                barycentricCoordsCD.y = triangleBarycentricCoords[2]; // Contribution from D
 
                 // Remap triangle used bits (0,1,2) to tetrahedron bits (0,2,3)
                 bitsUsedPoints = mapTriangleUsedVerticesToTetrahedron(tempUsedVertices, 0, 2, 3);
@@ -507,11 +507,11 @@ namespace Vulkyrie {
                 closestSquareDistance = squareDist;
 
                 // Map triangle vertices (A,D,B) to tetrahedron vertices
-                barycentricCoordsAB.x = triangleBarycentricCoords[0];  // Contribution from A
-                barycentricCoordsAB.y = triangleBarycentricCoords[2];  // Contribution from B
+                barycentricCoordsAB.x = triangleBarycentricCoords[0]; // Contribution from A
+                barycentricCoordsAB.y = triangleBarycentricCoords[2]; // Contribution from B
 
-                barycentricCoordsCD.x = 0.0f;                   // No contribution from C
-                barycentricCoordsCD.y = triangleBarycentricCoords[1];  // Contribution from D
+                barycentricCoordsCD.x = 0.0f;                         // No contribution from C
+                barycentricCoordsCD.y = triangleBarycentricCoords[1]; // Contribution from D
 
                 // Remap triangle used bits (0,1,2) to tetrahedron bits (0,3,1)
                 bitsUsedPoints = mapTriangleUsedVerticesToTetrahedron(tempUsedVertices, 0, 3, 1);
@@ -532,11 +532,11 @@ namespace Vulkyrie {
                 // No need to update closestSquareDistance as this is the last face
 
                 // Map triangle vertices (B,D,C) to tetrahedron vertices
-                barycentricCoordsAB.x = 0.0f;                   // No contribution from A
-                barycentricCoordsAB.y = triangleBarycentricCoords[0];  // Contribution from B
+                barycentricCoordsAB.x = 0.0f;                         // No contribution from A
+                barycentricCoordsAB.y = triangleBarycentricCoords[0]; // Contribution from B
 
-                barycentricCoordsCD.x = triangleBarycentricCoords[2];  // Contribution from C
-                barycentricCoordsCD.y = triangleBarycentricCoords[1];  // Contribution from D
+                barycentricCoordsCD.x = triangleBarycentricCoords[2]; // Contribution from C
+                barycentricCoordsCD.y = triangleBarycentricCoords[1]; // Contribution from D
 
                 // Remap triangle used bits (0,1,2) to tetrahedron bits (1,3,2)
                 bitsUsedPoints = mapTriangleUsedVerticesToTetrahedron(tempUsedVertices, 1, 3, 2);
@@ -580,10 +580,9 @@ namespace Vulkyrie {
         // Example: If triangle uses vertices (0,2) with bits = 5 (binary 101),
         //          and we map to tetrahedron indices (0,2,3),
         //          result will have bits set at positions 0 and 2
-        i32 tetrahedronUsedVertices =
-            (((1 & triangleUsedVertices) != 0) << first) |    // Check bit 0 and shift to 'first' position
-            (((2 & triangleUsedVertices) != 0) << second) |   // Check bit 1 and shift to 'second' position
-            (((4 & triangleUsedVertices) != 0) << third);     // Check bit 2 and shift to 'third' position
+        i32 tetrahedronUsedVertices = (((1 & triangleUsedVertices) != 0) << first) |  // Check bit 0 and shift to 'first' position
+                                      (((2 & triangleUsedVertices) != 0) << second) | // Check bit 1 and shift to 'second' position
+                                      (((4 & triangleUsedVertices) != 0) << third);   // Check bit 2 and shift to 'third' position
 
         VASSERT(tetrahedronUsedVertices <= 14, "Invalid tetrahedron used vertices: must be between 0 and 14 (inclusive).");
 

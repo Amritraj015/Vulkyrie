@@ -453,7 +453,7 @@ namespace Vulkyrie {
 
         // The first friction vector points along the tangential velocity when there is one;
         // otherwise any unit vector orthogonal to the normal works.
-        if (VE_MACHINE_EPSILON < lengthTangentVelocity) {
+        if (VE_K_MACHINE_EPSILON < lengthTangentVelocity) {
             contactManifold.FrictionVector1 = tangentVelocity / lengthTangentVelocity;
         } else {
             contactManifold.FrictionVector1 = GetOrthogonalUnitVector(contactManifold.Normal);

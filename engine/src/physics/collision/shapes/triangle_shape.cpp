@@ -14,7 +14,7 @@ namespace Vulkyrie {
         // Compute the face normal from the two edge vectors using the right-hand rule (CCW winding).
         _normal = glm::cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
 
-        VASSERT(glm::length2(_normal) > VE_MACHINE_EPSILON * VE_MACHINE_EPSILON, "Triangle has zero-length normal — it may be degenerate (zero area).");
+        VASSERT(glm::length2(_normal) > VE_K_MACHINE_EPSILON * VE_K_MACHINE_EPSILON, "Triangle has zero-length normal — it may be degenerate (zero area).");
 
         _normal = glm::normalize(_normal);
 
