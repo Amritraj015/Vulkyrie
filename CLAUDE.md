@@ -39,9 +39,13 @@ Day-to-day local development normally uses **`clang-all-debug`** (this is the de
 ### Without presets
 
 ```bash
-cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+      -DVCPKG_MANIFEST_FEATURES=tests
 cmake --build build
 ```
+
+Catch2 sits behind the `tests` vcpkg manifest feature, so `VCPKG_MANIFEST_FEATURES=tests` is required for any
+configuration that builds `tests` or `benchmarks` (every preset that does already sets it).
 
 ### Build options (`cmake -D<OPTION>=OFF/ON`)
 
@@ -165,8 +169,12 @@ backend; OpenGL is a conformance stub. No Vulkan dependency exists yet (`vcpkg.j
 
 Two mature, independent subsystems the renderer reuses rather than rebuilds, each with its own README that is
 the source of truth for its area: the **frame graph** (`include/renderer/frame_graph/`, resource types under
-`frame_graph/resources/`) and the **job system** (`include/core/jobs/`). The frame graph is not yet wired to
-the backend architecture.
+`frame_graph/resources/`) and the **job system** (`include/core/jobs/`). The frame graph is templated on the
+backend trait struct (`FrameGraph<B>`); its backend-agnostic half — culling, ordering, lifetimes, the aliasing
+plan, barriers — lives in a non-template `detail::FrameGraphCore` compiled once, in
+`src/renderer/frame_graph/frame_graph_core.cpp`. Graph-owned resources are **acquired and released** against
+`TransientPool<B>`, never created and destroyed, and pass execute functions **must not capture** (they have to
+convert to a plain function pointer). Nothing yet drives the graph from `RendererImpl<B>::Render()`.
 
 Plans and current state live in `.claude/plans/vulkan-renderer-architecture.md`.
 

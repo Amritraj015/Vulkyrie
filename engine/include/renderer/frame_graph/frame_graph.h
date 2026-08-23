@@ -31,10 +31,12 @@ namespace Vulkyrie {
     template <RendererBackend B> class FrameGraph final {
     public:
         /** @brief Constructs a graph sized for the expected per-frame workload.
+         * @param device The device this graph acquires resources from and sizes its transients against.
          * @param config Reserve hints only; all three affect how many frames it takes to reach an allocation-free
          * steady state, not what the graph can hold. */
-        explicit FrameGraph(const FrameGraphConfig &config = {})
-            : mCore(config)
+        explicit FrameGraph(Vulkyrie::Device<B> &device, const FrameGraphConfig &config = {})
+            : mDevice(device)
+            , mCore(config)
             , mArena{ config.InitialArenaBytes, MemoryTag::Rendering } {
             VE_MEMORY_SCOPE(MemoryTag::Rendering);
 
@@ -127,13 +129,13 @@ namespace Vulkyrie {
         };
 
         /** @brief The one shape a pass body may take. A plain function pointer, never a closure. */
-        template <typename TPassData> using ExecuteFn = void (*)(const TPassData &, const FrameGraphResources<B> &, FrameGraphPassContext<B> &);
+        template <typename TPassData> using ExecuteFn = void (*)(const TPassData &, FrameGraphPassContext<B> &);
 
         /** @brief Adds a pass to the graph.
          *
          * The setup function runs immediately and declares the pass's resource dependencies through the `Builder`.
-         * The execute function runs during `Execute`/`Record`, and receives the pass data, a read-only view of the
-         * graph's resources, and the context for the command list it records into.
+         * The execute function runs during `Execute`/`Record`, and receives the pass data and the pass context -
+         * the command list to record into, the device, and the resources the handles in the pass data refer to.
          *
          * The execute function **must not capture**. It has to convert to a plain function pointer, so everything a
          * pass needs must travel in `TPassData` - which is the struct that exists for exactly that. Two reasons,
@@ -144,7 +146,7 @@ namespace Vulkyrie {
          * @tparam TPassData Data the setup function fills in and the execute function reads.
          * @tparam TSetup Invocable as `setup(Builder &, TPassData &)`. Runs immediately and is never stored, so
          * unlike the execute function it may capture freely.
-         * @tparam TExecute Convertible to `void (*)(const TPassData &, const FrameGraphResources<B> &, FrameGraphPassContext<B> &)`.
+         * @tparam TExecute Convertible to `void (*)(const TPassData &, FrameGraphPassContext<B> &)`.
          * @param name A human-readable identifier; must be a string literal, or an element of a literal table for
          * a name that varies (`CASCADE_NAMES[cascade]`).
          * @param setup The setup function.
@@ -169,9 +171,9 @@ namespace Vulkyrie {
 
             TypedPass typed{};
             typed.Payload = payload;
-            typed.Invoke = [](void *p, const FrameGraphResources<B> &resources, FrameGraphPassContext<B> &passContext) {
+            typed.Invoke = [](void *p, FrameGraphPassContext<B> &passContext) {
                 auto *block = static_cast<Payload *>(p);
-                block->Execute(std::as_const(block->Data), resources, passContext);
+                block->Execute(std::as_const(block->Data), passContext);
             };
 
             // The execute function is a pointer and the payload holds nothing else that needs tearing down unless
@@ -221,10 +223,13 @@ namespace Vulkyrie {
             // allocation: what it publishes in `GetAliasingReport` is what a real packer would save, which is worth
             // knowing even where the offsets cannot be honoured. Whether they are honoured is decided at acquire
             // time, not here.
+            //
+            // The requirements come from the backend rather than from the descriptor: a packer fed a CPU-side
+            // guess that reads low places two resources overlapping.
             mMemoryRequirements.clear();
 
             for (const ResourceEntry<B> &entry : mEntries) {
-                mMemoryRequirements.push_back(entry.getMemoryRequirements());
+                mMemoryRequirements.push_back(entry.getMemoryRequirements(mDevice));
             }
 
             mCore.Compile(mMemoryRequirements);
@@ -233,10 +238,11 @@ namespace Vulkyrie {
         /** @brief Runs the compiled graph on the calling thread, interleaving resource acquisition, barriers, pass
          * execution and resource release in topological order. This is the path a backend without command-buffer
          * recording (OpenGL) wants; see `Record`/`Submit` for the split form.
-         * @param context The frame context, forwarded unchanged to every pass and resource type. */
-        void Execute(const FrameGraphContext<B> &context) {
+         * @param frame The frame in flight to run against. */
+        void Execute(FrameContext<B> &frame) {
             VASSERT(mCore.IsCompiled(), "FrameGraph::Execute called before Compile().");
 
+            const FrameGraphContext<B> context{ mDevice, frame };
             const FrameGraphResources<B> resources{ mCore, mEntries };
 
             for (const u32 passIndex : mCore.GetExecutionOrder()) {
@@ -250,9 +256,11 @@ namespace Vulkyrie {
 
         /** @brief Acquires every resource the frame needs and runs each surviving pass's execute function on the
          * calling thread. Pairs with `Submit`.
-         * @param context The frame context, forwarded unchanged to every pass and resource type. */
-        void Record(const FrameGraphContext<B> &context) {
+         * @param frame The frame in flight to record into. */
+        void Record(FrameContext<B> &frame) {
             VASSERT(mCore.IsCompiled(), "FrameGraph::Record called before Compile().");
+
+            const FrameGraphContext<B> context{ mDevice, frame };
 
             prepareResources(context);
 
@@ -273,13 +281,15 @@ namespace Vulkyrie {
          *
          * On a backend whose contexts are thread-affine (`B::kRecordsInParallel == false`) this is `Record`. There
          * is no parallel path to take, and pretending otherwise would hand every worker the same command list.
-         * @param context The frame context, forwarded unchanged to every pass and resource type. */
-        void RecordParallel(const FrameGraphContext<B> &context) {
+         * @param frame The frame in flight to record into; it must hold at least one command list per worker. */
+        void RecordParallel(FrameContext<B> &frame) {
             VASSERT(mCore.IsCompiled(), "FrameGraph::RecordParallel called before Compile().");
 
             if constexpr (!B::kRecordsInParallel) {
-                Record(context);
+                Record(frame);
             } else {
+                const FrameGraphContext<B> context{ mDevice, frame };
+
                 prepareResources(context);
 
                 const auto passCount = static_cast<u32>(mCore.GetExecutionOrder().size());
@@ -288,7 +298,7 @@ namespace Vulkyrie {
                     return;
                 }
 
-                VASSERT(context.Frame.GetWorkerCount() >= JobSystem::WorkerCount(),
+                VASSERT(frame.GetWorkerCount() >= JobSystem::WorkerCount(),
                         "FrameContext has fewer command lists than the job system has workers; passes would share a list and race.");
 
                 // The access hooks stay on this thread. They are resource-state bookkeeping, not command recording,
@@ -314,9 +324,11 @@ namespace Vulkyrie {
 
         /** @brief Walks the execution order emitting each pass's batched barriers, then releases every transient
          * resource. Pairs with `Record`/`RecordParallel`.
-         * @param context The frame context, forwarded unchanged to every pass and resource type. */
-        void Submit(const FrameGraphContext<B> &context) {
+         * @param frame The frame in flight the barriers are emitted into. */
+        void Submit(FrameContext<B> &frame) {
             VASSERT(mCore.IsCompiled(), "FrameGraph::Submit called before Compile().");
+
+            const FrameGraphContext<B> context{ mDevice, frame };
 
             for (const u32 passIndex : mCore.GetExecutionOrder()) {
                 emitBarriers(passIndex, context, 0);
@@ -340,8 +352,10 @@ namespace Vulkyrie {
         }
 
         /** @brief Resets the graph, releasing any transient resource left materialized by an interrupted frame.
-         * @param context The frame context used to release still-live transients. */
-        void Reset(const FrameGraphContext<B> &context) {
+         * @param frame The frame in flight the still-live transients belong to. */
+        void Reset(FrameContext<B> &frame) {
+            const FrameGraphContext<B> context{ mDevice, frame };
+
             for (u32 entryIndex = 0; entryIndex < mEntries.size(); ++entryIndex) {
                 mEntries[entryIndex].releaseResource(isTransient(entryIndex), context);
             }
@@ -450,7 +464,7 @@ namespace Vulkyrie {
         struct TypedPass final {
         public:
             void *Payload = nullptr;
-            void (*Invoke)(void *payload, const FrameGraphResources<B> &resources, FrameGraphPassContext<B> &passContext) = nullptr;
+            void (*Invoke)(void *payload, FrameGraphPassContext<B> &passContext) = nullptr;
 
             /** @brief Null unless the pass data itself needs a destructor. */
             void (*Destroy)(void *payload) = nullptr;
@@ -527,6 +541,12 @@ namespace Vulkyrie {
          * require every resource type to be thread-safe. */
         void runAccessHooks(u32 passIndex, const FrameGraphContext<B> &context) {
             for (const ResourceAccess &access : mCore.GetReads(passIndex)) {
+                // The read a Write registers to order two passes is not an access the resource type should hear
+                // about; it would arrive with an empty usage describing work no stage does.
+                if (access.OrderingOnly) {
+                    continue;
+                }
+
                 mEntries[mCore.GetEntryID(access.Resource).Get()].preRead(access.Usage, context);
             }
 
@@ -539,11 +559,12 @@ namespace Vulkyrie {
          * `RecordParallel`, which is why the context it builds is per-pass rather than shared. */
         void invokePassBody(u32 passIndex, const FrameGraphResources<B> &resources, const FrameGraphContext<B> &context, u32 workerIndex) {
             FrameGraphPassContext<B> passContext{ .Device = context.Device,
+                                                  .Resources = resources,
                                                   .Commands = context.Frame.AcquireCommandList(workerIndex, QueueType::Graphics),
                                                   .WorkerIndex = workerIndex };
 
             const TypedPass &pass = mTypedPasses[passIndex];
-            pass.Invoke(pass.Payload, resources, passContext);
+            pass.Invoke(pass.Payload, passContext);
         }
 
         /** @brief Emits one pass's batched barriers. One call per pass carrying every transition, rather than one
@@ -596,6 +617,9 @@ namespace Vulkyrie {
 
             mArena.Reset();
         }
+
+        /** @brief The device every transient is acquired from and sized against. */
+        Vulkyrie::Device<B> &mDevice;
 
         /** @brief Topology, culling, ordering, lifetimes, aliasing and barriers - none of which need a backend. */
         detail::FrameGraphCore mCore;

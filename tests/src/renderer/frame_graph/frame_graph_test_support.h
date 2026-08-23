@@ -55,7 +55,7 @@ namespace Vulkyrie::FrameGraphTests {
      *
      * Passed as `&RunProbe<PassData>` - a plain function pointer, which is exactly what the graph requires and what
      * a capturing lambda could never be. */
-    template <typename TPassData> void RunProbe(const TPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+    template <typename TPassData> void RunProbe(const TPassData &data, FrameGraphPassContext<Backend> &) {
         const PassProbe &probe = data.Probe;
 
         if (nullptr != probe.Counter) {
@@ -117,15 +117,17 @@ namespace Vulkyrie::FrameGraphTests {
 
         void PreRead(const ResourceUsage &usage, const FrameGraphContext<Backend> &context) {
             ++PreReadCount;
-            RecordEvent(context, "PreRead:layout=" + std::to_string(usage.Layout));
+            RecordEvent(context, "PreRead:layout=" + std::to_string(std::to_underlying(usage.Layout)));
         }
 
         void PreWrite(const ResourceUsage &usage, const FrameGraphContext<Backend> &context) {
             ++PreWriteCount;
-            RecordEvent(context, "PreWrite:layout=" + std::to_string(usage.Layout));
+            RecordEvent(context, "PreWrite:layout=" + std::to_string(std::to_underlying(usage.Layout)));
         }
 
-        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) const {
+        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor, const Device<Backend> &device) const {
+            (void)device;
+
             return ResourceMemoryRequirements{ .Size = static_cast<u64>(descriptor.Width) * descriptor.Height * 4, .Alignment = 256 };
         }
 
@@ -196,7 +198,9 @@ namespace Vulkyrie::FrameGraphTests {
             RecordEvent(context, "Release");
         }
 
-        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) const {
+        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor, const Device<B> &device) const {
+            (void)device;
+
             return ResourceMemoryRequirements{ .Size = static_cast<u64>(descriptor.Width) * descriptor.Height * 4, .Alignment = 256 };
         }
     };
@@ -214,7 +218,7 @@ namespace Vulkyrie::FrameGraphTests {
     template <RendererBackend B> struct GraphFixtureFor {
     public:
         explicit GraphFixtureFor(const FrameGraphConfig &config = {})
-            : Graph(config) {
+            : Graph(Dev, config) {
         }
 
         DeviceCreationInfo Info{ WindowHandle{}, 800, 600, 64, 64, 16, 16 };
@@ -248,8 +252,8 @@ namespace Vulkyrie::FrameGraphTests {
     static_assert(FrameGraphResourceType<MockPodTexture, Backend>, "MockPodTexture must satisfy the resource concept.");
     static_assert(HasPreRead<MockTexture, Backend> && HasPreWrite<MockTexture, Backend>, "MockTexture implements both access hooks.");
     static_assert(!HasPreRead<MockBuffer, Backend> && !HasPreWrite<MockBuffer, Backend>, "MockBuffer opts out of the access hooks.");
-    static_assert(HasMemoryRequirements<MockTexture>, "MockTexture reports memory requirements.");
-    static_assert(!HasMemoryRequirements<MockBuffer>, "MockBuffer does not report memory requirements.");
+    static_assert(HasMemoryRequirements<MockTexture, Backend>, "MockTexture reports memory requirements.");
+    static_assert(!HasMemoryRequirements<MockBuffer, Backend>, "MockBuffer does not report memory requirements.");
     static_assert(FrameGraphResourceType<MockPlacedTexture, Backend>, "MockPlacedTexture must satisfy the resource concept through the placed Acquire.");
     static_assert(HasPlacedAcquire<MockPlacedTexture, Backend> && !HasPlainAcquire<MockPlacedTexture, Backend>,
                   "MockPlacedTexture takes only the placed Acquire.");

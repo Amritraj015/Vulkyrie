@@ -46,7 +46,7 @@ namespace Vulkyrie {
         using DestructStorageFn = void (*)(void *storage);
 
         /** @brief Reports the memory the resource needs, for the byte-packing aliasing plan. */
-        using MemoryRequirementsFn = ResourceMemoryRequirements (*)(const void *storage);
+        using MemoryRequirementsFn = ResourceMemoryRequirements (*)(const void *storage, const Device<B> &device);
 
         ResourceEntry() = default;
 
@@ -110,11 +110,11 @@ namespace Vulkyrie {
                 };
             }
 
-            if constexpr (HasMemoryRequirements<T>) {
-                entry.mMemoryRequirementsFn = [](const void *s) {
+            if constexpr (HasMemoryRequirements<T, B>) {
+                entry.mMemoryRequirementsFn = [](const void *s, const Device<B> &device) {
                     const auto *typed = static_cast<const Storage *>(s);
 
-                    return typed->Resource.GetMemoryRequirements(typed->Descriptor);
+                    return typed->Resource.GetMemoryRequirements(typed->Descriptor, device);
                 };
             }
 
@@ -161,12 +161,12 @@ namespace Vulkyrie {
 
         /** @brief Returns the resource's memory requirements, or a zero size when the resource type does not report
          * them - in which case it is excluded from the byte-packing plan. */
-        [[nodiscard]] VE_INLINE ResourceMemoryRequirements getMemoryRequirements() const {
+        [[nodiscard]] VE_INLINE ResourceMemoryRequirements getMemoryRequirements(const Device<B> &device) const {
             if (nullptr == mMemoryRequirementsFn) {
                 return ResourceMemoryRequirements{};
             }
 
-            return mMemoryRequirementsFn(pStorage);
+            return mMemoryRequirementsFn(pStorage, device);
         }
 
         /** @brief Runs the storage block's destructor if it has one. The arena releases the storage itself. */

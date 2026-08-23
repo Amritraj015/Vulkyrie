@@ -28,6 +28,11 @@ namespace Vulkyrie {
         /** @brief Number of transient resources included in the plan. */
         u32 ResourceCount = 0;
 
+        /** @brief How many separate blocks the plan needed - one per distinct memory-type mask among the planned
+         * resources. More than one means some transients cannot be backed by the same memory as the others, so
+         * `AliasedBytes` is the sum of several allocations rather than one. */
+        u32 BlockCount = 0;
+
         /** @brief Returns the bytes aliasing saved over allocating every transient separately. */
         [[nodiscard]] VE_INLINE u64 SavedBytes() const {
             return UnaliasedBytes - AliasedBytes;
@@ -53,8 +58,10 @@ namespace Vulkyrie {
             /** @brief Offset the byte-packing aliasing plan assigned; meaningful only when `IsAliased` is set. */
             u64 AliasOffset = 0;
 
-            /** @brief Bumped by each write, so stale handles can be detected. */
-            u32 Version = 1;
+            /** @brief Which block of the aliasing plan `AliasOffset` is an offset into. The plan packs one block
+             * per distinct memory-type mask, because an allocation is made from one memory type and two resources
+             * that cannot share a memory type cannot share bytes. */
+            u32 AliasBlock = 0;
 
             /** @brief Whether the graph owns this resource's lifetime, as opposed to it being imported. */
             bool IsTransient = true;
@@ -69,9 +76,13 @@ namespace Vulkyrie {
 
             /** @brief Returns where the byte-packing plan put this resource, for types taking the placed `Acquire`. */
             [[nodiscard]] VE_INLINE ResourcePlacement Placement() const noexcept {
-                return ResourcePlacement{ .Offset = AliasOffset, .IsAliased = IsAliased };
+                return ResourcePlacement{ .Offset = AliasOffset, .BlockIndex = AliasBlock, .IsAliased = IsAliased };
             }
         };
+
+        // 24 bytes, which is what makes the compile walks cheap to scan. Growing past this should be a deliberate
+        // decision, not a side effect of adding a field.
+        static_assert(sizeof(EntryState) <= 24, "EntryState exceeded its 24-byte budget; see the note above before raising it.");
 
         /** @brief The backend-agnostic half of a frame graph: topology, culling, ordering, lifetimes, the aliasing
          * plan and the barrier batches. Works entirely in ids - it never sees a resource object, a pass body or a
@@ -245,10 +256,12 @@ namespace Vulkyrie {
 
         private:
             /** @brief Appends a resource version node and links it to the previous version of the same entry. */
-            [[nodiscard]] FrameGraphResourceID createResourceNode(StaticString name, FrameGraphResourceEntryID entryID, u32 version, FrameGraphPassID producer);
+            [[nodiscard]] FrameGraphResourceID createResourceNode(StaticString name, FrameGraphResourceEntryID entryID, FrameGraphPassID producer);
 
-            /** @brief Records a read, merging into an existing access if the pass already reads the resource. */
-            FrameGraphResourceID registerRead(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage);
+            /** @brief Records a read, merging into an existing access if the pass already reads the resource.
+             * @param orderingOnly Whether the read exists only to order two passes and describes no GPU work; see
+             * `ResourceAccess::OrderingOnly`. */
+            FrameGraphResourceID registerRead(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage, bool orderingOnly);
 
             /** @brief Produces the next version of a resource, so two passes writing it are forced into an order. */
             [[nodiscard]] FrameGraphResourceID createNextVersion(FrameGraphResourceID resourceID, FrameGraphPassID producer);
@@ -275,40 +288,87 @@ namespace Vulkyrie {
                 u32 FirstUse = 0;
                 u32 LastUse = 0;
                 u64 Offset = 0;
+
+                /** @brief Which memory types can back this resource. Candidates are packed per distinct mask. */
+                u32 MemoryTypeBits = 0;
+
+                /** @brief Index of the block this candidate was packed into. */
+                u32 BlockIndex = 0;
             };
 
+            /** @brief Every pass declared this frame, indexed by `FrameGraphPassID`. */
             std::vector<PassNode> mPassNodes;
+
+            /** @brief Every resource version declared this frame, indexed by `FrameGraphResourceID`. */
             std::vector<ResourceNode> mResourceNodes;
 
             /** @brief Compile-time state of every resource entry, indexed by `FrameGraphResourceEntryID`. The
              * resource objects themselves live in the typed facade at the same indices. */
             std::vector<EntryState> mEntryStates;
 
-            /** @brief For each resource version, the node holding the next version of the same entry, or an invalid
-             * id. Lets `Compile` derive write-after-read edges without a per-entry search. */
+            /** @brief For each ResourceNode version, the index of the ResourceNode holding the next version of the same entry,
+             * or an invalid id. Lets `Compile` derive write-after-read edges without a per-entry search. */
             std::vector<FrameGraphResourceID> mNextVersion;
 
+            /** @brief What each pass materializes, as the range `PassNode::mCreateBegin` names. */
             std::vector<FrameGraphResourceID> mCreates;
+
+            /** @brief What each pass reads, as the range `PassNode::mReadBegin` names. */
             std::vector<ResourceAccess> mReads;
+
+            /** @brief What each pass writes, as the range `PassNode::mWriteBegin` names. */
             std::vector<ResourceAccess> mWrites;
+
+            /** @brief Entries released after each pass, as the range `PassNode::mReleaseBegin` names. From `Compile`. */
             std::vector<FrameGraphResourceEntryID> mReleases;
+
+            /** @brief Transitions to emit before each pass, as the range `PassNode::mBarrierBegin` names. From `Compile`. */
             std::vector<ResourceBarrier> mBarriers;
+
+            /** @brief The surviving passes in the order they run, as indices into `mPassNodes`. */
             std::vector<u32> mExecutionOrder;
 
+            /** @brief Ordering: predecessors each pass is still waiting on. */
             std::vector<u32> mInDegrees;
+
+            /** @brief Ordering: min-heap of passes whose predecessors have all been placed. */
             std::vector<u32> mReadyPasses;
+
+            /** @brief Ordering: `(predecessor, successor)` pairs, sorted so `equal_range` finds a pass's successors. */
             std::vector<std::pair<u32, u32>> mEdges;
+
+            /** @brief Culling: resource versions found to have no consumers, whose producers are still to be walked. */
             std::vector<FrameGraphResourceID> mCullWorklist;
+
+            /** @brief Barriers: the usage each entry is currently in, indexed by entry. */
             std::vector<ResourceUsage> mCurrentUsages;
+
+            /** @brief Lifetimes: how many entries die at each execution position, which the release ranges prefix-sum. */
             std::vector<u32> mReleaseCounts;
+
+            /** @brief The newest version node of each entry, indexed by entry. Links versions as they are declared,
+             * and is what makes a stale handle a mismatch rather than a search. */
             std::vector<FrameGraphResourceID> mLatestVersionOfEntry;
+
+            /** @brief Aliasing: the transients being packed, grouped by memory type then largest first. */
             std::vector<AliasCandidate> mAliasCandidates;
+
+            /** @brief Aliasing: candidates already placed in the current block, in offset order. Indices into
+             * `mAliasCandidates`, so the sweep for a free gap can stop at the first placement past it. */
             std::vector<u32> mAliasPlacements;
+
+            /** @brief Aliasing: per-position size deltas, summed to find a block's peak live bytes. */
             std::vector<i64> mAliasLiveDelta;
+
+            /** @brief Aliasing: for each placed entry, the entries whose bytes it took over. Its discard has to wait
+             * on all of them, not only the most recent - nothing orders those earlier occupants against each other. */
             std::vector<FrameGraphResourceEntryID> mAliasPredecessors;
+
+            /** @brief Range into `mAliasPredecessors`, indexed by entry. */
             std::vector<u32> mAliasPredecessorBegin;
             std::vector<u32> mAliasPredecessorCount;
 
+            /** @brief Names, in side arrays because the compile and execute walks never read them. */
             std::vector<StaticString> mPassNames;
             std::vector<StaticString> mResourceNames;
 

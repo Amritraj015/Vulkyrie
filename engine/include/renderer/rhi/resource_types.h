@@ -2,6 +2,7 @@
 
 #include "renderer/rhi/formats.h"
 #include "vlkypch.h"
+#include "core/types/handle.h"
 #include "core/utilities/hash_builder.h"
 #include "renderer/rhi/rhi_types.h"
 
@@ -67,6 +68,8 @@ namespace Vulkyrie {
         TextureUsage Usage = TextureUsage::Sampled;
 
         // StaticString DebugName;
+
+        friend constexpr bool operator==(const TextureDescriptor &, const TextureDescriptor &) = default;
     };
 
     struct BufferDescriptor final {
@@ -75,7 +78,19 @@ namespace Vulkyrie {
         MemoryDomain Domain = MemoryDomain::DeviceLocal;
 
         // StaticString DebugName;
+
+        friend constexpr bool operator==(const BufferDescriptor &, const BufferDescriptor &) = default;
     };
+
+    /** @brief Identifies a texture descriptor registered with the device.
+     *
+     * Registration is where a descriptor's identity is established - hashed once, deduplicated, sized by the
+     * driver - so everything afterwards is an array index. Declaring a transient every frame therefore costs no
+     * hashing and no map probing at all; see `TransientRegistry`. */
+    using TransientTextureID = Handle<struct TransientTextureTag>;
+
+    /** @brief Identifies a buffer descriptor registered with the device. See `TransientTextureID`. */
+    using TransientBufferID = Handle<struct TransientBufferTag>;
 
     enum class Filter : u8 { Nearest, Linear };
     enum class MipFilter : u8 { Nearest, Linear };
@@ -118,6 +133,38 @@ namespace Vulkyrie {
     };
 
     static_assert(std::is_trivially_copyable_v<ResourceLifetime>, "ResourceLifetime must be trivially copyable so it can be passed in registers.");
+
+    /** @brief A CPU-side estimate of the bytes a texture's contents occupy, summed over the mip chain.
+     *
+     * An estimate, and deliberately labelled as one: it ignores optimal-tiling padding, mip-tail packing and the
+     * driver's alignment rounding, and can read 20-50% low. That is fine for the yardstick a
+     * `FrameGraphAliasingReport` publishes and fatally wrong for a packer, which would place two resources
+     * overlapping when their real extents do not fit. A backend that can actually alias must answer
+     * `GetImageMemoryRequirements` from the driver instead of calling this.
+     * @param d The descriptor to size. */
+    [[nodiscard]] VE_INLINE u64 EstimateTextureBytes(const TextureDescriptor &d) noexcept {
+        const u32 bytesPerBlock = BytesPerBlock(d.Format);
+        const u32 blockDim = std::max(BlockDim(d.Format), 1U);
+
+        u64 size = 0;
+
+        for (u32 mip = 0; mip < std::max(d.Mips, 1U); ++mip) {
+            const u32 width = std::max(d.Width >> mip, 1U);
+            const u32 height = std::max(d.Height >> mip, 1U);
+            const u32 depth = std::max(d.Depth >> mip, 1U);
+
+            const u64 blocksWide = (width + blockDim - 1) / blockDim;
+            const u64 blocksHigh = (height + blockDim - 1) / blockDim;
+
+            size += blocksWide * blocksHigh * depth * bytesPerBlock;
+        }
+
+        // SampleCount's enumerators are the sample counts themselves, so the value doubles as the multiplier.
+        size *= std::max(d.Layers, 1U);
+        size *= static_cast<u64>(d.Samples);
+
+        return size;
+    }
 
     [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const TextureDescriptor &d) noexcept {
         HashBuilder hb;

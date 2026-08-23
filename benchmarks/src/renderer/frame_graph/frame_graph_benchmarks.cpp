@@ -34,12 +34,19 @@ namespace {
         void Release(const FrameGraphContext<Backend> &) {
         }
 
-        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) const {
+        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor, const Device<Backend> &device) const {
+            (void)device;
+
             return ResourceMemoryRequirements{ .Size = static_cast<u64>(descriptor.Width) * descriptor.Height * 4, .Alignment = 256 };
         }
     };
 
     using BenchTextureHandle = FrameGraphHandle<BenchTexture>;
+
+    // The planner is only fed by types that satisfy this, and the concept is opt-in: a signature that drifts out
+    // of date silently drops the resource from the plan rather than failing to compile. Asserted so a benchmark
+    // measuring "compile including the aliasing plan" cannot quietly stop doing so.
+    static_assert(HasMemoryRequirements<BenchTexture, Backend>, "BenchTexture must feed the aliasing planner, or the compile benchmarks stop measuring it.");
 
     /** @brief The device and frame a benchmark's graph executes against. Nothing here is measured - the mock
      * backend does no work - but the graph needs a typed context to run at all. */
@@ -70,12 +77,12 @@ namespace {
     };
 
     /** @brief Busy-work body, kept out of line so every pass shares one function pointer. */
-    void RunBusyWork(const WorkPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+    void RunBusyWork(const WorkPassData &data, FrameGraphPassContext<Backend> &) {
         *data.Sink += Bench::BusyWork(data.Pass, Bench::TINY_WORK);
     }
 
     /** @brief Minimal body: proves the pass ran without measuring anything but the dispatch. */
-    template <typename TPassData> void BumpSink(const TPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+    template <typename TPassData> void BumpSink(const TPassData &data, FrameGraphPassContext<Backend> &) {
         ++*data.Sink;
     }
 
@@ -184,13 +191,15 @@ namespace {
      * @param passCount Passes each graph will hold, used to size its reserve hints.
      * @param declare Builder invoked as `declare(graph, sink)` to populate each graph.
      * @param sink Accumulator the pass bodies write to.
+     * @param device The device the graphs acquire against.
      * @returns The declared, uncompiled graphs, one per measured run. */
-    template <typename TDeclare> [[nodiscard]] std::vector<Scope<FrameGraph<Backend>>> DeclaredGraphPool(u32 count, u32 passCount, TDeclare &&declare, u64 &sink) {
+    template <typename TDeclare>
+    [[nodiscard]] std::vector<Scope<FrameGraph<Backend>>> DeclaredGraphPool(u32 count, u32 passCount, TDeclare &&declare, u64 &sink, Device<Backend> &device) {
         std::vector<Scope<FrameGraph<Backend>>> pool;
         pool.reserve(count);
 
         for (u32 i = 0; i < count; ++i) {
-            Scope<FrameGraph<Backend>> graph = CreateScope<FrameGraph<Backend>>(ConfigFor(passCount));
+            Scope<FrameGraph<Backend>> graph = CreateScope<FrameGraph<Backend>>(device, ConfigFor(passCount));
             declare(*graph, sink);
             pool.push_back(std::move(graph));
         }
@@ -203,7 +212,8 @@ namespace {
      * @param meter The chronometer for the calling benchmark.
      * @param passCount Producer passes to declare. */
     void MeasureFullFrameCycle(Catch::Benchmark::Chronometer meter, u32 passCount) {
-        FrameGraph<Backend> graph{ ConfigFor(passCount) };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, ConfigFor(passCount) };
         u64 sink = 0;
 
         // A warm-up frame so the arena and every node array reach their high-water mark before anything is timed;
@@ -212,7 +222,7 @@ namespace {
         graph.Compile();
         graph.Reset();
 
-        meter.measure([&graph, &sink, passCount] {
+        meter.measure([&graph, &sink, &device, passCount] {
             DeclareSyntheticGraph(graph, sink, passCount);
             graph.Compile();
 
@@ -230,10 +240,16 @@ namespace {
     void MeasureCompileOnly(Catch::Benchmark::Chronometer meter, u32 passCount) {
         u64 sink = 0;
 
-        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
-            static_cast<u32>(meter.runs()), passCount, [passCount](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s, passCount); }, sink);
+        BenchDevice device;
 
-        meter.measure([&pool](int run) {
+        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
+            static_cast<u32>(meter.runs()),
+            passCount,
+            [passCount](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s, passCount); },
+            sink,
+            device.Dev);
+
+        meter.measure([&pool, &device](int run) {
             FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 
@@ -245,7 +261,8 @@ namespace {
 
 TEST_CASE("Frame graph construction", "[framegraph]") {
     BENCHMARK_ADVANCED("Declare 41 passes into a warm graph")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
 
         // One warm-up frame so the arena and every node array reach their high-water mark; what is measured is the
@@ -262,9 +279,12 @@ TEST_CASE("Frame graph construction", "[framegraph]") {
     };
 
     BENCHMARK_ADVANCED("Declare 41 passes into a fresh graph")(Catch::Benchmark::Chronometer meter) {
-        // The cold path, for comparison: every buffer and the arena grow from nothing.
-        meter.measure([] {
-            FrameGraph<Backend> graph;
+        // The cold path, for comparison: every buffer and the arena grow from nothing. The device is built outside
+        // the measured body so only the graph's own growth is timed.
+        BenchDevice device;
+
+        meter.measure([&device] {
+            FrameGraph<Backend> graph{ device.Dev };
             u64 sink = 0;
             DeclareSyntheticGraph(graph, sink);
             return sink + graph.GetPassCount();
@@ -277,10 +297,12 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
         u64 sink = 0;
 
         // One freshly declared graph per run - see DeclaredGraphPool for why a single graph cannot be reused.
-        std::vector<Scope<FrameGraph<Backend>>> pool =
-            DeclaredGraphPool(static_cast<u32>(meter.runs()), PASS_COUNT, [](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s); }, sink);
+        BenchDevice device;
 
-        meter.measure([&pool](int run) {
+        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
+            static_cast<u32>(meter.runs()), PASS_COUNT, [](FrameGraph<Backend> &graph, u64 &s) { DeclareSyntheticGraph(graph, s); }, sink, device.Dev);
+
+        meter.measure([&pool, &device](int run) {
             FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 
@@ -289,14 +311,15 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
     };
 
     BENCHMARK_ADVANCED("Declare + compile a full frame")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
 
         DeclareSyntheticGraph(graph, sink);
         graph.Compile();
         graph.Reset();
 
-        meter.measure([&graph, &sink] {
+        meter.measure([&graph, &sink, &device] {
             DeclareSyntheticGraph(graph, sink);
             graph.Compile();
             const size_t ordered = graph.GetExecutionOrder().size();
@@ -308,30 +331,30 @@ TEST_CASE("Frame graph compilation", "[framegraph]") {
 
 TEST_CASE("Frame graph execution", "[framegraph]") {
     BENCHMARK_ADVANCED("Execute 41 passes (serial, fused)")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
+
         DeclareSyntheticGraph(graph, sink);
         graph.Compile();
 
-        BenchDevice device;
-
         meter.measure([&graph, &sink, &device] {
-            graph.Execute(device.Context);
+            graph.Execute(device.Frame);
             return sink;
         });
     };
 
     BENCHMARK_ADVANCED("Record + Submit (serial)")(Catch::Benchmark::Chronometer meter) {
-        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         u64 sink = 0;
+
         DeclareSyntheticGraph(graph, sink);
         graph.Compile();
 
-        BenchDevice device;
-
         meter.measure([&graph, &sink, &device] {
-            graph.Record(device.Context);
-            graph.Submit(device.Context);
+            graph.Record(device.Frame);
+            graph.Submit(device.Frame);
             return sink;
         });
     };
@@ -339,7 +362,8 @@ TEST_CASE("Frame graph execution", "[framegraph]") {
     BENCHMARK_ADVANCED("Record + Submit (parallel)")(Catch::Benchmark::Chronometer meter) {
         // The pass bodies here are deliberately tiny, so this row mostly reports the fan-out overhead rather than
         // a speed-up. It is the baseline the number to beat once passes record real command buffers.
-        FrameGraph<Backend> graph{ FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
+        BenchDevice device;
+        FrameGraph<Backend> graph{ device.Dev, FrameGraphConfig{ .ExpectedPasses = 64, .ExpectedResources = 128, .InitialArenaBytes = 64 * 1024 } };
         std::atomic<u64> sink{ 0 };
 
         std::vector<BenchTextureHandle> outputs;
@@ -365,7 +389,7 @@ TEST_CASE("Frame graph execution", "[framegraph]") {
                     data.Pass = pass;
                     outputs.push_back(data.Output);
                 },
-                [](const AtomicPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+                [](const AtomicPassData &data, FrameGraphPassContext<Backend> &) {
                     data.Sink->fetch_add(Bench::BusyWork(data.Pass, Bench::SMALL_WORK), std::memory_order_relaxed);
                 });
         }
@@ -377,17 +401,16 @@ TEST_CASE("Frame graph execution", "[framegraph]") {
                 data.Sink = &sink;
                 builder.MarkSideEffect();
             },
-            [](const AtomicPassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {
+            [](const AtomicPassData &data, FrameGraphPassContext<Backend> &) {
                 data.Sink->fetch_add(1, std::memory_order_relaxed);
             });
 
+
         graph.Compile();
 
-        BenchDevice device;
-
         meter.measure([&graph, &sink, &device] {
-            graph.RecordParallel(device.Context);
-            graph.Submit(device.Context);
+            graph.RecordParallel(device.Frame);
+            graph.Submit(device.Frame);
             return sink.load(std::memory_order_relaxed);
         });
     };
@@ -398,10 +421,12 @@ TEST_CASE("Frame graph culling", "[framegraph]") {
         u64 sink = 0;
 
         // Twice PASS_COUNT passes are declared, so the graph is sized for the live and dead halves together.
-        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
-            static_cast<u32>(meter.runs()), PASS_COUNT * 2, [](FrameGraph<Backend> &graph, u64 &s) { DeclareHalfDeadGraph(graph, s); }, sink);
+        BenchDevice device;
 
-        meter.measure([&pool](int run) {
+        std::vector<Scope<FrameGraph<Backend>>> pool = DeclaredGraphPool(
+            static_cast<u32>(meter.runs()), PASS_COUNT * 2, [](FrameGraph<Backend> &graph, u64 &s) { DeclareHalfDeadGraph(graph, s); }, sink, device.Dev);
+
+        meter.measure([&pool, &device](int run) {
             FrameGraph<Backend> &graph = *pool[static_cast<size_t>(run)];
             graph.Compile();
 

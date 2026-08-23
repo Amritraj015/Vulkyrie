@@ -6,6 +6,7 @@
 #include "renderer/common/pipeline_cache.h"
 #include "renderer/common/shader_module_cache.h"
 #include "renderer/common/transient_pool.h"
+#include "renderer/common/transient_registry.h"
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/shaders/shader_compiler.h"
 
@@ -17,7 +18,8 @@ namespace Vulkyrie {
             : mShaderCompiler()
             , mContext(CreateScope<typename B::Context>(info))
             , mDeletionQueue(CreateScope<DeletionQueue<B>>(*mContext, info))
-            , mTransients(CreateScope<TransientPool<B>>(*mContext, *mDeletionQueue, info.MaxTextures, info.MaxBuffers))
+            , mRegistry(CreateScope<TransientRegistry<B>>(*mContext, info.MaxTextures, info.MaxBuffers))
+            , mTransients(CreateScope<TransientPool<B>>(*mContext, *mRegistry, *mDeletionQueue, info.MaxTransientTextures, info.MaxTransientBuffers))
             , mShaders(CreateScope<ShaderModuleCache<B>>(*mContext, mShaderCompiler, *mDeletionQueue))
             , mPipelines(CreateScope<PipelineCache<B>>(*mContext, *mShaders, *mDeletionQueue)) {
         }
@@ -68,6 +70,18 @@ namespace Vulkyrie {
             return *mTransients;
         }
 
+        /** @brief Returns the registry that turns a descriptor into an id.
+         *
+         * Register at setup, then declare transients by id: the id is what the frame graph, the aliasing plan and
+         * the transient pool all key on, and every one of those is an array index. */
+        [[nodiscard]] VE_INLINE TransientRegistry<B> &GetRegistry() noexcept {
+            return *mRegistry;
+        }
+
+        [[nodiscard]] VE_INLINE const TransientRegistry<B> &GetRegistry() const noexcept {
+            return *mRegistry;
+        }
+
         [[nodiscard]] VE_INLINE DeletionQueue<B> &GetDeletionQueue() noexcept {
             return *mDeletionQueue;
         }
@@ -92,6 +106,7 @@ namespace Vulkyrie {
         ShaderCompiler mShaderCompiler;
         Scope<typename B::Context> mContext;
         Scope<DeletionQueue<B>> mDeletionQueue;
+        Scope<TransientRegistry<B>> mRegistry;
         Scope<TransientPool<B>> mTransients;
         Scope<ShaderModuleCache<B>> mShaders;
         Scope<PipelineCache<B>> mPipelines;

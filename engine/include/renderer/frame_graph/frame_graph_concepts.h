@@ -16,15 +16,14 @@ namespace Vulkyrie {
     template <typename TSetup, typename TBuilder, typename TPassData>
     concept FrameGraphSetupFn = std::invocable<TSetup, TBuilder &, TPassData &>;
 
-    /** @brief A pass's execute function: invocable as
-     * `execute(const TPassData &, const FrameGraphResources<B> &, FrameGraphPassContext<B> &)`.
+    /** @brief A pass's execute function: invocable as `execute(const TPassData &, FrameGraphPassContext<B> &)`.
      *
      * This only constrains the signature. `AddPass` additionally requires the callable to convert to a plain
      * function pointer, which is what rejects captures; that check is a `static_assert` rather than part of this
      * concept so a capturing lambda produces a message explaining the rule instead of an overload-resolution
      * failure that only says the concept was not satisfied. */
     template <typename TExecute, typename TPassData, typename B>
-    concept FrameGraphExecuteFn = std::invocable<TExecute, const TPassData &, const FrameGraphResources<B> &, FrameGraphPassContext<B> &>;
+    concept FrameGraphExecuteFn = std::invocable<TExecute, const TPassData &, FrameGraphPassContext<B> &>;
 
     /** @brief The plain `Acquire`: the resource type takes its own storage from the transient pool and the graph's
      * byte-offset aliasing plan does not reach it. */
@@ -83,15 +82,16 @@ namespace Vulkyrie {
         { a.PreWrite(std::declval<const ResourceUsage &>(), std::declval<const FrameGraphContext<B> &>()) } -> std::same_as<void>;
     };
 
-    /** @brief Whether the type can report the size and alignment its resources need, which is what the graph's
-     * byte-offset aliasing plan requires to pack two resources with disjoint lifetimes into the same storage.
+    /** @brief Whether the type can report what its resources cost, which is what the byte-packing aliasing plan
+     * needs to place two of them in the same storage.
      *
-     * Deliberately optional rather than part of `FrameGraphResourceType`: a type without it stays perfectly usable,
-     * its resources are simply excluded from the plan. Pool-backed types on a backend without memory aliasing may
-     * still implement it, because the report it feeds is what says how much a real packer would save. */
-    template <typename T>
+     * The size must come from the driver, not from arithmetic over the descriptor: a value that reads low places
+     * two resources overlapping. Optional - a type without it is simply left out of the plan. */
+    template <typename T, typename B>
     concept HasMemoryRequirements = requires(T a) {
-        { a.GetMemoryRequirements(std::declval<const typename T::Descriptor &>()) } -> std::same_as<ResourceMemoryRequirements>;
+        {
+            a.GetMemoryRequirements(std::declval<const typename T::Descriptor &>(), std::declval<const Device<B> &>())
+        } -> std::same_as<ResourceMemoryRequirements>;
     };
 
 } // namespace Vulkyrie

@@ -11,6 +11,20 @@ namespace Vulkyrie {
         // TODO: vkDeviceWaitIdle() once a VkDevice exists here.
     }
 
+    ResourceMemoryRequirements VulkanContext::GetImageMemoryRequirements(const TextureDescriptor &descriptor) const {
+        // TODO: fill a VkDeviceImageMemoryRequirements around the same VkImageCreateInfo CreateImage builds and
+        // call vkGetDeviceImageMemoryRequirements, then return size / alignment / memoryTypeBits verbatim. The
+        // estimate below is a placeholder for a backend that cannot yet answer, and is deliberately not what the
+        // packer will ship on: it reads low, and a packer that believes it overlaps resources that do not fit.
+        // Until then VulkanBackend::kHasMemoryAliasing stays false, so nothing binds at these offsets.
+        return ResourceMemoryRequirements{ .Size = EstimateTextureBytes(descriptor), .Alignment = 256 };
+    }
+
+    ResourceMemoryRequirements VulkanContext::GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const {
+        // TODO: vkGetDeviceBufferMemoryRequirements, as above.
+        return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = 256 };
+    }
+
     const DeviceCapabilities &VulkanContext::QueryCapabilities() const {
         return mCapabilities;
     }

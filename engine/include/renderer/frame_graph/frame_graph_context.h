@@ -7,6 +7,10 @@
 
 namespace Vulkyrie {
 
+    // Held by reference below, so the declaration is enough. Including the header would be circular:
+    // frame_graph_resources.h -> resource_entry.h -> frame_graph_concepts.h -> this file.
+    template <RendererBackend B> class FrameGraphResources;
+
     /** @brief What acquiring and releasing a frame graph resource needs: the device that owns the transient pool,
      * and the frame the resources belong to.
      *
@@ -24,8 +28,8 @@ namespace Vulkyrie {
         Vulkyrie::FrameContext<B> &Frame;
     };
 
-    /** @brief What one pass's execute function receives: the device, the command list this pass records into, and
-     * which worker is doing the recording.
+    /** @brief What one pass's execute function receives: the device, the resources it declared, the command list
+     * it records into, and which worker is doing the recording.
      *
      * Built per pass by the graph rather than passed in, because under `RecordParallel` each worker records into
      * its own command list - a single list shared by the frame would be a data race by construction.
@@ -35,6 +39,10 @@ namespace Vulkyrie {
     public:
         /** @brief The device, for reaching caches and capabilities while recording. */
         Vulkyrie::Device<B> &Device;
+
+        /** @brief Resolves the handles in the pass data to the resource objects behind them. Const, so a pass can
+         * read a resource but cannot take part in the lifetime the graph just planned. */
+        const FrameGraphResources<B> &Resources;
 
         /** @brief The command list this pass records into. Owned by the frame, not by the pass. */
         typename B::CommandList &Commands;

@@ -4,6 +4,14 @@
 
 namespace Vulkyrie {
 
+    namespace {
+
+        /** @brief Alignment the GL sizing estimate rounds to. Covers the usual uniform/storage buffer offset
+         * alignments; nothing here is bound at an offset, so it only shapes the report's arithmetic. */
+        constexpr u64 GL_STORAGE_ALIGNMENT = 256;
+
+    } // namespace
+
     OpenGLContext::OpenGLContext(const DeviceCreationInfo &info)
         : mCapabilities()
         , mContextCreated(false) {
@@ -137,6 +145,8 @@ namespace Vulkyrie {
         glViewport(0, 0, info.SurfaceWidth, info.SurfaceHeight);
 
         mContextCreated = true;
+
+        return;
     }
 
     OpenGLImage OpenGLContext::CreateImage(const TextureDescriptor &descriptor) {
@@ -191,6 +201,17 @@ namespace Vulkyrie {
 
     void OpenGLContext::WaitIdle() const {
         glFinish();
+    }
+
+    ResourceMemoryRequirements OpenGLContext::GetImageMemoryRequirements(const TextureDescriptor &descriptor) const {
+        // An estimate, and that is all it can be: GL owns texture storage and exposes no way to ask what an
+        // allocation costs. It never reaches a packer either - OpenGLBackend::kHasMemoryAliasing is false, so the
+        // frame graph keeps its offsets to itself and this only feeds the aliasing report.
+        return ResourceMemoryRequirements{ .Size = EstimateTextureBytes(descriptor), .Alignment = GL_STORAGE_ALIGNMENT };
+    }
+
+    ResourceMemoryRequirements OpenGLContext::GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const {
+        return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = GL_STORAGE_ALIGNMENT };
     }
 
     bool OpenGLContext::DeviceLost() const {

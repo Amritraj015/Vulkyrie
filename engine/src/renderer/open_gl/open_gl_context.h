@@ -2,6 +2,7 @@
 
 #include "vlkypch.h"
 #include "renderer/open_gl/open_gl_types.h"
+#include "renderer/rhi/barrier_types.h"
 #include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
@@ -16,6 +17,9 @@ namespace Vulkyrie {
 
         ~OpenGLContext() = default;
 
+        StatusCode Initialize();
+        void SetWindowHints() const;
+
         [[nodiscard]] OpenGLImage CreateImage(const TextureDescriptor &descriptor);
         [[nodiscard]] OpenGLBuffer CreateBuffer(const BufferDescriptor &descriptor);
         [[nodiscard]] OpenGLSampler CreateSampler(const SamplerDescriptor &descriptor);
@@ -28,6 +32,15 @@ namespace Vulkyrie {
         void DestroySampler(OpenGLSampler sampler);
         void DestroyShaderModule(OpenGLShaderModule shaderModule);
         void DestroyPipeline(OpenGLPipeline pipeline);
+
+        /** @brief Estimates an image's storage. GL exposes no allocator query and cannot alias two textures onto
+         * one allocation, so this only ever feeds the frame graph's aliasing report.
+         * @param descriptor The descriptor to size. */
+        [[nodiscard]] ResourceMemoryRequirements GetImageMemoryRequirements(const TextureDescriptor &descriptor) const;
+
+        /** @brief Reports a buffer's storage. Exact, unlike the image estimate.
+         * @param descriptor The descriptor to size. */
+        [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const;
 
         void WaitIdle() const;
 

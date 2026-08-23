@@ -83,6 +83,15 @@ namespace Vulkyrie {
             { c.DestroyShaderModule(shaderModule) } -> std::same_as<void>;
             { c.DestroyPipeline(pipeline) } -> std::same_as<void>;
 
+            // Answered by the driver from a descriptor, without creating anything: Vulkan has
+            // vkGetDeviceImageMemoryRequirements / vkGetDeviceBufferMemoryRequirements for exactly
+            // this. A packer fed a CPU-side guess is unsound -- guess low and it places two
+            // resources overlapping when their real extents do not fit. A backend that cannot
+            // alias (kHasMemoryAliasing == false) may return an estimate, because there it only
+            // feeds the report.
+            { cb.GetImageMemoryRequirements(td) } -> std::same_as<ResourceMemoryRequirements>;
+            { cb.GetBufferMemoryRequirements(bd) } -> std::same_as<ResourceMemoryRequirements>;
+
             { cb.WaitIdle() } -> std::same_as<void>;
             { cb.QueryCapabilities() } -> std::convertible_to<const DeviceCapabilities &>;
             { cb.DeviceLost() } -> std::same_as<bool>;

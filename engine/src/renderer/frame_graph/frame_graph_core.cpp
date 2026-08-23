@@ -12,23 +12,25 @@ namespace Vulkyrie::detail {
         /** @brief Sentinel for "this pass/resource has no position in the execution order". */
         constexpr u32 UNORDERED = std::numeric_limits<u32>::max();
 
-        /** @brief Version every resource starts at; must match `EntryState::Version`'s default. */
-        constexpr u32 INITIAL_RESOURCE_VERSION = 1U;
-
-        /** @brief Folds a second access to the same resource within one pass into the first. Stage and access masks
-         * union; layout and queue take the last explicitly specified value, since a pass cannot have a resource in
-         * two layouts at once and the later declaration is the more specific one. */
+        /** @brief Folds a second access to the same resource within one pass into the first.
+         *
+         * Stage and access masks union. A layout does not: an image is in exactly one layout for the duration of a
+         * pass, so a second access either agrees, names no layout at all, or is a declaration error. Silently
+         * keeping the last one hands the backend a layout that half the pass is not expecting. */
         void MergeUsage(ResourceUsage &target, const ResourceUsage &addition) {
             target.Stages |= addition.Stages;
             target.Access |= addition.Access;
 
-            if (addition.Layout != 0) {
-                target.Layout = addition.Layout;
+            VASSERT(addition.Queue == target.Queue, "A pass declared two accesses to one resource on different queues; a pass runs on exactly one queue.");
+
+            if (addition.Layout == ImageLayout::Undefined) {
+                return;
             }
 
-            if (addition.QueueType != 0) {
-                target.QueueType = addition.QueueType;
-            }
+            VASSERT(target.Layout == ImageLayout::Undefined || target.Layout == addition.Layout,
+                    "A pass declared two accesses to one resource in different image layouts; a resource is in one layout per pass.");
+
+            target.Layout = addition.Layout;
         }
 
         /** @brief Rounds an offset up to the next multiple of a power-of-two alignment. */
@@ -133,7 +135,7 @@ namespace Vulkyrie::detail {
 
         mEntryStates.push_back(EntryState{ .IsTransient = isTransient });
 
-        return DeclaredResource{ .EntryID = entryID, .ResourceID = createResourceNode(name, entryID, INITIAL_RESOURCE_VERSION, producer) };
+        return DeclaredResource{ .EntryID = entryID, .ResourceID = createResourceNode(name, entryID, producer) };
     }
 
     void FrameGraphCore::AssertContiguousRanges([[maybe_unused]] const PassNode &passNode) const {
@@ -144,13 +146,13 @@ namespace Vulkyrie::detail {
         VASSERT(passNode.mWriteBegin + passNode.mWriteCount == mWrites.size(), "Frame graph write range is not contiguous; was AddPass re-entered?");
     }
 
-    FrameGraphResourceID FrameGraphCore::createResourceNode(StaticString name, FrameGraphResourceEntryID entryID, u32 version, FrameGraphPassID producer) {
+    FrameGraphResourceID FrameGraphCore::createResourceNode(StaticString name, FrameGraphResourceEntryID entryID, FrameGraphPassID producer) {
         VE_MEMORY_SCOPE(MemoryTag::Rendering);
 
         const auto resourceID = FrameGraphResourceID{ static_cast<u32>(mResourceNodes.size()) };
 
         mResourceNames.push_back(name);
-        mResourceNodes.push_back(ResourceNode{ resourceID, entryID, version, producer });
+        mResourceNodes.push_back(ResourceNode{ resourceID, entryID, producer });
         mNextVersion.push_back(FrameGraphResourceID{});
 
         if (mLatestVersionOfEntry.size() <= entryID.Get()) {
@@ -176,7 +178,7 @@ namespace Vulkyrie::detail {
         ++passNode.mCreateCount;
     }
 
-    FrameGraphResourceID FrameGraphCore::registerRead(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage) {
+    FrameGraphResourceID FrameGraphCore::registerRead(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage, bool orderingOnly) {
         VE_MEMORY_SCOPE(MemoryTag::Rendering);
 
         VASSERT(!passCreatesResource(passNode, resourceID), "A pass cannot read a resource it creates in the same pass.");
@@ -186,11 +188,15 @@ namespace Vulkyrie::detail {
 
             if (access.Resource == resourceID) {
                 MergeUsage(access.Usage, usage);
+
+                // One real read is enough to make the merged access real, whichever order the two arrived in.
+                access.OrderingOnly = access.OrderingOnly && orderingOnly;
+
                 return resourceID;
             }
         }
 
-        mReads.push_back(ResourceAccess{ .Resource = resourceID, .Usage = usage });
+        mReads.push_back(ResourceAccess{ .Resource = resourceID, .Usage = usage, .OrderingOnly = orderingOnly });
         ++passNode.mReadCount;
 
         return resourceID;
@@ -218,11 +224,8 @@ namespace Vulkyrie::detail {
         const StaticString name = mResourceNames[resourceID.Get()];
         const FrameGraphResourceEntryID entryID = mResourceNodes[resourceID.Get()].mResourceEntryID;
 
-        EntryState &state = mEntryStates[entryID.Get()];
-        ++state.Version;
-
         // Every version shares the original's name.
-        return createResourceNode(name, entryID, state.Version, producer);
+        return createResourceNode(name, entryID, producer);
     }
 
     bool FrameGraphCore::isCurrentVersion(FrameGraphResourceID resourceID) const {
@@ -232,7 +235,9 @@ namespace Vulkyrie::detail {
 
         const ResourceNode &node = mResourceNodes[resourceID.Get()];
 
-        return node.mVersion == mEntryStates[node.mResourceEntryID.Get()].Version;
+        // The latest node for an entry is by definition its current version, so a handle naming any earlier node
+        // is stale. `createResourceNode` keeps this up to date for every entry it touches.
+        return mLatestVersionOfEntry[node.mResourceEntryID.Get()] == resourceID;
     }
 
     bool FrameGraphCore::passCreatesResource(const PassNode &passNode, FrameGraphResourceID resourceID) const {
@@ -248,7 +253,7 @@ namespace Vulkyrie::detail {
     FrameGraphResourceID FrameGraphCore::ReadImpl(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage) {
         VASSERT(isCurrentVersion(resourceID), "Resource handle is stale: another pass has written this resource since the handle was obtained.");
 
-        return registerRead(passNode, resourceID, usage);
+        return registerRead(passNode, resourceID, usage, /*orderingOnly=*/false);
     }
 
     FrameGraphResourceID FrameGraphCore::WriteImpl(PassNode &passNode, FrameGraphResourceID resourceID, const ResourceUsage &usage) {
@@ -266,7 +271,7 @@ namespace Vulkyrie::detail {
         // Writing a resource the pass did not create renames it: the pass consumes the current version and
         // produces the next one. That is what forces two passes modifying the same resource into a defined order
         // and makes a stale handle detectable.
-        const FrameGraphResourceID previous = registerRead(passNode, resourceID, ResourceUsage{});
+        const FrameGraphResourceID previous = registerRead(passNode, resourceID, ResourceUsage{}, /*orderingOnly=*/true);
 
         return RegisterWrite(passNode, createNextVersion(previous, passNode.GetPassID()), usage);
     }
@@ -374,8 +379,8 @@ namespace Vulkyrie::detail {
                 // Read-after-write: whoever produced this version must run first.
                 addEdge(mResourceNodes[readID.Get()].mProducer, pass.mPassID);
 
-                // Write-after-read: whoever produces the *next* version must run after this reader,
-                // or the reader would observe data that has already been overwritten.
+                // Write-after-read: whoever produces the *next* version (writes to this resource) must 
+                // run after this reader, or the reader would observe data that has already been overwritten.
                 const FrameGraphResourceID nextID = mNextVersion[readID.Get()];
 
                 if (nextID.IsValid()) {
@@ -464,8 +469,7 @@ namespace Vulkyrie::detail {
             }
         }
 
-        // Bucket the releases by last-use position in two linear passes. The previous implementation scanned the
-        // whole entry array once per pass, which is O(passes x resources) on the hot path.
+        // Bucket the releases by last-use position in two linear passes.
         mReleaseCounts.assign(mExecutionOrder.size(), 0);
 
         for (const EntryState &state : mEntryStates) {
@@ -496,6 +500,194 @@ namespace Vulkyrie::detail {
             mReleases[pass.mReleaseBegin + pass.mReleaseCount] = FrameGraphResourceEntryID{ entryIndex };
             ++pass.mReleaseCount;
         }
+    }
+
+    void FrameGraphCore::buildAliasingPlan(std::span<const ResourceMemoryRequirements> requirements) {
+        // Sized up front rather than alongside the predecessor scan below, so `buildBarriers` can index them even
+        // when nothing is eligible for aliasing and this returns early.
+        mAliasPredecessorBegin.assign(mEntryStates.size(), 0);
+        mAliasPredecessorCount.assign(mEntryStates.size(), 0);
+
+        VASSERT(requirements.size() == mEntryStates.size(), "Frame graph memory requirements must carry one entry per resource entry.");
+
+        for (u32 entryIndex = 0; entryIndex < mEntryStates.size(); ++entryIndex) {
+            const EntryState &state = mEntryStates[entryIndex];
+
+            if (!state.IsTransient || state.FirstUse == UNORDERED) {
+                continue;
+            }
+
+            // A resource type that does not report its requirements is handed a zero size and simply stays out of
+            // the plan - as is every resource on a backend that cannot bind two of them to one allocation.
+            const ResourceMemoryRequirements &entryRequirements = requirements[entryIndex];
+
+            if (entryRequirements.Size == 0) {
+                continue;
+            }
+
+            mAliasCandidates.push_back(AliasCandidate{ .EntryIndex = entryIndex,
+                                                       .Size = entryRequirements.Size,
+                                                       .Alignment = std::max<u64>(entryRequirements.Alignment, 1),
+                                                       .FirstUse = state.FirstUse,
+                                                       .LastUse = state.LastUse,
+                                                       .MemoryTypeBits = entryRequirements.MemoryTypeBits });
+        }
+
+        if (mAliasCandidates.empty()) {
+            return;
+        }
+
+        // Grouped by memory-type mask first, then largest-first within a group.
+        //
+        // The grouping is what keeps the plan sound: a block is one allocation, made from one memory type, so two
+        // resources whose masks differ cannot share bytes however disjoint their lifetimes are. Bucketing by the
+        // exact mask is conservative - a resource compatible with two buckets is packed into only one - but it
+        // never places a resource somewhere it could not be bound, which the alternative of ignoring the masks
+        // does routinely, e.g. a device-local render target over a host-visible readback buffer.
+        //
+        // Largest-first inside a group because every transient is placed at an offset into that group's block, so
+        // a big resource laid down early leaves gaps beside it that the smaller ones can then fill. The
+        // alternative - walking candidates by first use and handing each a region reused whole - sizes every
+        // region to the largest thing that ever occupies it, which on a frame mixing 32 MB targets with 4 KB
+        // scratch costs multiples of the peak demand.
+        std::ranges::sort(mAliasCandidates, [](const AliasCandidate &lhs, const AliasCandidate &rhs) {
+            if (lhs.MemoryTypeBits != rhs.MemoryTypeBits) {
+                return lhs.MemoryTypeBits < rhs.MemoryTypeBits;
+            }
+
+            if (lhs.Size != rhs.Size) {
+                return lhs.Size > rhs.Size;
+            }
+
+            // First use, then entry index, break ties so the plan does not depend on the sort's stability.
+            return lhs.FirstUse != rhs.FirstUse ? lhs.FirstUse < rhs.FirstUse : lhs.EntryIndex < rhs.EntryIndex;
+        });
+
+        u64 aliasedBytes = 0;
+        u64 totalBytes = 0;
+        i64 peakLiveBytes = 0;
+
+        u32 blockBegin = 0;
+        u32 blockIndex = 0;
+
+        while (blockBegin < mAliasCandidates.size()) {
+            const u32 memoryTypeBits = mAliasCandidates[blockBegin].MemoryTypeBits;
+
+            u32 blockEnd = blockBegin;
+
+            while (blockEnd < mAliasCandidates.size() && mAliasCandidates[blockEnd].MemoryTypeBits == memoryTypeBits) {
+                ++blockEnd;
+            }
+
+            // Offsets are per block, so the placement list starts empty for each one.
+            mAliasPlacements.clear();
+
+            u64 highWater = 0;
+
+            for (u32 index = blockBegin; index < blockEnd; ++index) {
+                AliasCandidate &candidate = mAliasCandidates[index];
+                u64 offset = 0;
+
+                // Sweep the placements in offset order, pushing past everything whose lifetime overlaps this
+                // candidate until a wide enough gap opens up. Because they are ordered, the first such gap is the
+                // lowest one, and anything at a higher offset than the end of it cannot conflict - hence the early
+                // exit.
+                for (const u32 placedIndex : mAliasPlacements) {
+                    const AliasCandidate &placed = mAliasCandidates[placedIndex];
+
+                    // Tested before the lifetime check, not after: everything from here on sits at this offset or
+                    // higher, so nothing left can reach back into the gap and the answer is already settled.
+                    if (placed.Offset >= offset + candidate.Size) {
+                        break;
+                    }
+
+                    // Disjoint lifetimes may share bytes, which is the whole point of the plan.
+                    if (placed.LastUse < candidate.FirstUse || candidate.LastUse < placed.FirstUse) {
+                        continue;
+                    }
+
+                    offset = std::max(offset, AlignUp(placed.Offset + placed.Size, candidate.Alignment));
+                }
+
+                candidate.Offset = offset;
+                candidate.BlockIndex = blockIndex;
+                highWater = std::max(highWater, offset + candidate.Size);
+
+                const auto position = std::ranges::upper_bound(mAliasPlacements, offset, {}, [this](u32 i) { return mAliasCandidates[i].Offset; });
+                mAliasPlacements.insert(position, index);
+            }
+
+            // Peak live bytes for this block, as a running sum over a per-position delta: the floor its high water
+            // is measured against. Summed across blocks, because bytes in one block can never cover the other.
+            mAliasLiveDelta.assign(mExecutionOrder.size() + 1, 0);
+
+            for (u32 index = blockBegin; index < blockEnd; ++index) {
+                const AliasCandidate &candidate = mAliasCandidates[index];
+
+                totalBytes += candidate.Size;
+
+                mAliasLiveDelta[candidate.FirstUse] += static_cast<i64>(candidate.Size);
+                mAliasLiveDelta[candidate.LastUse + 1] -= static_cast<i64>(candidate.Size);
+
+                EntryState &state = mEntryStates[candidate.EntryIndex];
+                state.AliasOffset = candidate.Offset;
+                state.AliasBlock = candidate.BlockIndex;
+                state.IsAliased = true;
+            }
+
+            i64 liveBytes = 0;
+            i64 blockPeak = 0;
+
+            for (const i64 delta : mAliasLiveDelta) {
+                liveBytes += delta;
+                blockPeak = std::max(blockPeak, liveBytes);
+            }
+
+            peakLiveBytes += blockPeak;
+
+            // Record, for every candidate, the earlier occupants of the bytes it is taking over, so `buildBarriers`
+            // can source its discard from all of them. Every one is needed, not just the most recent: when a large
+            // resource takes over the space of several smaller ones that never overlapped each other, nothing has
+            // ordered those smaller ones against one another, so naming only the last of them leaves the rest
+            // without a source scope.
+            for (u32 index = blockBegin; index < blockEnd; ++index) {
+                const AliasCandidate &candidate = mAliasCandidates[index];
+
+                const auto begin = static_cast<u32>(mAliasPredecessors.size());
+                const u64 candidateEnd = candidate.Offset + candidate.Size;
+
+                // Walked through the offset-ordered placement list rather than the size-ordered candidate list, so
+                // the scan stops at the first placement starting past this candidate's last byte instead of
+                // running to the end every time.
+                for (const u32 placedIndex : mAliasPlacements) {
+                    const AliasCandidate &other = mAliasCandidates[placedIndex];
+
+                    if (other.Offset >= candidateEnd) {
+                        break;
+                    }
+
+                    // A candidate never matches itself: it shares all its own bytes, but its own last use is never
+                    // before its own first use.
+                    if (candidate.Offset < other.Offset + other.Size && other.LastUse < candidate.FirstUse) {
+                        mAliasPredecessors.push_back(FrameGraphResourceEntryID{ other.EntryIndex });
+                    }
+                }
+
+                mAliasPredecessorBegin[candidate.EntryIndex] = begin;
+                mAliasPredecessorCount[candidate.EntryIndex] = static_cast<u32>(mAliasPredecessors.size()) - begin;
+            }
+
+            aliasedBytes += highWater;
+
+            blockBegin = blockEnd;
+            ++blockIndex;
+        }
+
+        mAliasingReport = FrameGraphAliasingReport{ .UnaliasedBytes = totalBytes,
+                                                    .AliasedBytes = aliasedBytes,
+                                                    .PeakLiveBytes = static_cast<u64>(peakLiveBytes),
+                                                    .ResourceCount = static_cast<u32>(mAliasCandidates.size()),
+                                                    .BlockCount = blockIndex };
     }
 
     void FrameGraphCore::buildBarriers() {
@@ -545,6 +737,14 @@ namespace Vulkyrie::detail {
 
             for (u32 i = 0; i < pass.mReadCount; ++i) {
                 const ResourceAccess &access = mReads[pass.mReadBegin + i];
+
+                // Bookkeeping, not work - see ResourceAccess::OrderingOnly. Transitioning for it would move the
+                // resource to a null state and then back, i.e. transition *from* undefined and discard the very
+                // contents the pass is about to modify.
+                if (access.OrderingOnly) {
+                    continue;
+                }
+
                 transition(access.Resource, access.Usage);
             }
 
@@ -556,142 +756,6 @@ namespace Vulkyrie::detail {
             pass.mBarrierCount = static_cast<u32>(mBarriers.size()) - pass.mBarrierBegin;
         }
     }
-
-    void FrameGraphCore::buildAliasingPlan(std::span<const ResourceMemoryRequirements> requirements) {
-        // Sized up front rather than alongside the predecessor scan below, so `buildBarriers` can index them even
-        // when nothing is eligible for aliasing and this returns early.
-        mAliasPredecessorBegin.assign(mEntryStates.size(), 0);
-        mAliasPredecessorCount.assign(mEntryStates.size(), 0);
-
-        VASSERT(requirements.size() == mEntryStates.size(), "Frame graph memory requirements must carry one entry per resource entry.");
-
-        for (u32 entryIndex = 0; entryIndex < mEntryStates.size(); ++entryIndex) {
-            const EntryState &state = mEntryStates[entryIndex];
-
-            if (!state.IsTransient || state.FirstUse == UNORDERED) {
-                continue;
-            }
-
-            // A resource type that does not report its requirements is handed a zero size and simply stays out of
-            // the plan - as is every resource on a backend that cannot bind two of them to one allocation.
-            const ResourceMemoryRequirements &entryRequirements = requirements[entryIndex];
-
-            if (entryRequirements.Size == 0) {
-                continue;
-            }
-
-            mAliasCandidates.push_back(AliasCandidate{ .EntryIndex = entryIndex,
-                                                       .Size = entryRequirements.Size,
-                                                       .Alignment = std::max<u64>(entryRequirements.Alignment, 1),
-                                                       .FirstUse = state.FirstUse,
-                                                       .LastUse = state.LastUse });
-        }
-
-        if (mAliasCandidates.empty()) {
-            return;
-        }
-
-        // Largest first. Every transient is placed at an offset into one shared block, so a big resource laid down
-        // early leaves gaps beside it that the smaller ones can then fill. The alternative - walking candidates by
-        // first use and handing each a region reused whole - sizes every region to the largest thing that ever
-        // occupies it, which on a frame mixing 32 MB targets with 4 KB scratch costs multiples of the peak demand.
-        std::ranges::sort(mAliasCandidates, [](const AliasCandidate &lhs, const AliasCandidate &rhs) {
-            // First use breaks size ties so the plan does not depend on the sort's stability.
-            return lhs.Size != rhs.Size ? lhs.Size > rhs.Size : lhs.FirstUse < rhs.FirstUse;
-        });
-
-        u64 highWater = 0;
-
-        for (u32 index = 0; index < mAliasCandidates.size(); ++index) {
-            AliasCandidate &candidate = mAliasCandidates[index];
-            u64 offset = 0;
-
-            // Sweep the placements in offset order, pushing past everything whose lifetime overlaps this candidate
-            // until a wide enough gap opens up. Because they are ordered, the first such gap is the lowest one, and
-            // anything at a higher offset than the end of it cannot conflict - hence the early exit.
-            for (const u32 placedIndex : mAliasPlacements) {
-                const AliasCandidate &placed = mAliasCandidates[placedIndex];
-
-                // Tested before the lifetime check, not after: everything from here on sits at this offset or
-                // higher, so nothing left can reach back into the gap and the answer is already settled.
-                if (placed.Offset >= offset + candidate.Size) {
-                    break;
-                }
-
-                // Disjoint lifetimes may share bytes, which is the whole point of the plan.
-                if (placed.LastUse < candidate.FirstUse || candidate.LastUse < placed.FirstUse) {
-                    continue;
-                }
-
-                offset = std::max(offset, AlignUp(placed.Offset + placed.Size, candidate.Alignment));
-            }
-
-            candidate.Offset = offset;
-            highWater = std::max(highWater, offset + candidate.Size);
-
-            const auto position = std::ranges::upper_bound(mAliasPlacements, offset, {}, [this](u32 i) { return mAliasCandidates[i].Offset; });
-            mAliasPlacements.insert(position, index);
-        }
-
-        // Peak live bytes, as a running sum over a per-position delta: the floor `highWater` is measured against.
-        u64 totalBytes = 0;
-
-        mAliasLiveDelta.assign(mExecutionOrder.size() + 1, 0);
-
-        for (const AliasCandidate &candidate : mAliasCandidates) {
-            totalBytes += candidate.Size;
-
-            mAliasLiveDelta[candidate.FirstUse] += static_cast<i64>(candidate.Size);
-            mAliasLiveDelta[candidate.LastUse + 1] -= static_cast<i64>(candidate.Size);
-
-            EntryState &state = mEntryStates[candidate.EntryIndex];
-            state.AliasOffset = candidate.Offset;
-            state.IsAliased = true;
-        }
-
-        i64 liveBytes = 0;
-        i64 peakLiveBytes = 0;
-
-        for (const i64 delta : mAliasLiveDelta) {
-            liveBytes += delta;
-            peakLiveBytes = std::max(peakLiveBytes, liveBytes);
-        }
-
-        // Record, for every candidate, the earlier occupants of the bytes it is taking over, so `buildBarriers` can
-        // source its discard from all of them. Every one is needed, not just the most recent: when a large resource
-        // takes over the space of several smaller ones that never overlapped each other, nothing has ordered those
-        // smaller ones against one another, so naming only the last of them leaves the rest without a source scope.
-        for (const AliasCandidate &candidate : mAliasCandidates) {
-            const auto begin = static_cast<u32>(mAliasPredecessors.size());
-            const u64 candidateEnd = candidate.Offset + candidate.Size;
-
-            // Walked through the offset-ordered placement list rather than the size-ordered candidate list, so the
-            // scan stops at the first placement starting past this candidate's last byte instead of running to the
-            // end every time.
-            for (const u32 placedIndex : mAliasPlacements) {
-                const AliasCandidate &other = mAliasCandidates[placedIndex];
-
-                if (other.Offset >= candidateEnd) {
-                    break;
-                }
-
-                // A candidate never matches itself: it shares all its own bytes, but its own last use is never
-                // before its own first use.
-                if (candidate.Offset < other.Offset + other.Size && other.LastUse < candidate.FirstUse) {
-                    mAliasPredecessors.push_back(FrameGraphResourceEntryID{ other.EntryIndex });
-                }
-            }
-
-            mAliasPredecessorBegin[candidate.EntryIndex] = begin;
-            mAliasPredecessorCount[candidate.EntryIndex] = static_cast<u32>(mAliasPredecessors.size()) - begin;
-        }
-
-        mAliasingReport = FrameGraphAliasingReport{ .UnaliasedBytes = totalBytes,
-                                                    .AliasedBytes = highWater,
-                                                    .PeakLiveBytes = static_cast<u64>(peakLiveBytes),
-                                                    .ResourceCount = static_cast<u32>(mAliasCandidates.size()) };
-    }
-
 
     std::string FrameGraphCore::ToDot() const {
         std::ostringstream out;
@@ -722,7 +786,7 @@ namespace Vulkyrie::detail {
             const EntryState &state = mEntryStates[node.mResourceEntryID.Get()];
 
             out << "    R" << node.mResourceID.Get() << " [shape=ellipse, style=filled, fillcolor=\"" << (state.IsTransient ? "#d7f2d7" : "#ffe5b4")
-                << "\", label=\"" << mResourceNames[node.mResourceID.Get()].View() << "\\nv" << node.mVersion << "\"];\n";
+                << "\", label=\"" << mResourceNames[node.mResourceID.Get()].View() << "\\n#" << node.mResourceID.Get() << "\"];\n";
         }
 
         out << "\n";

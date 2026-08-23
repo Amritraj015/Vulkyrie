@@ -13,12 +13,13 @@ namespace Vulkyrie {
      * @tparam B The renderer backend the buffer is acquired from. */
     template <RendererBackend B> class FrameGraphBuffer final {
     public:
-        using Descriptor = BufferDescriptor;
+        /** @brief A registered descriptor's id rather than the descriptor; see `FrameGraphTexture::Descriptor`. */
+        using Descriptor = TransientBufferID;
 
         FrameGraphBuffer() = default;
 
         /** @brief Takes a buffer from the frame's transient pool.
-         * @param descriptor What the buffer must look like; the pool keys its buckets on this.
+         * @param descriptor The registered descriptor; the pool keys its buckets on its id.
          * @param lifetime The execution-order interval this buffer is live over. Two buffers with the same
          * descriptor and disjoint intervals share one allocation.
          * @param placement Where the graph's byte-packing plan put this buffer; see `FrameGraphTexture::Acquire`.
@@ -32,7 +33,10 @@ namespace Vulkyrie {
                 (void)placement;
             }
 
-            mBuffer = context.Device.GetTransients().Acquire(descriptor, lifetime);
+            const auto acquisition = context.Device.GetTransients().Acquire(descriptor, lifetime);
+
+            mBuffer = acquisition.Buffer;
+            mRequiresDiscard = acquisition.RequiresDiscard;
         }
 
         /** @brief Returns the buffer to the pool, clearing the handle so a use-after-release is caught.
@@ -41,12 +45,18 @@ namespace Vulkyrie {
             (void)context;
 
             mBuffer = typename B::Buffer{};
+            mRequiresDiscard = true;
         }
 
-        /** @brief Reports the storage this buffer needs. Exact, unlike a texture's estimate.
-         * @param descriptor The descriptor to size. */
-        [[nodiscard]] static ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor) {
-            return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = BUFFER_ALIGNMENT };
+        /** @brief Reports the storage this buffer needs, as the driver reports it.
+         *
+         * An array read: the backend was asked once, when the descriptor was registered. A buffer's size is its
+         * descriptor's size, but its alignment and the memory types that can back it are the allocator's answer,
+         * not a constant this type can assume.
+         * @param descriptor The registered descriptor to size.
+         * @param device The device holding the registry that has the answer. */
+        [[nodiscard]] static ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor, const Device<B> &device) {
+            return device.GetRegistry().Requirements(descriptor);
         }
 
         /** @brief Returns the underlying backend buffer. Empty until the graph acquires it. */
@@ -54,11 +64,17 @@ namespace Vulkyrie {
             return mBuffer;
         }
 
-    private:
-        /** @brief Conservative buffer alignment for the sizing estimate; covers the usual storage/uniform limits. */
-        static constexpr u64 BUFFER_ALIGNMENT = 256;
+        /** @brief Whether the contents must be treated as undefined - the buffer is either brand new or was last
+         * used by something else. A pass that fully overwrites it can ignore this; one that accumulates into it
+         * must not. */
+        [[nodiscard]] VE_INLINE bool RequiresDiscard() const noexcept {
+            return mRequiresDiscard;
+        }
 
+    private:
         typename B::Buffer mBuffer{};
+
+        bool mRequiresDiscard = true;
     };
 
 } // namespace Vulkyrie

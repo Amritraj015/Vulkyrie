@@ -58,9 +58,13 @@ namespace Vulkyrie {
 
     namespace detail {
 
-        /** @brief Hands out the next frame-graph resource type id. Monotonic across the process. */
+        /** @brief Hands out the next frame-graph resource type id. Monotonic across the process.
+         *
+         * Starts at 1 so that 0 stays reserved for "no type recorded", which is what a default-constructed
+         * `ResourceEntry` carries - otherwise the first type registered in the process validates clean against an
+         * entry that was never wired up. */
         [[nodiscard]] inline u16 NextFrameGraphTypeID() {
-            static std::atomic<u16> counter{ 0 };
+            static std::atomic<u16> counter{ 1 };
             return counter.fetch_add(1, std::memory_order_relaxed);
         }
 
@@ -80,6 +84,16 @@ namespace Vulkyrie {
     public:
         FrameGraphResourceID Resource{};
         ResourceUsage Usage{};
+
+        /** @brief Whether this access exists only to order passes, and describes no work the GPU does.
+         *
+         * Writing a resource the pass did not create registers a read of the previous version, which is what forces
+         * the two writers into an order. That read is bookkeeping: no stage of the pass actually reads the
+         * resource, and the usage attached to it is empty. Barrier generation and the resource types' access hooks
+         * both skip it - treating it as a real access transitions the resource to a null state and then back, which
+         * on an explicit API means transitioning *from* undefined and discarding what the pass was about to
+         * modify. Culling and lifetimes still count it, because the ordering edge is real. */
+        bool OrderingOnly = false;
 
         friend constexpr bool operator==(const ResourceAccess &, const ResourceAccess &) = default;
     };

@@ -343,15 +343,16 @@ namespace Vulkyrie {
         // Set GLFW error callback.
         glfwSetErrorCallback([](i32 errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-
         if (mWindowProps.GraphicsAPI == GraphicsAPI::OpenGL) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #if defined(VULKYRIE_DEBUG)
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
+        } else if (mWindowProps.GraphicsAPI == GraphicsAPI::Vulkan) {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
 
         const i32 width = static_cast<i32>(mWindowProps.Width);

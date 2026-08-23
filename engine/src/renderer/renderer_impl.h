@@ -9,6 +9,7 @@ namespace Vulkyrie {
     public:
         explicit RendererImpl(const DeviceCreationInfo &info)
             : mDevice(info)
+            , mFrameGraph(mDevice)
             , mFrames(makeFrames(mDevice.Context(), info, std::make_index_sequence<B::kFramesInFlight>{})) {
         }
 
@@ -38,13 +39,11 @@ namespace Vulkyrie {
             mDevice.GetDeletionQueue().Collect(mStats.FrameIndex);
             mDevice.GetTransients().ResetFrame();
             mFrameGraph.Reset();
-            mFrameGraph.Compile();
 
             auto &frame = mFrames[mStats.FrameIndex % B::kFramesInFlight];
 
-            FrameGraphContext<B> frameGraphContext{ .Device = mDevice, .Frame = frame };
-
-            mFrameGraph.Execute(frameGraphContext);
+            mFrameGraph.Compile();
+            mFrameGraph.Execute(frame);
 
             ++mStats.FrameIndex;
         }

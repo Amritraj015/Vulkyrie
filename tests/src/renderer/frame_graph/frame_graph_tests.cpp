@@ -28,11 +28,30 @@ namespace {
         return std::ranges::find(order, name) != order.end();
     }
 
-    // Stand-in usage masks. The graph treats every field as opaque, so the values only have to differ; a Vulkan
-    // backend would map them to real stage/access/layout enums. Kept at namespace scope because a pass's setup
+    // The two usages every barrier test moves a resource between. Kept at namespace scope because a pass's setup
     // lambda would otherwise have to capture them.
-    constexpr ResourceUsage ATTACHMENT{ .Stages = 0x1, .Access = 0x2, .Layout = 1, .QueueType = 0 };
-    constexpr ResourceUsage SAMPLED{ .Stages = 0x4, .Access = 0x8, .Layout = 2, .QueueType = 0 };
+    constexpr ResourceUsage ATTACHMENT{ .Stages = PipelineStage::ColorAttachmentOutput,
+                                        .Access = AccessFlags::ColorAttachmentWrite,
+                                        .Layout = ImageLayout::ColorAttachment };
+    constexpr ResourceUsage SAMPLED{ .Stages = PipelineStage::FragmentShader,
+                                     .Access = AccessFlags::ShaderSampledRead,
+                                     .Layout = ImageLayout::ShaderReadOnly };
+
+    /** @brief The number `MockCommandList` prints for a layout. Derived rather than written out, so a barrier
+     * expectation tracks the enum instead of pinning whatever value it happens to have today. */
+    [[nodiscard]] std::string LayoutID(ImageLayout layout) {
+        return std::to_string(std::to_underlying(layout));
+    }
+
+    /** @brief One entry's transition, formatted the way `MockCommandList` renders it. */
+    [[nodiscard]] std::string Transition(u32 entry, ImageLayout before, ImageLayout after) {
+        return " e" + std::to_string(entry) + "[" + LayoutID(before) + "->" + LayoutID(after) + "]";
+    }
+
+    /** @brief The suffix a discard adds, naming the stages it waits on. */
+    [[nodiscard]] std::string Discard(PipelineStage waitStages) {
+        return "{discard,waitStages=" + std::to_string(std::to_underlying(waitStages)) + "}";
+    }
 
 } // namespace
 
@@ -78,7 +97,7 @@ TEST_CASE("FrameGraph - Basic pass addition", "[framegraph]") {
         [&](FrameGraph<Backend>::Builder &builder, PassData &data) { builder.MarkSideEffect();
             data.Probe.Counter = &executionCount;
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &resources, FrameGraphPassContext<Backend> &) {
+        [](const PassData &data, FrameGraphPassContext<Backend> &) {
             ++*data.Probe.Counter;
             REQUIRE(data.Value == 42);
         });
@@ -86,7 +105,7 @@ TEST_CASE("FrameGraph - Basic pass addition", "[framegraph]") {
     REQUIRE(data.Value == 42);
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionCount == 1);
 }
@@ -108,10 +127,10 @@ TEST_CASE("FrameGraph - Resource creation and access", "[framegraph]") {
             builder.MarkSideEffect();
             data.Probe.Flag = &passExecuted;
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &resources, FrameGraphPassContext<Backend> &) { *data.Probe.Flag = true; });
+        [](const PassData &data, FrameGraphPassContext<Backend> &) { *data.Probe.Flag = true; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(passExecuted);
     REQUIRE(fixture.Lifecycle().front() == "Acquire:1920x1080");
@@ -137,12 +156,12 @@ TEST_CASE("FrameGraph - Execute functor can reach the resource it declared", "[f
             data.Observed = &observed;
             builder.MarkSideEffect();
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &resources, FrameGraphPassContext<Backend> &) {
-            *data.Observed = &resources.Get(data.Texture);
+        [](const PassData &data, FrameGraphPassContext<Backend> &ctx) {
+            *data.Observed = &ctx.Resources.Get(data.Texture);
         });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(observed != nullptr);
     REQUIRE(observed->Acquired); // The graph must have materialised the resource before the pass ran.
@@ -165,7 +184,7 @@ TEST_CASE("FrameGraph - Names cost no arena bytes", "[framegraph]") {
                 data.Output = builder.Create<MockTexture>(resourceName, MockTextureDescriptor{ 64, 64, "D32" });
                 builder.MarkSideEffect();
             },
-            [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+            [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
         graph.Compile();
 
@@ -194,7 +213,7 @@ TEST_CASE("FrameGraph - Names that vary come from a table of literals", "[frameg
                 data.Output = builder.Create<MockTexture>("CascadeTarget", MockTextureDescriptor{ 64, 64, "D32" });
                 builder.MarkSideEffect();
             },
-            [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+            [](const PassData &, FrameGraphPassContext<Backend> &) {});
     }
 
     graph.Compile();
@@ -219,7 +238,7 @@ TEST_CASE("FrameGraph - Descriptors are readable through a handle", "[framegraph
             data.Texture = builder.Create<MockTexture>("Described", MockTextureDescriptor{ 800, 600, "RGBA8" });
             builder.MarkSideEffect();
         },
-        [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -248,7 +267,7 @@ TEST_CASE("FrameGraph - Read and Write operations", "[framegraph]") {
             data.Output = builder.Create<MockTexture>("SharedTexture", MockTextureDescriptor{ 512, 512, "RGBA8" });
             sharedTexture = data.Output;
         },
-        [](const ProducerData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ProducerData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<ConsumerData>(
         "Consumer",
@@ -256,10 +275,10 @@ TEST_CASE("FrameGraph - Read and Write operations", "[framegraph]") {
             data.Input = builder.Read(sharedTexture);
             builder.MarkSideEffect();
         },
-        [](const ConsumerData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ConsumerData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(fixture.Lifecycle() == std::vector<std::string>{ "Acquire:512x512", "Release:512x512" });
 }
@@ -283,10 +302,10 @@ TEST_CASE("FrameGraph - Multiple resource types", "[framegraph]") {
             builder.MarkSideEffect();
             data.Probe.Counter = &executionCount;
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const PassData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionCount == 1);
 
@@ -299,7 +318,7 @@ TEST_CASE("FrameGraph - Empty graph", "[framegraph]") {
     FrameGraph<Backend> &graph = fixture.Graph;
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(graph.GetExecutionOrder().empty());
 }
@@ -330,17 +349,17 @@ TEST_CASE("FrameGraph - Pass culling for unreferenced resources", "[framegraph][
             // No side effects and nothing reads the output, so this pass must be culled.
             data.Probe.Counter = &producerExecuted;
         },
-        [](const ProducerData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const ProducerData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.AddPass<ConsumerData>(
         "ConsumerWithSideEffects",
         [&](FrameGraph<Backend>::Builder &builder, ConsumerData &data) { builder.MarkSideEffect();
             data.Probe.Counter = &consumerExecuted;
         },
-        [](const ConsumerData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const ConsumerData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(producerExecuted == 0);
     REQUIRE(consumerExecuted == 1);
@@ -366,10 +385,10 @@ TEST_CASE("FrameGraph - Producer that writes what it creates is culled", "[frame
             data.Output = builder.Write(builder.Create<MockTexture>("UnconsumedTexture", MockTextureDescriptor{ 256, 256, "RGBA8" }));
             data.Probe.Counter = &producerExecuted;
         },
-        [](const ProducerData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const ProducerData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(producerExecuted == 0);
 }
@@ -400,7 +419,7 @@ TEST_CASE("FrameGraph - Dead chain of Write(Create(...)) producers is fully cull
             intermediate = data.Output;
             data.Probe.Counter = &firstExecuted;
         },
-        [](const FirstData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const FirstData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.AddPass<SecondData>(
         "DeadSecond",
@@ -409,10 +428,10 @@ TEST_CASE("FrameGraph - Dead chain of Write(Create(...)) producers is fully cull
             data.Output = builder.Write(builder.Create<MockTexture>("DeadSecondOutput", MockTextureDescriptor{ 128, 128, "RGBA8" }));
             data.Probe.Counter = &secondExecuted;
         },
-        [](const SecondData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const SecondData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(firstExecuted == 0);
     REQUIRE(secondExecuted == 0);
@@ -436,10 +455,10 @@ TEST_CASE("FrameGraph - Side effects prevent culling", "[framegraph][cull]") {
             builder.MarkSideEffect();
             data.Probe.Counter = &executionCount;
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const PassData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionCount == 1);
 }
@@ -461,7 +480,7 @@ TEST_CASE("FrameGraph - All passes culled except side effects", "[framegraph][cu
                 data.Resource = builder.Create<MockTexture>("CulledRes", MockTextureDescriptor{ 128, 128, "RGBA8" });
             data.Probe.Counter = &executed;
         },
-            [](const PassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+            [](const PassData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
     }
 
     graph.AddPass<PassData>(
@@ -471,10 +490,10 @@ TEST_CASE("FrameGraph - All passes culled except side effects", "[framegraph][cu
             builder.MarkSideEffect();
             data.Probe.Counter = &executed;
         },
-        [](const PassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const PassData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executed == 1);
 }
@@ -513,7 +532,7 @@ TEST_CASE("FrameGraph - Multiple passes with dependencies", "[framegraph][order]
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Pass1";
         },
-        [](const Pass1Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const Pass1Data &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<Pass2Data>(
         "Pass2",
@@ -524,7 +543,7 @@ TEST_CASE("FrameGraph - Multiple passes with dependencies", "[framegraph][order]
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Pass2";
         },
-        [](const Pass2Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const Pass2Data &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<Pass3Data>(
         "Pass3",
@@ -534,10 +553,10 @@ TEST_CASE("FrameGraph - Multiple passes with dependencies", "[framegraph][order]
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Pass3";
         },
-        [](const Pass3Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const Pass3Data &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<std::string>{ "Pass1", "Pass2", "Pass3" });
 }
@@ -576,7 +595,7 @@ TEST_CASE("FrameGraph - Independent chains keep declaration order", "[framegraph
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "A1";
         },
-        [](const ProduceData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ProduceData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<ProduceData>(
         "B1",
@@ -586,7 +605,7 @@ TEST_CASE("FrameGraph - Independent chains keep declaration order", "[framegraph
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "B1";
         },
-        [](const ProduceData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ProduceData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<TransformData>(
         "A2",
@@ -597,7 +616,7 @@ TEST_CASE("FrameGraph - Independent chains keep declaration order", "[framegraph
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "A2";
         },
-        [](const TransformData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const TransformData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<TransformData>(
         "B2",
@@ -608,7 +627,7 @@ TEST_CASE("FrameGraph - Independent chains keep declaration order", "[framegraph
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "B2";
         },
-        [](const TransformData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const TransformData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<PresentData>(
         "Present",
@@ -619,10 +638,10 @@ TEST_CASE("FrameGraph - Independent chains keep declaration order", "[framegraph
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Present";
         },
-        [](const PresentData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const PresentData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<std::string>{ "A1", "B1", "A2", "B2", "Present" });
 }
@@ -656,7 +675,7 @@ TEST_CASE("FrameGraph - Write-after-read orders a reader before the next writer"
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Present";
         },
-        [](const PresentData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const PresentData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<RenderData>(
         "RenderToBackbuffer",
@@ -664,11 +683,11 @@ TEST_CASE("FrameGraph - Write-after-read orders a reader before the next writer"
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "RenderToBackbuffer";
         },
-        [](const RenderData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const RenderData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.Compile();
 
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<std::string>{ "Present", "RenderToBackbuffer" });
 
@@ -704,7 +723,7 @@ TEST_CASE("FrameGraph - Compiled order satisfies every derived dependency", "[fr
             data.Output = builder.Create<MockTexture>("Source", MockTextureDescriptor{ 64, 64, "RGBA8" });
             source = data.Output;
         },
-        [](const SourceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SourceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<BranchData>(
         "Left",
@@ -713,7 +732,7 @@ TEST_CASE("FrameGraph - Compiled order satisfies every derived dependency", "[fr
             data.Output = builder.Create<MockTexture>("Left", MockTextureDescriptor{ 64, 64, "RGBA8" });
             left = data.Output;
         },
-        [](const BranchData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const BranchData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<BranchData>(
         "Right",
@@ -722,7 +741,7 @@ TEST_CASE("FrameGraph - Compiled order satisfies every derived dependency", "[fr
             data.Output = builder.Create<MockTexture>("Right", MockTextureDescriptor{ 64, 64, "RGBA8" });
             right = data.Output;
         },
-        [](const BranchData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const BranchData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<MergeData>(
         "Merge",
@@ -731,7 +750,7 @@ TEST_CASE("FrameGraph - Compiled order satisfies every derived dependency", "[fr
             data.Right = builder.Read(right);
             builder.MarkSideEffect();
         },
-        [](const MergeData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const MergeData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -798,7 +817,7 @@ TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph][lifet
             texture1 = data.Output;
             data.Probe.Counter = &pass1Executed;
         },
-        [](const Pass1Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const Pass1Data &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.AddPass<Pass2Data>(
         "ModifyPass",
@@ -807,7 +826,7 @@ TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph][lifet
             texture2 = data.Modified;
             data.Probe.Counter = &pass2Executed;
         },
-        [](const Pass2Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const Pass2Data &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.AddPass<Pass3Data>(
         "ReadPass",
@@ -816,10 +835,10 @@ TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph][lifet
             builder.MarkSideEffect();
             data.Probe.Counter = &pass3Executed;
         },
-        [](const Pass3Data &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+        [](const Pass3Data &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(pass1Executed == 1);
     REQUIRE(pass2Executed == 1);
@@ -827,7 +846,7 @@ TEST_CASE("FrameGraph - Resource Write creates new version", "[framegraph][lifet
 
     // The write produced a distinct handle referring to a later version of the same resource.
     REQUIRE(texture1 != texture2);
-    REQUIRE(graph.GetResourceNode(texture2.ID).GetVersion() > graph.GetResourceNode(texture1.ID).GetVersion());
+    REQUIRE(graph.GetResourceNode(texture2.ID).GetResourceID().Get() > graph.GetResourceNode(texture1.ID).GetResourceID().Get());
     REQUIRE(graph.GetResourceNode(texture1.ID).GetResourceEntryID() == graph.GetResourceNode(texture2.ID).GetResourceEntryID());
 }
 
@@ -860,7 +879,7 @@ TEST_CASE("FrameGraph - Multi-version resource has a single lifetime", "[framegr
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Create";
         },
-        [](const CreateData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const CreateData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<ModifyData>(
         "Modify1",
@@ -870,7 +889,7 @@ TEST_CASE("FrameGraph - Multi-version resource has a single lifetime", "[framegr
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Modify1";
         },
-        [](const ModifyData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ModifyData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<ModifyData>(
         "Modify2",
@@ -880,7 +899,7 @@ TEST_CASE("FrameGraph - Multi-version resource has a single lifetime", "[framegr
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Modify2";
         },
-        [](const ModifyData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ModifyData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<ReadData>(
         "Read",
@@ -890,10 +909,10 @@ TEST_CASE("FrameGraph - Multi-version resource has a single lifetime", "[framegr
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Read";
         },
-        [](const ReadData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ReadData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<std::string>{ "Create", "Modify1", "Modify2", "Read" });
 
@@ -931,7 +950,7 @@ TEST_CASE("FrameGraph - Diamond resource lifetimes", "[framegraph][lifetime]") {
             data.Output = builder.Create<MockTexture>("DiamondSource", MockTextureDescriptor{ 100, 100, "RGBA8" });
             source = data.Output;
         },
-        [](const SourceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SourceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<PathData>(
         "Path1",
@@ -940,7 +959,7 @@ TEST_CASE("FrameGraph - Diamond resource lifetimes", "[framegraph][lifetime]") {
             data.Output = builder.Create<MockTexture>("DiamondIntermediate1", MockTextureDescriptor{ 200, 200, "RGBA8" });
             intermediate1 = data.Output;
         },
-        [](const PathData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PathData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<PathData>(
         "Path2",
@@ -949,7 +968,7 @@ TEST_CASE("FrameGraph - Diamond resource lifetimes", "[framegraph][lifetime]") {
             data.Output = builder.Create<MockTexture>("DiamondIntermediate2", MockTextureDescriptor{ 300, 300, "RGBA8" });
             intermediate2 = data.Output;
         },
-        [](const PathData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PathData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<MergeData>(
         "Merge",
@@ -958,10 +977,10 @@ TEST_CASE("FrameGraph - Diamond resource lifetimes", "[framegraph][lifetime]") {
             data.Input2 = builder.Read(intermediate2);
             builder.MarkSideEffect();
         },
-        [](const MergeData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const MergeData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     // The source is read by both branches, so it survives until the later of them; both intermediates die at the
     // merge, released in registry order.
@@ -998,7 +1017,7 @@ TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegr
             data.Probe.IntOrder = &executionOrder;
             data.Probe.IntLabel = 1;
         },
-        [](const CreateData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
+        [](const CreateData &data, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
 
     graph.AddPass<ModifyData>(
         "Modify1",
@@ -1008,7 +1027,7 @@ TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegr
             data.Probe.IntOrder = &executionOrder;
             data.Probe.IntLabel = 2;
         },
-        [](const ModifyData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
+        [](const ModifyData &data, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
 
     graph.AddPass<ModifyData>(
         "Modify2",
@@ -1018,7 +1037,7 @@ TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegr
             data.Probe.IntOrder = &executionOrder;
             data.Probe.IntLabel = 3;
         },
-        [](const ModifyData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
+        [](const ModifyData &data, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
 
     graph.AddPass<ReadData>(
         "Read",
@@ -1028,10 +1047,10 @@ TEST_CASE("FrameGraph - Complex chain with multiple reads and writes", "[framegr
             data.Probe.IntOrder = &executionOrder;
             data.Probe.IntLabel = 4;
         },
-        [](const ReadData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
+        [](const ReadData &data, FrameGraphPassContext<Backend> &) { data.Probe.IntOrder->push_back(data.Probe.IntLabel); });
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<i32>{ 1, 2, 3, 4 });
 }
@@ -1056,7 +1075,7 @@ TEST_CASE("FrameGraph - Access hooks fire for every declared access", "[framegra
             data.Resource = builder.Create<MockTexture>("TextureWithUsage", MockTextureDescriptor{ 128, 128, "RGBA8" }, ATTACHMENT);
             created = data.Resource;
         },
-        [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<PassData>(
         "ReadPass",
@@ -1064,16 +1083,16 @@ TEST_CASE("FrameGraph - Access hooks fire for every declared access", "[framegra
             data.Resource = builder.Read(created, SAMPLED);
             builder.MarkSideEffect();
         },
-        [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     // Both hooks run: a write hook for the producer's implied write, a read hook for the consumer. The old
     // implementation skipped them whenever the usage equalled a sentinel that was also the default argument,
     // which meant every call site.
-    REQUIRE(std::ranges::find(fixture.Events(), "PreWrite:layout=1") != fixture.Events().end());
-    REQUIRE(std::ranges::find(fixture.Events(), "PreRead:layout=2") != fixture.Events().end());
+    REQUIRE(std::ranges::find(fixture.Events(), "PreWrite:layout=" + LayoutID(ImageLayout::ColorAttachment)) != fixture.Events().end());
+    REQUIRE(std::ranges::find(fixture.Events(), "PreRead:layout=" + LayoutID(ImageLayout::ShaderReadOnly)) != fixture.Events().end());
 
     const MockTexture &texture = graph.GetResource(created);
     REQUIRE(texture.PreWriteCount == 1);
@@ -1105,7 +1124,7 @@ TEST_CASE("FrameGraph - Barriers are batched once per pass", "[framegraph][barri
             colorTexture = data.Color;
             depthTexture = data.Depth;
         },
-        [](const GBufferData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const GBufferData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<LightingData>(
         "Lighting",
@@ -1114,16 +1133,20 @@ TEST_CASE("FrameGraph - Barriers are batched once per pass", "[framegraph][barri
             data.Depth = builder.Read(depthTexture, SAMPLED);
             builder.MarkSideEffect();
         },
-        [](const LightingData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const LightingData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     // One call per pass, not one per resource: the G-buffer pass transitions both attachments in a single batch
     // and the lighting pass transitions both to sampled in a single batch.
     REQUIRE(fixture.BarrierBatches().size() == 2);
-    REQUIRE(fixture.BarrierBatches()[0] == "Batch(2): e0[0->1] e1[0->1]");
-    REQUIRE(fixture.BarrierBatches()[1] == "Batch(2): e0[1->2] e1[1->2]");
+    REQUIRE(fixture.BarrierBatches()[0] ==
+            "Batch(2):" + Transition(0, ImageLayout::Undefined, ImageLayout::ColorAttachment) +
+                Transition(1, ImageLayout::Undefined, ImageLayout::ColorAttachment));
+    REQUIRE(fixture.BarrierBatches()[1] ==
+            "Batch(2):" + Transition(0, ImageLayout::ColorAttachment, ImageLayout::ShaderReadOnly) +
+                Transition(1, ImageLayout::ColorAttachment, ImageLayout::ShaderReadOnly));
 }
 
 TEST_CASE("FrameGraph - Unchanged usage emits no barrier", "[framegraph][barriers]") {
@@ -1149,7 +1172,7 @@ TEST_CASE("FrameGraph - Unchanged usage emits no barrier", "[framegraph][barrier
             data.Output = builder.Create<MockTexture>("Plain", MockTextureDescriptor{ 32, 32, "RGBA8" });
             texture = data.Output;
         },
-        [](const ProduceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ProduceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<ConsumeData>(
         "Consume",
@@ -1157,12 +1180,98 @@ TEST_CASE("FrameGraph - Unchanged usage emits no barrier", "[framegraph][barrier
             data.Input = builder.Read(texture);
             builder.MarkSideEffect();
         },
-        [](const ConsumeData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ConsumeData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(fixture.BarrierBatches().empty());
+}
+
+TEST_CASE("FrameGraph - Read-modify-write never transitions through undefined", "[framegraph][barriers]") {
+    GraphFixture fixture;
+    FrameGraph<Backend> &graph = fixture.Graph;
+    MockTextureHandle target;
+
+    struct PassData {
+    public:
+        MockTextureHandle Target;
+        PassProbe Probe;
+    };
+
+    graph.AddPass<PassData>(
+        "Produce",
+        [&target](FrameGraph<Backend>::Builder &builder, PassData &data) {
+            data.Target = builder.Create<MockTexture>("Target", MockTextureDescriptor{ 64, 64, "RGBA8" }, ATTACHMENT);
+            target = data.Target;
+        },
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+    // Blends into a target it did not create - the case that has to keep what is already there.
+    graph.AddPass<PassData>(
+        "Blend",
+        [&target](FrameGraph<Backend>::Builder &builder, PassData &data) {
+            data.Target = builder.Write(target, ATTACHMENT);
+            target = data.Target;
+            builder.MarkSideEffect();
+        },
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+    graph.Compile();
+    graph.Execute(fixture.Frame);
+
+    // One batch, from the producer. The blend pass needs the resource in the layout it is already in, so it needs
+    // no transition at all. The read that `Write` registers to order the two passes carries an empty usage and
+    // must not surface here: as a transition it reads "move to no layout, then back", which on an explicit API
+    // means transitioning *from* undefined and discarding exactly what the blend was about to modify.
+    REQUIRE(fixture.BarrierBatches().size() == 1);
+    REQUIRE(fixture.BarrierBatches()[0] == "Batch(1):" + Transition(0, ImageLayout::Undefined, ImageLayout::ColorAttachment));
+
+    // Nor is it an access the resource type hears about: two writes, and no read anywhere in the graph.
+    const MockTexture &texture = graph.GetResource(target);
+
+    REQUIRE(texture.PreWriteCount == 2);
+    REQUIRE(texture.PreReadCount == 0);
+}
+
+TEST_CASE("FrameGraph - A real read alongside a write is still reported", "[framegraph][barriers]") {
+    GraphFixture fixture;
+    FrameGraph<Backend> &graph = fixture.Graph;
+    MockTextureHandle target;
+
+    struct PassData {
+    public:
+        MockTextureHandle Target;
+        PassProbe Probe;
+    };
+
+    graph.AddPass<PassData>(
+        "Produce",
+        [&target](FrameGraph<Backend>::Builder &builder, PassData &data) {
+            data.Target = builder.Create<MockTexture>("Target", MockTextureDescriptor{ 64, 64, "RGBA8" }, ATTACHMENT);
+            target = data.Target;
+        },
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+    // Declares the read explicitly and then writes. The ordering-only read folds into the declared one, and the
+    // result must stay a real access rather than inheriting the synthetic read's silence.
+    graph.AddPass<PassData>(
+        "ReadThenWrite",
+        [&target](FrameGraph<Backend>::Builder &builder, PassData &data) {
+            (void)builder.Read(target, SAMPLED);
+            data.Target = builder.Write(target, ATTACHMENT);
+            target = data.Target;
+            builder.MarkSideEffect();
+        },
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+    graph.Compile();
+    graph.Execute(fixture.Frame);
+
+    const MockTexture &texture = graph.GetResource(target);
+
+    REQUIRE(texture.PreReadCount == 1);
+    REQUIRE(texture.PreWriteCount == 2);
 }
 
 // ===========================================================================================
@@ -1193,7 +1302,7 @@ TEST_CASE("FrameGraph - Disjoint transient lifetimes share storage", "[framegrap
             data.Output = builder.Create<MockTexture>("Stage0", MockTextureDescriptor{ 256, 256, "RGBA8" });
             first = data.Output;
         },
-        [](const SeedData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SeedData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<StageData>(
         "Stage1",
@@ -1202,7 +1311,7 @@ TEST_CASE("FrameGraph - Disjoint transient lifetimes share storage", "[framegrap
             data.Output = builder.Create<MockTexture>("Stage1", MockTextureDescriptor{ 256, 256, "RGBA8" });
             second = data.Output;
         },
-        [](const StageData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const StageData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<StageData>(
         "Stage2",
@@ -1211,7 +1320,7 @@ TEST_CASE("FrameGraph - Disjoint transient lifetimes share storage", "[framegrap
             data.Output = builder.Create<MockTexture>("Stage2", MockTextureDescriptor{ 256, 256, "RGBA8" });
             builder.MarkSideEffect();
         },
-        [](const StageData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const StageData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -1250,7 +1359,7 @@ TEST_CASE("FrameGraph - Overlapping transients get separate storage", "[framegra
             data.Output = builder.Create<MockTexture>("Left", MockTextureDescriptor{ 128, 128, "RGBA8" });
             left = data.Output;
         },
-        [](const ProduceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ProduceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<ProduceData>(
         "Right",
@@ -1258,7 +1367,7 @@ TEST_CASE("FrameGraph - Overlapping transients get separate storage", "[framegra
             data.Output = builder.Create<MockTexture>("Right", MockTextureDescriptor{ 128, 128, "RGBA8" });
             right = data.Output;
         },
-        [](const ProduceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ProduceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<MergeData>(
         "Merge",
@@ -1267,7 +1376,7 @@ TEST_CASE("FrameGraph - Overlapping transients get separate storage", "[framegra
             data.Right = builder.Read(right);
             builder.MarkSideEffect();
         },
-        [](const MergeData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const MergeData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -1311,7 +1420,7 @@ TEST_CASE("FrameGraph - Small transients pack into the space a dead large one le
             data.Output = builder.Create<MockTexture>("Big", MockTextureDescriptor{ 1024, 1024, "RGBA8" });
             big = data.Output;
         },
-        [](const BigData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const BigData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<DrainData>(
         "Drain",
@@ -1320,7 +1429,7 @@ TEST_CASE("FrameGraph - Small transients pack into the space a dead large one le
             data.Output = builder.Create<MockTexture>("Drained", MockTextureDescriptor{ 128, 128, "RGBA8" });
             drained = data.Output;
         },
-        [](const DrainData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const DrainData &, FrameGraphPassContext<Backend> &) {});
 
     // Both of these outlive the large texture, so they belong in the bytes it has vacated rather than beside them.
     graph.AddPass<FanData>(
@@ -1332,7 +1441,7 @@ TEST_CASE("FrameGraph - Small transients pack into the space a dead large one le
             left = data.Left;
             right = data.Right;
         },
-        [](const FanData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const FanData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<SinkData>(
         "Sink",
@@ -1341,7 +1450,7 @@ TEST_CASE("FrameGraph - Small transients pack into the space a dead large one le
             data.Right = builder.Read(right);
             builder.MarkSideEffect();
         },
-        [](const SinkData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SinkData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -1384,7 +1493,7 @@ TEST_CASE("FrameGraph - Taking over aliased storage emits a discard", "[framegra
             data.Output = builder.Create<MockTexture>("Stage0", MockTextureDescriptor{ 256, 256, "RGBA8" }, ATTACHMENT);
             first = data.Output;
         },
-        [](const SeedData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SeedData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<StageData>(
         "Stage1",
@@ -1393,7 +1502,7 @@ TEST_CASE("FrameGraph - Taking over aliased storage emits a discard", "[framegra
             data.Output = builder.Create<MockTexture>("Stage1", MockTextureDescriptor{ 256, 256, "RGBA8" }, ATTACHMENT);
             second = data.Output;
         },
-        [](const StageData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const StageData &, FrameGraphPassContext<Backend> &) {});
 
     // Stage0's texture is dead by here, so Stage2's output inherits its bytes.
     graph.AddPass<StageData>(
@@ -1403,20 +1512,24 @@ TEST_CASE("FrameGraph - Taking over aliased storage emits a discard", "[framegra
             data.Output = builder.Create<MockTexture>("Stage2", MockTextureDescriptor{ 256, 256, "RGBA8" }, ATTACHMENT);
             builder.MarkSideEffect();
         },
-        [](const StageData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const StageData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(fixture.BarrierBatches().size() == 3);
 
     // Stage0 and Stage1 create fresh storage - no previous occupant, so no discard.
-    REQUIRE(fixture.BarrierBatches()[0] == "Batch(1): e0[0->1]");
-    REQUIRE(fixture.BarrierBatches()[1] == "Batch(2): e0[1->2] e1[0->1]");
+    REQUIRE(fixture.BarrierBatches()[0] == "Batch(1):" + Transition(0, ImageLayout::Undefined, ImageLayout::ColorAttachment));
+    REQUIRE(fixture.BarrierBatches()[1] ==
+            "Batch(2):" + Transition(0, ImageLayout::ColorAttachment, ImageLayout::ShaderReadOnly) +
+                Transition(1, ImageLayout::Undefined, ImageLayout::ColorAttachment));
 
     // Stage2's output takes over entry 0's bytes, so its first use discards them and waits on the stages entry 0
     // was last used in - SAMPLED's 0x4, from Stage1's read, not ATTACHMENT's 0x1 from where it was written.
-    REQUIRE(fixture.BarrierBatches()[2] == "Batch(2): e1[1->2] e2[0->1]{discard,waitStages=4}");
+    REQUIRE(fixture.BarrierBatches()[2] ==
+            "Batch(2):" + Transition(1, ImageLayout::ColorAttachment, ImageLayout::ShaderReadOnly) +
+                Transition(2, ImageLayout::Undefined, ImageLayout::ColorAttachment) + Discard(SAMPLED.Stages));
 }
 
 TEST_CASE("FrameGraph - The plan's offsets reach the backend at acquire time", "[framegraph][aliasing]") {
@@ -1445,7 +1558,7 @@ TEST_CASE("FrameGraph - The plan's offsets reach the backend at acquire time", "
             data.Output = builder.Create<MockAliasedTexture>("Stage0", MockTextureDescriptor{ 256, 256, "RGBA8" });
             first = data.Output;
         },
-        [](const SeedData &, const FrameGraphResources<AliasingBackend> &, FrameGraphPassContext<AliasingBackend> &) {});
+        [](const SeedData &, FrameGraphPassContext<AliasingBackend> &) {});
 
     graph.AddPass<StageData>(
         "Stage1",
@@ -1454,7 +1567,7 @@ TEST_CASE("FrameGraph - The plan's offsets reach the backend at acquire time", "
             data.Output = builder.Create<MockAliasedTexture>("Stage1", MockTextureDescriptor{ 256, 256, "RGBA8" });
             second = data.Output;
         },
-        [](const StageData &, const FrameGraphResources<AliasingBackend> &, FrameGraphPassContext<AliasingBackend> &) {});
+        [](const StageData &, FrameGraphPassContext<AliasingBackend> &) {});
 
     graph.AddPass<StageData>(
         "Stage2",
@@ -1464,10 +1577,10 @@ TEST_CASE("FrameGraph - The plan's offsets reach the backend at acquire time", "
             third = data.Output;
             builder.MarkSideEffect();
         },
-        [](const StageData &, const FrameGraphResources<AliasingBackend> &, FrameGraphPassContext<AliasingBackend> &) {});
+        [](const StageData &, FrameGraphPassContext<AliasingBackend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     constexpr u64 TEXTURE_BYTES = 256ULL * 256ULL * 4ULL;
 
@@ -1507,7 +1620,7 @@ TEST_CASE("FrameGraph - A backend without memory aliasing is never handed a plac
             data.Output = builder.Create<MockPlacedTexture>("Stage0", MockTextureDescriptor{ 256, 256, "RGBA8" });
             first = data.Output;
         },
-        [](const SeedData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const SeedData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<StageData>(
         "Stage1",
@@ -1517,10 +1630,10 @@ TEST_CASE("FrameGraph - A backend without memory aliasing is never handed a plac
             second = data.Output;
             builder.MarkSideEffect();
         },
-        [](const StageData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const StageData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     constexpr u64 TEXTURE_BYTES = 256ULL * 256ULL * 4ULL;
 
@@ -1546,10 +1659,10 @@ TEST_CASE("FrameGraph - Imported resources are handed an unplaced placement", "[
     graph.AddPass<PassData>(
         "Draw",
         [imported](FrameGraph<Backend>::Builder &builder, PassData &data) { data.Target = builder.Write(imported); },
-        [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     // The graph never creates an imported resource, so nothing was placed and the backend keeps whatever storage
     // it already had.
@@ -1572,7 +1685,7 @@ TEST_CASE("FrameGraph - Backends without memory requirements stay out of the pla
             data.Buffer = builder.Create<MockBuffer>("Buffer", size_t{ 4096 });
             builder.MarkSideEffect();
         },
-        [](const PassData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const PassData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -1583,6 +1696,107 @@ TEST_CASE("FrameGraph - Backends without memory requirements stay out of the pla
 // ===========================================================================================
 // Compile / Record / Submit
 // ===========================================================================================
+
+namespace {
+
+    /** @brief A resource whose descriptor carries the memory types that can back it, so a test can pit two
+     * transients with incompatible masks against one another. */
+    struct TypedResource final {
+    public:
+        struct Descriptor final {
+        public:
+            u64 Size = 0;
+            u32 MemoryTypeBits = std::numeric_limits<u32>::max();
+        };
+
+        void Acquire(const Descriptor &, ResourceLifetime, const FrameGraphContext<Backend> &) {
+        }
+
+        void Release(const FrameGraphContext<Backend> &) {
+        }
+
+        [[nodiscard]] ResourceMemoryRequirements GetMemoryRequirements(const Descriptor &descriptor, const Device<Backend> &device) const {
+            (void)device;
+
+            return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = 256, .MemoryTypeBits = descriptor.MemoryTypeBits };
+        }
+    };
+
+    using TypedHandle = FrameGraphHandle<TypedResource>;
+
+    /** @brief Declares two transients with disjoint lifetimes and returns what the plan made of them.
+     *
+     * Each resource is created and used by exactly one pass, and neither pass depends on the other, so the
+     * compiled order is declaration order and the two lifetimes are single, adjacent, non-overlapping points.
+     * @param first The earlier resource's descriptor.
+     * @param second The later resource's descriptor. */
+    [[nodiscard]] FrameGraphAliasingReport PlanTwoDisjoint(GraphFixture &fixture,
+                                                           const TypedResource::Descriptor &first,
+                                                           const TypedResource::Descriptor &second) {
+        FrameGraph<Backend> &graph = fixture.Graph;
+
+        struct PassData {
+        public:
+            TypedHandle Resource;
+        };
+
+        graph.AddPass<PassData>(
+            "First",
+            [&first](FrameGraph<Backend>::Builder &builder, PassData &data) {
+                data.Resource = builder.Create<TypedResource>("First", first);
+                builder.MarkSideEffect();
+            },
+            [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+        graph.AddPass<PassData>(
+            "Second",
+            [&second](FrameGraph<Backend>::Builder &builder, PassData &data) {
+                data.Resource = builder.Create<TypedResource>("Second", second);
+                builder.MarkSideEffect();
+            },
+            [](const PassData &, FrameGraphPassContext<Backend> &) {});
+
+        graph.Compile();
+
+        return graph.GetAliasingReport();
+    }
+
+} // namespace
+
+TEST_CASE("FrameGraph - Disjoint transients sharing a memory type share bytes", "[framegraph][aliasing]") {
+    GraphFixture fixture;
+
+    constexpr u32 DEVICE_LOCAL = 0b0001;
+
+    const FrameGraphAliasingReport report =
+        PlanTwoDisjoint(fixture, { .Size = 4096, .MemoryTypeBits = DEVICE_LOCAL }, { .Size = 4096, .MemoryTypeBits = DEVICE_LOCAL });
+
+    // Both fit in one block, one on top of the other.
+    REQUIRE(report.BlockCount == 1);
+    REQUIRE(report.UnaliasedBytes == 8192);
+    REQUIRE(report.AliasedBytes == 4096);
+    REQUIRE(report.PeakLiveBytes == 4096);
+}
+
+TEST_CASE("FrameGraph - Transients needing different memory types never share bytes", "[framegraph][aliasing]") {
+    GraphFixture fixture;
+
+    constexpr u32 DEVICE_LOCAL = 0b0001;
+    constexpr u32 HOST_VISIBLE = 0b0010;
+
+    // Same sizes and the same disjoint lifetimes as above; only the memory types differ. An allocation is made
+    // from one memory type, so however disjoint the lifetimes are these two cannot be laid over each other -
+    // packing them together would place a readback buffer on memory it cannot be bound to.
+    const FrameGraphAliasingReport report =
+        PlanTwoDisjoint(fixture, { .Size = 4096, .MemoryTypeBits = DEVICE_LOCAL }, { .Size = 4096, .MemoryTypeBits = HOST_VISIBLE });
+
+    REQUIRE(report.BlockCount == 2);
+    REQUIRE(report.UnaliasedBytes == 8192);
+    REQUIRE(report.AliasedBytes == 8192);
+
+    // Two blocks that each hold one live resource: the floor is the sum, not the larger of the two.
+    REQUIRE(report.PeakLiveBytes == 8192);
+}
 
 TEST_CASE("FrameGraph - Reset carries no derived state into the next frame", "[framegraph]") {
     GraphFixture fixture;
@@ -1602,7 +1816,7 @@ TEST_CASE("FrameGraph - Reset carries no derived state into the next frame", "[f
     // Compile derives reference counts, an execution order and an aliasing plan, and writes some of it back onto
     // the nodes. Reset is the only thing that clears it, so a field it forgets would make frame two differ from
     // frame one - which is what this compares.
-    const auto buildFrame = [&executed](FrameGraph<Backend> &g) {
+    const auto buildFrame = [&executed, &fixture](FrameGraph<Backend> &g) {
         MockTextureHandle texture;
 
         g.AddPass<ProduceData>(
@@ -1630,7 +1844,7 @@ TEST_CASE("FrameGraph - Reset carries no derived state into the next frame", "[f
     const std::vector<u32> firstOrder(graph.GetExecutionOrder().begin(), graph.GetExecutionOrder().end());
     const FrameGraphAliasingReport firstReport = graph.GetAliasingReport();
 
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
     REQUIRE(executed == 2);
 
     graph.Reset();
@@ -1642,7 +1856,7 @@ TEST_CASE("FrameGraph - Reset carries no derived state into the next frame", "[f
     REQUIRE(graph.GetAliasingReport().AliasedBytes == firstReport.AliasedBytes);
     REQUIRE(graph.GetAliasingReport().UnaliasedBytes == firstReport.UnaliasedBytes);
 
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
     REQUIRE(executed == 4);
 }
 
@@ -1670,7 +1884,7 @@ TEST_CASE("FrameGraph - Record and Submit split runs every pass", "[framegraph][
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Produce";
         },
-        [](const ProduceData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ProduceData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.AddPass<ConsumeData>(
         "Consume",
@@ -1680,13 +1894,12 @@ TEST_CASE("FrameGraph - Record and Submit split runs every pass", "[framegraph][
             data.Probe.Order = &executionOrder;
             data.Probe.Label = "Consume";
         },
-        [](const ConsumeData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
+        [](const ConsumeData &data, FrameGraphPassContext<Backend> &) { data.Probe.Order->push_back(data.Probe.Label); });
 
     graph.Compile();
 
-    const FrameGraphContext context = fixture.Context;
-    graph.Record(context);
-    graph.Submit(context);
+    graph.Record(fixture.Frame);
+    graph.Submit(fixture.Frame);
 
     REQUIRE(executionOrder == std::vector<std::string>{ "Produce", "Consume" });
 
@@ -1721,7 +1934,7 @@ TEST_CASE("FrameGraph - Parallel recording runs every pass exactly once", "[fram
                 outputs[static_cast<size_t>(i)] = data.Output;
             data.Probe.AtomicCounter = &executed;
         },
-            [](const ProduceData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.AtomicCounter->fetch_add(1, std::memory_order_relaxed); });
+            [](const ProduceData &data, FrameGraphPassContext<Backend> &) { data.Probe.AtomicCounter->fetch_add(1, std::memory_order_relaxed); });
     }
 
     graph.AddPass<PresentData>(
@@ -1734,13 +1947,12 @@ TEST_CASE("FrameGraph - Parallel recording runs every pass exactly once", "[fram
             builder.MarkSideEffect();
             data.Probe.AtomicCounter = &executed;
         },
-        [](const PresentData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { data.Probe.AtomicCounter->fetch_add(1, std::memory_order_relaxed); });
+        [](const PresentData &data, FrameGraphPassContext<Backend> &) { data.Probe.AtomicCounter->fetch_add(1, std::memory_order_relaxed); });
 
     graph.Compile();
 
-    const FrameGraphContext context = fixture.Context;
-    graph.RecordParallel(context);
-    graph.Submit(context);
+    graph.RecordParallel(fixture.Frame);
+    graph.Submit(fixture.Frame);
 
     REQUIRE(executed.load() == PASS_COUNT + 1);
 }
@@ -1766,13 +1978,13 @@ TEST_CASE("FrameGraph - Reset returns the graph to empty and keeps capacity", "[
                 builder.MarkSideEffect();
             data.Probe.Counter = &counter;
         },
-            [](const PassData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+            [](const PassData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
     };
 
     i32 firstFrame = 0;
     buildFrame(firstFrame);
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(firstFrame == 1);
     REQUIRE(graph.GetPassCount() == 1);
@@ -1787,7 +1999,7 @@ TEST_CASE("FrameGraph - Reset returns the graph to empty and keeps capacity", "[
     i32 secondFrame = 0;
     buildFrame(secondFrame);
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     REQUIRE(secondFrame == 1);
     REQUIRE(graph.GetPassCount() == 1);
@@ -1821,7 +2033,7 @@ TEST_CASE("FrameGraph - Steady state is allocation-free", "[framegraph][reset][a
                 previous = data.Output;
             data.Probe.Counter = &executed;
         },
-            [](const ProduceData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+            [](const ProduceData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
 
         for (i32 stage = 0; stage < 20; ++stage) {
             graph.AddPass<ConsumeData>(
@@ -1832,7 +2044,7 @@ TEST_CASE("FrameGraph - Steady state is allocation-free", "[framegraph][reset][a
                     previous = data.Output;
             data.Probe.Counter = &executed;
         },
-                [](const ConsumeData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+                [](const ConsumeData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
         }
 
         graph.AddPass<ConsumeData>(
@@ -1842,13 +2054,13 @@ TEST_CASE("FrameGraph - Steady state is allocation-free", "[framegraph][reset][a
                 builder.MarkSideEffect();
             data.Probe.Counter = &executed;
         },
-            [](const ConsumeData &data, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
+            [](const ConsumeData &data, FrameGraphPassContext<Backend> &) { ++*data.Probe.Counter; });
     };
 
     const auto runFrame = [&] {
         buildFrame();
         graph.Compile();
-        graph.Execute(fixture.Context);
+        graph.Execute(fixture.Frame);
         graph.Reset();
     };
 
@@ -1903,7 +2115,7 @@ TEST_CASE("FrameGraph - DOT dump describes the compiled graph", "[framegraph][to
             data.Output = builder.Create<MockTexture>("Target", MockTextureDescriptor{ 64, 64, "RGBA8" });
             texture = data.Output;
         },
-        [](const ProduceData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ProduceData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<ConsumeData>(
         "Consumer",
@@ -1911,12 +2123,12 @@ TEST_CASE("FrameGraph - DOT dump describes the compiled graph", "[framegraph][to
             data.Input = builder.Read(texture);
             builder.MarkSideEffect();
         },
-        [](const ConsumeData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const ConsumeData &, FrameGraphPassContext<Backend> &) {});
 
     graph.AddPass<DeadData>(
         "DeadPass",
         [](FrameGraph<Backend>::Builder &builder, DeadData &data) { data.Output = builder.Create<MockTexture>("Dead", MockTextureDescriptor{ 8, 8, "RGBA8" }); },
-        [](const DeadData &, const FrameGraphResources<Backend> &, FrameGraphPassContext<Backend> &) {});
+        [](const DeadData &, FrameGraphPassContext<Backend> &) {});
 
     graph.Compile();
 
@@ -2382,7 +2594,7 @@ TEST_CASE("FrameGraph - Complex deferred rendering pipeline", "[framegraph]") {
         &RunProbe<PresentData>);
 
     graph.Compile();
-    graph.Execute(fixture.Context);
+    graph.Execute(fixture.Frame);
 
     for (const std::string &name : { "DirectionalShadowMap",
                                      "SpotLight1ShadowMap",

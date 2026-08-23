@@ -74,12 +74,6 @@ namespace Vulkyrie {
         bool PlanCacheHit = false;
     };
 
-    struct ResourceFootprint {
-        u64 SizeBytes = 0;
-        u64 Alignment = 0;
-        u32 MemoryTypeBits = std::numeric_limits<u32>::max(); // Vulkan: heap must satisfy these
-    };
-
     struct ShaderBlob {
         std::span<const std::byte> bytes;
         ShaderStage stage = ShaderStage::Compute;
@@ -120,7 +114,9 @@ namespace Vulkyrie {
         u32 SurfaceHeight = 600;
 
         u32 MaxBuffers = 65536;
+        u32 MaxTransientBuffers = 128;
         u32 MaxTextures = 262144;
+        u32 MaxTransientTextures = 128;
         u32 MaxPipelines = 16384;
         u32 MaxSamplers = 256;
 

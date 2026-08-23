@@ -57,12 +57,12 @@ namespace Vulkyrie::RendererTests {
             std::string line = "Batch(" + std::to_string(barriers.size()) + "):";
 
             for (const ResourceBarrier &barrier : barriers) {
-                line += " e" + std::to_string(barrier.Entry.Get()) + "[" + std::to_string(barrier.Before.Layout) + "->" + std::to_string(barrier.After.Layout) +
-                        "]";
+                line += " e" + std::to_string(barrier.Entry.Get()) + "[" + std::to_string(std::to_underlying(barrier.Before.Layout)) + "->" +
+                        std::to_string(std::to_underlying(barrier.After.Layout)) + "]";
 
                 // A discard names the stages it waits on rather than a layout it comes from, so print those instead.
                 if (barrier.AliasingTransition) {
-                    line += "{discard,waitStages=" + std::to_string(barrier.Before.Stages) + "}";
+                    line += "{discard,waitStages=" + std::to_string(std::to_underlying(barrier.Before.Stages)) + "}";
                 }
             }
 
@@ -138,6 +138,26 @@ namespace Vulkyrie::RendererTests {
         void WaitIdle() const {
         }
 
+        /** @brief Sizes an image the way a driver would be asked to, so the resource types that route through the
+         * backend have something to route to. */
+        [[nodiscard]] ResourceMemoryRequirements GetImageMemoryRequirements(const TextureDescriptor &descriptor) const {
+            ++mMemoryQueries;
+
+            return ResourceMemoryRequirements{ .Size = EstimateTextureBytes(descriptor), .Alignment = 256 };
+        }
+
+        [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const {
+            ++mMemoryQueries;
+
+            return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = 256 };
+        }
+
+        /** @brief How many times the backend was actually asked to size something, so a test can prove the
+         * per-descriptor cache in `Device` is doing its job rather than the driver being hit every frame. */
+        [[nodiscard]] u32 MemoryQueries() const {
+            return mMemoryQueries;
+        }
+
         [[nodiscard]] const DeviceCapabilities &QueryCapabilities() const {
             return mCapabilities;
         }
@@ -179,6 +199,10 @@ namespace Vulkyrie::RendererTests {
 
     private:
         DeviceCapabilities mCapabilities{};
+
+        /** @brief Mutable because the sizing queries are const, the way a real backend's are. */
+        mutable u32 mMemoryQueries = 0;
+
         u32 mImagesCreated = 0;
         u32 mBuffersCreated = 0;
     };
