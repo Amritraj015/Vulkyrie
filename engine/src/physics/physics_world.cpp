@@ -575,7 +575,7 @@ namespace Vulkyrie {
         // For each island, we track the smallest amount of time any of its bodies has been at rest. A whole
         // island can only go to sleep once every one of its bodies has been still long enough.
         for (size_t i = 0; i < _islands.GetTotalIslands(); ++i) {
-            f32 minSleepTime = VE_DECIMAL_MAX;
+            f32 minSleepTime = VE_K_DECIMAL_MAX;
 
             // Compute the minimum resting time over all the (non-static) bodies of the island.
             for (size_t b = 0; b < _islands.TotalBodiesInIsland[i]; ++b) {

@@ -15,7 +15,7 @@ namespace Vulkyrie {
     }
 
     glm::vec3 ConvexMeshShape::GetLocalSupportPointWithoutMargin(const glm::vec3 &direction) const {
-        f32 maxDotProduct = VE_DECIMAL_MIN;
+        f32 maxDotProduct = VE_K_DECIMAL_MIN;
         size_t indexMaxDotProduct = 0;
 
         for (size_t i = 0; i < _convexMesh->GetVerticesCount(); i++) {

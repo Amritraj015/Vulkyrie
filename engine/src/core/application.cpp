@@ -16,7 +16,7 @@ namespace Vulkyrie {
         const WindowProps windowProps = {
             .Height = appSettings.GraphicsSettings.WindowHeight,
             .Width = appSettings.GraphicsSettings.WindowWidth,
-            .Title = appSettings.Name,
+            .Title = appSettings.Application.Name,
             .EnableVSync = appSettings.GraphicsSettings.EnableVSync,
             .GraphicsAPI = appSettings.GraphicsSettings.API,
         };

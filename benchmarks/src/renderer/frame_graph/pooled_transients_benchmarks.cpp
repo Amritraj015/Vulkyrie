@@ -38,7 +38,7 @@ namespace {
 
     struct PooledFixture final {
     public:
-        DeviceCreationInfo Info{ WindowHandle{}, 800, 600, 256, 256, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "PooledTransientsBenchmarks", 1, 0, 0 }, WindowHandle{}, 800, 600, 256, 256, 16, 16 };
         Device<Backend> Dev{ Info };
         FrameContext<Backend> Frame{ Dev.Context(), 0, 1, 0 };
         FrameGraphContext<Backend> Context{ Dev, Frame };

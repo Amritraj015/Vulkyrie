@@ -96,6 +96,10 @@ namespace Vulkyrie::RendererTests {
         explicit MockContext(const DeviceCreationInfo &) {
         }
 
+        [[nodiscard]] StatusCode Initialize() {
+            return StatusCode::Successful;
+        }
+
         [[nodiscard]] MockImage CreateImage(const TextureDescriptor &) {
             return MockImage{ .Id = ++mImagesCreated };
         }
