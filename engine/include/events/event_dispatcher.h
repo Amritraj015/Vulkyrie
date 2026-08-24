@@ -3,10 +3,11 @@
 #include "events/event.h"
 
 namespace Vulkyrie {
+
     class EventDispatcher {
     public:
         explicit EventDispatcher(Event &event)
-            : _event(event) {
+            : mEvent(event) {
         }
 
         /** Dispatches the event to the provided function if the event type matches.
@@ -18,8 +19,8 @@ namespace Vulkyrie {
         template <typename T, typename F>
             requires std::derived_from<T, Event> && std::is_invocable_r_v<bool, F, T &>
         bool Dispatch(F &&func) {
-            if (_event.GetEventType() == T::GetStaticEventType() && !_event.Handled) {
-                _event.Handled |= func(static_cast<T &>(_event));
+            if (mEvent.GetEventType() == T::GetStaticEventType() && !mEvent.Handled) {
+                mEvent.Handled |= func(static_cast<T &>(mEvent));
 
                 return true;
             }
@@ -28,6 +29,7 @@ namespace Vulkyrie {
         }
 
     private:
-        Event &_event;
+        Event &mEvent;
     };
+
 } // namespace Vulkyrie

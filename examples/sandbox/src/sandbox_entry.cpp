@@ -13,6 +13,7 @@ Application *CreateApplication() {
     const Vulkyrie::ApplicationSettings settings = {
         .GeneralSettings = appInfo,
         .GraphicsSettings = {
+            .ValidationSettings = {},
             .API = GraphicsAPI::Vulkan,
             .WindowHeight = 800,
             .WindowWidth = 1500,

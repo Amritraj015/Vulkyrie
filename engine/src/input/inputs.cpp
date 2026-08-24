@@ -21,20 +21,4 @@ namespace Vulkyrie {
         return { static_cast<f32>(xpos), static_cast<f32>(ypos) };
     }
 
-    [[nodiscard]] f32 GetMouseX() {
-        double xpos;
-
-        glfwGetCursorPos(static_cast<GLFWwindow *>(Application::GetSingleton().GetWindowHandle()), &xpos, nullptr);
-
-        return static_cast<f32>(xpos);
-    }
-
-    [[nodiscard]] f32 GetMouseY() {
-        double ypos;
-
-        glfwGetCursorPos(static_cast<GLFWwindow *>(Application::GetSingleton().GetWindowHandle()), nullptr, &ypos);
-
-        return static_cast<f32>(ypos);
-    }
-
 } // namespace Vulkyrie

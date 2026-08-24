@@ -4,6 +4,7 @@
 #include "enums/event_type.h"
 
 namespace Vulkyrie {
+
     /** @brief Base event class that needs to be inherited by every event in the engine. */
     class Event {
     public:
@@ -40,4 +41,5 @@ namespace Vulkyrie {
             return EventType::Unknown;
         }
     };
+
 } // namespace Vulkyrie

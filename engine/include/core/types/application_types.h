@@ -33,8 +33,21 @@ namespace Vulkyrie {
         Vulkyrie::GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
     };
 
+    struct ValidationSettings {
+        std::unordered_set<std::string> Features;
+
+        bool Has(std::string f) {
+            if (auto it = Features.find(f); it != Features.end()) {
+                return true;
+            }
+
+            return false;
+        }
+    };
+
     struct GraphicsSettings {
-        GraphicsAPI API = GraphicsAPI::OpenGL;
+        ValidationSettings ValidationSettings{};
+        GraphicsAPI API = GraphicsAPI::Vulkan;
         u32 WindowHeight = 600;
         u32 WindowWidth = 800;
         bool EnableVSync = false;

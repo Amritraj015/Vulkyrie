@@ -8,7 +8,7 @@
 namespace Vulkyrie {
     using EventCallbackFn = std::function<void(Event &)>;
 
-    class Platform {
+    class Platform final {
     public:
         VE_DELETE_MOVE_AND_COPY(Platform);
 
@@ -16,48 +16,45 @@ namespace Vulkyrie {
          * @param windowProps The properties for the window.
          * @param eventCallbackFn The callback function for handling events.
          */
-        Platform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
-            : mWindowProps(windowProps)
-            , mEventCallbackFn(eventCallbackFn) {
-        }
+        Platform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept;
 
         /** @brief Default constructor for the Window class. */
-        virtual ~Platform() = default;
+        ~Platform();
 
         /** @brief Gets the native window handle.
          * @returns A pointer to the native window.
          */
-        [[nodiscard]] inline virtual void *GetWindowHandle() const = 0;
+        [[nodiscard]] VE_INLINE void *GetWindowHandle() const {
+            return pWindow;
+        }
 
         /** @brief Creates a new window for the application.
          * @returns StatusCode indicating success or failure.
          * */
-        [[nodiscard]] virtual StatusCode CreateWindow() = 0;
+        [[nodiscard]] StatusCode CreateWindow();
 
         /** @brief Enables or disables vertical synchronization (VSync) for the window.
          * @param enable True to enable VSync, false to disable.
          */
-        virtual inline void SetVSync(bool enable) = 0;
+        void SetVSync(bool enable);
 
         /** @brief A callback that is called on each frame update cycle. */
-        virtual inline void OnUpdate() const = 0;
-
-        /** @brief Closes the application window.
-         * @returns StatusCode indicating success or failure.
-         * */
-        virtual StatusCode CloseWindow() = 0;
+        void OnUpdate() const;
 
         /** @brief Gets the current time in seconds since the window was created.
          * @returns The current time in seconds.
          */
-        [[nodiscard]] virtual inline f32 GetTime() const = 0;
+        [[nodiscard]] f32 GetTime() const;
 
         /** @brief Captures or releases the mouse cursor when the window gains or loses focus.
          * @param enable True to capture the mouse on focus, false to release it.
          */
-        virtual inline void CaptureMouseOnFocus(bool enable) = 0;
+        void CaptureMouseOnFocus(bool enable);
 
     protected:
+        /** Handle for the window. */
+        void *pWindow;
+
         /** @brief The properties of the window. */
         WindowProps mWindowProps;
 

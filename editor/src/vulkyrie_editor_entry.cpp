@@ -14,6 +14,7 @@ Application *CreateApplication() {
     const ApplicationSettings settings = {
         .GeneralSettings = appInfo,
         .GraphicsSettings = {
+            .ValidationSettings = {},
             .API = GraphicsAPI::OpenGL,
             .WindowHeight = 800,
             .WindowWidth = 1500,

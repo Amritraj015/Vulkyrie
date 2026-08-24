@@ -1,4 +1,4 @@
-#include "vulkyrie_glfw_platform.h"
+#include "core/platform.h"
 #include "core/logger.h"
 #include "events/application/window_closed_event.h"
 #include "events/application/window_resized_event.h"
@@ -8,6 +8,8 @@
 #include "events/mouse/mouse_scrolled_event.h"
 #include "events/keyboard/key_pressed_event.h"
 #include "events/keyboard/key_released_event.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Vulkyrie {
     /** @brief Converts a GLFW key code to a Vulkyrie key code.
@@ -327,16 +329,18 @@ namespace Vulkyrie {
         return static_cast<KeyModifier>(modifiers);
     }
 
-    VulkyrieGLFWPlatform::VulkyrieGLFWPlatform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn)
-        : Platform(windowProps, eventCallbackFn)
-        , _window(nullptr) {};
+    Platform::Platform(const WindowProps &windowProps, const EventCallbackFn &eventCallbackFn) noexcept
+        : pWindow(nullptr)
+        , mWindowProps(windowProps)
+        , mEventCallbackFn(eventCallbackFn) {
+    }
 
-    VulkyrieGLFWPlatform::~VulkyrieGLFWPlatform() {
-        glfwDestroyWindow(_window);
+    Platform::~Platform() {
+        glfwDestroyWindow(static_cast<GLFWwindow *>(pWindow));
         glfwTerminate();
     }
 
-    StatusCode VulkyrieGLFWPlatform::CreateWindow() {
+    StatusCode Platform::CreateWindow() {
         // Set GLFW error callback.
         glfwSetErrorCallback([](i32 errorCode, const char *description) { VERROR("GLFW Error {}: {}", errorCode, description); });
 
@@ -363,10 +367,10 @@ namespace Vulkyrie {
         const i32 height = static_cast<i32>(mWindowProps.Height);
 
         // GLFW window creation
-        _window = glfwCreateWindow(width, height, mWindowProps.Title.Data(), nullptr, nullptr);
+        pWindow = static_cast<void *>(glfwCreateWindow(width, height, mWindowProps.Title.Data(), nullptr, nullptr));
 
         // Check if window creation failed.
-        if (nullptr == _window) {
+        if (nullptr == pWindow) {
             VFATAL("Failed to create GLFW window");
 
             // Terminate GLFW.
@@ -377,15 +381,12 @@ namespace Vulkyrie {
         }
 
         // Set the window user pointer to this instance.
-        glfwSetWindowUserPointer(_window, &mEventCallbackFn);
+        glfwSetWindowUserPointer(static_cast<GLFWwindow *>(pWindow), &mEventCallbackFn);
 
         // Set window event callbacks.
-        glfwSetFramebufferSizeCallback(_window, [](GLFWwindow *window, i32 width, i32 height) {
+        glfwSetFramebufferSizeCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window, i32 width, i32 height) {
             const u32 newWidth = static_cast<u32>(width);
             const u32 newHeight = static_cast<u32>(height);
-
-            // Reset the height and width of the viewport.
-            // glViewport(0, 0, newWidth, newHeight);
 
             // Create the window resize event.
             WindowResizedEvent event(newWidth, newHeight);
@@ -397,7 +398,7 @@ namespace Vulkyrie {
             callbackFn(event);
         });
 
-        glfwSetWindowCloseCallback(_window, [](GLFWwindow *window) {
+        glfwSetWindowCloseCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window) {
             WindowClosedEvent event;
 
             // Get the window user pointer.
@@ -407,7 +408,7 @@ namespace Vulkyrie {
             callbackFn(event);
         });
 
-        glfwSetKeyCallback(_window, [](GLFWwindow *window, i32 key, [[maybe_unused]] i32 scancode, i32 action, i32 mods) {
+        glfwSetKeyCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window, i32 key, [[maybe_unused]] i32 scancode, i32 action, i32 mods) {
             const KeyCode code = ConvertGLFWKeyCodeToVulkyrieKeyCode(key);
 
             switch (action) {
@@ -451,7 +452,7 @@ namespace Vulkyrie {
             }
         });
 
-        // glfwSetCharCallback(_window, [](GLFWwindow *window, u32 codepoint) {
+        // glfwSetCharCallback(pWindow, [](GLFWwindow *window, u32 codepoint) {
         //     KeyCode keycode = ConvertGLFWKeyCodeToVulkyrieKeyCode(codepoint);
         //     KeyCharEvent event(keycode);
 
@@ -462,7 +463,7 @@ namespace Vulkyrie {
         //     app.RaiseEvent(event);
         // });
 
-        glfwSetMouseButtonCallback(_window, [](GLFWwindow *window, i32 button, i32 action, i32 mods) {
+        glfwSetMouseButtonCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window, i32 button, i32 action, i32 mods) {
             const MouseButton mouseButton = ConvertGLFWMouseButtonToVulkyrieMouseButton(button);
 
             switch (action) {
@@ -493,7 +494,7 @@ namespace Vulkyrie {
             }
         });
 
-        glfwSetScrollCallback(_window, [](GLFWwindow *window, f64 offsetX, f64 offsetY) {
+        glfwSetScrollCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window, f64 offsetX, f64 offsetY) {
             MouseScrolledEvent event(static_cast<f32>(offsetX), static_cast<f32>(offsetY));
 
             // Get the window user pointer.
@@ -503,7 +504,7 @@ namespace Vulkyrie {
             callbackFn(event);
         });
 
-        glfwSetCursorPosCallback(_window, [](GLFWwindow *window, const f64 positionX, const f64 positionY) {
+        glfwSetCursorPosCallback(static_cast<GLFWwindow *>(pWindow), [](GLFWwindow *window, const f64 positionX, const f64 positionY) {
             MouseMovedEvent event(static_cast<f32>(positionX), static_cast<f32>(positionY));
 
             // Get the window user pointer.
@@ -513,51 +514,29 @@ namespace Vulkyrie {
             callbackFn(event);
         });
 
-        // Enable/Disable VSync based on the window settigns.
-        // SetVSync(_windowProps.EnableVSync);
-
         // Return success.
         return StatusCode::Successful;
     }
 
-    void VulkyrieGLFWPlatform::SetVSync(bool enable) {
+    void Platform::SetVSync(bool enable) {
         glfwSwapInterval(static_cast<i32>(enable));
     }
 
-    void VulkyrieGLFWPlatform::CaptureMouseOnFocus(bool enable) {
+    void Platform::OnUpdate() const {
+        // glfwSwapBuffers(static_cast<GLFWwindow *>(pWindow));
+        glfwPollEvents();
+    }
+
+    f32 Platform::GetTime() const {
+        return static_cast<f32>(glfwGetTime());
+    }
+
+    void Platform::CaptureMouseOnFocus(bool enable) {
         if (enable) {
-            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetInputMode(static_cast<GLFWwindow *>(pWindow), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         } else {
-            glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetInputMode(static_cast<GLFWwindow *>(pWindow), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
     }
 
-    StatusCode VulkyrieGLFWPlatform::CloseWindow() {
-        // glfw: terminate, clearing all previously allocated GLFW resources.
-        // glfwDestroyWindow(_window);
-        // glfwTerminate();
-
-        return StatusCode::Successful;
-    }
-
-    // static constexpr GLenum GetOpenGLDataTypeFromShaderDataType(ShaderDataType type) noexcept {
-    //     switch (type) {
-    //         case ShaderDataType::Float:
-    //         case ShaderDataType::Float2:
-    //         case ShaderDataType::Float3:
-    //         case ShaderDataType::Float4:
-    //         case ShaderDataType::Mat3:
-    //         case ShaderDataType::Mat4:
-    //             return GL_FLOAT;
-    //         case ShaderDataType::Int:
-    //         case ShaderDataType::Int2:
-    //         case ShaderDataType::Int3:
-    //         case ShaderDataType::Int4:
-    //             return GL_INT;
-    //         case ShaderDataType::Bool:
-    //             return GL_BOOL;
-    //         default:
-    //             return GL_INVALID_ENUM;
-    //     }
-    // }
 } // namespace Vulkyrie

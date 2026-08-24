@@ -4,6 +4,7 @@
 #include "events/enums/mouse_button.h"
 
 namespace Vulkyrie {
+
     /** @brief Checks if a specific key is currently pressed.
      * @param key The key code to check.
      * @returns True if the key is pressed, false otherwise.
@@ -21,13 +22,4 @@ namespace Vulkyrie {
      */
     [[nodiscard]] std::pair<f32, f32> GetMousePosition();
 
-    /** @brief Gets the current X position of the mouse cursor.
-     * @returns The X coordinate of the mouse cursor.
-     */
-    [[nodiscard]] f32 GetMouseX();
-
-    /** @brief Gets the current Y position of the mouse cursor.
-     * @returns The Y coordinate of the mouse cursor.
-     */
-    [[nodiscard]] f32 GetMouseY();
 } // namespace Vulkyrie

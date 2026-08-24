@@ -318,7 +318,7 @@ namespace Vulkyrie {
 
     void MemoryTracker::ReportToLog() {
         // Guard the whole body so release builds (where VINFO compiles out) don't warn on unused locals.
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
         VINFO("================= Memory report (per subsystem) =================");
         VINFO("{:<12}{:>14}{:>14}{:>10}{:>16}{:>16}", "Subsystem", "Current(B)", "Peak(B)", "Live", "TotalAlloc(B)", "TotalFreed(B)");
 
@@ -363,7 +363,7 @@ namespace Vulkyrie {
     }
 
     void MemoryTracker::ReportOutstandingToLog([[maybe_unused]] std::size_t maxSites) {
-#if VULKYRIE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
+#if VE_LOG_LEVEL >= VULKYRIE_INFO_LEVEL_LOG
         if constexpr (!DeepTrackingEnabled()) {
             VINFO("Deep memory tracking is disabled; build with VE_MEMORY_DEEP_TRACKING=1 for outstanding-allocation detail.");
             return;
