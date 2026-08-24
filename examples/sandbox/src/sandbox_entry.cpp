@@ -14,9 +14,8 @@ Application *CreateApplication() {
         .GeneralSettings = appInfo,
         .GraphicsSettings = {
             .ValidationSettings = {},
+            .WindowDimensions = { 1500, 800 },
             .API = GraphicsAPI::Vulkan,
-            .WindowHeight = 800,
-            .WindowWidth = 1500,
             .EnableVSync = false,
         },
     };

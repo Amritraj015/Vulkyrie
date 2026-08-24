@@ -45,11 +45,22 @@ namespace Vulkyrie {
         }
     };
 
+    struct Extent2D final {
+        u32 Width = 0;
+        u32 Height = 0;
+
+        Extent2D() = default;
+
+        Extent2D(u32 width, u32 height)
+            : Width(width)
+            , Height(height) {
+        }
+    };
+
     struct GraphicsSettings {
         ValidationSettings ValidationSettings{};
+        Extent2D WindowDimensions{ 800, 600 };
         GraphicsAPI API = GraphicsAPI::Vulkan;
-        u32 WindowHeight = 600;
-        u32 WindowWidth = 800;
         bool EnableVSync = false;
     };
 

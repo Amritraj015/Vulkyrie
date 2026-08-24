@@ -14,7 +14,7 @@ add_library(engine STATIC ${ENGINE_SOURCES})
 target_compile_features(engine PUBLIC cxx_std_26)
 
 # ---------------------------
-# Engine Version Constants.
+# Engine Version Constants (Generated)
 # ---------------------------
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
@@ -60,7 +60,6 @@ target_compile_definitions(engine
     PUBLIC
         VE_EXPORTS
         $<$<CONFIG:Debug>:VE_DEBUG>
-        $<$<CONFIG:Debug>:VE_ENABLE_RENDERER_VALIDATION>
         VE_LOG_LEVEL=${VE_LOG_LEVEL}
         VK_NO_PROTOTYPES
         GLM_ENABLE_EXPERIMENTAL

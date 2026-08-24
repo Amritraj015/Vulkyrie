@@ -221,7 +221,7 @@ namespace Vulkyrie::FrameGraphTests {
             : Graph(Dev, config) {
         }
 
-        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphTests", 1, 0, 0 }, WindowHandle{}, 800, 600, 64, 64, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphTests", 1, 0, 0 }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
         Device<B> Dev{ Info };
         FrameContext<B> Frame{ Dev.Context(), 0, 1, 0 };
         FrameGraph<B> Graph;
@@ -268,7 +268,6 @@ namespace Vulkyrie::FrameGraphTests {
 
     // The whole point of handing pass bodies a const view: a resource type's Acquire and Release are non-const, so
     // a pass cannot reach them and cannot take part in a lifetime the graph just finished planning.
-    static_assert(!LifetimeReachableThroughConst<MockTexture, Backend>,
-                  "A pass must not be able to release a resource through the const view it is given.");
+    static_assert(!LifetimeReachableThroughConst<MockTexture, Backend>, "A pass must not be able to release a resource through the const view it is given.");
 
 } // namespace Vulkyrie::FrameGraphTests

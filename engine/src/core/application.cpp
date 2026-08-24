@@ -14,8 +14,8 @@ namespace Vulkyrie {
         , mRunning(false) {
 
         const WindowProps windowProps = {
-            .Height = appSettings.GraphicsSettings.WindowHeight,
-            .Width = appSettings.GraphicsSettings.WindowWidth,
+            .Height = appSettings.GraphicsSettings.WindowDimensions.Height,
+            .Width = appSettings.GraphicsSettings.WindowDimensions.Width,
             .Title = appSettings.GeneralSettings.Name,
             .EnableVSync = appSettings.GraphicsSettings.EnableVSync,
             .GraphicsAPI = appSettings.GraphicsSettings.API,
@@ -30,23 +30,21 @@ namespace Vulkyrie {
         // Try to create the application window, if it fails, return the status code.
         RETURN_ON_FAILURE(mPlatform->CreateWindow());
 
+        const auto &graphicsSettings = mAppSettings.GraphicsSettings;
+
         VINFO("*****************************************************************************************");
         VINFO("Application details");
         VINFO("*****************************************************************************************");
         VINFO("Name                 | {}", mAppSettings.GeneralSettings.Name);
-        VINFO("Window Dimensions    | {} x {}", mAppSettings.GraphicsSettings.WindowHeight, mAppSettings.GraphicsSettings.WindowWidth);
-        VINFO("Enable V-Sync        | {}", mAppSettings.GraphicsSettings.EnableVSync);
+        VINFO("Window Dimensions    | {} x {}", graphicsSettings.WindowDimensions.Width, graphicsSettings.WindowDimensions.Height);
+        VINFO("Enable V-Sync        | {}", graphicsSettings.EnableVSync);
         VINFO("*****************************************************************************************");
 
-        const DeviceCreationInfo info = DeviceCreationInfo{
-            mAppSettings.GeneralSettings,
-            WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
-            mAppSettings.GraphicsSettings.WindowWidth,
-            mAppSettings.GraphicsSettings.WindowHeight,
-        };
+        const DeviceCreationInfo info =
+            DeviceCreationInfo{ mAppSettings.GeneralSettings, WindowHandle{ mPlatform->GetWindowHandle(), nullptr }, graphicsSettings.WindowDimensions };
 
         // Try to initialzed the renderer.
-        mRenderer = Renderer::Create(mAppSettings.GraphicsSettings.API, info);
+        mRenderer = Renderer::Create(graphicsSettings.API, info);
 
         // Initialize the renderer context.
         RETURN_ON_FAILURE(mRenderer->InitializeContext());
@@ -62,7 +60,7 @@ namespace Vulkyrie {
         f32 lastFrameTime = 0.0F;
 
         // Raise the window created event.
-        WindowCreatedEvent event(mAppSettings.GraphicsSettings.WindowWidth, mAppSettings.GraphicsSettings.WindowHeight);
+        WindowCreatedEvent event(graphicsSettings.WindowDimensions);
         OnInit(event);
 
         // Main application loop.
@@ -141,8 +139,8 @@ namespace Vulkyrie {
     bool Application::OnWindowResized(const WindowResizedEvent &event) {
         mRenderer->OnWindowResize(event.Width, event.Height);
 
-        mAppSettings.GraphicsSettings.WindowHeight = event.Height;
-        mAppSettings.GraphicsSettings.WindowWidth = event.Width;
+        mAppSettings.GraphicsSettings.WindowDimensions.Height = event.Height;
+        mAppSettings.GraphicsSettings.WindowDimensions.Width = event.Width;
 
         return false;
     }

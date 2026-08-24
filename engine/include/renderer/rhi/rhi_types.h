@@ -86,8 +86,7 @@ namespace Vulkyrie {
     struct DeviceCreationInfo {
         DeviceCreationInfo(const ApplicationInfo &info,
                            WindowHandle windowHandle,
-                           u32 surfaceWidth = 800,
-                           u32 surfaceHeight = 600,
+                           Extent2D surfaceDimensions,
                            u32 maxBuffers = 65536,
                            u32 maxTextures = 262144,
                            u32 maxPipelines = 16384,
@@ -98,8 +97,7 @@ namespace Vulkyrie {
                            bool enableVSync = false)
             : ApplicationInfo(info)
             , WindowHandle(windowHandle)
-            , SurfaceWidth(surfaceWidth)
-            , SurfaceHeight(surfaceHeight)
+            , SurfaceDimensions(surfaceDimensions)
             , MaxBuffers(maxBuffers)
             , MaxTextures(maxTextures)
             , MaxPipelines(maxPipelines)
@@ -112,8 +110,7 @@ namespace Vulkyrie {
 
         ApplicationInfo ApplicationInfo;
         WindowHandle WindowHandle;
-        u32 SurfaceWidth = 800;
-        u32 SurfaceHeight = 600;
+        Extent2D SurfaceDimensions = { 800, 600 };
 
         u32 MaxBuffers = 65536;
         u32 MaxTransientBuffers = 128;

@@ -38,7 +38,7 @@ namespace {
 
     struct PooledFixture final {
     public:
-        DeviceCreationInfo Info{ ApplicationInfo{ "PooledTransientsBenchmarks", 1, 0, 0 }, WindowHandle{}, 800, 600, 256, 256, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "PooledTransientsBenchmarks", 1, 0, 0 }, WindowHandle{}, Extent2D{ 800, 600 }, 256, 256, 16, 16 };
         Device<Backend> Dev{ Info };
         FrameContext<Backend> Frame{ Dev.Context(), 0, 1, 0 };
         FrameGraphContext<Backend> Context{ Dev, Frame };
@@ -47,8 +47,8 @@ namespace {
 
         PooledFixture() {
             for (u32 i = 0; i < DESCRIPTOR_COUNT; ++i) {
-                Ids.push_back(Dev.GetRegistry().Register(
-                    TextureDescriptor{ .Width = 256U + (i * 128U), .Height = 256U + (i * 128U), .Format = Format::RGBA8Unorm }));
+                Ids.push_back(
+                    Dev.GetRegistry().Register(TextureDescriptor{ .Width = 256U + (i * 128U), .Height = 256U + (i * 128U), .Format = Format::RGBA8Unorm }));
             }
         }
     };

@@ -113,18 +113,11 @@ namespace Vulkyrie {
             return mPlatform->GetWindowHandle();
         }
 
-        /** @brief Gets the width of the application window.
-         * @returns The width of the window in pixels.
+        /** @brief Gets the dimensions of the application window.
+         * @returns The dimensions of the window in pixels.
          */
-        [[nodiscard]] VE_INLINE u32 GetWindowWidth() const {
-            return mAppSettings.GraphicsSettings.WindowWidth;
-        }
-
-        /** @brief Gets the height of the application window.
-         * @returns The height of the window in pixels.
-         */
-        [[nodiscard]] VE_INLINE u32 GetWindowHeight() const {
-            return mAppSettings.GraphicsSettings.WindowHeight;
+        [[nodiscard]] VE_INLINE Extent2D GetWindowDimensions() const {
+            return mAppSettings.GraphicsSettings.WindowDimensions;
         }
 
         /** @brief Gets the current time in seconds since the application started.

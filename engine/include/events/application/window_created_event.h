@@ -2,21 +2,19 @@
 
 #include "events/event.h"
 #include "events/enums/event_category.h"
+#include "core/types/application_types.h"
 
 namespace Vulkyrie {
+
     /** @brief Event triggered during application bootstrap. */
     class WindowCreatedEvent final : public Event {
     public:
-        WindowCreatedEvent(const u32 width, const u32 height)
-            : Width(width)
-            , Height(height) {
+        WindowCreatedEvent(const Extent2D dimensions)
+            : Dimensions(dimensions) {
         }
 
-        /** @brief The width of the created window. */
-        const u32 Width;
-
-        /** @brief The height of the created window. */
-        const u32 Height;
+        /** @brief The dimensions of the created window. */
+        const Extent2D Dimensions;
 
         [[nodiscard]] inline virtual EventType GetEventType() const override {
             return GetStaticEventType();
@@ -27,7 +25,7 @@ namespace Vulkyrie {
         }
 
         [[nodiscard]] inline std::string ToString() const override {
-            return std::format("WindowCreatedEvent: {}x{}", Width, Height);
+            return std::format("WindowCreatedEvent: {}x{}", Dimensions.Width, Dimensions.Height);
         }
 
         /** @brief Gets the static event type for this event class.
@@ -40,4 +38,5 @@ namespace Vulkyrie {
     private:
         const static i32 _categoryFlags = std::to_underlying(EventCategory::ApplicationEvent);
     };
+
 } // namespace Vulkyrie
