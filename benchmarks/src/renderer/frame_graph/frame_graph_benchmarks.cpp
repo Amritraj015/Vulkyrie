@@ -52,7 +52,7 @@ namespace {
      * backend does no work - but the graph needs a typed context to run at all. */
     struct BenchDevice {
     public:
-        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphBenchmarks", 1, 0, 0 }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphBenchmarks", { 1, 0, 0 } }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
         Device<Backend> Dev{ Info };
 
         // One command list per worker, because RecordParallel asserts there are at least as many as the job system

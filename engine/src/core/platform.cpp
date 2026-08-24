@@ -363,8 +363,8 @@ namespace Vulkyrie {
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
 
-        const i32 width = static_cast<i32>(mWindowProps.Width);
-        const i32 height = static_cast<i32>(mWindowProps.Height);
+        const i32 width = static_cast<i32>(mWindowProps.Dimensions.Width);
+        const i32 height = static_cast<i32>(mWindowProps.Dimensions.Height);
 
         // GLFW window creation
         pWindow = static_cast<void *>(glfwCreateWindow(width, height, mWindowProps.Title.Data(), nullptr, nullptr));

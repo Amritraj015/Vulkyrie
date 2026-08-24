@@ -6,9 +6,7 @@ using namespace Vulkyrie;
 Application *CreateApplication() {
     const Vulkyrie::ApplicationInfo appInfo{
         .Name = "Vulkyrie Editor",
-        .MajorVersion = 1,
-        .MinorVersion = 0,
-        .PatchVersion = 0,
+        .Version = { 1, 0, 0 },
     };
 
     const ApplicationSettings settings = {

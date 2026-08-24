@@ -15,36 +15,6 @@ namespace Vulkyrie {
         void *NativeDisplay;
     };
 
-    struct WindowProps final {
-    public:
-        /** @brief Starting height of the window. */
-        u32 Height = 0;
-
-        /** @brief Starting width of the window. */
-        u32 Width = 0;
-
-        /** @brief Title of the window. */
-        StaticString Title;
-
-        /** @brief Whether to enable vertical synchronization (VSync) for the window. */
-        bool EnableVSync = true;
-
-        /** @brief The graphics API to use for rendering. */
-        Vulkyrie::GraphicsAPI GraphicsAPI = GraphicsAPI::OpenGL;
-    };
-
-    struct ValidationSettings {
-        std::unordered_set<std::string> Features;
-
-        bool Has(std::string f) {
-            if (auto it = Features.find(f); it != Features.end()) {
-                return true;
-            }
-
-            return false;
-        }
-    };
-
     struct Extent2D final {
         u32 Width = 0;
         u32 Height = 0;
@@ -54,6 +24,29 @@ namespace Vulkyrie {
         Extent2D(u32 width, u32 height)
             : Width(width)
             , Height(height) {
+        }
+    };
+
+    struct WindowProps final {
+    public:
+        /** @brief The dimensions for the window to be created. */
+        Extent2D Dimensions;
+
+        /** @brief Title of the window. */
+        StaticString Title;
+
+        /** @brief Whether to enable vertical synchronization (VSync) for the window. */
+        bool EnableVSync = true;
+
+        /** @brief The graphics API to use for rendering. */
+        Vulkyrie::GraphicsAPI GraphicsAPI = GraphicsAPI::Vulkan;
+    };
+
+    struct ValidationSettings {
+        std::unordered_set<std::string> Features;
+
+        bool Has(std::string &f) const {
+            return Features.contains(f);
         }
     };
 
@@ -70,16 +63,34 @@ namespace Vulkyrie {
 
     struct KeyboardSettings {};
 
+    enum class MouseSensitivity : u8 { One = 1, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten };
+
     struct MouseSettings {
-        u8 SensitivityX;
-        u8 SensitivityY;
+        MouseSensitivity SensitivityX = MouseSensitivity::One;
+        MouseSensitivity SensitivityY = MouseSensitivity::One;
+    };
+
+    struct Version final {
+        u32 Major = 0;
+        u32 Minor = 0;
+        u32 Patch = 1;
+
+        constexpr Version() noexcept = default;
+
+        constexpr Version(u32 major, u32 minor, u32 patch) noexcept
+            : Major(major)
+            , Minor(minor)
+            , Patch(patch) {
+        }
+
+        std::string ToString() const {
+            return std::format("v{}.{}.{}", Major, Minor, Patch);
+        }
     };
 
     struct ApplicationInfo {
         StaticString Name;
-        u32 MajorVersion;
-        u32 MinorVersion;
-        u32 PatchVersion;
+        Version Version;
     };
 
     struct ApplicationSettings {

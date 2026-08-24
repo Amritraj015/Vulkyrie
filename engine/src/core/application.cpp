@@ -4,25 +4,29 @@
 #include "core/platform.h"
 #include "events/application/window_closed_event.h"
 #include "events/event_dispatcher.h"
+#include <vulkyrie_version.h>
 
 namespace Vulkyrie {
+
+    namespace {
+
+        WindowProps ConvertToWindowProps(const ApplicationSettings &settings) {
+            return WindowProps{
+                .Dimensions = settings.GraphicsSettings.WindowDimensions,
+                .Title = settings.GeneralSettings.Name,
+                .EnableVSync = settings.GraphicsSettings.EnableVSync,
+                .GraphicsAPI = settings.GraphicsSettings.API,
+            };
+        }
+
+    } // namespace
 
     Application *Application::sInstance = nullptr;
 
     Application::Application(const ApplicationSettings &appSettings)
         : mAppSettings(appSettings)
+        , mPlatform(CreateScope<Platform>(ConvertToWindowProps(mAppSettings), [this](Event &event) { this->OnEvent(event); }))
         , mRunning(false) {
-
-        const WindowProps windowProps = {
-            .Height = appSettings.GraphicsSettings.WindowDimensions.Height,
-            .Width = appSettings.GraphicsSettings.WindowDimensions.Width,
-            .Title = appSettings.GeneralSettings.Name,
-            .EnableVSync = appSettings.GraphicsSettings.EnableVSync,
-            .GraphicsAPI = appSettings.GraphicsSettings.API,
-        };
-
-        mPlatform = CreateScope<Platform>(windowProps, [this](Event &event) { this->OnEvent(event); });
-
         sInstance = this;
     }
 
@@ -32,16 +36,16 @@ namespace Vulkyrie {
 
         const auto &graphicsSettings = mAppSettings.GraphicsSettings;
 
-        VINFO("*****************************************************************************************");
-        VINFO("Application details");
-        VINFO("*****************************************************************************************");
-        VINFO("Name                 | {}", mAppSettings.GeneralSettings.Name);
+        VINFO("Application          | {} ({})", mAppSettings.GeneralSettings.Name, mAppSettings.GeneralSettings.Version.ToString());
+        VINFO("Engine               | {} (v{})", kEngineName.Data(), kEngineVersionString.Data());
         VINFO("Window Dimensions    | {} x {}", graphicsSettings.WindowDimensions.Width, graphicsSettings.WindowDimensions.Height);
         VINFO("Enable V-Sync        | {}", graphicsSettings.EnableVSync);
-        VINFO("*****************************************************************************************");
 
-        const DeviceCreationInfo info =
-            DeviceCreationInfo{ mAppSettings.GeneralSettings, WindowHandle{ mPlatform->GetWindowHandle(), nullptr }, graphicsSettings.WindowDimensions };
+        const DeviceCreationInfo info = {
+            mAppSettings.GeneralSettings,
+            WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
+            graphicsSettings.WindowDimensions,
+        };
 
         // Try to initialzed the renderer.
         mRenderer = Renderer::Create(graphicsSettings.API, info);
@@ -107,10 +111,6 @@ namespace Vulkyrie {
 
         // Return the status code.
         return StatusCode::Successful;
-    }
-
-    void Application::Stop() {
-        mRunning = false;
     }
 
     void Application::OnEvent(Event &event) {

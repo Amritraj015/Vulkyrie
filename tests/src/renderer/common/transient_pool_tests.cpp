@@ -16,7 +16,7 @@ namespace {
     constexpr BufferDescriptor SOME_BUFFER{ .Size = 4096 };
 
     struct Fixture final {
-        DeviceCreationInfo Info{ ApplicationInfo{ "TransientPoolTests", 1, 0, 0 }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "TransientPoolTests", { 1, 0, 0 } }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
         MockContext Context{ Info };
         DeletionQueue<MockBackend> Deletion{ Context, Info };
         TransientRegistry<MockBackend> Registry{ Context, 8, 8 };

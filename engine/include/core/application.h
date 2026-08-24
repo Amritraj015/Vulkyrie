@@ -140,7 +140,9 @@ namespace Vulkyrie {
         [[nodiscard]] StatusCode Run();
 
         /** @brief Stops the application. */
-        void Stop();
+        VE_INLINE void Stop() {
+            mRunning = false;
+        }
 
     protected:
         /** @brief Called when the application window is created.
