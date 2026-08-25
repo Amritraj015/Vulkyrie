@@ -97,6 +97,10 @@ namespace Vulkyrie {
 
         VASSERT(_usedBlocks > 0, "Pool allocator freed a block while none were handed out.");
 
+        // The free list is threaded through the blocks themselves, so a foreign pointer would not just be
+        // rejected late - it would be linked in and handed out again by a later Allocate.
+        VASSERT(ownsBlock(block), "Pool allocator freed a pointer that is not one of its blocks.");
+
         auto *node = static_cast<FreeBlock *>(block);
         node->Next = _freeList;
         _freeList = node;
@@ -117,6 +121,18 @@ namespace Vulkyrie {
         for (auto chunk = _chunks.rbegin(); chunk != _chunks.rend(); ++chunk) {
             threadChunkOntoFreeList(*chunk);
         }
+    }
+
+    bool PoolAllocator::ownsBlock(const void *block) const {
+        const auto *address = static_cast<const std::byte *>(block);
+
+        for (const Chunk &chunk : _chunks) {
+            if (address >= chunk.Memory && address < chunk.Memory + chunk.Capacity) {
+                return static_cast<size_t>(address - chunk.Memory) % _blockSize == 0;
+            }
+        }
+
+        return false;
     }
 
     void PoolAllocator::addChunk() {

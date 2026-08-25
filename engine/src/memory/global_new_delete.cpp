@@ -1,12 +1,7 @@
+#include "memory/allocation_block.h"
 #include "memory/memory_scope.h"
-#include "memory/memory_tracker.h"
-
-#include "core/asserts.h"
 
 #include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
 #include <new>
 
 // ----------------------------------------------------------------------------------------------
@@ -25,66 +20,17 @@ namespace Vulkyrie::detail {
 
 #if !defined(VE_MEMORY_DISABLE_GLOBAL_NEW)
 
-// Brings MemoryTag / MemoryTracker / CurrentMemoryTag into scope, and — importantly — Logger /
-// LogLevel, which the VASSERT macro references unqualified (this file's code sits at global scope,
-// not inside namespace Vulkyrie).
+// Brings CurrentMemoryTag and the `detail::` block helpers into scope: this file's code sits at
+// global scope, not inside namespace Vulkyrie.
 using namespace Vulkyrie;
 
 namespace {
 
-    /** @brief Sentinel written into every allocation header ("VLKY"); validated on free. */
-    constexpr std::uint32_t kAllocationMagic = 0x564C4B59U;
-
-    /** @brief Small aligned prefix stored just before every returned payload. Storing `base`
-     * explicitly makes free correct regardless of the alignment padding we inserted. */
-    struct AllocationHeader {
-        void *Base;          ///< The original std::malloc pointer to hand back to std::free.
-        std::size_t Size;    ///< The payload size requested by the caller.
-        MemoryTag Tag;       ///< The subsystem the allocation was attributed to.
-        std::uint32_t Magic; ///< Corruption/foreign-pointer guard.
-    };
-
-    static_assert(std::is_trivially_copyable_v<AllocationHeader>);
-    static_assert(alignof(AllocationHeader) <= alignof(std::max_align_t));
-
-    [[nodiscard]] std::uintptr_t AlignUp(std::uintptr_t value, std::size_t alignment) {
-        const auto mask = static_cast<std::uintptr_t>(alignment) - 1U;
-        return (value + mask) & ~mask;
-    }
-
-    /** @brief Allocates `size` payload bytes aligned to `alignment`, prefixed with a tracking header.
+    /** @brief Allocates `size` payload bytes aligned to `alignment`, attributed to the calling thread's
+     * innermost memory scope.
      * @returns The payload pointer, or nullptr on failure (including size overflow). */
     [[nodiscard]] void *TrackedAlloc(std::size_t size, std::size_t alignment) {
-        constexpr std::size_t headerSize = sizeof(AllocationHeader);
-
-        // Guard against size_t overflow of the padded total.
-        if (size > SIZE_MAX - headerSize - alignment) {
-            return nullptr;
-        }
-
-        const std::size_t totalSize = size + headerSize + alignment;
-        void *base = std::malloc(totalSize);
-        if (nullptr == base) {
-            return nullptr;
-        }
-
-        const auto baseAddress = reinterpret_cast<std::uintptr_t>(base);
-        const std::uintptr_t payloadAddress = AlignUp(baseAddress + headerSize, alignment);
-
-        const AllocationHeader header{ base, size, CurrentMemoryTag(), kAllocationMagic };
-        std::memcpy(reinterpret_cast<void *>(payloadAddress - headerSize), &header, headerSize);
-
-        void *payload = reinterpret_cast<void *>(payloadAddress);
-
-        MemoryTracker::OnAllocation(header.Tag, static_cast<i64>(size));
-
-        // The deep table is a debug-tier addition on top of the counters above, never a replacement: attribution
-        // stays exact from the header alone when this is compiled out.
-#if VE_MEMORY_DEEP_TRACKING
-        MemoryTracker::OnAllocationDeep(payload, header.Tag, static_cast<i64>(size));
-#endif
-
-        return payload;
+        return detail::AllocateBlock(size, alignment, CurrentMemoryTag(), detail::BlockOwner::GlobalNew);
     }
 
     /** @brief Frees a pointer produced by TrackedAlloc and updates the tracker. */
@@ -93,19 +39,7 @@ namespace {
             return;
         }
 
-        const auto payloadAddress = reinterpret_cast<std::uintptr_t>(pointer);
-        AllocationHeader header{};
-        std::memcpy(&header, reinterpret_cast<const void *>(payloadAddress - sizeof(AllocationHeader)), sizeof(AllocationHeader));
-
-        VASSERT(header.Magic == kAllocationMagic, "operator delete: corrupted or foreign allocation header");
-
-#if VE_MEMORY_DEEP_TRACKING
-        // Before the free, while the pointer is still the one the table was keyed on.
-        MemoryTracker::OnFreeDeep(pointer);
-#endif
-
-        MemoryTracker::OnFree(header.Tag, static_cast<i64>(header.Size));
-        std::free(header.Base);
+        detail::ReleaseBlock(pointer, detail::BlockOwner::GlobalNew);
     }
 
     /** @brief Throwing allocation with the standard new_handler retry loop. */

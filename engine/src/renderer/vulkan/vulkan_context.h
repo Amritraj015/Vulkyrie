@@ -5,6 +5,7 @@
 #include "renderer/rhi/pipeline_types.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
+#include "renderer/vulkan/vulkan_host_allocator.h"
 #include "renderer/vulkan/vulkan_types.h"
 #include <volk.h>
 
@@ -53,11 +54,20 @@ namespace Vulkyrie {
         }
 
     private:
-        VkInstance mVkInstance;
-        VkDevice mVkDevice;
+        VulkanHostAllocator mHostAllocator;
         DeviceCreationInfo mDeviceCreationInfo;
         DeviceCapabilities mCapabilities;
+        VkInstance mVkInstance;
+        VkSurfaceKHR mVkSurface;
+        VkDevice mVkDevice;
         bool mContextCreated;
+
+        std::vector<const char *> getRequiredInstanceExtensions();
+        std::vector<const char *> getRequiredInstanceLayers();
+        std::vector<const char *> getRequiredDeviceExtensions();
+
+        StatusCode validateRequiredExtensions(const std::vector<const char *> &requiredExtensions);
+        StatusCode validateRequiredLayers(const std::vector<const char *> &requiredLayers);
     };
 
 } // namespace Vulkyrie

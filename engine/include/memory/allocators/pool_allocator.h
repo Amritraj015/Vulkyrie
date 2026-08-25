@@ -102,7 +102,6 @@ namespace Vulkyrie {
             return _chunks.size();
         }
 
-
     private:
         /** @brief Link stored inside a free block. A block must be at least this large, which is why tiny block
          * sizes are rounded up. */
@@ -118,6 +117,11 @@ namespace Vulkyrie {
             size_t Capacity = 0;
             size_t BlockCount = 0;
         };
+
+        /** @brief Reports whether a pointer is the start of a block in one of this pool's chunks.
+         * @param block The pointer to test.
+         * @returns True if the pointer could have been handed out by this pool. */
+        [[nodiscard]] bool ownsBlock(const void *block) const;
 
         /** @brief Appends a chunk and threads its blocks onto the free list. */
         void addChunk();

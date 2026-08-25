@@ -1,9 +1,7 @@
 #include "renderer/vulkan/vulkan_context.h"
-#include "core/constants.h"
 #include "renderer/vulkan/vulkan_utilities.h"
+#include <vulkyrie_version.h>
 #include <volk.h>
-
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 namespace Vulkyrie {
@@ -15,56 +13,100 @@ namespace Vulkyrie {
     }
 
     VulkanContext::~VulkanContext() {
-        vkDeviceWaitIdle(mVkDevice);
+        // vkDeviceWaitIdle(mVkDevice);
 
-        vkDestroyInstance(mVkInstance, nullptr);
+        // Destroy surface.
+        vkDestroySurfaceKHR(mVkInstance, mVkSurface, mHostAllocator.Callbacks());
+
+        // Destroy instance.
+        vkDestroyInstance(mVkInstance, mHostAllocator.Callbacks());
+    }
+
+    std::vector<const char *> VulkanContext::getRequiredInstanceExtensions() {
+        u32 requiredExtensionCount = 0;
+        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
+
+        std::vector<const char *> requiredInstanceExtensions(glfwExtensions, glfwExtensions + requiredExtensionCount);
+        requiredInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+        return requiredInstanceExtensions;
+    }
+
+    std::vector<const char *> VulkanContext::getRequiredInstanceLayers() {
+        const std::vector<const char *> requiredInstanceLayers = { "VK_LAYER_KHRONOS_validation" };
+
+        return requiredInstanceLayers;
+    }
+
+    std::vector<const char *> VulkanContext::getRequiredDeviceExtensions() {
+        const std::vector<const char *> requiredDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+        return requiredDeviceExtensions;
+    }
+
+    StatusCode VulkanContext::validateRequiredExtensions(const std::vector<const char *> &requiredExtensions) {
+        // u32 count = 0;
+        (void)requiredExtensions;
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::validateRequiredLayers(const std::vector<const char *> &requiredLayers) {
+        (void)requiredLayers;
+
+        return StatusCode::Successful;
     }
 
     StatusCode VulkanContext::Initialize() {
+        // Try to initialize Volk.
+        VE_VK_CHECK(volkInitialize(), StatusCode::FailedToInitializeVolk);
 
-        VE_VK_CHECK(volkInitialize(), "Failed to initialize Volk.", StatusCode::FailedToInitializeVolk);
+        // Get required extensions and layers.
+        const std::vector<const char *> requiredInstanceExtensions = getRequiredInstanceExtensions();
+        const std::vector<const char *> requiredInstanceLayers = getRequiredInstanceLayers();
+        const std::vector<const char *> requiredDeviceExtensions = getRequiredDeviceExtensions();
 
         const ApplicationInfo &appInfo = mDeviceCreationInfo.ApplicationInfo;
 
-        // -----------------------------------------------------------------------------------------------------------
-        // TODO: These are probably not correct. check them.
-        u32 glfwExtensionCount = 0;
-        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-        u32 enabledLayerCount = 0;
-        std::vector<const char *> enabledLayers;
-        // -----------------------------------------------------------------------------------------------------------
-
+        // Vulkan Application and instance creation info.
         const VkApplicationInfo applicationInfo{
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
             .pApplicationName = appInfo.Name.Data(),
-            .applicationVersion = VK_MAKE_VERSION(appInfo.MajorVersion, appInfo.MinorVersion, appInfo.PatchVersion),
-            .pEngineName = VE_K_ENGINE_NAME.Data(),
-            .engineVersion = VK_MAKE_VERSION(VE_K_ENGINE_MAJOR_VERSION, VE_K_ENGINE_MINOR_VERSION, VE_K_ENGINE_PATCH_VERSION),
+            .applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch),
+            .pEngineName = kEngineName.Data(),
+            .engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion),
             .apiVersion = VK_API_VERSION_1_4,
         };
 
-        // VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR ;
-        // VK_INSTANCE_CREATE_FLAG_BITS_MAX_ENUM ;
-
-        const VkInstanceCreateInfo instanceInfo = {
+        const VkInstanceCreateInfo instanceInfo{
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = nullptr,
-            .flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
+            .flags = 0,
             .pApplicationInfo = &applicationInfo,
-            .enabledLayerCount = enabledLayerCount,
-            .ppEnabledLayerNames = enabledLayers.data(),
-            .enabledExtensionCount = static_cast<u32>(extensions.size()),
-            .ppEnabledExtensionNames = extensions.data(),
+            .enabledLayerCount = static_cast<u32>(requiredInstanceLayers.size()),
+            .ppEnabledLayerNames = requiredInstanceLayers.data(),
+            .enabledExtensionCount = static_cast<u32>(requiredInstanceExtensions.size()),
+            .ppEnabledExtensionNames = requiredInstanceExtensions.data(),
         };
 
-        // TODO: Use Engine's general purpose allocators here instead of "nullptr".
-        VE_VK_CHECK(vkCreateInstance(&instanceInfo, nullptr, &mVkInstance), "Failed to create Vulkan instance.", StatusCode::FailedToCreateVulkanInstance);
+        // TODO: Add this to pNext of the device creation into.
+        // VkPhysicalDeviceVulkan13Features features13{
+        //     .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        //     .pNext = nullptr,
+        //     .dynamicRendering = VK_TRUE,
+        //     .synchronization2 = VK_TRUE,
+        // };
+
+        // Try to create vulkan instance.
+        VE_VK_CHECK(vkCreateInstance(&instanceInfo, mHostAllocator.Callbacks(), &mVkInstance), StatusCode::FailedToCreateVulkanInstance);
 
         volkLoadInstance(mVkInstance);
+
+        // Try to create Window surface.
+        auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
+        VE_VK_CHECK(glfwCreateWindowSurface(mVkInstance, window, mHostAllocator.Callbacks(), &mVkSurface), StatusCode::FailedToCreateSurface);
+
+        mContextCreated = true;
 
         return StatusCode::Successful;
     }

@@ -150,10 +150,15 @@ namespace Vulkyrie {
             return;
         }
 
+        // Checked before `headerFromPayload`, which reads the offset stored below the payload - itself an
+        // out-of-bounds read for a pointer that never came from this region.
+        VASSERT(static_cast<std::byte *>(pointer) >= _memory + BLOCK_OVERHEAD && static_cast<std::byte *>(pointer) < _memory + _capacity,
+                "Free list allocator freed a pointer from outside its region.");
+
         BlockHeader *block = headerFromPayload(pointer);
 
         VASSERT(reinterpret_cast<std::byte *>(block) >= _memory && reinterpret_cast<std::byte *>(block) < _memory + _capacity,
-                     "Free list allocator freed a pointer from outside its region.");
+                "Free list allocator freed a pointer whose recorded header offset lands outside its region.");
         VASSERT(!block->Free, "Free list allocator freed the same pointer twice.");
 
         // The payload size is recoverable from the block: everything between the returned pointer and the block's
