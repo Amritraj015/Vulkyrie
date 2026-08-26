@@ -43,10 +43,13 @@ namespace Vulkyrie {
     };
 
     struct ValidationSettings {
-        std::unordered_set<std::string> Features;
+        std::unordered_set<std::string> Features{
+            // TODO: Read these from a config file instead.
+            "thread_safety", "sync", "sync_submit_time", "gpuav", "gpuav_selective_shaders", "best_practices",
+        };
 
-        bool Has(std::string &f) const {
-            return Features.contains(f);
+        bool Has(const std::string &f) const {
+            return Features.contains(f.data());
         }
     };
 

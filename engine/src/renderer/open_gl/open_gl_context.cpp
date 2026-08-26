@@ -145,7 +145,8 @@ namespace Vulkyrie {
         VINFO("*****************************************************************************************");
 #endif
 
-        glViewport(0, 0, mDeviceCreationInfo.SurfaceDimensions.Width, mDeviceCreationInfo.SurfaceDimensions.Height);
+        const auto &surfaceExtent = mDeviceCreationInfo.GraphicsSettings.WindowDimensions;
+        glViewport(0, 0, surfaceExtent.Width, surfaceExtent.Height);
 
         mContextCreated = true;
 

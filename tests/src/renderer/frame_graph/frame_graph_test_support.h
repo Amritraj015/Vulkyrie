@@ -221,7 +221,7 @@ namespace Vulkyrie::FrameGraphTests {
             : Graph(Dev, config) {
         }
 
-        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphTests", { 1, 0, 0 } }, WindowHandle{}, Extent2D{ 800, 600 }, 64, 64, 16, 16 };
+        DeviceCreationInfo Info{ ApplicationInfo{ "FrameGraphTests", { 1, 0, 0 } }, WindowHandle{}, {}, 64, 64, 16, 16 };
         Device<B> Dev{ Info };
         FrameContext<B> Frame{ Dev.Context(), 0, 1, 0 };
         FrameGraph<B> Graph;

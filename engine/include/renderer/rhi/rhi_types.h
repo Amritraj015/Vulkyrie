@@ -86,44 +86,45 @@ namespace Vulkyrie {
     struct DeviceCreationInfo {
         DeviceCreationInfo(const ApplicationInfo &info,
                            WindowHandle windowHandle,
-                           Extent2D surfaceDimensions,
+                           const GraphicsSettings &graphicsSettings = {},
                            u32 maxBuffers = 65536,
+                           u32 maxTransientBuffers = 128,
                            u32 maxTextures = 262144,
+                           u32 maxTransientTextures = 128,
                            u32 maxPipelines = 16384,
                            u32 maxSamplers = 256,
                            u32 workerCount = 1,
-                           bool enableValidation = false,
-                           bool preferDiscreteGpu = true,
+                           bool enableRendererValidation = true,
                            bool enableVSync = false)
             : ApplicationInfo(info)
             , WindowHandle(windowHandle)
-            , SurfaceDimensions(surfaceDimensions)
+            , GraphicsSettings(graphicsSettings)
             , MaxBuffers(maxBuffers)
+            , MaxTransientBuffers(maxTransientBuffers)
             , MaxTextures(maxTextures)
+            , MaxTransientTextures(maxTransientTextures)
             , MaxPipelines(maxPipelines)
             , MaxSamplers(maxSamplers)
             , WorkerCount(workerCount)
-            , EnableValidation(enableValidation)
-            , PreferDiscreteGpu(preferDiscreteGpu)
+            , EnableRendererValidation(enableRendererValidation)
             , EnableVSync(enableVSync) {
         }
 
         ApplicationInfo ApplicationInfo;
         WindowHandle WindowHandle;
-        Extent2D SurfaceDimensions = { 800, 600 };
+        GraphicsSettings GraphicsSettings;
 
-        u32 MaxBuffers = 65536;
-        u32 MaxTransientBuffers = 128;
-        u32 MaxTextures = 262144;
-        u32 MaxTransientTextures = 128;
-        u32 MaxPipelines = 16384;
-        u32 MaxSamplers = 256;
+        u32 MaxBuffers;
+        u32 MaxTransientBuffers;
+        u32 MaxTextures;
+        u32 MaxTransientTextures;
+        u32 MaxPipelines;
+        u32 MaxSamplers;
 
-        u32 WorkerCount = 1;
+        u32 WorkerCount;
 
-        bool EnableValidation = false;
-        bool PreferDiscreteGpu = true;
-        bool EnableVSync = false;
+        bool EnableRendererValidation;
+        bool EnableVSync;
 
         // u32 FramesInFlight = 2; // 2 for latency, 3 to hide a spiky CPU frame
         // bool EnableGpuValidation = false;

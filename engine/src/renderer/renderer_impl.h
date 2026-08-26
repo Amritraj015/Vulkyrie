@@ -21,7 +21,7 @@ namespace Vulkyrie {
             }
         }
 
-        [[nodiscard]] virtual StatusCode InitializeContext() override {
+        [[nodiscard]] StatusCode InitializeContext() override {
             return mDevice.Context().Initialize();
         }
 

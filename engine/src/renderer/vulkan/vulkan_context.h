@@ -1,5 +1,6 @@
 #pragma once
 
+#include "memory/allocators/tracked_std_allocator.h"
 #include "renderer/rhi/barrier_types.h"
 #include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/pipeline_types.h"
@@ -56,18 +57,19 @@ namespace Vulkyrie {
     private:
         VulkanHostAllocator mHostAllocator;
         DeviceCreationInfo mDeviceCreationInfo;
+        ValidationConfig mValidationConfig;
         DeviceCapabilities mCapabilities;
         VkInstance mVkInstance;
         VkSurfaceKHR mVkSurface;
         VkDevice mVkDevice;
         bool mContextCreated;
 
-        std::vector<const char *> getRequiredInstanceExtensions();
-        std::vector<const char *> getRequiredInstanceLayers();
-        std::vector<const char *> getRequiredDeviceExtensions();
+        TrackedVector<const char *, MemoryTag::Rendering> getRequiredInstanceExtensions();
+        TrackedVector<const char *, MemoryTag::Rendering> getRequiredInstanceLayers();
+        // TrackedVector<const char *> getRequiredDeviceExtensions();
 
-        StatusCode validateRequiredExtensions(const std::vector<const char *> &requiredExtensions);
-        StatusCode validateRequiredLayers(const std::vector<const char *> &requiredLayers);
+        StatusCode validateRequiredInstanceSupport(const TrackedVector<const char *, MemoryTag::Rendering> &requiredLayers,
+                                                   const TrackedVector<const char *, MemoryTag::Rendering> &requiredExtensions);
     };
 
 } // namespace Vulkyrie

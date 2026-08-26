@@ -32,7 +32,7 @@ namespace Vulkyrie {
 
     StatusCode Application::Run() {
         // Try to create the application window, if it fails, return the status code.
-        RETURN_ON_FAILURE(mPlatform->CreateWindow());
+        VE_RETURN_ON_FAILURE(mPlatform->CreateWindow());
 
         const auto &graphicsSettings = mAppSettings.GraphicsSettings;
 
@@ -44,14 +44,14 @@ namespace Vulkyrie {
         const DeviceCreationInfo info = {
             mAppSettings.GeneralSettings,
             WindowHandle{ mPlatform->GetWindowHandle(), nullptr },
-            graphicsSettings.WindowDimensions,
+            graphicsSettings,
         };
 
         // Try to initialzed the renderer.
         mRenderer = Renderer::Create(graphicsSettings.API, info);
 
         // Initialize the renderer context.
-        RETURN_ON_FAILURE(mRenderer->InitializeContext());
+        VE_RETURN_ON_FAILURE(mRenderer->InitializeContext());
 
         // TODO: This probably can be removed because the line above will return on context initialization failure.
         // Return an error status code if the renderer context failed to initialized.
