@@ -177,9 +177,13 @@ namespace Vulkyrie {
     } // namespace
 
     VulkanContext::VulkanContext(const DeviceCreationInfo &info)
-        : mDeviceCreationInfo(info)
+        : mCapabilities()
+        , mDeviceCreationInfo(info)
         , mValidationConfig(createValidationConfig(mDeviceCreationInfo))
-        , mCapabilities()
+        , mVkInstance(VK_NULL_HANDLE)
+        , mVkSurface(VK_NULL_HANDLE)
+        , mVkPhysicalDevice(VK_NULL_HANDLE)
+        , mVkDevice(VK_NULL_HANDLE)
         , mContextCreated(false) {
     }
 
@@ -326,74 +330,76 @@ namespace Vulkyrie {
     StatusCode VulkanContext::selectSuitablePhysicalDevice() {
         u32 count = 0;
         VE_VK_CHECK(vkEnumeratePhysicalDevices(mVkInstance, &count, nullptr), StatusCode::FailedToQueryVulkanPhysicalDevices);
-
         RendererVector<VkPhysicalDevice> devices(count);
         VE_VK_CHECK(vkEnumeratePhysicalDevices(mVkInstance, &count, devices.data()), StatusCode::FailedToQueryVulkanPhysicalDevices);
 
+        // Required device extensions.
         constexpr std::array<const char *, 1> requiredDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-        std::multimap<i32, VkPhysicalDevice> candidates;
-
         for (const auto &device : devices) {
-            // The score based on which a physical device will be chosen.
-            i32 score = 0;
-
             // Get physical device properties.
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+            // If the physical device does not implement v1.3 or above,
+            // we are not going to support it.
+            if (VK_API_VERSION_1_3 > deviceProperties.apiVersion) {
+                continue;
+            }
 
             // Get supported physical device extensions..
             VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr), StatusCode::FailedToQueryVulkanDeviceExtensions);
             RendererVector<VkExtensionProperties> extensions(count);
             VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data()), StatusCode::FailedToQueryVulkanDeviceExtensions);
 
+            // Make sure all required extensions are found.
+            for (const char *re : requiredDeviceExtensions) {
+                bool found = false;
+
+                for (const VkExtensionProperties &ae : extensions) {
+                    // If found, great! Look for the next required extension.
+                    if (0 == std::strcmp(re, ae.extensionName)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                // If not found, then we can't use this device,
+                // hence, we'll skip it and look for another one.
+                if (!found) {
+                    continue;
+                }
+            }
+
             // Get Physical device queue family properties.
             vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
             RendererVector<VkQueueFamilyProperties> queueFamilyProperties(count);
             vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilyProperties.data());
 
+            // Get Physical device memory properties.
+            VkPhysicalDeviceMemoryProperties memoryProperties;
+            vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+
             // Chain feature query structs.
-            // Start with VkPhysicalDeviceExtendedDynamicStateFeaturesEXT
+            VkPhysicalDeviceMeshShaderFeaturesEXT mesh{};
+            mesh.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
+
             VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamicStateFeatures{};
             dynamicStateFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+            dynamicStateFeatures.pNext = &mesh;
 
-            // Then with VkPhysicalDeviceVulkan13Features
-            VkPhysicalDeviceVulkan13Features vulkan13Features{};
-            vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-            vulkan13Features.pNext = &dynamicStateFeatures;
+            VkPhysicalDeviceVulkan13Features f13{};
+            f13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+            f13.pNext = &dynamicStateFeatures;
 
-            // Then VkPhysicalDeviceVulkan11Features
-            VkPhysicalDeviceVulkan11Features vulkan11Features{};
-            vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-            vulkan11Features.pNext = &vulkan13Features;
+            VkPhysicalDeviceVulkan11Features f11{};
+            f11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+            f11.pNext = &f13;
 
-            // And finally chain everything to VkPhysicalDeviceFeatures2
             VkPhysicalDeviceFeatures2 deviceFeatures{};
             deviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-            deviceFeatures.pNext = &vulkan11Features;
+            deviceFeatures.pNext = &f11;
             vkGetPhysicalDeviceFeatures2(device, &deviceFeatures);
-
-            const bool supportsVersion13 = deviceProperties.apiVersion >= VK_API_VERSION_1_3;
-            const bool supportsGraphicsQueue =
-                std::ranges::any_of(queueFamilyProperties, [](const VkQueueFamilyProperties &q) { return !!(q.queueFlags & VK_QUEUE_GRAPHICS_BIT); });
-            bool supportsRequiredFeatures = vulkan11Features.shaderDrawParameters && vulkan13Features.dynamicRendering && vulkan13Features.synchronization2 &&
-                                            dynamicStateFeatures.extendedDynamicState;
-            bool allRequiredExtensionsFound = true;
-
-            for (const char *re : requiredDeviceExtensions) {
-                bool found = false;
-
-                for (const VkExtensionProperties &ae : extensions) {
-                    if (0 == std::strcmp(re, ae.extensionName)) {
-                        found = true;
-                        break;
-                    }
-
-                    if (!found) {
-                        allRequiredExtensionsFound = false;
-                    }
-                }
-            }
 
             VINFO("**********************************************************************************");
             VINFO("Device ID: {}", deviceProperties.deviceID);
@@ -405,50 +411,6 @@ namespace Vulkyrie {
                   VK_VERSION_PATCH(deviceProperties.apiVersion));
             VINFO("Driver Version: {}", deviceProperties.driverVersion);
             VINFO("Vendor ID: {}", deviceProperties.vendorID);
-            VINFO("Supports vulkan version 1.3: {}", supportsVersion13);
-            VINFO("Supports graphics queue: {}", supportsGraphicsQueue);
-            VINFO("Supports required features: {}", supportsRequiredFeatures);
-            VINFO("Supports required extensions: {}", allRequiredExtensionsFound);
-
-            // We can't work without geometry shaders,
-            // so this device is unusable.
-            if (!deviceFeatures.features.geometryShader) {
-                continue;
-            }
-
-            // Discrete GPUs get a high score/priority.
-            switch (deviceProperties.deviceType) {
-                case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                    score += 1000;
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                    score += 500;
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                    score += 250;
-                    break;
-                case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                    score += 100;
-                    break;
-                default:
-                    break;
-            }
-
-            if (supportsVersion13) score += 1;
-            if (supportsGraphicsQueue) score += 1;
-            if (supportsRequiredFeatures) score += 1;
-            if (allRequiredExtensionsFound) score += 1;
-
-            // score += deviceProperties.limits.maxImageDimension1D;
-            score += deviceProperties.limits.maxImageDimension2D;
-            // score += deviceProperties.limits.maxImageDimension3D;
-            // score += deviceProperties.limits.maxImageDimensionCube;
-
-            candidates.insert(std::make_pair(score, device));
-        }
-
-        for (const auto &[score, device] : candidates) {
-            VINFO("Score: {}", score);
         }
 
         return StatusCode::Successful;

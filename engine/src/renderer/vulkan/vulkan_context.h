@@ -55,9 +55,9 @@ namespace Vulkyrie {
 
     private:
         VulkanHostAllocator mHostAllocator;
+        DeviceCapabilities mCapabilities;
         DeviceCreationInfo mDeviceCreationInfo;
         ValidationConfig mValidationConfig;
-        DeviceCapabilities mCapabilities;
 
         VkInstance mVkInstance;
         VkSurfaceKHR mVkSurface;
