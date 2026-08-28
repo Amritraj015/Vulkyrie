@@ -1,6 +1,5 @@
 #pragma once
 
-#include "memory/allocators/tracked_std_allocator.h"
 #include "renderer/rhi/barrier_types.h"
 #include "renderer/rhi/capabilities.h"
 #include "renderer/rhi/pipeline_types.h"
@@ -59,17 +58,14 @@ namespace Vulkyrie {
         DeviceCreationInfo mDeviceCreationInfo;
         ValidationConfig mValidationConfig;
         DeviceCapabilities mCapabilities;
+
         VkInstance mVkInstance;
         VkSurfaceKHR mVkSurface;
+        VkPhysicalDevice mVkPhysicalDevice;
         VkDevice mVkDevice;
         bool mContextCreated;
 
-        TrackedVector<const char *, MemoryTag::Rendering> getRequiredInstanceExtensions();
-        TrackedVector<const char *, MemoryTag::Rendering> getRequiredInstanceLayers();
-        // TrackedVector<const char *> getRequiredDeviceExtensions();
-
-        StatusCode validateRequiredInstanceSupport(const TrackedVector<const char *, MemoryTag::Rendering> &requiredLayers,
-                                                   const TrackedVector<const char *, MemoryTag::Rendering> &requiredExtensions);
+        StatusCode selectSuitablePhysicalDevice();
     };
 
 } // namespace Vulkyrie

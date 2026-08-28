@@ -1,12 +1,105 @@
 #include "renderer/vulkan/vulkan_context.h"
 #include "renderer/vulkan/vulkan_utilities.h"
+#include "memory/allocators/tracked_std_allocator.h"
+#include <algorithm>
+#include <map>
 #include <vulkyrie_version.h>
-#include <volk.h>
 #include <GLFW/glfw3.h>
 
 namespace Vulkyrie {
 
     namespace {
+        template <typename T> using RendererVector = TrackedVector<T, MemoryTag::Rendering>;
+
+        RendererVector<const char *> getRequiredInstanceExtensions(bool enableValidation) {
+            u32 requiredExtensionCount = 0;
+            const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
+
+            RendererVector<const char *> requiredInstanceExtensions(glfwExtensions, glfwExtensions + requiredExtensionCount);
+
+            if (enableValidation) {
+                requiredInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            }
+
+            return requiredInstanceExtensions;
+        }
+
+        RendererVector<const char *> getRequiredInstanceLayers(bool enableValidation) {
+            RendererVector<const char *> requiredInstanceLayers;
+
+            if (enableValidation) {
+                requiredInstanceLayers.push_back("VK_LAYER_KHRONOS_validation");
+            }
+
+            return requiredInstanceLayers;
+        }
+
+        StatusCode validateRequiredInstanceSupport(const RendererVector<const char *> &requiredLayers, const RendererVector<const char *> &requiredExtensions) {
+            u32 layerCount = 0;
+            VE_VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), StatusCode::FailedToQueryVulkanInstanceLayers);
+
+            RendererVector<VkLayerProperties> availableLayers(layerCount);
+            VE_VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()), StatusCode::FailedToQueryVulkanInstanceLayers);
+
+            RendererVector<VkExtensionProperties> availableExtensions;
+            auto appendExtensionsFor = [&](const char *layerName) {
+                u32 extensionCount = 0;
+                VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr), StatusCode::FailedToQueryVulkanInstanceExtensions);
+
+                size_t offset = availableExtensions.size();
+                availableExtensions.resize(offset + extensionCount);
+                VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, availableExtensions.data() + offset),
+                            StatusCode::FailedToQueryVulkanInstanceExtensions);
+
+                return StatusCode::Successful;
+            };
+
+            VE_RETURN_ON_FAILURE(appendExtensionsFor(nullptr));
+
+            for (const char *requiredLayerName : requiredLayers) {
+                bool found = false;
+
+                for (const auto &availableLayer : availableLayers) {
+                    if (0 == std::strcmp(availableLayer.layerName, requiredLayerName)) {
+                        found = true;
+
+                        VE_RETURN_ON_FAILURE(appendExtensionsFor(requiredLayerName));
+
+                        VINFO("Found required Vulkan instance layer: {}", requiredLayerName);
+
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    VERROR("Could not find Vulkan instance layer: {}", requiredLayerName);
+
+                    return StatusCode::FailedToFindRequiredVulkanInstanceLayer;
+                }
+            }
+
+            for (const char *requiredExtensionName : requiredExtensions) {
+                bool found = false;
+
+                for (const auto &availableExtension : availableExtensions) {
+                    if (0 == std::strcmp(availableExtension.extensionName, requiredExtensionName)) {
+                        found = true;
+
+                        VINFO("Found required Vulkan instance extension: {}", requiredExtensionName);
+
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    VERROR("Could not find required Vulkan instance extension: {}", requiredExtensionName);
+
+                    return StatusCode::FailedToFindRequiredVulkanInstanceExtension;
+                }
+            }
+
+            return StatusCode::Successful;
+        }
 
         VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                                                      [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT type,
@@ -36,7 +129,7 @@ namespace Vulkyrie {
             return VK_FALSE;
         }
 
-        TrackedVector<VkLayerSettingEXT, MemoryTag::Rendering> getLayerSettings(const ValidationConfig &config) {
+        RendererVector<VkLayerSettingEXT> getLayerSettings(const ValidationConfig &config) {
             return {
                 { "VK_LAYER_KHRONOS_validation", "validate_core", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &config.Core },
                 { "VK_LAYER_KHRONOS_validation", "thread_safety", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &config.ThreadSafety },
@@ -64,6 +157,23 @@ namespace Vulkyrie {
             };
         }
 
+        std::string_view ToDeviceTypeString(VkPhysicalDeviceType deviceType) {
+            switch (deviceType) {
+                case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+                    return "Other";
+                case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+                    return "Integrated GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+                    return "Discrete GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+                    return "Virtual GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_CPU:
+                    return "CPU";
+                default:
+                    return "Unknown";
+            }
+        }
+
     } // namespace
 
     VulkanContext::VulkanContext(const DeviceCreationInfo &info)
@@ -88,8 +198,8 @@ namespace Vulkyrie {
         VE_VK_CHECK(volkInitialize(), StatusCode::FailedToInitializeVolk);
 
         // Get required instance layer and extensions.
-        const TrackedVector<const char *, MemoryTag::Rendering> requiredInstanceLayers = getRequiredInstanceLayers();
-        const TrackedVector<const char *, MemoryTag::Rendering> requiredInstanceExtensions = getRequiredInstanceExtensions();
+        const RendererVector<const char *> requiredInstanceLayers = getRequiredInstanceLayers(mDeviceCreationInfo.EnableRendererValidation);
+        const RendererVector<const char *> requiredInstanceExtensions = getRequiredInstanceExtensions(mDeviceCreationInfo.EnableRendererValidation);
 
         // Make sure that the underlying Vulkan implementation supports the required instance layers and extensions.
         VE_RETURN_ON_FAILURE(validateRequiredInstanceSupport(requiredInstanceLayers, requiredInstanceExtensions));
@@ -97,49 +207,37 @@ namespace Vulkyrie {
         const ApplicationInfo &appInfo = mDeviceCreationInfo.ApplicationInfo;
 
         // Vulkan Application and instance creation info.
-        const VkApplicationInfo applicationInfo{
-            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pNext = nullptr,
-            .pApplicationName = appInfo.Name.Data(),
-            .applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch),
-            .pEngineName = kEngineName.Data(),
-            .engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion),
-            .apiVersion = VK_API_VERSION_1_4,
-        };
+        VkApplicationInfo applicationInfo{};
+        applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        applicationInfo.pApplicationName = appInfo.Name.Data();
+        applicationInfo.applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch);
+        applicationInfo.pEngineName = kEngineName.Data();
+        applicationInfo.engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion);
+        applicationInfo.apiVersion = VK_API_VERSION_1_4;
 
-        VkInstanceCreateInfo instanceCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .pApplicationInfo = &applicationInfo,
-            .enabledLayerCount = static_cast<u32>(requiredInstanceLayers.size()),
-            .ppEnabledLayerNames = requiredInstanceLayers.data(),
-            .enabledExtensionCount = static_cast<u32>(requiredInstanceExtensions.size()),
-            .ppEnabledExtensionNames = requiredInstanceExtensions.data(),
-        };
+        VkInstanceCreateInfo instanceCreateInfo{};
+        instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCreateInfo.pApplicationInfo = &applicationInfo;
+        instanceCreateInfo.enabledLayerCount = static_cast<u32>(requiredInstanceLayers.size());
+        instanceCreateInfo.ppEnabledLayerNames = requiredInstanceLayers.data();
+        instanceCreateInfo.enabledExtensionCount = static_cast<u32>(requiredInstanceExtensions.size());
+        instanceCreateInfo.ppEnabledExtensionNames = requiredInstanceExtensions.data();
 
         // The loader walks instanceCreateInfo.pNext inside vkCreateInstance,
         // so the chain and everything it points at has to live until that call returns.
         // Hence declared here rather than inside the branch below.
-        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .pNext = nullptr,
-            .flags = 0,
-            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType =
-                VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-            .pfnUserCallback = debugCallback,
-            .pUserData = nullptr,
-        };
+        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
+        debugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugMessengerCreateInfo.messageType =
+            VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugMessengerCreateInfo.pfnUserCallback = debugCallback;
 
-        TrackedVector<VkLayerSettingEXT, MemoryTag::Rendering> layerSettings;
+        RendererVector<VkLayerSettingEXT> layerSettings;
 
-        VkLayerSettingsCreateInfoEXT layerSettingsCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
-            .pNext = &debugMessengerCreateInfo,
-            .settingCount = 0,
-            .pSettings = nullptr,
-        };
+        VkLayerSettingsCreateInfoEXT layerSettingsCreateInfo{};
+        layerSettingsCreateInfo.sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT;
+        layerSettingsCreateInfo.pNext = &debugMessengerCreateInfo;
 
         if (mDeviceCreationInfo.EnableRendererValidation) {
             layerSettings = getLayerSettings(mValidationConfig);
@@ -166,6 +264,8 @@ namespace Vulkyrie {
         // Try to create Window surface.
         auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
         VE_VK_CHECK(glfwCreateWindowSurface(mVkInstance, window, mHostAllocator.Callbacks(), &mVkSurface), StatusCode::FailedToCreateSurface);
+
+        selectSuitablePhysicalDevice();
 
         mContextCreated = true;
 
@@ -223,98 +323,132 @@ namespace Vulkyrie {
         (void)pipeline;
     }
 
-    TrackedVector<const char *, MemoryTag::Rendering> VulkanContext::getRequiredInstanceExtensions() {
-        u32 requiredExtensionCount = 0;
-        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
+    StatusCode VulkanContext::selectSuitablePhysicalDevice() {
+        u32 count = 0;
+        VE_VK_CHECK(vkEnumeratePhysicalDevices(mVkInstance, &count, nullptr), StatusCode::FailedToQueryVulkanPhysicalDevices);
 
-        TrackedVector<const char *, MemoryTag::Rendering> requiredInstanceExtensions(glfwExtensions, glfwExtensions + requiredExtensionCount);
+        RendererVector<VkPhysicalDevice> devices(count);
+        VE_VK_CHECK(vkEnumeratePhysicalDevices(mVkInstance, &count, devices.data()), StatusCode::FailedToQueryVulkanPhysicalDevices);
 
-        if (mDeviceCreationInfo.EnableRendererValidation) {
-            requiredInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
+        constexpr std::array<const char *, 1> requiredDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-        return requiredInstanceExtensions;
-    }
+        std::multimap<i32, VkPhysicalDevice> candidates;
 
-    TrackedVector<const char *, MemoryTag::Rendering> VulkanContext::getRequiredInstanceLayers() {
-        TrackedVector<const char *, MemoryTag::Rendering> requiredInstanceLayers;
+        for (const auto &device : devices) {
+            // The score based on which a physical device will be chosen.
+            i32 score = 0;
 
-        if (mDeviceCreationInfo.EnableRendererValidation) {
-            requiredInstanceLayers.push_back("VK_LAYER_KHRONOS_validation");
-        }
+            // Get physical device properties.
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
-        return requiredInstanceLayers;
-    }
+            // Get supported physical device extensions..
+            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr), StatusCode::FailedToQueryVulkanDeviceExtensions);
+            RendererVector<VkExtensionProperties> extensions(count);
+            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data()), StatusCode::FailedToQueryVulkanDeviceExtensions);
 
-    // TrackedVector<const char *, MemoryTag::Rendering> VulkanContext::getRequiredDeviceExtensions() {
-    //     const TrackedVector<const char *, MemoryTag::Rendering> requiredDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-    //
-    //     return requiredDeviceExtensions;
-    // }
+            // Get Physical device queue family properties.
+            vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+            RendererVector<VkQueueFamilyProperties> queueFamilyProperties(count);
+            vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilyProperties.data());
 
-    StatusCode VulkanContext::validateRequiredInstanceSupport(const TrackedVector<const char *, MemoryTag::Rendering> &requiredLayers,
-                                                              const TrackedVector<const char *, MemoryTag::Rendering> &requiredExtensions) {
-        u32 layerCount = 0;
-        VE_VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), StatusCode::FailedToQueryVulkanInstanceLayers);
+            // Chain feature query structs.
+            // Start with VkPhysicalDeviceExtendedDynamicStateFeaturesEXT
+            VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamicStateFeatures{};
+            dynamicStateFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
 
-        TrackedVector<VkLayerProperties, MemoryTag::Rendering> availableLayers(layerCount);
-        VE_VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()), StatusCode::FailedToQueryVulkanInstanceLayers);
+            // Then with VkPhysicalDeviceVulkan13Features
+            VkPhysicalDeviceVulkan13Features vulkan13Features{};
+            vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+            vulkan13Features.pNext = &dynamicStateFeatures;
 
-        TrackedVector<VkExtensionProperties, MemoryTag::Rendering> availableExtensions;
-        auto appendExtensionsFor = [&](const char *layerName) {
-            u32 extensionCount = 0;
-            VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr), StatusCode::FailedToQueryVulkanInstanceExtensions);
+            // Then VkPhysicalDeviceVulkan11Features
+            VkPhysicalDeviceVulkan11Features vulkan11Features{};
+            vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+            vulkan11Features.pNext = &vulkan13Features;
 
-            size_t offset = availableExtensions.size();
-            availableExtensions.resize(offset + extensionCount);
-            VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, availableExtensions.data() + offset),
-                        StatusCode::FailedToQueryVulkanInstanceExtensions);
+            // And finally chain everything to VkPhysicalDeviceFeatures2
+            VkPhysicalDeviceFeatures2 deviceFeatures{};
+            deviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+            deviceFeatures.pNext = &vulkan11Features;
+            vkGetPhysicalDeviceFeatures2(device, &deviceFeatures);
 
-            return StatusCode::Successful;
-        };
+            const bool supportsVersion13 = deviceProperties.apiVersion >= VK_API_VERSION_1_3;
+            const bool supportsGraphicsQueue =
+                std::ranges::any_of(queueFamilyProperties, [](const VkQueueFamilyProperties &q) { return !!(q.queueFlags & VK_QUEUE_GRAPHICS_BIT); });
+            bool supportsRequiredFeatures = vulkan11Features.shaderDrawParameters && vulkan13Features.dynamicRendering && vulkan13Features.synchronization2 &&
+                                            dynamicStateFeatures.extendedDynamicState;
+            bool allRequiredExtensionsFound = true;
 
-        VE_RETURN_ON_FAILURE(appendExtensionsFor(nullptr));
+            for (const char *re : requiredDeviceExtensions) {
+                bool found = false;
 
-        for (const char *requiredLayerName : requiredLayers) {
-            bool found = false;
+                for (const VkExtensionProperties &ae : extensions) {
+                    if (0 == std::strcmp(re, ae.extensionName)) {
+                        found = true;
+                        break;
+                    }
 
-            for (const auto &availableLayer : availableLayers) {
-                if (0 == std::strcmp(availableLayer.layerName, requiredLayerName)) {
-                    found = true;
-
-                    VE_RETURN_ON_FAILURE(appendExtensionsFor(requiredLayerName));
-
-                    VINFO("Found required Vulkan instance layer: {}", requiredLayerName);
-
-                    break;
+                    if (!found) {
+                        allRequiredExtensionsFound = false;
+                    }
                 }
             }
 
-            if (!found) {
-                VERROR("Could not find Vulkan instance layer: {}", requiredLayerName);
+            VINFO("**********************************************************************************");
+            VINFO("Device ID: {}", deviceProperties.deviceID);
+            VINFO("Device Name: {}", deviceProperties.deviceName);
+            VINFO("Device Type: {}", ToDeviceTypeString(deviceProperties.deviceType));
+            VINFO("API Version: v{}.{}.{}",
+                  VK_VERSION_MAJOR(deviceProperties.apiVersion),
+                  VK_VERSION_MINOR(deviceProperties.apiVersion),
+                  VK_VERSION_PATCH(deviceProperties.apiVersion));
+            VINFO("Driver Version: {}", deviceProperties.driverVersion);
+            VINFO("Vendor ID: {}", deviceProperties.vendorID);
+            VINFO("Supports vulkan version 1.3: {}", supportsVersion13);
+            VINFO("Supports graphics queue: {}", supportsGraphicsQueue);
+            VINFO("Supports required features: {}", supportsRequiredFeatures);
+            VINFO("Supports required extensions: {}", allRequiredExtensionsFound);
 
-                return StatusCode::FailedToFindRequiredVulkanInstanceLayer;
+            // We can't work without geometry shaders,
+            // so this device is unusable.
+            if (!deviceFeatures.features.geometryShader) {
+                continue;
             }
+
+            // Discrete GPUs get a high score/priority.
+            switch (deviceProperties.deviceType) {
+                case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+                    score += 1000;
+                    break;
+                case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+                    score += 500;
+                    break;
+                case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+                    score += 250;
+                    break;
+                case VK_PHYSICAL_DEVICE_TYPE_CPU:
+                    score += 100;
+                    break;
+                default:
+                    break;
+            }
+
+            if (supportsVersion13) score += 1;
+            if (supportsGraphicsQueue) score += 1;
+            if (supportsRequiredFeatures) score += 1;
+            if (allRequiredExtensionsFound) score += 1;
+
+            // score += deviceProperties.limits.maxImageDimension1D;
+            score += deviceProperties.limits.maxImageDimension2D;
+            // score += deviceProperties.limits.maxImageDimension3D;
+            // score += deviceProperties.limits.maxImageDimensionCube;
+
+            candidates.insert(std::make_pair(score, device));
         }
 
-        for (const char *requiredExtensionName : requiredExtensions) {
-            bool found = false;
-
-            for (const auto &availableExtension : availableExtensions) {
-                if (0 == std::strcmp(availableExtension.extensionName, requiredExtensionName)) {
-                    found = true;
-
-                    VINFO("Found required Vulkan instance extension: {}", requiredExtensionName);
-
-                    break;
-                }
-            }
-
-            if (!found) {
-                VERROR("Could not find required Vulkan instance extension: {}", requiredExtensionName);
-
-                return StatusCode::FailedToFindRequiredVulkanInstanceExtension;
-            }
+        for (const auto &[score, device] : candidates) {
+            VINFO("Score: {}", score);
         }
 
         return StatusCode::Successful;

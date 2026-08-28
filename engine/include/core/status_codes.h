@@ -32,5 +32,7 @@ namespace Vulkyrie {
         FailedToQueryVulkanDeviceExtensions,
         FailedToFindRequiredVulkanDeviceExtension,
         FailedToCreateSurface,
+        FailedToQueryVulkanPhysicalDevices,
+        FailedToQueryVulkanLogicalDevices
     };
 } // namespace Vulkyrie
