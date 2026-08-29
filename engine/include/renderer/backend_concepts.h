@@ -112,9 +112,9 @@ namespace Vulkyrie {
 
         template <typename B>
         concept RendererBackendQueueOps =
-            requires(B::Queue &b, std::span<const typename B::CommandList *const> lists, std::span<u64> waits, std::span<u64> signals) {
+            requires(B::Queue &b, const B::Queue &cb, std::span<const typename B::CommandList *const> lists, std::span<u64> waits, std::span<u64> signals) {
                 { b.Submit(lists, waits, signals) } -> std::same_as<void>;
-                { b.Type() } noexcept -> std::same_as<QueueType>;
+                { cb.Type() } noexcept -> std::same_as<QueueType>;
             };
 
     } // namespace detail

@@ -264,10 +264,10 @@ namespace Vulkyrie {
         , mVkSurface(VK_NULL_HANDLE)
         , mVkPhysicalDevice(VK_NULL_HANDLE)
         , mVkDevice(VK_NULL_HANDLE)
-        , mVkGraphicsQueue(VK_NULL_HANDLE)
-        , mVkTransferQueue(VK_NULL_HANDLE)
-        , mVkComputeQueue(VK_NULL_HANDLE)
-        , mVkPresentQueue(VK_NULL_HANDLE)
+        , mGraphicsQueue()
+        , mTransferQueue()
+        , mComputeQueue()
+        , mPresentQueue()
         , mContextCreated(false) {
     }
 
@@ -350,7 +350,10 @@ namespace Vulkyrie {
         // Try to create vulkan instance.
         VE_VK_CHECK(vkCreateInstance(&instanceCreateInfo, mHostAllocator.Callbacks(), &mVkInstance), StatusCode::FailedToCreateVulkanInstance);
 
-        volkLoadInstance(mVkInstance);
+        // Initialize instance level functions only.
+        // NOTE: The following will not load device specific functions pointers.
+        // Those are loaded by volkLoadDevice(mVkDevice) call after logical device creation.
+        volkLoadInstanceOnly(mVkInstance);
 
         // Try to create Window surface.
         auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
@@ -958,7 +961,9 @@ namespace Vulkyrie {
         for (usize i = 0; i < capabilities.size(); ++i) {
             const VulkanDeviceCapabilities &candidate = capabilities[i];
 
+#if defined(VE_DEBUG)
             logCapabilities(candidate);
+#endif
 
             if (!isDeviceSuitable(candidate)) {
                 VWARN("Physical device does not meet the engine's requirements, skipping: {}", static_cast<const char *>(candidate.Identity.DeviceName));
@@ -1052,11 +1057,25 @@ namespace Vulkyrie {
         // Create the logical device.
         VE_VK_CHECK(vkCreateDevice(mVkPhysicalDevice, &deviceCreateInfo, mHostAllocator.Callbacks(), &mVkDevice), StatusCode::FailedToCreateLogicalDevice);
 
+        // Load device level function pointers.
+        // NOTE: volkLoadDevice is recommended for applications that only use 1 vkDevice: https://github.com/zeux/volk#optimizing-device-calls
+        volkLoadDevice(mVkDevice);
+
         // Create the graphics, compute and transfer queues.
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.GraphicsFamily, 0, &mVkGraphicsQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.ComputeFamily, 0, &mVkComputeQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.TransferFamily, 0, &mVkTransferQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.PresentFamily, 0, &mVkPresentQueue);
+        VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue computeQueue = VK_NULL_HANDLE;
+        VkQueue transferQueue = VK_NULL_HANDLE;
+        VkQueue presentQueue = VK_NULL_HANDLE;
+
+        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.GraphicsFamily, 0, &graphicsQueue);
+        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.ComputeFamily, 0, &computeQueue);
+        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.TransferFamily, 0, &transferQueue);
+        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.PresentFamily, 0, &presentQueue);
+
+        mGraphicsQueue = VulkanQueue{ this, graphicsQueue, mCapabilities.Queues.GraphicsFamily, QueueType::Graphics };
+        mTransferQueue = VulkanQueue{ this, computeQueue, mCapabilities.Queues.ComputeFamily, QueueType::Compute };
+        mComputeQueue = VulkanQueue{ this, transferQueue, mCapabilities.Queues.TransferFamily, QueueType::Transfer };
+        mPresentQueue = VulkanQueue{ this, presentQueue, mCapabilities.Queues.PresentFamily, QueueType::Present };
 
         return StatusCode::Successful;
     }

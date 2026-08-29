@@ -41,7 +41,7 @@ namespace Vulkyrie {
 
         void Render() override {
             mDevice.GetDeletionQueue().Collect(mStats.FrameIndex);
-            mDevice.GetTransients().ResetFrame();
+            mDevice.Transients().ResetFrame();
             mFrameGraph.Reset();
 
             auto &frame = mFrames[mStats.FrameIndex % B::kFramesInFlight];

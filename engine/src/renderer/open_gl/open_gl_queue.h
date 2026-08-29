@@ -9,7 +9,7 @@ namespace Vulkyrie {
     class OpenGLQueue {
     public:
         void Submit(std::span<const OpenGLCommandList *const> lists, std::span<u64> waits, std::span<u64> signals);
-        QueueType Type() noexcept;
+        QueueType Type() const noexcept;
     };
 
 } // namespace Vulkyrie

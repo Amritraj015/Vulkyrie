@@ -165,7 +165,10 @@ templates over a backend trait struct, constrained by the `RendererBackend` conc
 (`include/renderer/backends/backend_concepts.h`). The two trait structs — `VulkanBackend` and `OpenGLBackend`,
 under `src/renderer/backends/{vulkan,open_gl}/` — are each `static_assert`ed against the concept next to the
 explicit `template class RendererImpl<…>;` instantiation in their `*_renderer.cpp`. Vulkan is the target
-backend; OpenGL is a conformance stub. No Vulkan dependency exists yet (`vcpkg.json` has no `vulkan`/`volk`).
+backend; OpenGL is a conformance stub. `vcpkg.json` pulls in `volk`, `vulkan-memory-allocator`,
+`vulkan-validationlayers`, `spirv-reflect`, and `directx-dxc`; `VulkanContext` (`src/renderer/vulkan/`) already
+initializes volk and creates the instance, physical/logical device, and queues, but nothing beyond that is wired
+into `RendererImpl<VulkanBackend>` yet.
 
 Two mature, independent subsystems the renderer reuses rather than rebuilds, each with its own README that is
 the source of truth for its area: the **frame graph** (`include/renderer/frame_graph/`, resource types under

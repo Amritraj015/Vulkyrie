@@ -6,6 +6,7 @@
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/vulkan/vulkan_host_allocator.h"
+#include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_types.h"
 #include <volk.h>
 
@@ -56,6 +57,18 @@ namespace Vulkyrie {
             return mContextCreated;
         }
 
+        [[nodiscard]] VE_INLINE VulkanQueue &GraphicsQueue() noexcept {
+            return mGraphicsQueue;
+        }
+
+        [[nodiscard]] VE_INLINE VulkanQueue &TransferQueue() noexcept {
+            return mTransferQueue;
+        }
+
+        [[nodiscard]] VE_INLINE VulkanQueue &ComputeQueue() noexcept {
+            return mComputeQueue;
+        }
+
     private:
         VulkanHostAllocator mHostAllocator;
         VulkanDeviceCapabilities mCapabilities;
@@ -66,10 +79,12 @@ namespace Vulkyrie {
         VkSurfaceKHR mVkSurface;
         VkPhysicalDevice mVkPhysicalDevice;
         VkDevice mVkDevice;
-        VkQueue mVkGraphicsQueue;
-        VkQueue mVkTransferQueue;
-        VkQueue mVkComputeQueue;
-        VkQueue mVkPresentQueue;
+
+        VulkanQueue mGraphicsQueue;
+        VulkanQueue mTransferQueue;
+        VulkanQueue mComputeQueue;
+        VulkanQueue mPresentQueue;
+
         bool mContextCreated;
 
         StatusCode selectSuitablePhysicalDevice();

@@ -40,33 +40,33 @@ namespace Vulkyrie {
             return *mContext;
         };
 
-        [[nodiscard]] VE_INLINE typename B::Queue &GetGraphicsQueue() noexcept {
-            return mContext->GetGraphicsQueue();
+        [[nodiscard]] VE_INLINE typename B::Queue &GraphicsQueue() noexcept {
+            return mContext->GraphicsQueue();
         }
 
-        [[nodiscard]] VE_INLINE typename B::Queue &GetTransferQueue() noexcept {
-            return mContext->GetTransferQueue();
+        [[nodiscard]] VE_INLINE typename B::Queue &TransferQueue() noexcept {
+            return mContext->TransferQueue();
         }
 
-        [[nodiscard]] VE_INLINE typename B::Queue &GetComputeQueue() noexcept {
-            return mContext->GetComputeQueue();
+        [[nodiscard]] VE_INLINE typename B::Queue &ComputeQueue() noexcept {
+            return mContext->ComputeQueue();
         }
 
-        [[nodiscard]] VE_INLINE auto &GetHeap() noexcept
+        [[nodiscard]] VE_INLINE auto &Heap() noexcept
             requires(B::kUsesBindlessHeap)
         {
             return mContext->GetHeap();
         }
 
-        [[nodiscard]] VE_INLINE ShaderModuleCache<B> &GetShaders() noexcept {
+        [[nodiscard]] VE_INLINE ShaderModuleCache<B> &Shaders() noexcept {
             return *mShaders;
         }
 
-        [[nodiscard]] VE_INLINE PipelineCache<B> &GetPipelines() noexcept {
+        [[nodiscard]] VE_INLINE PipelineCache<B> &Pipelines() noexcept {
             return *mPipelines;
         }
 
-        [[nodiscard]] VE_INLINE TransientPool<B> &GetTransients() noexcept {
+        [[nodiscard]] VE_INLINE TransientPool<B> &Transients() noexcept {
             return *mTransients;
         }
 
@@ -74,11 +74,11 @@ namespace Vulkyrie {
          *
          * Register at setup, then declare transients by id: the id is what the frame graph, the aliasing plan and
          * the transient pool all key on, and every one of those is an array index. */
-        [[nodiscard]] VE_INLINE TransientRegistry<B> &GetRegistry() noexcept {
+        [[nodiscard]] VE_INLINE TransientRegistry<B> &GetTransientRegistry() noexcept {
             return *mRegistry;
         }
 
-        [[nodiscard]] VE_INLINE const TransientRegistry<B> &GetRegistry() const noexcept {
+        [[nodiscard]] VE_INLINE const TransientRegistry<B> &GetTransientRegistry() const noexcept {
             return *mRegistry;
         }
 
