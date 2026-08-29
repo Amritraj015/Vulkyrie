@@ -64,7 +64,7 @@ namespace Vulkyrie {
         u32 Layers = 1;
         Format Format = Format::Undefined;
         TextureDimensions Dimension = TextureDimensions::Texture2D;
-        SampleCount Samples = SampleCount::X1;
+        SampleCount Samples = SampleCount::None;
         TextureUsage Usage = TextureUsage::Sampled;
 
         // StaticString DebugName;

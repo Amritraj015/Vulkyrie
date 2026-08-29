@@ -17,6 +17,10 @@ namespace Vulkyrie {
 
         ~VulkanContext();
 
+        [[nodiscard]] VE_INLINE const DeviceCapabilities &QueryCapabilities() const {
+            return mCapabilities.ToDeviceCapabilities();
+        }
+
         StatusCode Initialize();
 
         VulkanImage CreateImage(const TextureDescriptor &descriptor);
@@ -46,7 +50,6 @@ namespace Vulkyrie {
         [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const;
 
         void WaitIdle() const;
-        const DeviceCapabilities &QueryCapabilities() const;
         bool DeviceLost() const;
 
         [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
@@ -55,7 +58,7 @@ namespace Vulkyrie {
 
     private:
         VulkanHostAllocator mHostAllocator;
-        DeviceCapabilities mCapabilities;
+        VulkanDeviceCapabilities mCapabilities;
         DeviceCreationInfo mDeviceCreationInfo;
         ValidationConfig mValidationConfig;
 
@@ -63,9 +66,14 @@ namespace Vulkyrie {
         VkSurfaceKHR mVkSurface;
         VkPhysicalDevice mVkPhysicalDevice;
         VkDevice mVkDevice;
+        VkQueue mVkGraphicsQueue;
+        VkQueue mVkTransferQueue;
+        VkQueue mVkComputeQueue;
+        VkQueue mVkPresentQueue;
         bool mContextCreated;
 
         StatusCode selectSuitablePhysicalDevice();
+        StatusCode createLogicalDevice();
     };
 
 } // namespace Vulkyrie

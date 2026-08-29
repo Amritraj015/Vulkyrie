@@ -10,7 +10,7 @@ namespace Vulkyrie {
     struct ShaderKey final {
         u64 SourceHash = 0;
         u64 DefineHash = 0;
-        ShaderStage ShaderStage = ShaderStage::Count;
+        ShaderStage ShaderStage = ShaderStage::None;
         ShaderTarget ShaderTarget = ShaderTarget::Count;
 
         [[nodiscard]] VE_INLINE constexpr bool Valid() const noexcept {

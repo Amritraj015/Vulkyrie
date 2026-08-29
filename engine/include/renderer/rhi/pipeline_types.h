@@ -67,7 +67,7 @@ namespace Vulkyrie {
         Format ColorFormats[MAX_COLOR_ATTACHMENTS]{};
         u32 ColorCount = 0;
         Format DepthFormat = Format::Undefined;
-        SampleCount Samples = SampleCount::X1;
+        SampleCount Samples = SampleCount::None;
     };
 
     struct GraphicsPipelineDescriptor final {

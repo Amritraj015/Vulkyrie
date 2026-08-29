@@ -65,10 +65,14 @@ namespace Vulkyrie {
     };
 
     enum class SampleCount : u8 {
+        None = 0,
         X1 = BIT(0),
         X2 = BIT(1),
         X4 = BIT(2),
         X8 = BIT(3),
+        X16 = BIT(4),
+        X32 = BIT(5),
+        X64 = BIT(6),
     };
 
     /**

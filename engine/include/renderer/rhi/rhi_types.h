@@ -12,7 +12,19 @@ namespace Vulkyrie {
     // enum class LoadOp : u8 { Load, Clear, DontCare };
     // enum class StoreOp : u8 { Store, DontCare, Resolve };
 
-    enum class ShaderStage : u8 { Vertex, Fragment, Compute, Task, Mesh, RayGen, Miss, ClosestHit, AnyHit, Count };
+    enum class ShaderStage : u32 {
+        None = 0,
+        Vertex = BIT(0),
+        TessellationControl = BIT(1),
+        TessellationEvaluation = BIT(2),
+        Geometry = BIT(3),
+        Fragment = BIT(4),
+        Compute = BIT(5),
+        Task = BIT(6),
+        Mesh = BIT(7),
+        RayTracing = BIT(8),
+    };
+
     enum class CompareOp : u8 { Never, Less, Equal, LessEqual, Greater, NotEqual, GreaterEqual, Always };
 
     enum class DeviceStatus : u8 {
@@ -28,6 +40,9 @@ namespace Vulkyrie {
         Graphics, // graphics + compute + transfer
         Compute,  // async compute
         Transfer, // DMA / upload, often over PCIe without touching the shader cores
+        SparseBinding,
+        VideoEncode,
+        VideoDecode,
         Count,
     };
 

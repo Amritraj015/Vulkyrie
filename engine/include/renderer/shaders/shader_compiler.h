@@ -9,7 +9,7 @@ namespace Vulkyrie {
     struct ShaderCompileRequest final {
         std::filesystem::path SourcePath;
         StaticString EntryPoint = "main";
-        ShaderStage Stage = ShaderStage::Count;
+        ShaderStage Stage = ShaderStage::None;
         ShaderTarget Target = ShaderTarget::Count;
         std::span<const StaticString> Defines{};
         std::span<const std::filesystem::path> IncludeDirs{};

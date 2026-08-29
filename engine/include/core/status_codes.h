@@ -29,10 +29,13 @@ namespace Vulkyrie {
         FailedToFindRequiredVulkanInstanceLayer,
         FailedToQueryVulkanInstanceExtensions,
         FailedToFindRequiredVulkanInstanceExtension,
+        NoPhysicalDevicesFound,
+        NoSuitablePhysicalDeviceFound,
         FailedToQueryVulkanDeviceExtensions,
         FailedToFindRequiredVulkanDeviceExtension,
         FailedToCreateSurface,
         FailedToQueryVulkanPhysicalDevices,
-        FailedToQueryVulkanLogicalDevices
+        FailedToQueryVulkanLogicalDevices,
+        FailedToCreateLogicalDevice
     };
 } // namespace Vulkyrie
