@@ -9,6 +9,7 @@
 #include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_types.h"
 #include <volk.h>
+#include <vk_mem_alloc.h>
 
 namespace Vulkyrie {
 
@@ -70,6 +71,9 @@ namespace Vulkyrie {
         }
 
     private:
+        constexpr static VkFormat SWAPCHAIN_FORMAT{ VK_FORMAT_B8G8R8A8_SRGB };
+        constexpr static VkFormat DEPTH_FORMAT{ VK_FORMAT_D32_SFLOAT };
+
         VulkanHostAllocator mHostAllocator;
         VulkanDeviceCapabilities mCapabilities;
         DeviceCreationInfo mDeviceCreationInfo;
@@ -79,6 +83,18 @@ namespace Vulkyrie {
         VkSurfaceKHR mVkSurface;
         VkPhysicalDevice mVkPhysicalDevice;
         VkDevice mVkDevice;
+        VmaAllocator mVmaAllocator;
+
+        // ------------------------------------
+        // TODO: Move to VulkanSwapchain class.
+        VkSwapchainKHR mVkSwapchain;
+        RendererVector<VkImage> mVkSwapchainImages;
+        RendererVector<VkImageView> mVkSwapchainImageViews;
+        RendererVector<VkSemaphore> mVkRenderCompleteSemaphores;
+        VkImage mVkDepthImage;
+        VkImageView mVkDepthImageView;
+        VmaAllocation mVmaDepthImageAllocation;
+        // ------------------------------------
 
         VulkanQueue mGraphicsQueue;
         VulkanQueue mTransferQueue;
@@ -89,6 +105,10 @@ namespace Vulkyrie {
 
         StatusCode selectSuitablePhysicalDevice();
         StatusCode createLogicalDevice();
+        StatusCode initializeVulkanMemoryAllocator();
+        StatusCode createSwapchain();
+
+        void destroySwapchain();
     };
 
 } // namespace Vulkyrie

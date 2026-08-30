@@ -1,4 +1,6 @@
 #include "renderer/vulkan/vulkan_context.h"
+#include "memory/memory_tracker.h"
+#include "renderer/rhi/resource_types.h"
 #include "renderer/vulkan/vulkan_utilities.h"
 #include <vulkyrie_version.h>
 #include <GLFW/glfw3.h>
@@ -123,6 +125,16 @@ namespace Vulkyrie {
             }
 
             return VK_FALSE;
+        }
+
+        void VKAPI_PTR onVmaDeviceMemoryAllocate([[maybe_unused]] VmaAllocator allocator, [[maybe_unused]] u32 memoryType, [[maybe_unused]] VkDeviceMemory memory,
+                                                  VkDeviceSize size, [[maybe_unused]] void *userData) {
+            MemoryTracker::OnAllocation(MemoryTag::GpuVram, static_cast<i64>(size));
+        }
+
+        void VKAPI_PTR onVmaDeviceMemoryFree([[maybe_unused]] VmaAllocator allocator, [[maybe_unused]] u32 memoryType, [[maybe_unused]] VkDeviceMemory memory,
+                                              VkDeviceSize size, [[maybe_unused]] void *userData) {
+            MemoryTracker::OnFree(MemoryTag::GpuVram, static_cast<i64>(size));
         }
 
         RendererVector<VkLayerSettingEXT> getLayerSettings(const ValidationConfig &config) {
@@ -264,6 +276,11 @@ namespace Vulkyrie {
         , mVkSurface(VK_NULL_HANDLE)
         , mVkPhysicalDevice(VK_NULL_HANDLE)
         , mVkDevice(VK_NULL_HANDLE)
+        , mVmaAllocator(VK_NULL_HANDLE)
+        , mVkSwapchain(VK_NULL_HANDLE)
+        , mVkDepthImage(VK_NULL_HANDLE)
+        , mVkDepthImageView(VK_NULL_HANDLE)
+        , mVmaDepthImageAllocation(VK_NULL_HANDLE)
         , mGraphicsQueue()
         , mTransferQueue()
         , mComputeQueue()
@@ -272,8 +289,17 @@ namespace Vulkyrie {
     }
 
     VulkanContext::~VulkanContext() {
+        // Wait for the device to be idle.
         if (VK_NULL_HANDLE != mVkDevice) {
             vkDeviceWaitIdle(mVkDevice);
+        }
+
+        // Destroy the depth image allocation.
+        destroySwapchain();
+
+        // Destroy Vulkan memory allocator instance.
+        if (VK_NULL_HANDLE != mVmaAllocator) {
+            vmaDestroyAllocator(mVmaAllocator);
         }
 
         // Destroy logical device.
@@ -290,6 +316,9 @@ namespace Vulkyrie {
         if (VK_NULL_HANDLE != mVkInstance) {
             vkDestroyInstance(mVkInstance, mHostAllocator.Callbacks());
         }
+
+        // Finally, unload Volk.
+        volkFinalize();
     }
 
     StatusCode VulkanContext::Initialize() {
@@ -359,8 +388,17 @@ namespace Vulkyrie {
         auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
         VE_VK_CHECK(glfwCreateWindowSurface(mVkInstance, window, mHostAllocator.Callbacks(), &mVkSurface), StatusCode::FailedToCreateSurface);
 
+        // Try and select suitable physical device.
         VE_RETURN_ON_FAILURE(selectSuitablePhysicalDevice());
+
+        // Try to create a logical device and get queues.
         VE_RETURN_ON_FAILURE(createLogicalDevice());
+
+        // Try to initialize Vulkan memory allocator.
+        VE_RETURN_ON_FAILURE(initializeVulkanMemoryAllocator());
+
+        // Try to create swapchain.
+        VE_RETURN_ON_FAILURE(createSwapchain());
 
         mContextCreated = true;
 
@@ -368,21 +406,85 @@ namespace Vulkyrie {
     }
 
     void VulkanContext::WaitIdle() const {
-        // TODO: vkDeviceWaitIdle() once a VkDevice exists here.
+        vkDeviceWaitIdle(mVkDevice);
     }
 
     ResourceMemoryRequirements VulkanContext::GetImageMemoryRequirements(const TextureDescriptor &descriptor) const {
-        // TODO: fill a VkDeviceImageMemoryRequirements around the same VkImageCreateInfo CreateImage builds and
-        // call vkGetDeviceImageMemoryRequirements, then return size / alignment / memoryTypeBits verbatim. The
-        // estimate below is a placeholder for a backend that cannot yet answer, and is deliberately not what the
-        // packer will ship on: it reads low, and a packer that believes it overlaps resources that do not fit.
-        // Until then VulkanBackend::kHasMemoryAliasing stays false, so nothing binds at these offsets.
-        return ResourceMemoryRequirements{ .Size = EstimateTextureBytes(descriptor), .Alignment = 256 };
+        // VkMemoryRequirements2 memoryRequirements2{};
+        // memoryRequirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+        //
+        // VkImageCreateInfo imageCreateInfo{
+        //     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        //     .pNext = nullptr,
+        //     .flags = 0,
+        //     .imageType = VK_IMAGE_TYPE_2D,
+        //     .format = VK_FORMAT_R8G8B8A8_UNORM,
+        //     .extent = { .width = 1920, .height = 1080, .depth = 1 },
+        //     .mipLevels = 1,
+        //     .arrayLayers = 1,
+        //     .samples = VK_SAMPLE_COUNT_1_BIT,
+        //     .tiling = VK_IMAGE_TILING_OPTIMAL,
+        //     .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        //     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        //     .queueFamilyIndexCount = 0,
+        //     .pQueueFamilyIndices = nullptr,
+        //     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        // };
+        //
+        // VkDeviceImageMemoryRequirements imageMemoryRequirements{};
+        // imageMemoryRequirements.sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS;
+        // imageMemoryRequirements.pCreateInfo = &imageCreateInfo;
+        // // TODO: This is not correct, needs to be set dynamically.
+        // imageMemoryRequirements.planeAspect = VK_IMAGE_ASPECT_NONE;
+        //
+        // vkGetDeviceImageMemoryRequirements(mVkDevice, &imageMemoryRequirements, &memoryRequirements2);
+        //
+        // return ResourceMemoryRequirements{
+        //     .Size = static_cast<u64>(memoryRequirements2.memoryRequirements.size),
+        //     .Alignment = static_cast<u64>(memoryRequirements2.memoryRequirements.alignment),
+        //     .MemoryTypeBits = memoryRequirements2.memoryRequirements.memoryTypeBits,
+        // };
+
+        return ResourceMemoryRequirements{
+            .Size = EstimateTextureBytes(descriptor),
+            .Alignment = 256,
+            .MemoryTypeBits = 0,
+        };
     }
 
     ResourceMemoryRequirements VulkanContext::GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const {
         // TODO: vkGetDeviceBufferMemoryRequirements, as above.
         return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = 256 };
+    }
+
+    VulkanImage VulkanContext::CreateImage(const TextureDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    VulkanBuffer VulkanContext::CreateBuffer(const BufferDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    VulkanSampler VulkanContext::CreateSampler(const SamplerDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    VulkanShaderModule VulkanContext::CreateShaderModule(const ShaderBlob &blob) {
+        (void)blob;
+        return {};
+    }
+
+    VulkanPipeline VulkanContext::CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
+    }
+
+    VulkanPipeline VulkanContext::CreateComputePipeline(const ComputePipelineDescriptor &descriptor) {
+        (void)descriptor;
+        return {};
     }
 
     bool VulkanContext::DeviceLost() const {
@@ -863,21 +965,27 @@ namespace Vulkyrie {
             // Query Physical device queue family properties.
             // ----------------------------------------------------------------------------------------------------
             u32 queueFamilyCount = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+            vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, nullptr);
 
-            RendererVector<VkQueueFamilyProperties> queueProperties(queueFamilyCount);
-            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueProperties.data());
+            RendererVector<VkQueueFamilyProperties2> queueProperties(queueFamilyCount);
+
+            for (auto &property : queueProperties) {
+                property.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
+                property.pNext = nullptr;
+            }
+
+            vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, queueProperties.data());
 
             caps.Queues.Families.resize(queueFamilyCount);
 
             for (u32 i = 0; i < queueFamilyCount; ++i) {
-                const VkQueueFlags flags = queueProperties[i].queueFlags;
+                const VkQueueFlags flags = queueProperties[i].queueFamilyProperties.queueFlags;
                 auto &dst = caps.Queues.Families[i];
 
                 dst.FamilyIndex = i;
                 dst.Flags = flags;
-                dst.QueueCount = queueProperties[i].queueCount;
-                dst.TimestampValidBits = queueProperties[i].timestampValidBits;
+                dst.QueueCount = queueProperties[i].queueFamilyProperties.queueCount;
+                dst.TimestampValidBits = queueProperties[i].queueFamilyProperties.timestampValidBits;
 
                 dst.SupportsGraphics = (flags & VK_QUEUE_GRAPHICS_BIT) != 0;
                 dst.SupportsCompute = (flags & VK_QUEUE_COMPUTE_BIT) != 0;
@@ -1030,17 +1138,17 @@ namespace Vulkyrie {
 
         VkPhysicalDeviceVulkan12Features enabledVk12Features{};
         enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        enabledVk12Features.descriptorIndexing = true;
-        enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
-        enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
-        enabledVk12Features.runtimeDescriptorArray = true;
-        enabledVk12Features.bufferDeviceAddress = true;
+        enabledVk12Features.descriptorIndexing = VK_TRUE;
+        enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        enabledVk12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
+        enabledVk12Features.runtimeDescriptorArray = VK_TRUE;
+        enabledVk12Features.bufferDeviceAddress = VK_TRUE;
 
         VkPhysicalDeviceVulkan13Features enabledVk13Features{};
         enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
         enabledVk13Features.pNext = &enabledVk12Features;
-        enabledVk13Features.synchronization2 = true;
-        enabledVk13Features.dynamicRendering = true;
+        enabledVk13Features.synchronization2 = VK_TRUE;
+        enabledVk13Features.dynamicRendering = VK_TRUE;
 
         VkPhysicalDeviceFeatures enabledVk10Features{};
         enabledVk10Features.samplerAnisotropy = VK_TRUE;
@@ -1072,12 +1180,190 @@ namespace Vulkyrie {
         vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.TransferFamily, 0, &transferQueue);
         vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.PresentFamily, 0, &presentQueue);
 
+        if (VK_NULL_HANDLE == graphicsQueue) return StatusCode::FailedToGetGraphicsQueue;
+        if (VK_NULL_HANDLE == computeQueue) return StatusCode::FailedToGetComputeQueue;
+        if (VK_NULL_HANDLE == transferQueue) return StatusCode::FailedToGetTransferQueue;
+        if (VK_NULL_HANDLE == presentQueue) return StatusCode::FailedToGetPresentQueue;
+
         mGraphicsQueue = VulkanQueue{ this, graphicsQueue, mCapabilities.Queues.GraphicsFamily, QueueType::Graphics };
         mTransferQueue = VulkanQueue{ this, computeQueue, mCapabilities.Queues.ComputeFamily, QueueType::Compute };
         mComputeQueue = VulkanQueue{ this, transferQueue, mCapabilities.Queues.TransferFamily, QueueType::Transfer };
         mPresentQueue = VulkanQueue{ this, presentQueue, mCapabilities.Queues.PresentFamily, QueueType::Present };
 
         return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::initializeVulkanMemoryAllocator() {
+        const VmaDeviceMemoryCallbacks deviceMemoryCallbacks{
+            .pfnAllocate = &onVmaDeviceMemoryAllocate,
+            .pfnFree = &onVmaDeviceMemoryFree,
+            .pUserData = nullptr,
+        };
+
+        VmaVulkanFunctions vmaFunctionInfo{};
+        VmaAllocatorCreateInfo allocatorCreateInfo{};
+        allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+        allocatorCreateInfo.physicalDevice = mVkPhysicalDevice;
+        allocatorCreateInfo.device = mVkDevice;
+        allocatorCreateInfo.pAllocationCallbacks = mHostAllocator.Callbacks();
+        allocatorCreateInfo.pDeviceMemoryCallbacks = &deviceMemoryCallbacks;
+        allocatorCreateInfo.pVulkanFunctions = &vmaFunctionInfo;
+        allocatorCreateInfo.instance = mVkInstance;
+        allocatorCreateInfo.vulkanApiVersion = mCapabilities.Identity.ApiVersion;
+
+        // Try to load Vulkan functions from Volk.
+        VE_VK_CHECK(vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vmaFunctionInfo), StatusCode::FailedToLoadVulkanMemoryAllocatorFunctionsFromVolk);
+
+        // Try to initialize VMA allocator instance.
+        VE_VK_CHECK(vmaCreateAllocator(&allocatorCreateInfo, &mVmaAllocator), StatusCode::FailedToInitializeVulkanMemoryAllocator);
+
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::createSwapchain() {
+        VkSurfaceCapabilitiesKHR surfaceCapabilities{};
+
+        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkSurface, &surfaceCapabilities),
+                    StatusCode::FailedToQueryPhysicalDeviceSurfaceCapabilities);
+
+        u32 surfaceFormatCount = 0;
+        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkSurface, &surfaceFormatCount, nullptr),
+                    StatusCode::FailedToQueryPhysicalDeviceSurfaceFormats);
+        RendererVector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
+        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkSurface, &surfaceFormatCount, surfaceFormats.data()),
+                    StatusCode::FailedToQueryPhysicalDeviceSurfaceFormats);
+
+        const bool surfaceFormatSupported = std::ranges::any_of(surfaceFormats, [](const VkSurfaceFormatKHR &surfaceFormat) {
+            return SWAPCHAIN_FORMAT == surfaceFormat.format && VK_COLORSPACE_SRGB_NONLINEAR_KHR == surfaceFormat.colorSpace;
+        });
+
+        if (!surfaceFormatSupported) {
+            VERROR("Surface does not support the required swapchain format/color space combination.");
+
+            return StatusCode::RequiredSwapchainSurfaceFormatNotSupported;
+        }
+
+        const u32 swapchainWidth = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Width;
+        const u32 swapchainHeight = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Height;
+
+        // Try to create swapchain.
+        VkSwapchainCreateInfoKHR swapchainCreateInfo{};
+        swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swapchainCreateInfo.surface = mVkSurface;
+        swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
+        swapchainCreateInfo.imageFormat = SWAPCHAIN_FORMAT;
+        swapchainCreateInfo.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+        swapchainCreateInfo.imageExtent = VkExtent2D{ .width = swapchainWidth, .height = swapchainHeight };
+        swapchainCreateInfo.imageArrayLayers = 1;
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+        VE_VK_CHECK(vkCreateSwapchainKHR(mVkDevice, &swapchainCreateInfo, mHostAllocator.Callbacks(), &mVkSwapchain),
+                    StatusCode::FailedToCreateVulkanSwapchain);
+
+        // Try to get swapchain images.
+        u32 swapchainImageCount = 0;
+        VE_VK_CHECK(vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchain, &swapchainImageCount, nullptr), StatusCode::FailedToGetVulkanSwapchainImages);
+        mVkSwapchainImages.resize(swapchainImageCount);
+        VE_VK_CHECK(vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchain, &swapchainImageCount, mVkSwapchainImages.data()),
+                    StatusCode::FailedToGetVulkanSwapchainImages);
+
+        // Try to create swapchain image views;
+        mVkSwapchainImageViews.resize(swapchainImageCount);
+        for (size_t i = 0; i < mVkSwapchainImages.size(); ++i) {
+            VkImageViewCreateInfo imageView{};
+            imageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageView.image = mVkSwapchainImages[i];
+            imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageView.format = SWAPCHAIN_FORMAT;
+            imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageView.subresourceRange.levelCount = 1;
+            imageView.subresourceRange.layerCount = 1;
+
+            VE_VK_CHECK(vkCreateImageView(mVkDevice, &imageView, mHostAllocator.Callbacks(), &mVkSwapchainImageViews[i]),
+                        StatusCode::FailedToCreateVulkanSwapchainImageView);
+        }
+
+        // Try to create render semaphores.
+        mVkRenderCompleteSemaphores.resize(mVkSwapchainImages.size());
+        for (auto &semaphore : mVkRenderCompleteSemaphores) {
+            VkSemaphoreCreateInfo semaphoreCreateInfo{};
+            semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreCreateInfo, mHostAllocator.Callbacks(), &semaphore), StatusCode::FailedToCreateVulkanSemaphore);
+        }
+
+        // Try to create depth image.
+        VkImageCreateInfo depthImageCreateInfo{};
+        depthImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        depthImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        depthImageCreateInfo.format = DEPTH_FORMAT;
+        depthImageCreateInfo.extent = { .width = swapchainWidth, .height = swapchainHeight, .depth = 1 };
+        depthImageCreateInfo.mipLevels = 1;
+        depthImageCreateInfo.arrayLayers = 1;
+        depthImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        depthImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        depthImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        VmaAllocationCreateInfo allocationinfo{};
+        allocationinfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+        allocationinfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+        VE_VK_CHECK(vmaCreateImage(mVmaAllocator, &depthImageCreateInfo, &allocationinfo, &mVkDepthImage, &mVmaDepthImageAllocation, nullptr),
+                    StatusCode::FailedToCreateDepthImage);
+
+        // Try to create depth image view.
+        VkImageViewCreateInfo depthImageViewCreateInfo{};
+        depthImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        depthImageViewCreateInfo.image = mVkDepthImage;
+        depthImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        depthImageViewCreateInfo.format = DEPTH_FORMAT;
+        depthImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        depthImageViewCreateInfo.subresourceRange.levelCount = 1;
+        depthImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        VE_VK_CHECK(vkCreateImageView(mVkDevice, &depthImageViewCreateInfo, mHostAllocator.Callbacks(), &mVkDepthImageView),
+                    StatusCode::FailedToCreateDepthImageView);
+
+        return StatusCode::Successful;
+    }
+
+    void VulkanContext::destroySwapchain() {
+        // If the device hasn't been initialized yet,
+        // we can't destroy anything.
+        if (VK_NULL_HANDLE == mVkDevice) {
+            return;
+        }
+
+        // Destroy swapchain image views.
+        for (VkImageView swapchainImgView : mVkSwapchainImageViews) {
+            vkDestroyImageView(mVkDevice, swapchainImgView, mHostAllocator.Callbacks());
+        }
+
+        mVkSwapchainImageViews.clear();
+
+        // Destroy render-complete semaphores.
+        for (VkSemaphore &semaphore : mVkRenderCompleteSemaphores) {
+            vkDestroySemaphore(mVkDevice, semaphore, mHostAllocator.Callbacks());
+        }
+
+        mVkRenderCompleteSemaphores.clear();
+
+        // Destroy the swapchain.
+        if (VK_NULL_HANDLE != mVkSwapchain) {
+            vkDestroySwapchainKHR(mVkDevice, mVkSwapchain, mHostAllocator.Callbacks());
+            mVkSwapchain = nullptr;
+        }
+
+        // Destroy swapchain images and views.
+        if (VK_NULL_HANDLE != mVkDepthImageView && VK_NULL_HANDLE != mVkDepthImage) {
+            vkDestroyImageView(mVkDevice, mVkDepthImageView, mHostAllocator.Callbacks());
+            vmaDestroyImage(mVmaAllocator, mVkDepthImage, mVmaDepthImageAllocation);
+            mVkDepthImageView = nullptr;
+        }
     }
 
 } // namespace Vulkyrie

@@ -36,6 +36,22 @@ namespace Vulkyrie {
         FailedToCreateSurface,
         FailedToQueryVulkanPhysicalDevices,
         FailedToQueryVulkanLogicalDevices,
-        FailedToCreateLogicalDevice
+        FailedToCreateLogicalDevice,
+        FailedToGetGraphicsQueue,
+        FailedToGetTransferQueue,
+        FailedToGetComputeQueue,
+        FailedToGetPresentQueue,
+        FailedToLoadVulkanMemoryAllocatorFunctionsFromVolk,
+        FailedToInitializeVulkanMemoryAllocator,
+        FailedToQueryPhysicalDeviceSurfaceCapabilities,
+        FailedToQueryPhysicalDeviceSurfaceFormats,
+        RequiredSwapchainSurfaceFormatNotSupported,
+        FailedToCreateVulkanSwapchain,
+        FailedToGetVulkanSwapchainImages,
+        FailedToCreateVulkanSwapchainImageView,
+        FailedToCreateVulkanSemaphore,
+        FailedToCreateDepthImage,
+        FailedToCreateDepthImageView,
+
     };
 } // namespace Vulkyrie
