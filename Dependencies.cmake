@@ -7,11 +7,11 @@ find_package(glad CONFIG REQUIRED)
 find_package(volk CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(unofficial-spirv-reflect CONFIG REQUIRED)
-find_package(directx-dxc CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
+# find_package(slang CONFIG REQUIRED)
 
 # STB Image header path.
 find_path(STB_INCLUDE_DIRS "stb_image.h")

@@ -14,6 +14,8 @@ namespace Vulkyrie {
      */
     [[nodiscard]] std::optional<std::string> ReadTextFromFile(const std::filesystem::path &path);
 
+    [[nodiscard]] std::optional<std::vector<std::byte>> ReadBytesFromFile(const std::filesystem::path &path);
+
     /** @brief Combines the hash of a value into an existing hash seed.
      * @tparam T The type of the value being hashed.
      * @param seed The existing hash seed to combine with.

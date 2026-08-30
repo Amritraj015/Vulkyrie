@@ -1,4 +1,5 @@
 #include "renderer/vulkan/vulkan_context.h"
+#include "core/utilities.h"
 #include "memory/memory_tracker.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/vulkan/vulkan_utilities.h"
@@ -127,13 +128,19 @@ namespace Vulkyrie {
             return VK_FALSE;
         }
 
-        void VKAPI_PTR onVmaDeviceMemoryAllocate([[maybe_unused]] VmaAllocator allocator, [[maybe_unused]] u32 memoryType, [[maybe_unused]] VkDeviceMemory memory,
-                                                  VkDeviceSize size, [[maybe_unused]] void *userData) {
+        void VKAPI_PTR onVmaDeviceMemoryAllocate([[maybe_unused]] VmaAllocator allocator,
+                                                 [[maybe_unused]] u32 memoryType,
+                                                 [[maybe_unused]] VkDeviceMemory memory,
+                                                 VkDeviceSize size,
+                                                 [[maybe_unused]] void *userData) {
             MemoryTracker::OnAllocation(MemoryTag::GpuVram, static_cast<i64>(size));
         }
 
-        void VKAPI_PTR onVmaDeviceMemoryFree([[maybe_unused]] VmaAllocator allocator, [[maybe_unused]] u32 memoryType, [[maybe_unused]] VkDeviceMemory memory,
-                                              VkDeviceSize size, [[maybe_unused]] void *userData) {
+        void VKAPI_PTR onVmaDeviceMemoryFree([[maybe_unused]] VmaAllocator allocator,
+                                             [[maybe_unused]] u32 memoryType,
+                                             [[maybe_unused]] VkDeviceMemory memory,
+                                             VkDeviceSize size,
+                                             [[maybe_unused]] void *userData) {
             MemoryTracker::OnFree(MemoryTag::GpuVram, static_cast<i64>(size));
         }
 
@@ -281,6 +288,11 @@ namespace Vulkyrie {
         , mVkDepthImage(VK_NULL_HANDLE)
         , mVkDepthImageView(VK_NULL_HANDLE)
         , mVmaDepthImageAllocation(VK_NULL_HANDLE)
+        , mVkVertexShaderModule(VK_NULL_HANDLE)
+        , mVkFragmentShaderModule(VK_NULL_HANDLE)
+        , mVkPipelineLayout(VK_NULL_HANDLE)
+        , mVkGraphicsPipeline(VK_NULL_HANDLE)
+        , mVkTimelineSemaphore(VK_NULL_HANDLE)
         , mGraphicsQueue()
         , mTransferQueue()
         , mComputeQueue()
@@ -294,8 +306,37 @@ namespace Vulkyrie {
             vkDeviceWaitIdle(mVkDevice);
         }
 
-        // Destroy the depth image allocation.
-        destroySwapchain();
+        // TODO: Will need to be moved
+        {
+            // Destroy timeline semaphore.
+            vkDestroySemaphore(mVkDevice, mVkTimelineSemaphore, mHostAllocator.Callbacks());
+
+            for (auto &resources : mFrameResources) {
+                if (VK_NULL_HANDLE != resources.ImageAcquiredSemaphore) {
+                    vkDestroySemaphore(mVkDevice, resources.ImageAcquiredSemaphore, mHostAllocator.Callbacks());
+                }
+
+                if (VK_NULL_HANDLE != resources.CommandPool) {
+                    vkDestroyCommandPool(mVkDevice, resources.CommandPool, mHostAllocator.Callbacks());
+                }
+            }
+
+            // Destroy pipeline layout.
+            vkDestroyPipelineLayout(mVkDevice, mVkPipelineLayout, mHostAllocator.Callbacks());
+
+            // Destroy graphics pipeline.
+            vkDestroyPipeline(mVkDevice, mVkGraphicsPipeline, mHostAllocator.Callbacks());
+
+            // Destroy shader modules.
+            vkDestroyShaderModule(mVkDevice, mVkVertexShaderModule, mHostAllocator.Callbacks());
+            vkDestroyShaderModule(mVkDevice, mVkFragmentShaderModule, mHostAllocator.Callbacks());
+        }
+
+        // TODO: Will need to be moved
+        {
+            // Destroy the depth image allocation.
+            destroySwapchain();
+        }
 
         // Destroy Vulkan memory allocator instance.
         if (VK_NULL_HANDLE != mVmaAllocator) {
@@ -399,6 +440,15 @@ namespace Vulkyrie {
 
         // Try to create swapchain.
         VE_RETURN_ON_FAILURE(createSwapchain());
+
+        // Try to create shader module and the graphics pipeline.
+        VE_RETURN_ON_FAILURE(createShaders());
+
+        // Create synchronization resources.
+        VE_RETURN_ON_FAILURE(createSynchronizationResources());
+
+        // Create command pool nad buffer.
+        VE_RETURN_ON_FAILURE(createCommandBuffers());
 
         mContextCreated = true;
 
@@ -1136,13 +1186,20 @@ namespace Vulkyrie {
             queueCreateInfos.push_back(info);
         }
 
+        VkPhysicalDeviceVulkan11Features enabledVk11Features{};
+        enabledVk11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        // Required by SPIR-V's DrawParameters capability, which Slang emits for HLSL-style zero-based SV_VertexID/SV_InstanceID.
+        enabledVk11Features.shaderDrawParameters = VK_TRUE;
+
         VkPhysicalDeviceVulkan12Features enabledVk12Features{};
         enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        enabledVk12Features.pNext = &enabledVk11Features;
         enabledVk12Features.descriptorIndexing = VK_TRUE;
         enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
         enabledVk12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
         enabledVk12Features.runtimeDescriptorArray = VK_TRUE;
         enabledVk12Features.bufferDeviceAddress = VK_TRUE;
+        enabledVk12Features.timelineSemaphore = VK_TRUE;
 
         VkPhysicalDeviceVulkan13Features enabledVk13Features{};
         enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
@@ -1216,6 +1273,175 @@ namespace Vulkyrie {
 
         // Try to initialize VMA allocator instance.
         VE_VK_CHECK(vmaCreateAllocator(&allocatorCreateInfo, &mVmaAllocator), StatusCode::FailedToInitializeVulkanMemoryAllocator);
+
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::createShaders() {
+        const std::optional<std::vector<std::byte>> vertexShaderBytes = ReadBytesFromFile("assets/shaders/triangle.vert.spv");
+        const std::optional<std::vector<std::byte>> fragmentShaderBytes = ReadBytesFromFile("assets/shaders/triangle.frag.spv");
+
+        if (!vertexShaderBytes.has_value() || !fragmentShaderBytes.has_value()) {
+            return StatusCode::FailedToReadSpirvShader;
+        }
+
+        // Create Shader modules.
+        // Vertex shader module.
+        VkShaderModuleCreateInfo vertexShaderModule{};
+        vertexShaderModule.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        vertexShaderModule.codeSize = (*vertexShaderBytes).size();
+        vertexShaderModule.pCode = reinterpret_cast<const u32 *>((*vertexShaderBytes).data());
+        VE_VK_CHECK(vkCreateShaderModule(mVkDevice, &vertexShaderModule, mHostAllocator.Callbacks(), &mVkVertexShaderModule),
+                    StatusCode::FailedToCreateVulkanShaderModule);
+
+        // Fragment shader module.
+        VkShaderModuleCreateInfo fragmentShaderModule{};
+        fragmentShaderModule.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        fragmentShaderModule.codeSize = (*fragmentShaderBytes).size();
+        fragmentShaderModule.pCode = reinterpret_cast<const u32 *>((*fragmentShaderBytes).data());
+        VE_VK_CHECK(vkCreateShaderModule(mVkDevice, &fragmentShaderModule, mHostAllocator.Callbacks(), &mVkFragmentShaderModule),
+                    StatusCode::FailedToCreateVulkanShaderModule);
+
+        // Create Pipeline layout.
+        VkPipelineLayoutCreateInfo pipelineCreateInfo{};
+        pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineCreateInfo.setLayoutCount = 0;
+        pipelineCreateInfo.pushConstantRangeCount = 0;
+        VE_VK_CHECK(vkCreatePipelineLayout(mVkDevice, &pipelineCreateInfo, mHostAllocator.Callbacks(), &mVkPipelineLayout),
+                    StatusCode::FailedToCreateVulkanPipelineLayout);
+
+        // Create pipeline shader stages.
+        VkPipelineShaderStageCreateInfo vertexShaderStage{};
+        vertexShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertexShaderStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertexShaderStage.module = mVkVertexShaderModule;
+        // Slang always names the SPIR-V entry point "main" regardless of the source function name.
+        vertexShaderStage.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fragmentShaderStage{};
+        fragmentShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragmentShaderStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragmentShaderStage.module = mVkFragmentShaderModule;
+        fragmentShaderStage.pName = "main";
+
+        const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = { vertexShaderStage, fragmentShaderStage };
+
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+        inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+        VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
+        depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencilInfo.depthTestEnable = VK_TRUE;
+        depthStencilInfo.depthWriteEnable = VK_TRUE;
+        depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencilInfo.stencilTestEnable = VK_TRUE;
+
+        VkPipelineViewportStateCreateInfo viewportInfo{};
+        viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportInfo.viewportCount = 1;
+        viewportInfo.pViewports = nullptr;
+        viewportInfo.scissorCount = 1;
+        viewportInfo.pScissors = nullptr;
+
+        VkPipelineRasterizationStateCreateInfo rasterInfo{};
+        rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterInfo.lineWidth = 1.0f;
+
+        VkPipelineMultisampleStateCreateInfo multisampleInfo{};
+        multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+        VkPipelineColorBlendAttachmentState attachState{};
+        attachState.blendEnable = VK_FALSE;
+        attachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        VkPipelineColorBlendStateCreateInfo blendInfo{};
+        blendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        blendInfo.attachmentCount = 1;
+        blendInfo.pAttachments = &attachState;
+
+        RendererVector<VkDynamicState> dynamicState{ VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+        dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicStateInfo.dynamicStateCount = static_cast<u32>(dynamicState.size());
+        dynamicStateInfo.pDynamicStates = dynamicState.data();
+
+        VkPipelineRenderingCreateInfo renderInfo{};
+        renderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+        renderInfo.colorAttachmentCount = 1;
+        renderInfo.pColorAttachmentFormats = &SWAPCHAIN_FORMAT;
+        renderInfo.depthAttachmentFormat = DEPTH_FORMAT;
+
+        VkGraphicsPipelineCreateInfo graphicsPipeline{};
+        graphicsPipeline.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        graphicsPipeline.pNext = &renderInfo;
+        graphicsPipeline.stageCount = static_cast<u32>(shaderStages.size());
+        graphicsPipeline.pStages = shaderStages.data();
+        graphicsPipeline.pVertexInputState = &vertexInputInfo;
+        graphicsPipeline.pInputAssemblyState = &inputAssemblyInfo;
+        graphicsPipeline.pViewportState = &viewportInfo;
+        graphicsPipeline.pRasterizationState = &rasterInfo;
+        graphicsPipeline.pMultisampleState = &multisampleInfo;
+        graphicsPipeline.pDepthStencilState = &depthStencilInfo;
+        graphicsPipeline.pColorBlendState = &blendInfo;
+        graphicsPipeline.pDynamicState = &dynamicStateInfo;
+        graphicsPipeline.layout = mVkPipelineLayout;
+        graphicsPipeline.renderPass = VK_NULL_HANDLE;
+
+        // TODO: Use pipeline cache as the second argument.
+        VE_VK_CHECK(vkCreateGraphicsPipelines(mVkDevice, nullptr, 1, &graphicsPipeline, mHostAllocator.Callbacks(), &mVkGraphicsPipeline),
+                    StatusCode::FailedToCreateVulkanGraphicsPipeline);
+
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::createSynchronizationResources() {
+        VkSemaphoreTypeCreateInfo timelineSemaphoreTypeInfo{};
+        timelineSemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+        timelineSemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+        timelineSemaphoreTypeInfo.initialValue = 2;
+
+        VkSemaphoreCreateInfo timelineSemaphoreInfo{};
+        timelineSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        timelineSemaphoreInfo.pNext = &timelineSemaphoreTypeInfo;
+
+        VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &timelineSemaphoreInfo, mHostAllocator.Callbacks(), &mVkTimelineSemaphore),
+                    StatusCode::FailedToCreateVulkanTimelineSemaphore);
+
+        for (FrameResources &resources : mFrameResources) {
+            VkSemaphoreCreateInfo semaphoreInfo{};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreInfo, mHostAllocator.Callbacks(), &resources.ImageAcquiredSemaphore),
+                        StatusCode::FailedToCreateVulkanImageAcquisitionSemaphore);
+        }
+
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::createCommandBuffers() {
+        for (FrameResources &resources : mFrameResources) {
+            VkCommandPoolCreateInfo commandPoolInfo{};
+            commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            commandPoolInfo.queueFamilyIndex = mCapabilities.Queues.GraphicsFamily;
+
+            VE_VK_CHECK(vkCreateCommandPool(mVkDevice, &commandPoolInfo, mHostAllocator.Callbacks(), &resources.CommandPool),
+                        StatusCode::FailedToCreateCommandPool);
+
+            VkCommandBufferAllocateInfo cmdBufferAllocateInfo{};
+            cmdBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            cmdBufferAllocateInfo.commandPool = resources.CommandPool;
+            cmdBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            cmdBufferAllocateInfo.commandBufferCount = 1;
+
+            VE_VK_CHECK(vkAllocateCommandBuffers(mVkDevice, &cmdBufferAllocateInfo, &resources.CommandBuffer), StatusCode::FailedToAllocateCommandBuffer);
+        }
 
         return StatusCode::Successful;
     }

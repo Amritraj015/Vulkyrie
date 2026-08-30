@@ -52,6 +52,14 @@ namespace Vulkyrie {
         FailedToCreateVulkanSemaphore,
         FailedToCreateDepthImage,
         FailedToCreateDepthImageView,
+        FailedToReadSpirvShader,
+        FailedToCreateVulkanShaderModule,
+        FailedToCreateVulkanPipelineLayout,
+        FailedToCreateVulkanGraphicsPipeline,
+        FailedToCreateVulkanTimelineSemaphore,
+        FailedToCreateVulkanImageAcquisitionSemaphore,
+        FailedToCreateCommandPool,
+        FailedToAllocateCommandBuffer,
 
     };
 } // namespace Vulkyrie

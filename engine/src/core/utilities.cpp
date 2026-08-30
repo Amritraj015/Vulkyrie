@@ -4,6 +4,29 @@
 
 namespace Vulkyrie {
 
+    [[nodiscard]] std::optional<std::vector<std::byte>> ReadBytesFromFile(const std::filesystem::path &path) {
+        std::ifstream file(path, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open()) {
+            return std::nullopt;
+        }
+
+        const std::streamsize size = file.tellg();
+
+        if (0 > size) {
+            return std::nullopt;
+        }
+
+        std::vector<std::byte> buffer(static_cast<usize>(size));
+        file.seekg(0, std::ios::beg);
+
+        if (!file.read(reinterpret_cast<char *>(buffer.data()), size)) {
+            return std::nullopt;
+        }
+
+        return std::make_optional(buffer);
+    }
+
     std::optional<std::string> ReadTextFromFile(const std::filesystem::path &path) {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
 

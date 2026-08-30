@@ -16,10 +16,37 @@ namespace Vulkyrie {
 
         VE_DELETE_MOVE_AND_COPY(PipelineCache);
 
-        ~PipelineCache() = default;
+        ~PipelineCache() {
+            for (auto &[hash, pipeline] : mPipelines) {
+                mDeletionQueue.Push(pipeline);
+            }
+        }
 
-        [[nodiscard]] VE_INLINE B::Pipeline Get(const GraphicsPipelineDescriptor &descriptor) const;
-        [[nodiscard]] VE_INLINE B::Pipeline Get(const ComputePipelineDescriptor &descriptor) const;
+        [[nodiscard]] VE_INLINE B::Pipeline Get(const GraphicsPipelineDescriptor &descriptor) {
+            const u64 hash = HashDescriptor(descriptor);
+
+            if (auto it = mPipelines.find(hash); it != mPipelines.end()) {
+                return it->second;
+            }
+
+            auto pipeline = mContext.CreateGraphicsPipeline(descriptor);
+            mPipelines.emplace(hash, pipeline);
+
+            return pipeline;
+        }
+
+        [[nodiscard]] VE_INLINE B::Pipeline Get(const ComputePipelineDescriptor &descriptor) {
+            const u64 hash = HashDescriptor(descriptor);
+
+            if (auto it = mPipelines.find(hash); it != mPipelines.end()) {
+                return it->second;
+            }
+
+            auto pipeline = mContext.CreateComputePipeline(descriptor);
+            mPipelines.emplace(hash, pipeline);
+
+            return pipeline;
+        }
 
         VE_INLINE void PreCompile(std::span<const GraphicsPipelineDescriptor> descriptors);
 
@@ -32,6 +59,8 @@ namespace Vulkyrie {
         typename B::Context &mContext;
         ShaderModuleCache<B> &mShaderCache;
         DeletionQueue<B> &mDeletionQueue;
+        std::unordered_map<u64, typename B::Pipeline> mPipelines;
+        std::unordered_map<u64, std::vector<u64>> mShaderToPipelines;
     };
 
 } // namespace Vulkyrie

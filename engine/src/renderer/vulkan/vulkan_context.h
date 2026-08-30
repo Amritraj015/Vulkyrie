@@ -13,6 +13,12 @@
 
 namespace Vulkyrie {
 
+    struct FrameResources {
+        VkCommandPool CommandPool = VK_NULL_HANDLE;
+        VkCommandBuffer CommandBuffer = VK_NULL_HANDLE;
+        VkSemaphore ImageAcquiredSemaphore = VK_NULL_HANDLE;
+    };
+
     class VulkanContext final {
     public:
         explicit VulkanContext(const DeviceCreationInfo &info);
@@ -94,6 +100,14 @@ namespace Vulkyrie {
         VkImage mVkDepthImage;
         VkImageView mVkDepthImageView;
         VmaAllocation mVmaDepthImageAllocation;
+
+        // TODO: Shader modules.
+        VkShaderModule mVkVertexShaderModule;
+        VkShaderModule mVkFragmentShaderModule;
+        VkPipelineLayout mVkPipelineLayout;
+        VkPipeline mVkGraphicsPipeline;
+        VkSemaphore mVkTimelineSemaphore;
+        std::array<FrameResources, 2> mFrameResources; // TODO: Change the size of this array to Backend::kFramesInFlight
         // ------------------------------------
 
         VulkanQueue mGraphicsQueue;
@@ -107,6 +121,9 @@ namespace Vulkyrie {
         StatusCode createLogicalDevice();
         StatusCode initializeVulkanMemoryAllocator();
         StatusCode createSwapchain();
+        StatusCode createShaders();
+        StatusCode createSynchronizationResources();
+        StatusCode createCommandBuffers();
 
         void destroySwapchain();
     };

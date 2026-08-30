@@ -20,7 +20,6 @@
     "openal-soft",
     "volk",
     "vulkan-memory-allocator",
-    "directx-dxc",
     "spirv-reflect",
     "vulkan-validationlayers"
   ],

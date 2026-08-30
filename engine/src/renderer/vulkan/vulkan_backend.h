@@ -11,7 +11,7 @@
 
 namespace Vulkyrie {
 
-    struct VulkanBackend {
+    struct VulkanBackend final {
         // Types.
         using Context = VulkanContext;
         using Queue = VulkanQueue;

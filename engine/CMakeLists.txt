@@ -51,6 +51,7 @@ target_link_libraries(engine
         glm::glm
         assimp::assimp
         OpenAL::OpenAL
+        # slang::slang
 )
 
 # ---------------------------
@@ -75,24 +76,8 @@ target_precompile_headers(engine
 )
 
 # ---------------------------
-# Shader compilation
+# Compile shaders, use ${SLANG_EXECUTABLE}
 # ---------------------------
-# set(VULKYRIE_SHADER_OUT "${CMAKE_BINARY_DIR}/shaders")
-# file(MAKE_DIRECTORY "${VULKYRIE_SHADER_OUT}")
-#
-# function(vulkyrie_add_shader target src stage entry)
-#     get_filename_component(name "${src}" NAME_WE)
-#     set(out "${VULKYRIE_SHADER_OUT}/${name}.${stage}.spv")
-#     add_custom_command(
-#         OUTPUT  "${out}"
-#         COMMAND "${DIRECTX_DXC_TOOL}" -spirv -T ${stage} -E ${entry}
-#                 -fspv-target-env=vulkan1.3
-#                 "${CMAKE_CURRENT_SOURCE_DIR}/${src}" -Fo "${out}"
-#         DEPENDS "${src}"
-#         COMMENT "DXC ${src}"
-#         VERBATIM)
-#     target_sources(${target} PRIVATE "${out}")
-# endfunction()
 
 # ---------------------------
 # Warnings & Errors (Propagate)
