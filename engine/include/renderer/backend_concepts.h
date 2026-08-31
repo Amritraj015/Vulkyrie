@@ -97,6 +97,8 @@ namespace Vulkyrie {
             { cb.QueryCapabilities() } -> std::convertible_to<const DeviceCapabilities &>;
             { cb.DeviceLost() } -> std::same_as<bool>;
             { cb.ContextCreated() } -> std::same_as<bool>;
+
+            { c.test() } -> std::same_as<void>;
         };
 
         template <typename B>

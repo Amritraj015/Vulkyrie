@@ -53,6 +53,8 @@ namespace Vulkyrie {
 
         bool DeviceLost() const;
 
+        void test() {};
+
     private:
         DeviceCreationInfo mDeviceCreationInfo;
         DeviceCapabilities mCapabilities;

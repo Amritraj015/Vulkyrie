@@ -49,6 +49,8 @@ namespace Vulkyrie {
             mFrameGraph.Compile();
             mFrameGraph.Execute(frame);
 
+            mDevice.Context().test();
+
             ++mStats.FrameIndex;
         }
 

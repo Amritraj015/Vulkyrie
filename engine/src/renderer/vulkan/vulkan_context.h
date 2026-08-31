@@ -76,6 +76,8 @@ namespace Vulkyrie {
             return mComputeQueue;
         }
 
+        void test();
+
     private:
         constexpr static VkFormat SWAPCHAIN_FORMAT{ VK_FORMAT_B8G8R8A8_SRGB };
         constexpr static VkFormat DEPTH_FORMAT{ VK_FORMAT_D32_SFLOAT };
@@ -108,6 +110,11 @@ namespace Vulkyrie {
         VkPipeline mVkGraphicsPipeline;
         VkSemaphore mVkTimelineSemaphore;
         std::array<FrameResources, 2> mFrameResources; // TODO: Change the size of this array to Backend::kFramesInFlight
+
+        u64 frameIndex = 0;
+        u32 MaxFramesInFlight = 2;
+        u32 nextSignalValue = MaxFramesInFlight + 1;
+        bool requireSwapchainRecreate = false;
         // ------------------------------------
 
         VulkanQueue mGraphicsQueue;

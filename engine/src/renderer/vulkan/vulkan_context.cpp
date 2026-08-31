@@ -212,13 +212,13 @@ namespace Vulkyrie {
             }
         }
 
-        StatusCode getSupportedDeviceExtensions(VkPhysicalDevice device, RendererVector<VkExtensionProperties> &extensions) {
+        StatusCode getSupportedDeviceExtensions(VkPhysicalDevice mVkDevice, RendererVector<VkExtensionProperties> &extensions) {
             u32 extensionCount = 0;
-            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr), StatusCode::FailedToQueryVulkanDeviceExtensions);
+            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(mVkDevice, nullptr, &extensionCount, nullptr), StatusCode::FailedToQueryVulkanDeviceExtensions);
 
             extensions.resize(extensionCount);
 
-            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()),
+            VE_VK_CHECK(vkEnumerateDeviceExtensionProperties(mVkDevice, nullptr, &extensionCount, extensions.data()),
                         StatusCode::FailedToQueryVulkanDeviceExtensions);
 
             return StatusCode::Successful;
@@ -1590,6 +1590,208 @@ namespace Vulkyrie {
             vmaDestroyImage(mVmaAllocator, mVkDepthImage, mVmaDepthImageAllocation);
             mVkDepthImageView = nullptr;
         }
+    }
+
+    void VulkanContext::test() {
+        const u32 frameResIndex = frameIndex++ % MaxFramesInFlight;
+        const u64 signalValue = nextSignalValue++;
+        const u64 waitValue = signalValue - MaxFramesInFlight;
+
+        VkSemaphoreWaitInfo waitInfo{};
+        waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+        waitInfo.semaphoreCount = 1;
+        waitInfo.pSemaphores = &mVkTimelineSemaphore;
+        waitInfo.pValues = &waitValue;
+        vkWaitSemaphores(mVkDevice, &waitInfo, UINT64_MAX);
+
+        // now its safe to start recording commands
+        FrameResources &res = mFrameResources[frameResIndex];
+        vkResetCommandPool(mVkDevice, res.CommandPool, 0);
+
+        // get the resources for this frame
+        VkSemaphore imageAcquireSemaphore = mFrameResources[frameResIndex].ImageAcquiredSemaphore;
+
+        uint32_t imageIndex = 0;
+        VkResult acquireResult = vkAcquireNextImageKHR(mVkDevice, mVkSwapchain, UINT64_MAX, imageAcquireSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+        // handle resize and out-of-date images, may need swapchain recreate
+        if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
+            requireSwapchainRecreate = true;
+            return;
+        } else if (acquireResult == VK_SUBOPTIMAL_KHR) {
+            // can render this frame, recreate next time around
+            requireSwapchainRecreate = true;
+        }
+
+        // begin recording commands
+        VkCommandBufferBeginInfo cmdBeginInfo{};
+        cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        vkBeginCommandBuffer(res.CommandBuffer, &cmdBeginInfo);
+
+        // transition the color and depth images
+        VkImageMemoryBarrier2 barrier1{};
+        barrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        barrier1.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        barrier1.srcAccessMask = 0;
+        barrier1.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        barrier1.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier1.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier1.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        barrier1.image = mVkSwapchainImages[imageIndex];
+        barrier1.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier1.subresourceRange.baseMipLevel = 0;
+        barrier1.subresourceRange.levelCount = 1;
+        barrier1.subresourceRange.baseArrayLayer = 0;
+        barrier1.subresourceRange.layerCount = 1;
+
+        VkImageMemoryBarrier2 barrier2{};
+        barrier2.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        barrier2.pNext = nullptr;
+        barrier2.srcStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
+        barrier2.srcAccessMask = 0;
+        barrier2.dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT |
+                                VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT; // both specified to control memory access at both stages (write)
+        barrier2.dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        barrier2.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier2.newLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        barrier2.image = mVkDepthImage;
+        barrier2.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        barrier2.subresourceRange.baseMipLevel = 0;
+        barrier2.subresourceRange.levelCount = 1;
+        barrier2.subresourceRange.baseArrayLayer = 0;
+        barrier2.subresourceRange.layerCount = 1;
+        std::vector<VkImageMemoryBarrier2> layoutBarriers{ barrier1, barrier2 };
+
+        VkDependencyInfo depInfo{};
+        depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+        depInfo.imageMemoryBarrierCount = static_cast<uint32_t>(layoutBarriers.size());
+        depInfo.pImageMemoryBarriers = layoutBarriers.data();
+        vkCmdPipelineBarrier2(res.CommandBuffer, &depInfo);
+
+        // setup the attachments (color and depth) and begin rendering (dynamic)
+        VkRenderingAttachmentInfo colorAttachInfo{};
+        colorAttachInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+        colorAttachInfo.imageView = mVkSwapchainImageViews[imageIndex];
+        colorAttachInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;   // clear the image
+        colorAttachInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep data for presentation
+        colorAttachInfo.clearValue.color = { { 0.01f, 0.01f, 0.01f, 1 } };
+
+        VkRenderingAttachmentInfo depthAttachInfo{};
+        depthAttachInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+        depthAttachInfo.imageView = mVkDepthImageView;
+        depthAttachInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        depthAttachInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;       // clear the depth data
+        depthAttachInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // don't care after rendering
+        depthAttachInfo.clearValue.depthStencil = { 1.0f, 0 };
+
+        const u32 swapchainWidth = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Width;
+        const u32 swapchainHeight = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Height;
+
+        VkRenderingInfo renderingInfo{};
+        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+        renderingInfo.renderArea = { .offset{ .x = 0, .y = 0 }, .extent{ .width = swapchainWidth, .height = swapchainHeight } };
+        renderingInfo.layerCount = 1;
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachments = &colorAttachInfo;
+        renderingInfo.pDepthAttachment = &depthAttachInfo;
+
+        // begin dynamic rendering
+        vkCmdBeginRendering(res.CommandBuffer, &renderingInfo);
+        {
+            // set the viewport and scissor state
+            VkViewport viewport{};
+            viewport.x = 0;
+            viewport.y = 0;
+            viewport.width = static_cast<f32>(swapchainWidth);
+            viewport.height = static_cast<f32>(swapchainHeight);
+            viewport.minDepth = 0.0f;
+            viewport.maxDepth = 1.0f;
+            vkCmdSetViewport(res.CommandBuffer, 0, 1, &viewport);
+
+            VkRect2D scissor{ .offset{ .x = 0, .y = 0 }, .extent{ .width = swapchainWidth, .height = swapchainHeight } };
+            vkCmdSetScissor(res.CommandBuffer, 0, 1, &scissor);
+
+            // draw our triangle
+            vkCmdBindPipeline(res.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mVkGraphicsPipeline);
+            vkCmdDraw(res.CommandBuffer, 3, 1, 0, 0);
+        }
+        // end dynamic rendering
+        vkCmdEndRendering(res.CommandBuffer);
+
+        // transition the image from color attachment to presentation so we can show it
+        VkImageMemoryBarrier2 presentLayoutBarrier{};
+        presentLayoutBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        presentLayoutBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        presentLayoutBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        presentLayoutBarrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT; // presentation engine reads outside the pipeline; this just needs to be ordered last
+        presentLayoutBarrier.dstAccessMask = 0;
+        presentLayoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        presentLayoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        presentLayoutBarrier.image = mVkSwapchainImages[imageIndex];
+        presentLayoutBarrier.subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        };
+        VkDependencyInfo presentDepInfo{};
+        presentDepInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+        presentDepInfo.imageMemoryBarrierCount = 1;
+        presentDepInfo.pImageMemoryBarriers = &presentLayoutBarrier;
+        vkCmdPipelineBarrier2(res.CommandBuffer, &presentDepInfo);
+
+        vkEndCommandBuffer(res.CommandBuffer);
+
+        // ensure swapchain image is actually viable to start color output
+        VkSemaphoreSubmitInfo imageAcquireWaitInfo{};
+        imageAcquireWaitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        imageAcquireWaitInfo.semaphore = imageAcquireSemaphore;
+        imageAcquireWaitInfo.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT; // wait before drawing to image
+                                                                                          // signal that the image can be presented
+
+        // render work completion signal
+        VkSemaphoreSubmitInfo semSignal1{};
+        semSignal1.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        semSignal1.semaphore = mVkRenderCompleteSemaphores[imageIndex];
+        semSignal1.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
+
+        // entire frame is completed (timeline)
+        VkSemaphoreSubmitInfo semSignal2{};
+        semSignal2.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        semSignal2.semaphore = mVkTimelineSemaphore;
+        semSignal2.value = signalValue;
+        semSignal2.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+        std::vector<VkSemaphoreSubmitInfo> semaphoreSignals{ semSignal1, semSignal2 };
+
+        VkCommandBufferSubmitInfo cmdSubmitInfo{};
+        cmdSubmitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+        cmdSubmitInfo.commandBuffer = res.CommandBuffer;
+
+        VkSubmitInfo2 submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+        submitInfo.waitSemaphoreInfoCount = 1;
+        submitInfo.pWaitSemaphoreInfos = &imageAcquireWaitInfo; // ensure the image is ready
+        submitInfo.commandBufferInfoCount = 1;
+        submitInfo.pCommandBufferInfos = &cmdSubmitInfo;
+        submitInfo.signalSemaphoreInfoCount = static_cast<uint32_t>(semaphoreSignals.size());
+        submitInfo.pSignalSemaphoreInfos = semaphoreSignals.data();
+
+        vkQueueSubmit2(mGraphicsQueue.Handle(), 1, &submitInfo, VK_NULL_HANDLE);
+
+        // present the image
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = &mVkRenderCompleteSemaphores[imageIndex]; // render work completed semaphore
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &mVkSwapchain;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = nullptr;
+
+        vkQueuePresentKHR(mGraphicsQueue.Handle(), &presentInfo);
     }
 
 } // namespace Vulkyrie
