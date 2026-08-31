@@ -53,6 +53,7 @@ namespace Vulkyrie {
 
         bool DeviceLost() const;
 
+        // TODO: remove this.
         void test() {};
 
     private:

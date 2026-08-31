@@ -98,6 +98,7 @@ namespace Vulkyrie {
             { cb.DeviceLost() } -> std::same_as<bool>;
             { cb.ContextCreated() } -> std::same_as<bool>;
 
+            // TODO: remove this.
             { c.test() } -> std::same_as<void>;
         };
 

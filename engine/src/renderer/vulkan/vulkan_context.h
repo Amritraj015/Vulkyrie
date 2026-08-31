@@ -76,6 +76,7 @@ namespace Vulkyrie {
             return mComputeQueue;
         }
 
+        // TODO: remove this.
         void test();
 
     private:
@@ -124,6 +125,8 @@ namespace Vulkyrie {
 
         bool mContextCreated;
 
+        StatusCode createInstance();
+        StatusCode createSurface();
         StatusCode selectSuitablePhysicalDevice();
         StatusCode createLogicalDevice();
         StatusCode initializeVulkanMemoryAllocator();

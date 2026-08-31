@@ -366,68 +366,11 @@ namespace Vulkyrie {
         // Try to initialize Volk.
         VE_VK_CHECK(volkInitialize(), StatusCode::FailedToInitializeVolk);
 
-        // Get required instance layer and extensions.
-        const RendererVector<const char *> requiredInstanceLayers = getRequiredInstanceLayers(mDeviceCreationInfo.EnableRendererValidation);
-        const RendererVector<const char *> requiredInstanceExtensions = getRequiredInstanceExtensions(mDeviceCreationInfo.EnableRendererValidation);
-
-        // Make sure that the underlying Vulkan implementation supports the required instance layers and extensions.
-        VE_RETURN_ON_FAILURE(validateRequiredInstanceSupport(requiredInstanceLayers, requiredInstanceExtensions));
-
-        const ApplicationInfo &appInfo = mDeviceCreationInfo.ApplicationInfo;
-
-        // Vulkan Application and instance creation info.
-        VkApplicationInfo applicationInfo{};
-        applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        applicationInfo.pApplicationName = appInfo.Name.Data();
-        applicationInfo.applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch);
-        applicationInfo.pEngineName = kEngineName.Data();
-        applicationInfo.engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion);
-        applicationInfo.apiVersion = VK_API_VERSION_1_4;
-
-        VkInstanceCreateInfo instanceCreateInfo{};
-        instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        instanceCreateInfo.pApplicationInfo = &applicationInfo;
-        instanceCreateInfo.enabledLayerCount = static_cast<u32>(requiredInstanceLayers.size());
-        instanceCreateInfo.ppEnabledLayerNames = requiredInstanceLayers.data();
-        instanceCreateInfo.enabledExtensionCount = static_cast<u32>(requiredInstanceExtensions.size());
-        instanceCreateInfo.ppEnabledExtensionNames = requiredInstanceExtensions.data();
-
-        // The loader walks instanceCreateInfo.pNext inside vkCreateInstance,
-        // so the chain and everything it points at has to live until that call returns.
-        // Hence declared here rather than inside the branch below.
-        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
-        debugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugMessengerCreateInfo.messageType =
-            VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugMessengerCreateInfo.pfnUserCallback = debugCallback;
-
-        RendererVector<VkLayerSettingEXT> layerSettings;
-
-        VkLayerSettingsCreateInfoEXT layerSettingsCreateInfo{};
-        layerSettingsCreateInfo.sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT;
-        layerSettingsCreateInfo.pNext = &debugMessengerCreateInfo;
-
-        if (mDeviceCreationInfo.EnableRendererValidation) {
-            layerSettings = getLayerSettings(mValidationConfig);
-
-            layerSettingsCreateInfo.settingCount = static_cast<u32>(layerSettings.size());
-            layerSettingsCreateInfo.pSettings = layerSettings.data();
-
-            instanceCreateInfo.pNext = &layerSettingsCreateInfo;
-        }
-
-        // Try to create vulkan instance.
-        VE_VK_CHECK(vkCreateInstance(&instanceCreateInfo, mHostAllocator.Callbacks(), &mVkInstance), StatusCode::FailedToCreateVulkanInstance);
-
-        // Initialize instance level functions only.
-        // NOTE: The following will not load device specific functions pointers.
-        // Those are loaded by volkLoadDevice(mVkDevice) call after logical device creation.
-        volkLoadInstanceOnly(mVkInstance);
+        // Create Vulkan instance.
+        VE_RETURN_ON_FAILURE(createInstance());
 
         // Try to create Window surface.
-        auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
-        VE_VK_CHECK(glfwCreateWindowSurface(mVkInstance, window, mHostAllocator.Callbacks(), &mVkSurface), StatusCode::FailedToCreateSurface);
+        VE_RETURN_ON_FAILURE(createSurface());
 
         // Try and select suitable physical device.
         VE_RETURN_ON_FAILURE(selectSuitablePhysicalDevice());
@@ -564,6 +507,76 @@ namespace Vulkyrie {
     void VulkanContext::DestroyPipeline(VulkanPipeline pipeline) {
         // TODO: vkDestroyPipeline.
         (void)pipeline;
+    }
+
+    StatusCode VulkanContext::createInstance() {
+        // Get required instance layer and extensions.
+        const RendererVector<const char *> requiredInstanceLayers = getRequiredInstanceLayers(mDeviceCreationInfo.EnableRendererValidation);
+        const RendererVector<const char *> requiredInstanceExtensions = getRequiredInstanceExtensions(mDeviceCreationInfo.EnableRendererValidation);
+
+        // Make sure that the underlying Vulkan implementation supports the required instance layers and extensions.
+        VE_RETURN_ON_FAILURE(validateRequiredInstanceSupport(requiredInstanceLayers, requiredInstanceExtensions));
+
+        const ApplicationInfo &appInfo = mDeviceCreationInfo.ApplicationInfo;
+
+        // Vulkan Application and instance creation info.
+        VkApplicationInfo applicationInfo{};
+        applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        applicationInfo.pApplicationName = appInfo.Name.Data();
+        applicationInfo.applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch);
+        applicationInfo.pEngineName = kEngineName.Data();
+        applicationInfo.engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion);
+        applicationInfo.apiVersion = VK_API_VERSION_1_4;
+
+        VkInstanceCreateInfo instanceCreateInfo{};
+        instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCreateInfo.pApplicationInfo = &applicationInfo;
+        instanceCreateInfo.enabledLayerCount = static_cast<u32>(requiredInstanceLayers.size());
+        instanceCreateInfo.ppEnabledLayerNames = requiredInstanceLayers.data();
+        instanceCreateInfo.enabledExtensionCount = static_cast<u32>(requiredInstanceExtensions.size());
+        instanceCreateInfo.ppEnabledExtensionNames = requiredInstanceExtensions.data();
+
+        // The loader walks instanceCreateInfo.pNext inside vkCreateInstance,
+        // so the chain and everything it points at has to live until that call returns.
+        // Hence declared here rather than inside the branch below.
+        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
+        debugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugMessengerCreateInfo.messageType =
+            VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugMessengerCreateInfo.pfnUserCallback = debugCallback;
+
+        RendererVector<VkLayerSettingEXT> layerSettings;
+
+        VkLayerSettingsCreateInfoEXT layerSettingsCreateInfo{};
+        layerSettingsCreateInfo.sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT;
+        layerSettingsCreateInfo.pNext = &debugMessengerCreateInfo;
+
+        if (mDeviceCreationInfo.EnableRendererValidation) {
+            layerSettings = getLayerSettings(mValidationConfig);
+
+            layerSettingsCreateInfo.settingCount = static_cast<u32>(layerSettings.size());
+            layerSettingsCreateInfo.pSettings = layerSettings.data();
+
+            instanceCreateInfo.pNext = &layerSettingsCreateInfo;
+        }
+
+        // Try to create vulkan instance.
+        VE_VK_CHECK(vkCreateInstance(&instanceCreateInfo, mHostAllocator.Callbacks(), &mVkInstance), StatusCode::FailedToCreateVulkanInstance);
+
+        // Initialize instance level functions only.
+        // NOTE: The following will not load device specific functions pointers.
+        // Those are loaded by volkLoadDevice(mVkDevice) call after logical device creation.
+        volkLoadInstanceOnly(mVkInstance);
+
+        return StatusCode::Successful;
+    }
+
+    StatusCode VulkanContext::createSurface() {
+        auto *window = static_cast<GLFWwindow *>(mDeviceCreationInfo.WindowHandle.NativeWindow);
+        VE_VK_CHECK(glfwCreateWindowSurface(mVkInstance, window, mHostAllocator.Callbacks(), &mVkSurface), StatusCode::FailedToCreateSurface);
+
+        return StatusCode::Successful;
     }
 
     StatusCode VulkanContext::selectSuitablePhysicalDevice() {
@@ -1661,7 +1674,7 @@ namespace Vulkyrie {
         barrier2.subresourceRange.levelCount = 1;
         barrier2.subresourceRange.baseArrayLayer = 0;
         barrier2.subresourceRange.layerCount = 1;
-        std::vector<VkImageMemoryBarrier2> layoutBarriers{ barrier1, barrier2 };
+        RendererVector<VkImageMemoryBarrier2> layoutBarriers{ barrier1, barrier2 };
 
         VkDependencyInfo depInfo{};
         depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
@@ -1725,7 +1738,8 @@ namespace Vulkyrie {
         presentLayoutBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
         presentLayoutBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
         presentLayoutBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-        presentLayoutBarrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT; // presentation engine reads outside the pipeline; this just needs to be ordered last
+        presentLayoutBarrier.dstStageMask =
+            VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT; // presentation engine reads outside the pipeline; this just needs to be ordered last
         presentLayoutBarrier.dstAccessMask = 0;
         presentLayoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         presentLayoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -1764,7 +1778,7 @@ namespace Vulkyrie {
         semSignal2.semaphore = mVkTimelineSemaphore;
         semSignal2.value = signalValue;
         semSignal2.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-        std::vector<VkSemaphoreSubmitInfo> semaphoreSignals{ semSignal1, semSignal2 };
+        RendererVector<VkSemaphoreSubmitInfo> semaphoreSignals{ semSignal1, semSignal2 };
 
         VkCommandBufferSubmitInfo cmdSubmitInfo{};
         cmdSubmitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
