@@ -45,7 +45,7 @@ namespace Vulkyrie {
                 u32 extensionCount = 0;
                 VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr), StatusCode::FailedToQueryVulkanInstanceExtensions);
 
-                size_t offset = availableExtensions.size();
+                usize offset = availableExtensions.size();
                 availableExtensions.resize(offset + extensionCount);
                 VE_VK_CHECK(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, availableExtensions.data() + offset),
                             StatusCode::FailedToQueryVulkanInstanceExtensions);
@@ -526,7 +526,7 @@ namespace Vulkyrie {
         applicationInfo.applicationVersion = VK_MAKE_VERSION(appInfo.Version.Major, appInfo.Version.Minor, appInfo.Version.Patch);
         applicationInfo.pEngineName = kEngineName.Data();
         applicationInfo.engineVersion = VK_MAKE_VERSION(kEngineMajorVersion, kEngineMinorVersion, kEnginePatchVersion);
-        applicationInfo.apiVersion = VK_API_VERSION_1_4;
+        applicationInfo.apiVersion = VULKAN_API_VERSION;
 
         VkInstanceCreateInfo instanceCreateInfo{};
         instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -615,7 +615,7 @@ namespace Vulkyrie {
 
             // The instance was created at 1.4, so nothing beyond that is reachable however high the
             // device reports. Every version gate below keys off this, not the raw apiVersion.
-            caps.EffectiveApiVersion = std::min(VK_API_VERSION_1_4, baseProperties.apiVersion);
+            caps.EffectiveApiVersion = std::min(VULKAN_API_VERSION, baseProperties.apiVersion);
 
             VE_RETURN_ON_FAILURE(getSupportedDeviceExtensions(device, caps.Extensions));
 
@@ -629,7 +629,7 @@ namespace Vulkyrie {
                 continue;
             }
 
-            const bool supportsVulkan14 = VK_API_VERSION_1_4 <= caps.EffectiveApiVersion;
+            const bool supportsVulkan14 = VULKAN_API_VERSION <= caps.EffectiveApiVersion;
 
             // ----------------------------------------------------------------------------------------------------
             // Query physical device properties.
@@ -1511,7 +1511,7 @@ namespace Vulkyrie {
 
         // Try to create swapchain image views;
         mVkSwapchainImageViews.resize(swapchainImageCount);
-        for (size_t i = 0; i < mVkSwapchainImages.size(); ++i) {
+        for (usize i = 0; i < mVkSwapchainImages.size(); ++i) {
             VkImageViewCreateInfo imageView{};
             imageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             imageView.image = mVkSwapchainImages[i];
@@ -1624,7 +1624,7 @@ namespace Vulkyrie {
         // get the resources for this frame
         VkSemaphore imageAcquireSemaphore = mFrameResources[frameResIndex].ImageAcquiredSemaphore;
 
-        uint32_t imageIndex = 0;
+        u32 imageIndex = 0;
         VkResult acquireResult = vkAcquireNextImageKHR(mVkDevice, mVkSwapchain, UINT64_MAX, imageAcquireSemaphore, VK_NULL_HANDLE, &imageIndex);
 
         // handle resize and out-of-date images, may need swapchain recreate
@@ -1678,7 +1678,7 @@ namespace Vulkyrie {
 
         VkDependencyInfo depInfo{};
         depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-        depInfo.imageMemoryBarrierCount = static_cast<uint32_t>(layoutBarriers.size());
+        depInfo.imageMemoryBarrierCount = static_cast<u32>(layoutBarriers.size());
         depInfo.pImageMemoryBarriers = layoutBarriers.data();
         vkCmdPipelineBarrier2(res.CommandBuffer, &depInfo);
 
@@ -1790,7 +1790,7 @@ namespace Vulkyrie {
         submitInfo.pWaitSemaphoreInfos = &imageAcquireWaitInfo; // ensure the image is ready
         submitInfo.commandBufferInfoCount = 1;
         submitInfo.pCommandBufferInfos = &cmdSubmitInfo;
-        submitInfo.signalSemaphoreInfoCount = static_cast<uint32_t>(semaphoreSignals.size());
+        submitInfo.signalSemaphoreInfoCount = static_cast<u32>(semaphoreSignals.size());
         submitInfo.pSignalSemaphoreInfos = semaphoreSignals.data();
 
         vkQueueSubmit2(mGraphicsQueue.Handle(), 1, &submitInfo, VK_NULL_HANDLE);

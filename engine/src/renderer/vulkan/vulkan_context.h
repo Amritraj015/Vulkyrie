@@ -82,6 +82,7 @@ namespace Vulkyrie {
     private:
         constexpr static VkFormat SWAPCHAIN_FORMAT{ VK_FORMAT_B8G8R8A8_SRGB };
         constexpr static VkFormat DEPTH_FORMAT{ VK_FORMAT_D32_SFLOAT };
+        constexpr static u32 VULKAN_API_VERSION{ VK_API_VERSION_1_4 };
 
         VulkanHostAllocator mHostAllocator;
         VulkanDeviceCapabilities mCapabilities;
