@@ -60,6 +60,7 @@ namespace Vulkyrie {
         FailedToCreateVulkanImageAcquisitionSemaphore,
         FailedToCreateCommandPool,
         FailedToAllocateCommandBuffer,
+        FailedToCreateVulkanWaitInfoForTimelineSemaphore,
 
     };
 } // namespace Vulkyrie

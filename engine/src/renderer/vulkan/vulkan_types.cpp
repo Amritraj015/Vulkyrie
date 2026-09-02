@@ -95,7 +95,7 @@ namespace Vulkyrie {
         };
 
         constexpr FlagName kSampleCountFlagNames[] = {
-            { VK_SAMPLE_COUNT_1_BIT, "1" },   { VK_SAMPLE_COUNT_2_BIT, "2" },   { VK_SAMPLE_COUNT_4_BIT, "4" },  { VK_SAMPLE_COUNT_8_BIT, "8" },
+            { VK_SAMPLE_COUNT_1_BIT, "1" },   { VK_SAMPLE_COUNT_2_BIT, "2" },   { VK_SAMPLE_COUNT_4_BIT, "4" },   { VK_SAMPLE_COUNT_8_BIT, "8" },
             { VK_SAMPLE_COUNT_16_BIT, "16" }, { VK_SAMPLE_COUNT_32_BIT, "32" }, { VK_SAMPLE_COUNT_64_BIT, "64" },
         };
 
@@ -114,7 +114,7 @@ namespace Vulkyrie {
         }
 
         std::string formatQueueFamily(u32 family) {
-            return kInvalidQueueFamily == family ? std::string("none") : std::format("{}", family);
+            return kInvalidQueueFamilyIndex == family ? std::string("none") : std::format("{}", family);
         }
 
         template <typename T> std::string formatTriple(const T (&values)[3]) {
@@ -138,11 +138,8 @@ namespace Vulkyrie {
     } // namespace
 
     std::string VulkanMemoryHeap::ToString() const {
-        return std::format("size {}, budget {}, usage {}, flags {}",
-                           formatBytes(Size),
-                           formatBytes(Budget),
-                           formatBytes(Usage),
-                           decodeFlags(Flags, kMemoryHeapFlagNames));
+        return std::format(
+            "size {}, budget {}, usage {}, flags {}", formatBytes(Size), formatBytes(Budget), formatBytes(Usage), decodeFlags(Flags, kMemoryHeapFlagNames));
     }
 
     std::string VulkanMemoryType::ToString() const {
@@ -221,10 +218,8 @@ namespace Vulkyrie {
                             formatTriple(MaxComputeWorkgroupCount),
                             MaxComputeWorkgroupInvocations);
 
-        text += std::format("  Buffer align   : uniform {} B, storage {} B, texel {} B\n",
-                            MinUniformBufferAlign,
-                            MinStorageBufferAlign,
-                            MinTexelBufferOffsetAlign);
+        text +=
+            std::format("  Buffer align   : uniform {} B, storage {} B, texel {} B\n", MinUniformBufferAlign, MinStorageBufferAlign, MinTexelBufferOffsetAlign);
 
         text += std::format("  Copy align     : offset {} B, row pitch {} B, memory map {} B, non-coherent atom {} B\n",
                             OptimalBufferCopyAlign,
@@ -375,12 +370,8 @@ namespace Vulkyrie {
                             MultiDrawIndirect,
                             TextureCompressionBC);
 
-        text += std::format("  Shader types   : int8 {}, int16 {}, int64 {}, float16 {}, float64 {}\n",
-                            ShaderInt8,
-                            ShaderInt16,
-                            ShaderInt64,
-                            ShaderFloat16,
-                            ShaderFloat64);
+        text += std::format(
+            "  Shader types   : int8 {}, int16 {}, int64 {}, float16 {}, float64 {}\n", ShaderInt8, ShaderInt16, ShaderInt64, ShaderFloat16, ShaderFloat64);
 
         text += std::format("  Shader ops     : fragment stores/atomics {}, storage image multisample {}, demote to helper {}, pipeline stats query {}\n",
                             FragmentStoresAndAtomics,

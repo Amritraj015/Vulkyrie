@@ -228,8 +228,8 @@ namespace Vulkyrie {
         // synchronization2 and every pass renders through dynamic rendering, both core in 1.3.
         bool isDeviceSuitable(const VulkanDeviceCapabilities &caps) {
             return VK_API_VERSION_1_3 <= caps.EffectiveApiVersion && caps.HasExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME) &&
-                   kInvalidQueueFamily != caps.Queues.GraphicsFamily && kInvalidQueueFamily != caps.Queues.PresentFamily && caps.Features.DynamicRendering &&
-                   caps.Features.Synchronization2;
+                   kInvalidQueueFamilyIndex != caps.Queues.GraphicsFamily && kInvalidQueueFamilyIndex != caps.Queues.PresentFamily &&
+                   caps.Features.DynamicRendering && caps.Features.Synchronization2;
         }
 
         // Device class dominates; the bonuses only separate devices of the same class, and VRAM
@@ -293,10 +293,6 @@ namespace Vulkyrie {
         , mVkPipelineLayout(VK_NULL_HANDLE)
         , mVkGraphicsPipeline(VK_NULL_HANDLE)
         , mVkTimelineSemaphore(VK_NULL_HANDLE)
-        , mGraphicsQueue()
-        , mTransferQueue()
-        , mComputeQueue()
-        , mPresentQueue()
         , mContextCreated(false) {
     }
 
@@ -1072,12 +1068,12 @@ namespace Vulkyrie {
             // Prefer dedicated families so async compute/transfer actually lands on a
             // different hardware queue rather than aliasing the graphics family.
             for (const auto &q : caps.Queues.Families) {
-                if (q.SupportsGraphics && caps.Queues.GraphicsFamily == kInvalidQueueFamily) {
+                if (q.SupportsGraphics && caps.Queues.GraphicsFamily == kInvalidQueueFamilyIndex) {
                     caps.Queues.GraphicsFamily = q.FamilyIndex;
                 }
 
                 if (q.SupportsCompute && !q.SupportsGraphics) {
-                    if (caps.Queues.ComputeFamily == kInvalidQueueFamily || !caps.Queues.HasDedicatedComputeQueue) {
+                    if (caps.Queues.ComputeFamily == kInvalidQueueFamilyIndex || !caps.Queues.HasDedicatedComputeQueue) {
                         caps.Queues.ComputeFamily = q.FamilyIndex;
                     }
 
@@ -1085,7 +1081,7 @@ namespace Vulkyrie {
                 }
 
                 if (q.SupportsTransfer && !q.SupportsGraphics && !q.SupportsCompute) {
-                    if (caps.Queues.TransferFamily == kInvalidQueueFamily || !caps.Queues.HasDedicatedTransferQueue) {
+                    if (caps.Queues.TransferFamily == kInvalidQueueFamilyIndex || !caps.Queues.HasDedicatedTransferQueue) {
                         caps.Queues.TransferFamily = q.FamilyIndex;
                     }
 
@@ -1094,11 +1090,11 @@ namespace Vulkyrie {
             }
 
             for (const auto &q : caps.Queues.Families) {
-                if (caps.Queues.ComputeFamily == kInvalidQueueFamily && q.SupportsCompute) {
+                if (caps.Queues.ComputeFamily == kInvalidQueueFamilyIndex && q.SupportsCompute) {
                     caps.Queues.ComputeFamily = q.FamilyIndex;
                 }
 
-                if (caps.Queues.TransferFamily == kInvalidQueueFamily && q.SupportsTransfer) {
+                if (caps.Queues.TransferFamily == kInvalidQueueFamilyIndex && q.SupportsTransfer) {
                     caps.Queues.TransferFamily = q.FamilyIndex;
                 }
 
@@ -1106,7 +1102,7 @@ namespace Vulkyrie {
                 // ownership transfer on every swapchain image. Stated as a direct
                 // comparison against the incumbent rather than via a proxy condition.
                 if (q.SupportsPresent) {
-                    if (caps.Queues.PresentFamily == kInvalidQueueFamily) {
+                    if (caps.Queues.PresentFamily == kInvalidQueueFamilyIndex) {
                         caps.Queues.PresentFamily = q.FamilyIndex;
                     } else {
                         const auto &incumbent = caps.Queues.Families[caps.Queues.PresentFamily];
@@ -1170,7 +1166,7 @@ namespace Vulkyrie {
         f32 priority{ 1.0f };
 
         const auto addFamily = [&](const u32 familyIndex) {
-            if (kInvalidQueueFamily == familyIndex) {
+            if (kInvalidQueueFamilyIndex == familyIndex) {
                 return;
             }
 
@@ -1240,25 +1236,17 @@ namespace Vulkyrie {
         volkLoadDevice(mVkDevice);
 
         // Create the graphics, compute and transfer queues.
-        VkQueue graphicsQueue = VK_NULL_HANDLE;
-        VkQueue computeQueue = VK_NULL_HANDLE;
-        VkQueue transferQueue = VK_NULL_HANDLE;
-        VkQueue presentQueue = VK_NULL_HANDLE;
+        const std::optional<VulkanQueue> graphicsQueue = VulkanQueue::Get(this, QueueType::Graphics, mCapabilities.Queues.GraphicsFamily, 0);
+        const std::optional<VulkanQueue> transferQueue = VulkanQueue::Get(this, QueueType::Compute, mCapabilities.Queues.ComputeFamily, 0);
+        const std::optional<VulkanQueue> computeQueue = VulkanQueue::Get(this, QueueType::Transfer, mCapabilities.Queues.TransferFamily, 0);
 
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.GraphicsFamily, 0, &graphicsQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.ComputeFamily, 0, &computeQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.TransferFamily, 0, &transferQueue);
-        vkGetDeviceQueue(mVkDevice, mCapabilities.Queues.PresentFamily, 0, &presentQueue);
+        if (!graphicsQueue.has_value()) return StatusCode::FailedToGetGraphicsQueue;
+        if (!computeQueue.has_value()) return StatusCode::FailedToGetComputeQueue;
+        if (!transferQueue.has_value()) return StatusCode::FailedToGetTransferQueue;
 
-        if (VK_NULL_HANDLE == graphicsQueue) return StatusCode::FailedToGetGraphicsQueue;
-        if (VK_NULL_HANDLE == computeQueue) return StatusCode::FailedToGetComputeQueue;
-        if (VK_NULL_HANDLE == transferQueue) return StatusCode::FailedToGetTransferQueue;
-        if (VK_NULL_HANDLE == presentQueue) return StatusCode::FailedToGetPresentQueue;
-
-        mGraphicsQueue = VulkanQueue{ this, graphicsQueue, mCapabilities.Queues.GraphicsFamily, QueueType::Graphics };
-        mTransferQueue = VulkanQueue{ this, computeQueue, mCapabilities.Queues.ComputeFamily, QueueType::Compute };
-        mComputeQueue = VulkanQueue{ this, transferQueue, mCapabilities.Queues.TransferFamily, QueueType::Transfer };
-        mPresentQueue = VulkanQueue{ this, presentQueue, mCapabilities.Queues.PresentFamily, QueueType::Present };
+        mGraphicsQueue = graphicsQueue.value();
+        mTransferQueue = computeQueue.value();
+        mComputeQueue = transferQueue.value();
 
         return StatusCode::Successful;
     }
@@ -1415,10 +1403,18 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::createSynchronizationResources() {
+        // std::optional<VulkanTimeline> timelineSemaphore = VulkanTimeline::Create(this, 2, mHostAllocator);
+        //
+        // if (!timelineSemaphore.has_value()) {
+        //     return StatusCode::FailedToCreateVulkanTimelineSemaphore;
+        // }
+        //
+        // mTimelineSemaphore = timelineSemaphore.value();
+
         VkSemaphoreTypeCreateInfo timelineSemaphoreTypeInfo{};
         timelineSemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
         timelineSemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-        timelineSemaphoreTypeInfo.initialValue = 2;
+        timelineSemaphoreTypeInfo.initialValue = 2; // TODO: Make this framse in flight count;
 
         VkSemaphoreCreateInfo timelineSemaphoreInfo{};
         timelineSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

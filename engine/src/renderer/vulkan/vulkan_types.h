@@ -114,15 +114,16 @@ namespace Vulkyrie {
         [[nodiscard]] std::string ToString() const;
     };
 
-    inline constexpr u32 kInvalidQueueFamily = std::numeric_limits<u32>::max();
+    inline constexpr u32 kInvalidQueueFamilyIndex = std::numeric_limits<u32>::max();
+    inline constexpr u32 kInvalidQueueIndex = std::numeric_limits<u32>::max();
 
     struct VulkanDeviceQueueCapabilities final {
         RendererVector<VulkanQueueFamilyCapabilities> Families;
 
-        u32 GraphicsFamily = kInvalidQueueFamily;
-        u32 ComputeFamily = kInvalidQueueFamily;
-        u32 TransferFamily = kInvalidQueueFamily;
-        u32 PresentFamily = kInvalidQueueFamily;
+        u32 GraphicsFamily = kInvalidQueueFamilyIndex;
+        u32 ComputeFamily = kInvalidQueueFamilyIndex;
+        u32 TransferFamily = kInvalidQueueFamilyIndex;
+        u32 PresentFamily = kInvalidQueueFamilyIndex;
 
         bool HasDedicatedComputeQueue = false;
         bool HasDedicatedTransferQueue = false;
