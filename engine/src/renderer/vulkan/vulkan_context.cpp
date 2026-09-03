@@ -292,7 +292,7 @@ namespace Vulkyrie {
         , mVkFragmentShaderModule(VK_NULL_HANDLE)
         , mVkPipelineLayout(VK_NULL_HANDLE)
         , mVkGraphicsPipeline(VK_NULL_HANDLE)
-        , mVkTimelineSemaphore(VK_NULL_HANDLE)
+        // , mVkTimelineSemaphore(VK_NULL_HANDLE)
         , mContextCreated(false) {
     }
 
@@ -305,7 +305,7 @@ namespace Vulkyrie {
         // TODO: Will need to be moved
         {
             // Destroy timeline semaphore.
-            vkDestroySemaphore(mVkDevice, mVkTimelineSemaphore, mHostAllocator.Callbacks());
+            // vkDestroySemaphore(mVkDevice, mVkTimelineSemaphore, mHostAllocator.Callbacks());
 
             for (auto &resources : mFrameResources) {
                 if (VK_NULL_HANDLE != resources.ImageAcquiredSemaphore) {
@@ -504,6 +504,28 @@ namespace Vulkyrie {
         // TODO: vkDestroyPipeline.
         (void)pipeline;
     }
+
+#if defined(VE_VK_ENABLE_VALIDATION)
+
+    StatusCode VulkanContext::SetDebugName(StaticString name, VkObjectType objectType, u64 objectHandle) {
+        if (VK_NULL_HANDLE == mVkDevice || 0 == objectHandle) {
+            return StatusCode::FailedToCreateVulkanObjectDebugName;
+        }
+
+        const VkDebugUtilsObjectNameInfoEXT debugObjectNameCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+            .pNext = VK_NULL_HANDLE,
+            .objectType = static_cast<VkObjectType>(objectType),
+            .objectHandle = objectHandle,
+            .pObjectName = name.Data(),
+        };
+
+        VE_VK_CHECK(vkSetDebugUtilsObjectNameEXT(mVkDevice, &debugObjectNameCreateInfo), StatusCode::FailedToCreateVulkanObjectDebugName);
+
+        return StatusCode::Successful;
+    }
+
+#endif
 
     StatusCode VulkanContext::createInstance() {
         // Get required instance layer and extensions.
@@ -1236,17 +1258,17 @@ namespace Vulkyrie {
         volkLoadDevice(mVkDevice);
 
         // Create the graphics, compute and transfer queues.
-        const std::optional<VulkanQueue> graphicsQueue = VulkanQueue::Get(this, QueueType::Graphics, mCapabilities.Queues.GraphicsFamily, 0);
-        const std::optional<VulkanQueue> transferQueue = VulkanQueue::Get(this, QueueType::Compute, mCapabilities.Queues.ComputeFamily, 0);
-        const std::optional<VulkanQueue> computeQueue = VulkanQueue::Get(this, QueueType::Transfer, mCapabilities.Queues.TransferFamily, 0);
+        std::optional<VulkanQueue> graphicsQueue = VulkanQueue::Get(this, QueueType::Graphics, mCapabilities.Queues.GraphicsFamily, 0, &mHostAllocator);
+        std::optional<VulkanQueue> computeQueue = VulkanQueue::Get(this, QueueType::Compute, mCapabilities.Queues.ComputeFamily, 0, &mHostAllocator);
+        std::optional<VulkanQueue> transferQueue = VulkanQueue::Get(this, QueueType::Transfer, mCapabilities.Queues.TransferFamily, 0, &mHostAllocator);
 
-        if (!graphicsQueue.has_value()) return StatusCode::FailedToGetGraphicsQueue;
-        if (!computeQueue.has_value()) return StatusCode::FailedToGetComputeQueue;
-        if (!transferQueue.has_value()) return StatusCode::FailedToGetTransferQueue;
+        if (!graphicsQueue.has_value()) return StatusCode::FailedToGetVulkanGraphicsQueue;
+        if (!computeQueue.has_value()) return StatusCode::FailedToGetVulkanComputeQueue;
+        if (!transferQueue.has_value()) return StatusCode::FailedToGetVulkanTransferQueue;
 
-        mGraphicsQueue = graphicsQueue.value();
-        mTransferQueue = computeQueue.value();
-        mComputeQueue = transferQueue.value();
+        mGraphicsQueue = std::move(graphicsQueue.value());
+        mComputeQueue = std::move(computeQueue.value());
+        mTransferQueue = std::move(transferQueue.value());
 
         return StatusCode::Successful;
     }
@@ -1403,25 +1425,17 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::createSynchronizationResources() {
-        // std::optional<VulkanTimeline> timelineSemaphore = VulkanTimeline::Create(this, 2, mHostAllocator);
+        // VkSemaphoreTypeCreateInfo timelineSemaphoreTypeInfo{};
+        // timelineSemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+        // timelineSemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+        // timelineSemaphoreTypeInfo.initialValue = 2; // TODO: Make this framse in flight count;
         //
-        // if (!timelineSemaphore.has_value()) {
-        //     return StatusCode::FailedToCreateVulkanTimelineSemaphore;
-        // }
+        // VkSemaphoreCreateInfo timelineSemaphoreInfo{};
+        // timelineSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        // timelineSemaphoreInfo.pNext = &timelineSemaphoreTypeInfo;
         //
-        // mTimelineSemaphore = timelineSemaphore.value();
-
-        VkSemaphoreTypeCreateInfo timelineSemaphoreTypeInfo{};
-        timelineSemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
-        timelineSemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-        timelineSemaphoreTypeInfo.initialValue = 2; // TODO: Make this framse in flight count;
-
-        VkSemaphoreCreateInfo timelineSemaphoreInfo{};
-        timelineSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        timelineSemaphoreInfo.pNext = &timelineSemaphoreTypeInfo;
-
-        VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &timelineSemaphoreInfo, mHostAllocator.Callbacks(), &mVkTimelineSemaphore),
-                    StatusCode::FailedToCreateVulkanTimelineSemaphore);
+        // VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &timelineSemaphoreInfo, mHostAllocator.Callbacks(), &mVkTimelineSemaphore),
+        //             StatusCode::FailedToCreateVulkanTimelineSemaphore);
 
         for (FrameResources &resources : mFrameResources) {
             VkSemaphoreCreateInfo semaphoreInfo{};
@@ -1606,10 +1620,12 @@ namespace Vulkyrie {
         const u64 signalValue = nextSignalValue++;
         const u64 waitValue = signalValue - MaxFramesInFlight;
 
+        const VkSemaphore graphicsTimeline = mGraphicsQueue.Timeline();
+
         VkSemaphoreWaitInfo waitInfo{};
         waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
         waitInfo.semaphoreCount = 1;
-        waitInfo.pSemaphores = &mVkTimelineSemaphore;
+        waitInfo.pSemaphores = &graphicsTimeline;
         waitInfo.pValues = &waitValue;
         vkWaitSemaphores(mVkDevice, &waitInfo, UINT64_MAX);
 
@@ -1771,7 +1787,8 @@ namespace Vulkyrie {
         // entire frame is completed (timeline)
         VkSemaphoreSubmitInfo semSignal2{};
         semSignal2.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        semSignal2.semaphore = mVkTimelineSemaphore;
+        // semSignal2.semaphore = mVkTimelineSemaphore;
+        semSignal2.semaphore = graphicsTimeline;
         semSignal2.value = signalValue;
         semSignal2.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
         RendererVector<VkSemaphoreSubmitInfo> semaphoreSignals{ semSignal1, semSignal2 };

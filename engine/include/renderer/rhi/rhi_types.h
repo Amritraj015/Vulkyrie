@@ -40,7 +40,6 @@ namespace Vulkyrie {
         Graphics, // graphics + compute + transfer
         Compute,  // async compute
         Transfer, // DMA / upload, often over PCIe without touching the shader cores
-        Present,
         SparseBinding,
         VideoEncode,
         VideoDecode,

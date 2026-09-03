@@ -29,20 +29,28 @@ namespace Vulkyrie {
             return mCapabilities.ToDeviceCapabilities();
         }
 
+        [[nodiscard]] VE_INLINE VkDevice Device() const noexcept {
+            return mVkDevice;
+        }
+
         StatusCode Initialize();
 
-        VulkanImage CreateImage(const TextureDescriptor &descriptor);
-        VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
-        VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
-        VulkanShaderModule CreateShaderModule(const ShaderBlob &blob);
-        VulkanPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
-        VulkanPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
+        [[nodiscard]] VulkanImage CreateImage(const TextureDescriptor &descriptor);
+        [[nodiscard]] VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
+        [[nodiscard]] VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
+        [[nodiscard]] VulkanShaderModule CreateShaderModule(const ShaderBlob &blob);
+        [[nodiscard]] VulkanPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
+        [[nodiscard]] VulkanPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
 
         void DestroyImage(VulkanImage image);
         void DestroyBuffer(VulkanBuffer buffer);
         void DestroySampler(VulkanSampler sampler);
         void DestroyShaderModule(VulkanShaderModule shaderModule);
         void DestroyPipeline(VulkanPipeline pipeline);
+
+#if defined(VE_VK_ENABLE_VALIDATION)
+        StatusCode SetDebugName(StaticString name, VkObjectType objectType, u64 objectHandle);
+#endif
 
         /** @brief Returns what an image of this shape costs, straight from the driver.
          *
@@ -110,7 +118,7 @@ namespace Vulkyrie {
         VkShaderModule mVkFragmentShaderModule;
         VkPipelineLayout mVkPipelineLayout;
         VkPipeline mVkGraphicsPipeline;
-        VkSemaphore mVkTimelineSemaphore;
+        // VkSemaphore mVkTimelineSemaphore;
         std::array<FrameResources, 2> mFrameResources; // TODO: Change the size of this array to Backend::kFramesInFlight
 
         u64 frameIndex = 0;
@@ -122,7 +130,7 @@ namespace Vulkyrie {
         VulkanQueue mGraphicsQueue;
         VulkanQueue mTransferQueue;
         VulkanQueue mComputeQueue;
-        VulkanQueue mPresentQueue;
+        // VulkanQueue mPresentQueue;
 
         bool mContextCreated;
 

@@ -124,6 +124,14 @@ using usize = std::size_t;
 
 #define BIT(x) 1u << x
 
+#define VE_DEFAULT_MOVE(type)                                                                                                                                  \
+    type(type &&) = default;                                                                                                                                   \
+    type &operator=(type &&) = default
+
+#define VE_DEFAULT_COPY(type)                                                                                                                                  \
+    type(const type &) = default;                                                                                                                              \
+    type &operator=(const type &) = default
+
 /** @brief A scoped pointer type alias using std::unique_ptr.
  * @tparam T The type of the object being pointed to.
  */

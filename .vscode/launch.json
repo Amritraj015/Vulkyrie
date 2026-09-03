@@ -8,19 +8,19 @@
             "name": "Launch Sandbox",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox",
-            "cwd": "${workspaceFolder}/build/clang-all-debug/examples/sandbox",
+            "program": "${workspaceFolder}/build/clang-examples-debug/examples/sandbox/sandbox",
+            "cwd": "${workspaceFolder}/build/clang-examples-debug/examples/sandbox",
             "args": [],
             "environment": [],
             "stopAtEntry": false,
             "externalConsole": false,
             "MIMode": "gdb",
             "linux": {
-                "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox",
+                "program": "${workspaceFolder}/build/clang-examples-debug/examples/sandbox/sandbox",
                 "miDebuggerPath": "/usr/bin/gdb",
             },
             "windows": {
-                "program": "${workspaceFolder}/build/clang-all-debug/examples/sandbox/sandbox.exe",
+                "program": "${workspaceFolder}/build/clang-examples-debug/examples/sandbox/sandbox.exe",
                 "miDebuggerPath": "C:/ProgramData/mingw64/mingw64/bin/gdb.exe"
             },
             "setupCommands": [

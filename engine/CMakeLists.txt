@@ -62,6 +62,7 @@ target_compile_definitions(engine
         VE_EXPORTS
         $<$<CONFIG:Debug>:VE_DEBUG>
         VE_LOG_LEVEL=${VE_LOG_LEVEL}
+        VE_VK_ENABLE_VALIDATION
         VK_NO_PROTOTYPES
         GLM_ENABLE_EXPERIMENTAL
         GLFW_INCLUDE_NONE
