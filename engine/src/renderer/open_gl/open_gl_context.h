@@ -51,7 +51,13 @@ namespace Vulkyrie {
             return mContextCreated;
         }
 
-        bool DeviceLost() const;
+        bool DeviceLost() const {
+            return mDeviceLost;
+        }
+
+        void MarkDeviceLost() {
+            mDeviceLost = true;
+        }
 
         // TODO: remove this.
         void test() {};
@@ -60,6 +66,7 @@ namespace Vulkyrie {
         DeviceCreationInfo mDeviceCreationInfo;
         DeviceCapabilities mCapabilities;
         bool mContextCreated;
+        bool mDeviceLost;
     };
 
 } // namespace Vulkyrie

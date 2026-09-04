@@ -96,6 +96,7 @@ namespace Vulkyrie {
             { cb.WaitIdle() } -> std::same_as<void>;
             { cb.QueryCapabilities() } -> std::convertible_to<const DeviceCapabilities &>;
             { cb.DeviceLost() } -> std::same_as<bool>;
+            { c.MarkDeviceLost() } -> std::same_as<void>;
             { cb.ContextCreated() } -> std::same_as<bool>;
 
             // TODO: remove this.
@@ -118,12 +119,20 @@ namespace Vulkyrie {
             requires(B::Queue &b, const B::Queue &cb, std::span<const typename B::CommandList *const> lists, std::span<u64> waits, std::span<u64> signals) {
                 { b.Submit(lists, waits, signals) } -> std::same_as<void>;
                 { cb.Type() } noexcept -> std::same_as<QueueType>;
+
+                { b.NextSignalValue() } -> std::same_as<u64>;
             };
+
+        template <typename B>
+        concept RendererBackendQueueTimelineOps = requires(const typename B::Queue &cb, u64 v) {
+            { cb.WaitValue(v) } -> std::same_as<void>;
+        };
 
     } // namespace detail
 
     template <typename B>
     concept RendererBackend = detail::RendererBackendTypes<B> && detail::RendererBackendHandlesArePOD<B> && detail::RendererBackendConstants<B> &&
-                              detail::RendererBackendContextOps<B> && detail::RendererBackendCommandOps<B> && detail::RendererBackendQueueOps<B>;
+                              detail::RendererBackendContextOps<B> && detail::RendererBackendCommandOps<B> && detail::RendererBackendQueueOps<B> &&
+                              (!B::kHasTimelineSync || detail::RendererBackendQueueTimelineOps<B>);
 
 } // namespace Vulkyrie

@@ -2,6 +2,7 @@
 #include "core/utilities.h"
 #include "memory/memory_tracker.h"
 #include "renderer/rhi/resource_types.h"
+#include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_utilities.h"
 #include <vulkyrie_version.h>
 #include <GLFW/glfw3.h>
@@ -276,24 +277,8 @@ namespace Vulkyrie {
     } // namespace
 
     VulkanContext::VulkanContext(const DeviceCreationInfo &info)
-        : mCapabilities()
-        , mDeviceCreationInfo(info)
-        , mValidationConfig(createValidationConfig(mDeviceCreationInfo))
-        , mVkInstance(VK_NULL_HANDLE)
-        , mVkSurface(VK_NULL_HANDLE)
-        , mVkPhysicalDevice(VK_NULL_HANDLE)
-        , mVkDevice(VK_NULL_HANDLE)
-        , mVmaAllocator(VK_NULL_HANDLE)
-        , mVkSwapchain(VK_NULL_HANDLE)
-        , mVkDepthImage(VK_NULL_HANDLE)
-        , mVkDepthImageView(VK_NULL_HANDLE)
-        , mVmaDepthImageAllocation(VK_NULL_HANDLE)
-        , mVkVertexShaderModule(VK_NULL_HANDLE)
-        , mVkFragmentShaderModule(VK_NULL_HANDLE)
-        , mVkPipelineLayout(VK_NULL_HANDLE)
-        , mVkGraphicsPipeline(VK_NULL_HANDLE)
-        // , mVkTimelineSemaphore(VK_NULL_HANDLE)
-        , mContextCreated(false) {
+        : mDeviceCreationInfo(info)
+        , mValidationConfig(createValidationConfig(mDeviceCreationInfo)) {
     }
 
     VulkanContext::~VulkanContext() {
@@ -341,6 +326,11 @@ namespace Vulkyrie {
 
         // Destroy logical device.
         if (VK_NULL_HANDLE != mVkDevice) {
+            // Destroy the queue timeline semaphores.
+            mTransferQueue.Release();
+            mComputeQueue.Release();
+            mGraphicsQueue.Release();
+
             vkDestroyDevice(mVkDevice, mHostAllocator.Callbacks());
         }
 
@@ -359,9 +349,6 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::Initialize() {
-        // Try to initialize Volk.
-        VE_VK_CHECK(volkInitialize(), StatusCode::FailedToInitializeVolk);
-
         // Create Vulkan instance.
         VE_RETURN_ON_FAILURE(createInstance());
 
@@ -476,10 +463,6 @@ namespace Vulkyrie {
         return {};
     }
 
-    bool VulkanContext::DeviceLost() const {
-        return false;
-    }
-
     void VulkanContext::DestroyImage(VulkanImage image) {
         // TODO: vkDestroyImage / free the allocation once images are real.
         (void)image;
@@ -528,6 +511,9 @@ namespace Vulkyrie {
 #endif
 
     StatusCode VulkanContext::createInstance() {
+        // Try to initialize Volk.
+        VE_VK_CHECK(volkInitialize(), StatusCode::FailedToInitializeVolk);
+
         // Get required instance layer and extensions.
         const RendererVector<const char *> requiredInstanceLayers = getRequiredInstanceLayers(mDeviceCreationInfo.EnableRendererValidation);
         const RendererVector<const char *> requiredInstanceExtensions = getRequiredInstanceExtensions(mDeviceCreationInfo.EnableRendererValidation);
@@ -1258,9 +1244,9 @@ namespace Vulkyrie {
         volkLoadDevice(mVkDevice);
 
         // Create the graphics, compute and transfer queues.
-        std::optional<VulkanQueue> graphicsQueue = VulkanQueue::Get(this, QueueType::Graphics, mCapabilities.Queues.GraphicsFamily, 0, &mHostAllocator);
-        std::optional<VulkanQueue> computeQueue = VulkanQueue::Get(this, QueueType::Compute, mCapabilities.Queues.ComputeFamily, 0, &mHostAllocator);
-        std::optional<VulkanQueue> transferQueue = VulkanQueue::Get(this, QueueType::Transfer, mCapabilities.Queues.TransferFamily, 0, &mHostAllocator);
+        std::optional<VulkanQueue> graphicsQueue = VulkanQueue::TryAcquire(this, QueueType::Graphics, mCapabilities.Queues.GraphicsFamily, 0, &mHostAllocator);
+        std::optional<VulkanQueue> computeQueue = VulkanQueue::TryAcquire(this, QueueType::Compute, mCapabilities.Queues.ComputeFamily, 0, &mHostAllocator);
+        std::optional<VulkanQueue> transferQueue = VulkanQueue::TryAcquire(this, QueueType::Transfer, mCapabilities.Queues.TransferFamily, 0, &mHostAllocator);
 
         if (!graphicsQueue.has_value()) return StatusCode::FailedToGetVulkanGraphicsQueue;
         if (!computeQueue.has_value()) return StatusCode::FailedToGetVulkanComputeQueue;
@@ -1425,18 +1411,6 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::createSynchronizationResources() {
-        // VkSemaphoreTypeCreateInfo timelineSemaphoreTypeInfo{};
-        // timelineSemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
-        // timelineSemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-        // timelineSemaphoreTypeInfo.initialValue = 2; // TODO: Make this framse in flight count;
-        //
-        // VkSemaphoreCreateInfo timelineSemaphoreInfo{};
-        // timelineSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        // timelineSemaphoreInfo.pNext = &timelineSemaphoreTypeInfo;
-        //
-        // VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &timelineSemaphoreInfo, mHostAllocator.Callbacks(), &mVkTimelineSemaphore),
-        //             StatusCode::FailedToCreateVulkanTimelineSemaphore);
-
         for (FrameResources &resources : mFrameResources) {
             VkSemaphoreCreateInfo semaphoreInfo{};
             semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1787,7 +1761,6 @@ namespace Vulkyrie {
         // entire frame is completed (timeline)
         VkSemaphoreSubmitInfo semSignal2{};
         semSignal2.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        // semSignal2.semaphore = mVkTimelineSemaphore;
         semSignal2.semaphore = graphicsTimeline;
         semSignal2.value = signalValue;
         semSignal2.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;

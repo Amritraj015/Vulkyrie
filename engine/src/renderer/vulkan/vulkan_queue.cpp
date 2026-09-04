@@ -1,20 +1,10 @@
 #include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_context.h"
 #include "renderer/vulkan/vulkan_utilities.h"
+#include "renderer/vulkan/vulkan_backend.h"
 #include <vulkan/vulkan_core.h>
 
 namespace Vulkyrie {
-
-    VulkanQueue::VulkanQueue()
-        : pHostAllocator(nullptr)
-        , pContext(nullptr)
-        , mVkQueueHandle(VK_NULL_HANDLE)
-        , mVkTimelineSemaphore(VK_NULL_HANDLE)
-        , mNextValue(1)
-        , mFamilyIndex(kInvalidQueueFamilyIndex)
-        , mQueueIndex(kInvalidQueueIndex)
-        , mQueueType(QueueType::Count) {
-    }
 
     VulkanQueue::VulkanQueue(VulkanHostAllocator *allocator,
                              VulkanContext *context,
@@ -83,13 +73,11 @@ namespace Vulkyrie {
     }
 
     VulkanQueue::~VulkanQueue() {
-        if (nullptr != pContext && VK_NULL_HANDLE != mVkTimelineSemaphore && VK_NULL_HANDLE != pContext->Device()) {
-            vkDestroySemaphore(pContext->Device(), mVkTimelineSemaphore, pHostAllocator->Callbacks());
-        }
+        Release();
     }
 
     std::optional<VulkanQueue>
-    VulkanQueue::Get(VulkanContext *context, QueueType queueType, u32 queueFamilyIndex, u32 queueIndex, VulkanHostAllocator *allocator) {
+    VulkanQueue::TryAcquire(VulkanContext *context, QueueType queueType, u32 queueFamilyIndex, u32 queueIndex, VulkanHostAllocator *allocator) {
         VkQueue queue = VK_NULL_HANDLE;
         vkGetDeviceQueue(context->Device(), queueFamilyIndex, queueIndex, &queue);
 
@@ -101,7 +89,7 @@ namespace Vulkyrie {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE,
-            .initialValue = 2, // TODO: Make this frames in flight count;
+            .initialValue = VulkanBackend::kFramesInFlight,
         };
 
         VkSemaphoreCreateInfo timelineSemaphoreCreateInfo{
@@ -152,46 +140,51 @@ namespace Vulkyrie {
         return VulkanQueue{ allocator, context, queue, queueType, queueFamilyIndex, queueIndex, timelineSemaphore };
     }
 
+    void VulkanQueue::Release() {
+        if (nullptr != pContext && VK_NULL_HANDLE != mVkTimelineSemaphore && VK_NULL_HANDLE != pContext->Device()) {
+            vkDestroySemaphore(pContext->Device(), mVkTimelineSemaphore, pHostAllocator->Callbacks());
+        }
+
+        pHostAllocator = nullptr;
+        pContext = nullptr;
+        mVkQueueHandle = VK_NULL_HANDLE;
+        mVkTimelineSemaphore = VK_NULL_HANDLE;
+        mNextValue = 0;
+        mFamilyIndex = kInvalidQueueFamilyIndex;
+        mQueueIndex = kInvalidQueueIndex;
+        mQueueType = QueueType::Count;
+    }
+
     void VulkanQueue::Submit(std::span<const VulkanCommandList *const> lists, std::span<u64> waits, std::span<u64> signals) {
         (void)lists;
         (void)waits;
         (void)signals;
+    }
 
-        // // ensure swapchain image is actually viable to start color output
-        // VkSemaphoreSubmitInfo imageAcquireWaitInfo{};
-        // imageAcquireWaitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        // imageAcquireWaitInfo.semaphore = imageAcquireSemaphore;
-        // imageAcquireWaitInfo.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT; // wait before drawing to image
-        //                                                                                   // signal that the image can be presented
-        //
-        // // render work completion signal
-        // VkSemaphoreSubmitInfo semSignal1{};
-        // semSignal1.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        // semSignal1.semaphore = mVkRenderCompleteSemaphores[imageIndex];
-        // semSignal1.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
-        //
-        // // entire frame is completed (timeline)
-        // VkSemaphoreSubmitInfo semSignal2{};
-        // semSignal2.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        // semSignal2.semaphore = mVkTimelineSemaphore;
-        // semSignal2.value = signalValue;
-        // semSignal2.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-        // RendererVector<VkSemaphoreSubmitInfo> semaphoreSignals{ semSignal1, semSignal2 };
-        //
-        // VkCommandBufferSubmitInfo cmdSubmitInfo{};
-        // cmdSubmitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
-        // cmdSubmitInfo.commandBuffer = res.CommandBuffer;
-        //
-        // VkSubmitInfo2 submitInfo{};
-        // submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
-        // submitInfo.waitSemaphoreInfoCount = 1;
-        // submitInfo.pWaitSemaphoreInfos = &imageAcquireWaitInfo; // ensure the image is ready
-        // submitInfo.commandBufferInfoCount = 1;
-        // submitInfo.pCommandBufferInfos = &cmdSubmitInfo;
-        // submitInfo.signalSemaphoreInfoCount = static_cast<u32>(semaphoreSignals.size());
-        // submitInfo.pSignalSemaphoreInfos = semaphoreSignals.data();
-        //
-        // vkQueueSubmit2(mVkQueueHandle, 1, &submitInfo, VK_NULL_HANDLE);
+    void VulkanQueue::WaitValue(u64 value) const {
+        const VkSemaphoreWaitInfo waitInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .semaphoreCount = 1,
+            .pSemaphores = &mVkTimelineSemaphore,
+            .pValues = &value,
+        };
+
+        while (true) {
+            const VkResult result = vkWaitSemaphores(pContext->Device(), &waitInfo, UINT64_MAX);
+
+            if (VK_SUCCESS == result) return;
+            if (VK_TIMEOUT == result) continue;
+
+            if (VK_ERROR_DEVICE_LOST == result) {
+                pContext->MarkDeviceLost();
+
+                VASSERT(false, "Vulkan device lost while waiting for timeline semaphore for queue type: {}", static_cast<u8>(mQueueType));
+            }
+
+            return;
+        }
     }
 
 } // namespace Vulkyrie

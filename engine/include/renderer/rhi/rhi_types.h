@@ -140,13 +140,6 @@ namespace Vulkyrie {
 
         bool EnableRendererValidation;
         bool EnableVSync;
-
-        // u32 FramesInFlight = 2; // 2 for latency, 3 to hide a spiky CPU frame
-        // bool EnableGpuValidation = false;
-        // bool EnableCaptureSupport = false; // RenderDoc/PIX marker + capture hooks
-
-        // Handle-table budgets. Fixed at init because SlotMap's lock-free reads
-        // require non-reallocating storage; see core/SlotMap.h.
     };
 
 } // namespace Vulkyrie

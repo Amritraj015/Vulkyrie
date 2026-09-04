@@ -218,18 +218,4 @@ namespace Vulkyrie {
         return ResourceMemoryRequirements{ .Size = descriptor.Size, .Alignment = GL_STORAGE_ALIGNMENT };
     }
 
-    bool OpenGLContext::DeviceLost() const {
-        switch (glGetGraphicsResetStatus()) {
-            case GL_NO_ERROR:
-                return false;
-
-            case GL_GUILTY_CONTEXT_RESET:
-            case GL_INNOCENT_CONTEXT_RESET:
-            case GL_UNKNOWN_CONTEXT_RESET:
-                return true;
-        }
-
-        return false;
-    }
-
 } // namespace Vulkyrie

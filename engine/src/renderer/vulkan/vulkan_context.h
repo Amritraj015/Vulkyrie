@@ -66,7 +66,6 @@ namespace Vulkyrie {
         [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const;
 
         void WaitIdle() const;
-        bool DeviceLost() const;
 
         [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
             return mContextCreated;
@@ -84,6 +83,14 @@ namespace Vulkyrie {
             return mComputeQueue;
         }
 
+        [[nodiscard]] VE_INLINE bool DeviceLost() const {
+            return mDeviceLost;
+        }
+
+        VE_INLINE void MarkDeviceLost() {
+            mDeviceLost = true;
+        }
+
         // TODO: remove this.
         void test();
 
@@ -92,47 +99,46 @@ namespace Vulkyrie {
         constexpr static VkFormat DEPTH_FORMAT{ VK_FORMAT_D32_SFLOAT };
         constexpr static u32 VULKAN_API_VERSION{ VK_API_VERSION_1_4 };
 
-        VulkanHostAllocator mHostAllocator;
-        VulkanDeviceCapabilities mCapabilities;
+        VulkanHostAllocator mHostAllocator{};
+        VulkanDeviceCapabilities mCapabilities{};
         DeviceCreationInfo mDeviceCreationInfo;
-        ValidationConfig mValidationConfig;
+        ValidationConfig mValidationConfig{};
 
-        VkInstance mVkInstance;
-        VkSurfaceKHR mVkSurface;
-        VkPhysicalDevice mVkPhysicalDevice;
-        VkDevice mVkDevice;
-        VmaAllocator mVmaAllocator;
+        VkInstance mVkInstance{ VK_NULL_HANDLE };
+        VkSurfaceKHR mVkSurface{ VK_NULL_HANDLE };
+        VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
+        VkDevice mVkDevice{ VK_NULL_HANDLE };
+        VulkanQueue mGraphicsQueue{};
+        VulkanQueue mTransferQueue{};
+        VulkanQueue mComputeQueue{};
+        VmaAllocator mVmaAllocator{ VK_NULL_HANDLE };
 
         // ------------------------------------
         // TODO: Move to VulkanSwapchain class.
-        VkSwapchainKHR mVkSwapchain;
-        RendererVector<VkImage> mVkSwapchainImages;
-        RendererVector<VkImageView> mVkSwapchainImageViews;
-        RendererVector<VkSemaphore> mVkRenderCompleteSemaphores;
-        VkImage mVkDepthImage;
-        VkImageView mVkDepthImageView;
-        VmaAllocation mVmaDepthImageAllocation;
+        VkSwapchainKHR mVkSwapchain{ VK_NULL_HANDLE };
+        RendererVector<VkImage> mVkSwapchainImages{};
+        RendererVector<VkImageView> mVkSwapchainImageViews{};
+        RendererVector<VkSemaphore> mVkRenderCompleteSemaphores{};
+        VkImage mVkDepthImage{ VK_NULL_HANDLE };
+        VkImageView mVkDepthImageView{ VK_NULL_HANDLE };
+        VmaAllocation mVmaDepthImageAllocation{ VK_NULL_HANDLE };
 
         // TODO: Shader modules.
-        VkShaderModule mVkVertexShaderModule;
-        VkShaderModule mVkFragmentShaderModule;
-        VkPipelineLayout mVkPipelineLayout;
-        VkPipeline mVkGraphicsPipeline;
+        VkShaderModule mVkVertexShaderModule{ VK_NULL_HANDLE };
+        VkShaderModule mVkFragmentShaderModule{ VK_NULL_HANDLE };
+        VkPipelineLayout mVkPipelineLayout{ VK_NULL_HANDLE };
+        VkPipeline mVkGraphicsPipeline{ VK_NULL_HANDLE };
         // VkSemaphore mVkTimelineSemaphore;
-        std::array<FrameResources, 2> mFrameResources; // TODO: Change the size of this array to Backend::kFramesInFlight
+        std::array<FrameResources, 2> mFrameResources{}; // TODO: Change the size of this array to Backend::kFramesInFlight
 
-        u64 frameIndex = 0;
-        u32 MaxFramesInFlight = 2;
-        u32 nextSignalValue = MaxFramesInFlight + 1;
-        bool requireSwapchainRecreate = false;
+        u64 frameIndex{ 0 };
+        u32 MaxFramesInFlight{ 2 };
+        u32 nextSignalValue{ MaxFramesInFlight + 1 };
+        bool requireSwapchainRecreate{ false };
         // ------------------------------------
 
-        VulkanQueue mGraphicsQueue;
-        VulkanQueue mTransferQueue;
-        VulkanQueue mComputeQueue;
-        // VulkanQueue mPresentQueue;
-
-        bool mContextCreated;
+        bool mContextCreated{ false };
+        bool mDeviceLost{ false };
 
         StatusCode createInstance();
         StatusCode createSurface();
