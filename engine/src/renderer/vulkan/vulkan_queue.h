@@ -72,6 +72,8 @@ namespace Vulkyrie {
         u32 mFamilyIndex{ kInvalidQueueFamilyIndex };
         u32 mQueueIndex{ kInvalidQueueIndex };
         QueueType mQueueType{ QueueType::Count };
+
+        void reset(VulkanQueue &queue);
     };
 
 } // namespace Vulkyrie

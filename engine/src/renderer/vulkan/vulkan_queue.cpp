@@ -17,7 +17,7 @@ namespace Vulkyrie {
         , pContext(context)
         , mVkQueueHandle(queueHandle)
         , mVkTimelineSemaphore(timelineSemaphore)
-        , mNextValue(1)
+        , mNextValue(VulkanBackend::kFramesInFlight + 1)
         , mFamilyIndex(familyIndex)
         , mQueueIndex(queueIndex)
         , mQueueType(queueType) {
@@ -32,14 +32,7 @@ namespace Vulkyrie {
         , mFamilyIndex(other.mFamilyIndex)
         , mQueueIndex(other.mQueueIndex)
         , mQueueType(other.mQueueType) {
-        other.pHostAllocator = nullptr;
-        other.pContext = nullptr;
-        other.mVkQueueHandle = VK_NULL_HANDLE;
-        other.mVkTimelineSemaphore = VK_NULL_HANDLE;
-        other.mNextValue = 0;
-        other.mFamilyIndex = 0;
-        other.mQueueIndex = 0;
-        other.mQueueType = QueueType::Count;
+        reset(other);
     }
 
     VulkanQueue &VulkanQueue::operator=(VulkanQueue &&other) noexcept {
@@ -60,14 +53,7 @@ namespace Vulkyrie {
         mQueueIndex = other.mQueueIndex;
         mQueueType = other.mQueueType;
 
-        other.pHostAllocator = nullptr;
-        other.pContext = nullptr;
-        other.mVkQueueHandle = VK_NULL_HANDLE;
-        other.mVkTimelineSemaphore = VK_NULL_HANDLE;
-        other.mNextValue = 0;
-        other.mFamilyIndex = 0;
-        other.mQueueIndex = 0;
-        other.mQueueType = QueueType::Count;
+        reset(other);
 
         return *this;
     }
@@ -145,14 +131,7 @@ namespace Vulkyrie {
             vkDestroySemaphore(pContext->Device(), mVkTimelineSemaphore, pHostAllocator->Callbacks());
         }
 
-        pHostAllocator = nullptr;
-        pContext = nullptr;
-        mVkQueueHandle = VK_NULL_HANDLE;
-        mVkTimelineSemaphore = VK_NULL_HANDLE;
-        mNextValue = 0;
-        mFamilyIndex = kInvalidQueueFamilyIndex;
-        mQueueIndex = kInvalidQueueIndex;
-        mQueueType = QueueType::Count;
+        reset(*this);
     }
 
     void VulkanQueue::Submit(std::span<const VulkanCommandList *const> lists, std::span<u64> waits, std::span<u64> signals) {
@@ -185,6 +164,17 @@ namespace Vulkyrie {
 
             return;
         }
+    }
+
+    void VulkanQueue::reset(VulkanQueue &queue) {
+        queue.pHostAllocator = nullptr;
+        queue.pContext = nullptr;
+        queue.mVkQueueHandle = VK_NULL_HANDLE;
+        queue.mVkTimelineSemaphore = VK_NULL_HANDLE;
+        queue.mNextValue = 0;
+        queue.mFamilyIndex = kInvalidQueueFamilyIndex;
+        queue.mQueueIndex = kInvalidQueueIndex;
+        queue.mQueueType = QueueType::Count;
     }
 
 } // namespace Vulkyrie
