@@ -3,8 +3,8 @@
 #include "core/graphics_api.h"
 #include "core/types/static_string.h"
 #include "renderer/vulkan/vulkan_command_list.h"
+#include "renderer/vulkan/vulkan_command_pool.h"
 #include "renderer/vulkan/vulkan_context.h"
-#include "renderer/vulkan/vulkan_pool.h"
 #include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_swapchain.h"
 #include "renderer/vulkan/vulkan_types.h"
@@ -16,7 +16,7 @@ namespace Vulkyrie {
         using Context = VulkanContext;
         using Queue = VulkanQueue;
         using CommandList = VulkanCommandList;
-        using CommandPool = VulkanPool;
+        using CommandPool = VulkanCommandPool;
         using Swapchain = VulkanSwapchain;
 
         // Handles.

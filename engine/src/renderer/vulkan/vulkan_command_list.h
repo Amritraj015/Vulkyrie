@@ -40,7 +40,7 @@ namespace Vulkyrie {
     private:
         explicit VulkanCommandList(VulkanContext *context, VkCommandBuffer commandBuffer, enum QueueType queueType);
 
-        [[maybe_unused]] VulkanContext *pContext{ nullptr };
+        VulkanContext *pContext{ nullptr };
         VkCommandBuffer mVkCommandBufferHandle{ VK_NULL_HANDLE };
         enum QueueType mQueueType { QueueType::Count };
     };

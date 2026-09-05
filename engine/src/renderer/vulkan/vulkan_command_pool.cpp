@@ -102,7 +102,7 @@ namespace Vulkyrie {
 
 #endif
 
-        return std::make_optional(VulkanCommandPool{ allocator, context, commandPool, queueType, queueFamilyIndex, commandListCapacity });
+        return VulkanCommandPool{ allocator, context, commandPool, queueType, queueFamilyIndex, commandListCapacity };
     }
 
     VulkanCommandList *VulkanCommandPool::Acquire() {
@@ -134,7 +134,11 @@ namespace Vulkyrie {
     void VulkanCommandPool::ResetAll() {
         if (VK_SUCCESS != vkResetCommandPool(pContext->Device(), mCommandPoolHandle, 0)) {
             pContext->MarkDeviceLost();
+
+            return;
         }
+
+        mNextFree = 0;
     }
 
     void VulkanCommandPool::reset(VulkanCommandPool &pool) {
