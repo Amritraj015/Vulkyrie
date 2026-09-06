@@ -2,7 +2,7 @@
 
 #include "vlkypch.h"
 #include "core/time_step.h"
-#include "renderer/rhi/rhi_types.h"
+#include "renderer/rhi/constants.h"
 
 namespace Vulkyrie {
 
@@ -19,9 +19,9 @@ namespace Vulkyrie {
     struct DrawItem final {
         u32 MeshletRangeOffset = 0;
         u32 MeshletRangeCount = 0;
-        u32 MaterialIndex = INVALID_RENDERER_INDEX;  // bindless, pre-resolved
-        u32 TransformIndex = INVALID_RENDERER_INDEX; // index into transform SSBO
-        u32 PipelineIndex = INVALID_RENDERER_INDEX;  // index into packet.pipelines
+        u32 MaterialIndex = kInvalidRendererIndex;  // bindless, pre-resolved
+        u32 TransformIndex = kInvalidRendererIndex; // index into transform SSBO
+        u32 PipelineIndex = kInvalidRendererIndex;  // index into packet.pipelines
     };
 
     struct FramePacket final {

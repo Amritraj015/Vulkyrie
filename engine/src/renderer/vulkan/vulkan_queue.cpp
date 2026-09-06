@@ -6,6 +6,24 @@
 
 namespace Vulkyrie {
 
+    namespace {
+
+        inline constexpr std::array<std::array<StaticString, 2>, static_cast<usize>(QueueType::Count)> kQueueTypesDebugNames{ {
+#define X(name)                                                                                                                                                \
+    {                                                                                                                                                          \
+        #name "Queue",                                                                                                                                         \
+        #name "QueueTimeline",                                                                                                                                 \
+    },
+            VE_RENDERER_QUEUE_TYPES(X)
+#undef X
+        } };
+
+        [[maybe_unused]] VE_INLINE constexpr const std::array<StaticString, 2> &ToQueueTypesDebugNames(QueueType queueType) {
+            return kQueueTypesDebugNames[static_cast<usize>(queueType)];
+        };
+
+    } // namespace
+
     VulkanQueue::VulkanQueue(VulkanHostAllocator *allocator,
                              VulkanContext *context,
                              VkQueue queueHandle,
@@ -90,36 +108,9 @@ namespace Vulkyrie {
 
 #if defined(VE_VK_ENABLE_VALIDATION)
 
-        switch (queueType) {
-            case QueueType::Compute:
-                context->SetDebugName("ComputeQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("ComputeTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            case QueueType::Graphics:
-                context->SetDebugName("GraphicsQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("GraphicsTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            case QueueType::Transfer:
-                context->SetDebugName("TransferQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("TransferTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            case QueueType::SparseBinding:
-                context->SetDebugName("SparseBindingQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("SparseBindingTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            case QueueType::VideoEncode:
-                context->SetDebugName("VideoEncodeQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("VideoEncodeTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            case QueueType::VideoDecode:
-                context->SetDebugName("VideoDecodeQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("VideoDecodeTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-            default:
-                context->SetDebugName("UnknownQueue", VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
-                context->SetDebugName("UnknownTimeline", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
-                break;
-        }
+        const std::array<StaticString, 2> &debugNames = ToQueueTypesDebugNames(queueType);
+        context->SetDebugName(debugNames[0], VK_OBJECT_TYPE_QUEUE, reinterpret_cast<u64>(queue));
+        context->SetDebugName(debugNames[1], VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(timelineSemaphore));
 
 #endif
 

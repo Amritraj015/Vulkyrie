@@ -13,7 +13,7 @@ namespace Vulkyrie {
 
 #define VE_VK_TRY_CREATE(expr)                                                                                                                                 \
     do {                                                                                                                                                       \
-        const VkResult result = (expr);                                                                                                                        \
+        const auto result = (expr);                                                                                                                            \
         if (VK_SUCCESS != result) {                                                                                                                            \
             return std::nullopt;                                                                                                                               \
         }                                                                                                                                                      \

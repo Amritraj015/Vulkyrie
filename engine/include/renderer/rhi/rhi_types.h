@@ -2,11 +2,8 @@
 
 #include "vlkypch.h"
 #include "core/types/application_types.h"
-#include "core/types/handle.h"
 
 namespace Vulkyrie {
-
-    inline constexpr u32 INVALID_RENDERER_INDEX = std::numeric_limits<u32>::max();
 
     // enum class IndexType : u8 { UInt8, UInt16, UInt32 };
     // enum class LoadOp : u8 { Load, Clear, DontCare };
@@ -36,43 +33,21 @@ namespace Vulkyrie {
         Timeout,
     };
 
+#define VE_RENDERER_QUEUE_TYPES(X)                                                                                                                             \
+    X(Graphics)                                                                                                                                                \
+    X(Compute)                                                                                                                                                 \
+    X(Transfer)                                                                                                                                                \
+    X(SparseBinding)                                                                                                                                           \
+    X(VideoEncode)                                                                                                                                             \
+    X(VideoDecode)
+
     enum class QueueType : u8 {
-        Graphics, // graphics + compute + transfer
-        Compute,  // async compute
-        Transfer, // DMA / upload, often over PCIe without touching the shader cores
-        SparseBinding,
-        VideoEncode,
-        VideoDecode,
-        Count,
+#define X(name) name,
+        VE_RENDERER_QUEUE_TYPES(X)
+#undef X
+
+            Count,
     };
-
-    using BufferHandle = GenerationalHandle<struct BufferTag>;
-    using TextureHandle = GenerationalHandle<struct TextureTag>;
-    using SamplerHandle = GenerationalHandle<struct SamplerTag>;
-    using PipelineHandle = GenerationalHandle<struct PipelineTag>;
-    using QueryHeapHandle = GenerationalHandle<struct QueryHeapTag>;
-    using ShaderHandle = GenerationalHandle<struct ShaderTag>;
-    using HeapHandle = GenerationalHandle<struct HeapTag>;
-
-    static_assert(sizeof(BufferHandle) == sizeof(u32));
-    static_assert(sizeof(TextureHandle) == sizeof(u32));
-    static_assert(sizeof(SamplerHandle) == sizeof(u32));
-    static_assert(sizeof(PipelineHandle) == sizeof(u32));
-    static_assert(sizeof(QueryHeapHandle) == sizeof(u32));
-    static_assert(sizeof(ShaderHandle) == sizeof(u32));
-    static_assert(sizeof(HeapHandle) == sizeof(u32));
-    static_assert(std::is_trivially_copyable_v<BufferHandle>);
-    static_assert(std::is_trivially_copyable_v<TextureHandle>);
-    static_assert(std::is_trivially_copyable_v<SamplerHandle>);
-    static_assert(std::is_trivially_copyable_v<PipelineHandle>);
-    static_assert(std::is_trivially_copyable_v<QueryHeapHandle>);
-    static_assert(std::is_trivially_copyable_v<ShaderHandle>);
-    static_assert(std::is_trivially_copyable_v<HeapHandle>);
-
-    using BindlessIndex = Handle<struct BindlessTag>;
-
-    static_assert(sizeof(BindlessIndex) == sizeof(u32));
-    static_assert(std::is_trivially_copyable_v<BindlessIndex>);
 
     // -------------------------------------------------------------------
     struct RendererStatistics {

@@ -4,6 +4,20 @@
 
 namespace Vulkyrie {
 
+    namespace {
+
+        inline constexpr std::array<StaticString, static_cast<usize>(QueueType::Count)> kCommandBufferNames{
+#define X(name) #name "QueueCommandBuffer",
+            VE_RENDERER_QUEUE_TYPES(X)
+#undef X
+        };
+
+        [[maybe_unused]] VE_INLINE constexpr StaticString ToCommandBufferDebugName(QueueType queueType) {
+            return kCommandBufferNames[static_cast<usize>(queueType)];
+        };
+
+    } // namespace
+
     VulkanCommandList::VulkanCommandList(VulkanContext *context, VkCommandBuffer commandBuffer, enum QueueType queueType)
         : pContext(context)
         , mVkCommandBufferHandle(commandBuffer)
@@ -25,29 +39,7 @@ namespace Vulkyrie {
 
 #if defined(VE_VK_ENABLE_VALIDATION)
 
-        switch (queueType) {
-            case QueueType::Compute:
-                context->SetDebugName("ComputeCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            case QueueType::Graphics:
-                context->SetDebugName("GraphicsCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            case QueueType::Transfer:
-                context->SetDebugName("TransferCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            case QueueType::SparseBinding:
-                context->SetDebugName("SparseBindingCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            case QueueType::VideoEncode:
-                context->SetDebugName("VideoEncodeCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            case QueueType::VideoDecode:
-                context->SetDebugName("VideoDecodeCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-            default:
-                context->SetDebugName("UnknownCommandBuffer", VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
-                break;
-        }
+        context->SetDebugName(ToCommandBufferDebugName(queueType), VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<u64>(commandBuffer));
 
 #endif
 

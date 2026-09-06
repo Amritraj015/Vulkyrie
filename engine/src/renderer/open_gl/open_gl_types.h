@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/rhi/constants.h"
 #include "vlkypch.h"
 #include "renderer/rhi/pipeline_types.h"
 #include <glad/glad.h>
@@ -13,7 +14,7 @@ namespace Vulkyrie {
         u32 Width = 0;
         u32 Height = 0;
         u32 Depth = 0;
-        u32 BindlessIndex = INVALID_RENDERER_INDEX;
+        u32 BindlessIndex = kInvalidRendererIndex;
         u16 Mips = 0;
         u16 Layers = 0;
 
@@ -27,7 +28,7 @@ namespace Vulkyrie {
         GLenum Target = 0;
         u64 Size = 0;
         void *Mapped = nullptr;
-        u32 BindlessIndex = INVALID_RENDERER_INDEX;
+        u32 BindlessIndex = kInvalidRendererIndex;
 
         [[nodiscard]] VE_INLINE bool Valid() const noexcept {
             return 0 != Buffer;

@@ -3,6 +3,20 @@
 
 namespace Vulkyrie {
 
+    namespace {
+
+        inline constexpr std::array<StaticString, static_cast<usize>(QueueType::Count)> kCommandPoolDebugNames{
+#define X(name) #name "QueueCommandPool",
+            VE_RENDERER_QUEUE_TYPES(X)
+#undef X
+        };
+
+        [[maybe_unused]] VE_INLINE constexpr StaticString ToCommandPoolDebugName(QueueType queueType) {
+            return kCommandPoolDebugNames[static_cast<usize>(queueType)];
+        };
+
+    } // namespace
+
     VulkanCommandPool::VulkanCommandPool(
         VulkanHostAllocator *allocator, VulkanContext *context, VkCommandPool pool, QueueType queueType, u32 queueFamilyIndex, size_t commandListCapacity)
         : mCommandList()
@@ -76,29 +90,7 @@ namespace Vulkyrie {
 
 #if defined(VE_VK_ENABLE_VALIDATION)
 
-        switch (queueType) {
-            case QueueType::Compute:
-                context->SetDebugName("ComputeCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            case QueueType::Graphics:
-                context->SetDebugName("GraphicsCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            case QueueType::Transfer:
-                context->SetDebugName("TransferCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            case QueueType::SparseBinding:
-                context->SetDebugName("SparseBindingCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            case QueueType::VideoEncode:
-                context->SetDebugName("VideoEncodeCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            case QueueType::VideoDecode:
-                context->SetDebugName("VideoDecodeCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-            default:
-                context->SetDebugName("UnknownCommandPool", VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
-                break;
-        }
+        context->SetDebugName(ToCommandPoolDebugName(queueType), VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<u64>(commandPool));
 
 #endif
 

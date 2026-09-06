@@ -1,4 +1,5 @@
 #include "renderer/renderer.h"
+#include "core/asserts.h"
 
 namespace Vulkyrie {
 
