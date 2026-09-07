@@ -389,7 +389,7 @@ namespace Vulkyrie {
 
         if (pushConstantBytes > maxPushConstantBytes) {
             VERROR("Push constant block of {} bytes exceeds the device limit of {}.", pushConstantBytes, maxPushConstantBytes);
-            return std::unexpected(StatusCode::FailedToCreateVulkanPipelineLayout);
+            return std::unexpected(StatusCode::FailedToCreateVulkanPipelineLayoutPushConstantByteLimitExceeded);
         }
 
         for (const LayoutEntry &entry : mLayouts) {
@@ -405,18 +405,18 @@ namespace Vulkyrie {
             .size = pushConstantBytes,
         };
 
+        // A null entry in pSetLayouts holds set 0 open for a layout supplied at link time, which only
+        // the graphicsPipelineLibrary feature permits. Without it the set is dropped instead, leaving a
+        // layout that carries push constants alone.
         const VkDescriptorSetLayout descriptorSetLayout = pContext->Heap().Layout();
-
-        // VASSERT(VK_NULL_HANDLE != descriptorSetLayout, "descriptorSetLayout cannot be VK_NULL_HANDLE.");
+        const bool namesSetZero = VK_NULL_HANDLE != descriptorSetLayout || pContext->GetVulkanDeviceCapabilities().Features.GraphicsPipelineLibrary;
 
         VkPipelineLayoutCreateInfo layoutCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
-            .setLayoutCount = 0,
-            .pSetLayouts = &descriptorSetLayout,
-            // .setLayoutCount = 1,
-            // .pSetLayouts = &descriptorSetLayout,
+            .setLayoutCount = namesSetZero ? 1u : 0u,
+            .pSetLayouts = namesSetZero ? &descriptorSetLayout : VK_NULL_HANDLE,
             .pushConstantRangeCount = pushConstantBytes > 0 ? 1u : 0u,
             .pPushConstantRanges = pushConstantBytes > 0 ? &range : VK_NULL_HANDLE,
         };

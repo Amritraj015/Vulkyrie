@@ -400,12 +400,14 @@ namespace Vulkyrie {
 
         text += std::format("  Bindless       : {}\n", Bindless);
 
-        text += std::format("  Extensions     : mesh shader {}, acceleration structure {}, ray tracing pipeline {}, ray query {}, dynamic state3 {}",
+        text += std::format("  Extensions     : mesh shader {}, acceleration structure {}, ray tracing pipeline {}, ray query {}, dynamic state3 {}, "
+                            "graphics pipeline library {}",
                             MeshShader,
                             RayTracingAccelerationStructure,
                             RayTracingPipeline,
                             RayQuery,
-                            ExtendedDynamicState3);
+                            ExtendedDynamicState3,
+                            GraphicsPipelineLibrary);
 
         return text;
     }

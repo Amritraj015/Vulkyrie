@@ -386,6 +386,7 @@ namespace Vulkyrie {
         bool RayTracingPipeline = false;
         bool RayQuery = false;
         bool ExtendedDynamicState3 = false;
+        bool GraphicsPipelineLibrary = false;
 
         /** @brief Formats the feature set as a human-readable block.
          * @returns One `key: value` pair per line, with no trailing newline. */

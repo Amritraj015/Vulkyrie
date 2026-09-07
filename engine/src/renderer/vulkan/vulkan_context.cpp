@@ -835,6 +835,9 @@ namespace Vulkyrie {
             VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicStateFeatures{};
             dynamicStateFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
 
+            VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT pipelineLibraryFeatures{};
+            pipelineLibraryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT;
+
             VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{};
             accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
 
@@ -877,6 +880,9 @@ namespace Vulkyrie {
             const bool hasAccelerationStructureExtension = hasExtension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
             const bool hasRayQueryExtension = hasExtension(VK_KHR_RAY_QUERY_EXTENSION_NAME);
             const bool hasExtendedDynamicState3Extension = hasExtension(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+            // The EXT reuses VK_KHR_pipeline_library's linking machinery, so both have to be present.
+            const bool hasGraphicsPipelineLibraryExtension =
+                hasExtension(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME) && hasExtension(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
 
             if (hasMeshExtension) {
                 chainFeature(meshFeatures);
@@ -896,6 +902,10 @@ namespace Vulkyrie {
 
             if (hasExtendedDynamicState3Extension) {
                 chainFeature(dynamicStateFeatures);
+            }
+
+            if (hasGraphicsPipelineLibraryExtension) {
+                chainFeature(pipelineLibraryFeatures);
             }
 
             vkGetPhysicalDeviceFeatures2(device, &deviceFeatures);
@@ -972,6 +982,7 @@ namespace Vulkyrie {
             caps.Features.RayQuery = hasRayQueryExtension && rayQuery.rayQuery && caps.Features.RayTracingAccelerationStructure;
 
             caps.Features.ExtendedDynamicState3 = hasExtendedDynamicState3Extension && dynamicStateFeatures.extendedDynamicState3PolygonMode;
+            caps.Features.GraphicsPipelineLibrary = hasGraphicsPipelineLibraryExtension && pipelineLibraryFeatures.graphicsPipelineLibrary;
 
             caps.MeshShaders.Supported = caps.Features.MeshShader;
             caps.MeshShaders.TaskShader = caps.Features.MeshShader && meshFeatures.taskShader;
@@ -1237,13 +1248,30 @@ namespace Vulkyrie {
         VkPhysicalDeviceFeatures enabledVk10Features{};
         enabledVk10Features.samplerAnisotropy = VK_TRUE;
 
+        const void *featureChain = &enabledVk13Features;
+
+        RendererVector<const char *> enabledExtensions(DeviceRequirements::REQUIRED_EXTENSIONS.begin(), DeviceRequirements::REQUIRED_EXTENSIONS.end());
+
+        // Optional, and only ever additive: a device that does not offer it still creates.
+        VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT enabledPipelineLibraryFeatures{};
+
+        if (mCapabilities.Features.GraphicsPipelineLibrary) {
+            enabledExtensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
+            enabledExtensions.push_back(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+
+            enabledPipelineLibraryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT;
+            enabledPipelineLibraryFeatures.pNext = &enabledVk13Features;
+            enabledPipelineLibraryFeatures.graphicsPipelineLibrary = VK_TRUE;
+            featureChain = &enabledPipelineLibraryFeatures;
+        }
+
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pNext = &enabledVk13Features;
+        deviceCreateInfo.pNext = featureChain;
         deviceCreateInfo.queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size());
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-        deviceCreateInfo.enabledExtensionCount = static_cast<u32>(DeviceRequirements::REQUIRED_EXTENSIONS.size());
-        deviceCreateInfo.ppEnabledExtensionNames = DeviceRequirements::REQUIRED_EXTENSIONS.data();
+        deviceCreateInfo.enabledExtensionCount = static_cast<u32>(enabledExtensions.size());
+        deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions.data();
         deviceCreateInfo.pEnabledFeatures = &enabledVk10Features;
 
         // Create the logical device.

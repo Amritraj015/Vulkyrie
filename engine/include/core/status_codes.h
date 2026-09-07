@@ -61,6 +61,7 @@ namespace Vulkyrie {
         FailedToReadSpirvShader,
         FailedToCreateVulkanShaderModule,
         FailedToCreateVulkanPipelineLayout,
+        FailedToCreateVulkanPipelineLayoutPushConstantByteLimitExceeded,
         FailedToCreateVulkanGraphicsPipeline,
         FailedToCreateVulkanImageAcquisitionSemaphore,
         FailedToCreateCommandPool,
