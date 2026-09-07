@@ -7,6 +7,7 @@
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/vulkan/vulkan_host_allocator.h"
 #include "renderer/vulkan/vulkan_queue.h"
+#include "renderer/vulkan/vulkan_swapchain.h"
 #include "renderer/vulkan/vulkan_types.h"
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -16,7 +17,7 @@ namespace Vulkyrie {
     struct FrameResources {
         VkCommandPool CommandPool = VK_NULL_HANDLE;
         VkCommandBuffer CommandBuffer = VK_NULL_HANDLE;
-        VkSemaphore ImageAcquiredSemaphore = VK_NULL_HANDLE;
+        // VkSemaphore ImageAcquiredSemaphore = VK_NULL_HANDLE;
     };
 
     class VulkanContext final {
@@ -120,13 +121,14 @@ namespace Vulkyrie {
         VulkanQueue mTransferQueue{};
         VulkanQueue mComputeQueue{};
         VmaAllocator mVmaAllocator{ VK_NULL_HANDLE };
+        VulkanSwapchain mSwapchain{};
 
         // ------------------------------------
         // TODO: Move to VulkanSwapchain class.
-        VkSwapchainKHR mVkSwapchain{ VK_NULL_HANDLE };
-        RendererVector<VkImage> mVkSwapchainImages{};
-        RendererVector<VkImageView> mVkSwapchainImageViews{};
-        RendererVector<VkSemaphore> mVkRenderCompleteSemaphores{};
+        // VkSwapchainKHR mVkSwapchain{ VK_NULL_HANDLE };
+        // RendererVector<VkImage> mVkSwapchainImages{};
+        // RendererVector<VkImageView> mVkSwapchainImageViews{};
+        // RendererVector<VkSemaphore> mVkRenderCompleteSemaphores{};
         VkImage mVkDepthImage{ VK_NULL_HANDLE };
         VkImageView mVkDepthImageView{ VK_NULL_HANDLE };
         VmaAllocation mVmaDepthImageAllocation{ VK_NULL_HANDLE };
@@ -142,7 +144,7 @@ namespace Vulkyrie {
         u64 frameIndex{ 0 };
         u32 MaxFramesInFlight{ 2 };
         u32 nextSignalValue{ MaxFramesInFlight + 1 };
-        bool requireSwapchainRecreate{ false };
+        // bool requireSwapchainRecreate{ false };
         // ------------------------------------
 
         bool mContextCreated{ false };

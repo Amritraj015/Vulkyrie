@@ -86,7 +86,7 @@ namespace Vulkyrie {
         }
 
         Device<B> mDevice;
-        typename B::Swapchain mSwapchain;
+        // typename B::Swapchain mSwapchain;
         RendererStatistics mStats;
         FrameGraph<B> mFrameGraph;
         std::array<FrameContext<B>, B::kFramesInFlight> mFrames;

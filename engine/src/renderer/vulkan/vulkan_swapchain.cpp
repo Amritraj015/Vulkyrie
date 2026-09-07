@@ -106,7 +106,7 @@ namespace Vulkyrie {
         // Since another swapchain is being move assigned to this object,
         // we need to make sure that the "this" swapchain is destroyed
         // before the "other" swapchain is moved to "this" one.
-        destroySwapchain();
+        Destroy();
 
         mVkSwapchainImages = std::move(other.mVkSwapchainImages);
         mVkAcquireSemaphores = std::move(other.mVkAcquireSemaphores);
@@ -127,7 +127,7 @@ namespace Vulkyrie {
     }
 
     VulkanSwapchain::~VulkanSwapchain() {
-        destroySwapchain();
+        Destroy();
     }
 
     std::expected<VulkanSwapchain, StatusCode> VulkanSwapchain::Create(VulkanContext *context, Extent2D extents, bool vsync, VulkanHostAllocator *allocator) {
@@ -158,11 +158,10 @@ namespace Vulkyrie {
         }
 
         // The resolved extent, not the caller's: a minimized window reports 0x0
-        // while the caller still holds the last non-zero size.
+        // while the caller still holds the last non-zero size. The existing
+        // swapchain is left intact and every accessor keeps describing it, so the
+        // caller sees one consistent state and skips the frame on this status.
         if (0 == imageExtents.width || 0 == imageExtents.height) {
-            mWidth = 0;
-            mHeight = 0;
-
             return StatusCode::InvalidSizeForVulkanSwapchain;
         }
 
@@ -236,6 +235,10 @@ namespace Vulkyrie {
             return StatusCode::FailedToCreateVulkanSwapchain;
         }
 
+#if defined(VE_VK_ENABLE_VALIDATION)
+        pContext->SetDebugName("Swapchain", VK_OBJECT_TYPE_SWAPCHAIN_KHR, reinterpret_cast<u64>(newSwapchain));
+#endif
+
         mVkSwapchain = newSwapchain;
         mFormat = FromVulkanToVulkyrieFormat(surfaceFormat->format);
         mWidth = imageExtents.width;
@@ -293,6 +296,11 @@ namespace Vulkyrie {
             VE_VK_CHECK(vkCreateImageView(pContext->Device(), &imageViewCreateInfo, pHostAllocator->Callbacks(), &imageView),
                         StatusCode::FailedToCreateVulkanSwapchainImageView);
 
+#if defined(VE_VK_ENABLE_VALIDATION)
+            pContext->SetDebugName("SwapchainImage", VK_OBJECT_TYPE_IMAGE, reinterpret_cast<u64>(rawImages[i]));
+            pContext->SetDebugName("SwapchainImageView", VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<u64>(imageView));
+#endif
+
             mVkSwapchainImages[i] = VulkanImage{
                 .ImageHandle = rawImages[i],
                 .ImageViewHandle = imageView,
@@ -329,6 +337,10 @@ namespace Vulkyrie {
                 return StatusCode::FailedToCreateVulkanPresentSemaphore;
             }
 
+#if defined(VE_VK_ENABLE_VALIDATION)
+            pContext->SetDebugName("SwapchainPresentSemaphore", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(semaphore));
+#endif
+
             mVkPresentSemaphores.push_back(semaphore);
         }
 
@@ -341,6 +353,10 @@ namespace Vulkyrie {
             if (VK_NULL_HANDLE == semaphore) {
                 return StatusCode::FailedToCreateVulkanAcquireSwapchainImageSemaphore;
             }
+
+#if defined(VE_VK_ENABLE_VALIDATION)
+            pContext->SetDebugName("SwapchainAcquireSemaphore", VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<u64>(semaphore));
+#endif
 
             mVkAcquireSemaphores.push_back(semaphore);
         }
@@ -406,7 +422,7 @@ namespace Vulkyrie {
         return false;
     }
 
-    void VulkanSwapchain::destroySwapchain() {
+    void VulkanSwapchain::Destroy() {
         if (nullptr == pContext || VK_NULL_HANDLE == pContext->Device()) {
             return;
         }

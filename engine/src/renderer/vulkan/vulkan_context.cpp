@@ -293,9 +293,9 @@ namespace Vulkyrie {
             // vkDestroySemaphore(mVkDevice, mVkTimelineSemaphore, mHostAllocator.Callbacks());
 
             for (auto &resources : mFrameResources) {
-                if (VK_NULL_HANDLE != resources.ImageAcquiredSemaphore) {
-                    vkDestroySemaphore(mVkDevice, resources.ImageAcquiredSemaphore, mHostAllocator.Callbacks());
-                }
+                // if (VK_NULL_HANDLE != resources.ImageAcquiredSemaphore) {
+                //     vkDestroySemaphore(mVkDevice, resources.ImageAcquiredSemaphore, mHostAllocator.Callbacks());
+                // }
 
                 if (VK_NULL_HANDLE != resources.CommandPool) {
                     vkDestroyCommandPool(mVkDevice, resources.CommandPool, mHostAllocator.Callbacks());
@@ -316,12 +316,15 @@ namespace Vulkyrie {
         // TODO: Will need to be moved
         {
             // Destroy the depth image allocation.
+            mSwapchain.Destroy();
             destroySwapchain();
         }
 
         // Destroy Vulkan memory allocator instance.
         if (VK_NULL_HANDLE != mVmaAllocator) {
             vmaDestroyAllocator(mVmaAllocator);
+
+            mVmaAllocator = VK_NULL_HANDLE;
         }
 
         // Destroy logical device.
@@ -332,16 +335,22 @@ namespace Vulkyrie {
             mGraphicsQueue.Release();
 
             vkDestroyDevice(mVkDevice, mHostAllocator.Callbacks());
+
+            mVkDevice = VK_NULL_HANDLE;
         }
 
         // Destroy surface.
         if (VK_NULL_HANDLE != mVkInstance && VK_NULL_HANDLE != mVkSurface) {
             vkDestroySurfaceKHR(mVkInstance, mVkSurface, mHostAllocator.Callbacks());
+
+            mVkSurface = VK_NULL_HANDLE;
         }
 
         // Destroy instance.
         if (VK_NULL_HANDLE != mVkInstance) {
             vkDestroyInstance(mVkInstance, mHostAllocator.Callbacks());
+
+            mVkInstance = VK_NULL_HANDLE;
         }
 
         // Finally, unload Volk.
@@ -1381,10 +1390,12 @@ namespace Vulkyrie {
         dynamicStateInfo.dynamicStateCount = static_cast<u32>(dynamicState.size());
         dynamicStateInfo.pDynamicStates = dynamicState.data();
 
+        std::array<VkFormat, 1> f{ VK_FORMAT_B8G8R8A8_UNORM };
         VkPipelineRenderingCreateInfo renderInfo{};
         renderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderInfo.colorAttachmentCount = 1;
-        renderInfo.pColorAttachmentFormats = &SWAPCHAIN_FORMAT;
+        // renderInfo.pColorAttachmentFormats = &SWAPCHAIN_FORMAT;
+        renderInfo.pColorAttachmentFormats = f.data();
         renderInfo.depthAttachmentFormat = DEPTH_FORMAT;
 
         VkGraphicsPipelineCreateInfo graphicsPipeline{};
@@ -1411,13 +1422,13 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::createSynchronizationResources() {
-        for (FrameResources &resources : mFrameResources) {
-            VkSemaphoreCreateInfo semaphoreInfo{};
-            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreInfo, mHostAllocator.Callbacks(), &resources.ImageAcquiredSemaphore),
-                        StatusCode::FailedToCreateVulkanImageAcquisitionSemaphore);
-        }
+        // for (FrameResources &resources : mFrameResources) {
+        //     VkSemaphoreCreateInfo semaphoreInfo{};
+        //     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        //
+        //     VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreInfo, mHostAllocator.Callbacks(), &resources.ImageAcquiredSemaphore),
+        //                 StatusCode::FailedToCreateVulkanImageAcquisitionSemaphore);
+        // }
 
         return StatusCode::Successful;
     }
@@ -1444,80 +1455,18 @@ namespace Vulkyrie {
     }
 
     StatusCode VulkanContext::createSwapchain() {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-
-        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkSurface, &surfaceCapabilities),
-                    StatusCode::FailedToQueryPhysicalDeviceSurfaceCapabilities);
-
-        u32 surfaceFormatCount = 0;
-        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkSurface, &surfaceFormatCount, nullptr),
-                    StatusCode::FailedToQueryPhysicalDeviceSurfaceFormats);
-        RendererVector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
-        VE_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkSurface, &surfaceFormatCount, surfaceFormats.data()),
-                    StatusCode::FailedToQueryPhysicalDeviceSurfaceFormats);
-
-        const bool surfaceFormatSupported = std::ranges::any_of(surfaceFormats, [](const VkSurfaceFormatKHR &surfaceFormat) {
-            return SWAPCHAIN_FORMAT == surfaceFormat.format && VK_COLORSPACE_SRGB_NONLINEAR_KHR == surfaceFormat.colorSpace;
-        });
-
-        if (!surfaceFormatSupported) {
-            VERROR("Surface does not support the required swapchain format/color space combination.");
-
-            return StatusCode::RequiredSwapchainSurfaceFormatNotSupported;
-        }
-
         const u32 swapchainWidth = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Width;
         const u32 swapchainHeight = mDeviceCreationInfo.GraphicsSettings.WindowDimensions.Height;
 
-        // Try to create swapchain.
-        VkSwapchainCreateInfoKHR swapchainCreateInfo{};
-        swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchainCreateInfo.surface = mVkSurface;
-        swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
-        swapchainCreateInfo.imageFormat = SWAPCHAIN_FORMAT;
-        swapchainCreateInfo.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-        swapchainCreateInfo.imageExtent = VkExtent2D{ .width = swapchainWidth, .height = swapchainHeight };
-        swapchainCreateInfo.imageArrayLayers = 1;
-        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        Extent2D swapchainExtents{ swapchainWidth, swapchainHeight };
+        std::expected<VulkanSwapchain, StatusCode> swapchain =
+            VulkanSwapchain::Create(this, swapchainExtents, mDeviceCreationInfo.EnableVSync, &mHostAllocator);
 
-        VE_VK_CHECK(vkCreateSwapchainKHR(mVkDevice, &swapchainCreateInfo, mHostAllocator.Callbacks(), &mVkSwapchain),
-                    StatusCode::FailedToCreateVulkanSwapchain);
-
-        // Try to get swapchain images.
-        u32 swapchainImageCount = 0;
-        VE_VK_CHECK(vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchain, &swapchainImageCount, nullptr), StatusCode::FailedToGetVulkanSwapchainImages);
-        mVkSwapchainImages.resize(swapchainImageCount);
-        VE_VK_CHECK(vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchain, &swapchainImageCount, mVkSwapchainImages.data()),
-                    StatusCode::FailedToGetVulkanSwapchainImages);
-
-        // Try to create swapchain image views;
-        mVkSwapchainImageViews.resize(swapchainImageCount);
-        for (usize i = 0; i < mVkSwapchainImages.size(); ++i) {
-            VkImageViewCreateInfo imageView{};
-            imageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            imageView.image = mVkSwapchainImages[i];
-            imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageView.format = SWAPCHAIN_FORMAT;
-            imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            imageView.subresourceRange.levelCount = 1;
-            imageView.subresourceRange.layerCount = 1;
-
-            VE_VK_CHECK(vkCreateImageView(mVkDevice, &imageView, mHostAllocator.Callbacks(), &mVkSwapchainImageViews[i]),
-                        StatusCode::FailedToCreateVulkanSwapchainImageView);
+        if (!swapchain.has_value()) {
+            return swapchain.error();
         }
 
-        // Try to create render semaphores.
-        mVkRenderCompleteSemaphores.resize(mVkSwapchainImages.size());
-        for (auto &semaphore : mVkRenderCompleteSemaphores) {
-            VkSemaphoreCreateInfo semaphoreCreateInfo{};
-            semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreCreateInfo, mHostAllocator.Callbacks(), &semaphore),
-                        StatusCode::FailedToCreateVulkanPresentSemaphore);
-        }
+        mSwapchain = std::move(*swapchain);
 
         // Try to create depth image.
         VkImageCreateInfo depthImageCreateInfo{};
@@ -1562,26 +1511,6 @@ namespace Vulkyrie {
             return;
         }
 
-        // Destroy swapchain image views.
-        for (VkImageView swapchainImgView : mVkSwapchainImageViews) {
-            vkDestroyImageView(mVkDevice, swapchainImgView, mHostAllocator.Callbacks());
-        }
-
-        mVkSwapchainImageViews.clear();
-
-        // Destroy render-complete semaphores.
-        for (VkSemaphore &semaphore : mVkRenderCompleteSemaphores) {
-            vkDestroySemaphore(mVkDevice, semaphore, mHostAllocator.Callbacks());
-        }
-
-        mVkRenderCompleteSemaphores.clear();
-
-        // Destroy the swapchain.
-        if (VK_NULL_HANDLE != mVkSwapchain) {
-            vkDestroySwapchainKHR(mVkDevice, mVkSwapchain, mHostAllocator.Callbacks());
-            mVkSwapchain = nullptr;
-        }
-
         // Destroy swapchain images and views.
         if (VK_NULL_HANDLE != mVkDepthImageView && VK_NULL_HANDLE != mVkDepthImage) {
             vkDestroyImageView(mVkDevice, mVkDepthImageView, mHostAllocator.Callbacks());
@@ -1608,20 +1537,8 @@ namespace Vulkyrie {
         FrameResources &res = mFrameResources[frameResIndex];
         vkResetCommandPool(mVkDevice, res.CommandPool, 0);
 
-        // get the resources for this frame
-        VkSemaphore imageAcquireSemaphore = mFrameResources[frameResIndex].ImageAcquiredSemaphore;
-
-        u32 imageIndex = 0;
-        VkResult acquireResult = vkAcquireNextImageKHR(mVkDevice, mVkSwapchain, UINT64_MAX, imageAcquireSemaphore, VK_NULL_HANDLE, &imageIndex);
-
-        // handle resize and out-of-date images, may need swapchain recreate
-        if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
-            requireSwapchainRecreate = true;
-            return;
-        } else if (acquireResult == VK_SUBOPTIMAL_KHR) {
-            // can render this frame, recreate next time around
-            requireSwapchainRecreate = true;
-        }
+        // Acquire the swapchain image.
+        const VulkanSwapchain::AcquiredImage acquiredImage = mSwapchain.Acquire();
 
         // begin recording commands
         VkCommandBufferBeginInfo cmdBeginInfo{};
@@ -1638,7 +1555,7 @@ namespace Vulkyrie {
         barrier1.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
         barrier1.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         barrier1.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        barrier1.image = mVkSwapchainImages[imageIndex];
+        barrier1.image = acquiredImage.Image.ImageHandle;
         barrier1.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier1.subresourceRange.baseMipLevel = 0;
         barrier1.subresourceRange.levelCount = 1;
@@ -1672,7 +1589,7 @@ namespace Vulkyrie {
         // setup the attachments (color and depth) and begin rendering (dynamic)
         VkRenderingAttachmentInfo colorAttachInfo{};
         colorAttachInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-        colorAttachInfo.imageView = mVkSwapchainImageViews[imageIndex];
+        colorAttachInfo.imageView = acquiredImage.Image.ImageViewHandle;
         colorAttachInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         colorAttachInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;   // clear the image
         colorAttachInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep data for presentation
@@ -1730,7 +1647,7 @@ namespace Vulkyrie {
         presentLayoutBarrier.dstAccessMask = 0;
         presentLayoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         presentLayoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        presentLayoutBarrier.image = mVkSwapchainImages[imageIndex];
+        presentLayoutBarrier.image = acquiredImage.Image.ImageHandle;
         presentLayoutBarrier.subresourceRange = {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .baseMipLevel = 0,
@@ -1749,14 +1666,14 @@ namespace Vulkyrie {
         // ensure swapchain image is actually viable to start color output
         VkSemaphoreSubmitInfo imageAcquireWaitInfo{};
         imageAcquireWaitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        imageAcquireWaitInfo.semaphore = imageAcquireSemaphore;
+        imageAcquireWaitInfo.semaphore = acquiredImage.AcquireSemaphore;
         imageAcquireWaitInfo.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT; // wait before drawing to image
                                                                                           // signal that the image can be presented
 
         // render work completion signal
         VkSemaphoreSubmitInfo semSignal1{};
         semSignal1.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        semSignal1.semaphore = mVkRenderCompleteSemaphores[imageIndex];
+        semSignal1.semaphore = acquiredImage.PresentSemaphore;
         semSignal1.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
 
         // entire frame is completed (timeline)
@@ -1783,16 +1700,8 @@ namespace Vulkyrie {
         vkQueueSubmit2(mGraphicsQueue.Handle(), 1, &submitInfo, VK_NULL_HANDLE);
 
         // present the image
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = &mVkRenderCompleteSemaphores[imageIndex]; // render work completed semaphore
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = &mVkSwapchain;
-        presentInfo.pImageIndices = &imageIndex;
-        presentInfo.pResults = nullptr;
-
-        vkQueuePresentKHR(mGraphicsQueue.Handle(), &presentInfo);
+        const bool success = mSwapchain.Present(acquiredImage.Index, acquiredImage.PresentSemaphore);
+        (void)success;
     }
 
 } // namespace Vulkyrie

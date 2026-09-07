@@ -36,6 +36,11 @@ namespace Vulkyrie {
 
             /** @brief The swapchain still presents but no longer matches the surface; recreate at the next frame boundary. */
             bool SubOptimal{ false };
+
+            /** @brief Returns a boolean value to indicate if the swapchain image was successfully acquired or not. */
+            [[nodiscard]] VE_INLINE bool Valid() const noexcept {
+                return kInvalidRendererIndex == Index;
+            }
         };
 
         /** @brief Constructs an empty swapchain that owns nothing; only assignment from `Create` makes it usable. */
@@ -55,14 +60,23 @@ namespace Vulkyrie {
         /** @brief Waits for the device to go idle, then destroys the swapchain, its views and its semaphores. */
         ~VulkanSwapchain();
 
+        /** @brief Builds a swapchain for the surface owned by `context`.
+         * @param context Owner of the device and surface; must outlive the swapchain.
+         * @param extents Requested size, overridden by the surface whenever it reports one of its own.
+         * @param vsync Whether to cap presentation to the display refresh rate.
+         * @param allocator Host allocation callbacks, forwarded to every Vulkan object created here.
+         * @returns The swapchain, or the status code of the first step that failed. */
+        [[nodiscard]] static std::expected<VulkanSwapchain, StatusCode>
+        Create(VulkanContext *context, Extent2D extents, bool vsync, VulkanHostAllocator *allocator);
+
         /** @brief Height of the swapchain images in pixels.
-         * @returns The height, 0 while the surface is unusable. */
+         * @returns The height, 0 before the first successful `Recreate`. */
         [[nodiscard]] VE_INLINE u32 Height() const noexcept {
             return mHeight;
         }
 
         /** @brief Width of the swapchain images in pixels.
-         * @returns The width, 0 while the surface is unusable. */
+         * @returns The width, 0 before the first successful `Recreate`. */
         [[nodiscard]] VE_INLINE u32 Width() const noexcept {
             return mWidth;
         }
@@ -74,7 +88,7 @@ namespace Vulkyrie {
         }
 
         /** @brief Number of backbuffers the driver handed out.
-         * @returns The image count, 0 while the surface is unusable. */
+         * @returns The image count, 0 before the first successful `Recreate`. */
         [[nodiscard]] VE_INLINE u32 ImageCount() const noexcept {
             return static_cast<u32>(mVkSwapchainImages.size());
         }
@@ -84,7 +98,9 @@ namespace Vulkyrie {
          * leaves the object destructible but unusable: `Acquire` returns an invalid image until a later call succeeds.
          * @param extents Requested size, overridden by the surface whenever it reports one of its own.
          * @param vsync Whether to cap presentation to the display refresh rate.
-         * @returns `StatusCode::Successful`, or the status code of the first step that failed. */
+         * @returns `StatusCode::Successful`, or the status code of the first step that failed.
+         * `InvalidSizeForVulkanSwapchain` means the surface has zero area and the caller should skip the frame; the
+         * existing swapchain is untouched, and every accessor keeps describing it. */
         [[nodiscard]] StatusCode Recreate(Extent2D extents, bool vsync);
 
         /** @brief Acquires the next backbuffer to render into.
@@ -95,23 +111,17 @@ namespace Vulkyrie {
         /** @brief Queues an acquired backbuffer for presentation.
          * @param imageIndex `Index` from the matching `Acquire`.
          * @param renderFinishedSemaphore Signalled by the frame's last submission.
-         * @returns False when the swapchain needs recreating; the frame is not presented. */
+         * @returns False when the swapchain needs recreating, which a presented-but-outdated frame also reports. */
         [[nodiscard]] bool Present(u32 imageIndex, VkSemaphore renderFinishedSemaphore);
+
+        /** @brief Waits for the device to go idle, then releases everything this object owns. */
+        void Destroy();
 
     private:
         /** @brief Records the owners an empty swapchain needs before `Recreate` can build against them.
          * @param context Owner of the device and surface.
          * @param allocator Host allocation callbacks. */
         VulkanSwapchain(VulkanContext *context, VulkanHostAllocator *allocator);
-
-        /** @brief Builds a swapchain for the surface owned by `context`.
-         * @param context Owner of the device and surface; must outlive the swapchain.
-         * @param extents Requested size, overridden by the surface whenever it reports one of its own.
-         * @param vsync Whether to cap presentation to the display refresh rate.
-         * @param allocator Host allocation callbacks, forwarded to every Vulkan object created here.
-         * @returns The swapchain, or the status code of the first step that failed. */
-        [[nodiscard]] static std::expected<VulkanSwapchain, StatusCode>
-        Create(VulkanContext *context, Extent2D extents, bool vsync, VulkanHostAllocator *allocator);
 
         /** @brief The backbuffers and the view each one is rendered through. The images belong to the driver, the views to this class. */
         RendererVector<VulkanImage> mVkSwapchainImages;
@@ -145,9 +155,6 @@ namespace Vulkyrie {
 
         /** @brief Whether presentation is capped to the display refresh rate. */
         bool mVSync{ false };
-
-        /** @brief Waits for the device to go idle, then releases everything this object owns. */
-        void destroySwapchain();
 
         /** @brief Destroys the backbuffer views and empties `mVkSwapchainImages`. The device must be idle first. */
         void destroyImageViews();
