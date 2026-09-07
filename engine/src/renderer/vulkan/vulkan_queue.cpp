@@ -83,6 +83,7 @@ namespace Vulkyrie {
     std::optional<VulkanQueue>
     VulkanQueue::TryAcquire(VulkanContext *context, QueueType queueType, u32 queueFamilyIndex, u32 queueIndex, VulkanHostAllocator *allocator) {
         VkQueue queue = VK_NULL_HANDLE;
+
         vkGetDeviceQueue(context->Device(), queueFamilyIndex, queueIndex, &queue);
 
         if (VK_NULL_HANDLE == queue) {

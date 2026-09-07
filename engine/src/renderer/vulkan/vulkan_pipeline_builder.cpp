@@ -66,17 +66,7 @@ namespace Vulkyrie {
     }
 
     VulkanPipelineBuilder::~VulkanPipelineBuilder() {
-        if (nullptr == pContext || VK_NULL_HANDLE == pContext->Device()) {
-            return;
-        }
-
-        for (const LayoutEntry &entry : mLayouts) {
-            if (VK_NULL_HANDLE != entry.Layout) {
-                vkDestroyPipelineLayout(pContext->Device(), entry.Layout, pHostAllocator->Callbacks());
-            }
-        }
-
-        mLayouts.clear();
+        Destroy();
     }
 
     VulkanPipeline VulkanPipelineBuilder::BuildGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor, std::span<const VulkanShaderModule> stages) {
@@ -379,6 +369,20 @@ namespace Vulkyrie {
         return out;
     }
 
+    void VulkanPipelineBuilder::Destroy() {
+        if (nullptr == pContext || VK_NULL_HANDLE == pContext->Device()) {
+            return;
+        }
+
+        for (const LayoutEntry &entry : mLayouts) {
+            if (VK_NULL_HANDLE != entry.Layout) {
+                vkDestroyPipelineLayout(pContext->Device(), entry.Layout, pHostAllocator->Callbacks());
+            }
+        }
+
+        mLayouts.clear();
+    }
+
     std::expected<VkPipelineLayout, StatusCode> VulkanPipelineBuilder::getOrCreateLayout(u32 pushConstantBytes) {
         VASSERT(nullptr != pContext, "VulkanContext cannot be nullptr.");
         const u32 maxPushConstantBytes = pContext->GetVulkanDeviceCapabilities().Limits.MaxPushConstantBytes;
@@ -403,14 +407,16 @@ namespace Vulkyrie {
 
         const VkDescriptorSetLayout descriptorSetLayout = pContext->Heap().Layout();
 
-        VASSERT(VK_NULL_HANDLE != descriptorSetLayout, "descriptorSetLayout cannot be VK_NULL_HANDLE.");
+        // VASSERT(VK_NULL_HANDLE != descriptorSetLayout, "descriptorSetLayout cannot be VK_NULL_HANDLE.");
 
         VkPipelineLayoutCreateInfo layoutCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
-            .setLayoutCount = 1,
+            .setLayoutCount = 0,
             .pSetLayouts = &descriptorSetLayout,
+            // .setLayoutCount = 1,
+            // .pSetLayouts = &descriptorSetLayout,
             .pushConstantRangeCount = pushConstantBytes > 0 ? 1u : 0u,
             .pPushConstantRanges = pushConstantBytes > 0 ? &range : VK_NULL_HANDLE,
         };

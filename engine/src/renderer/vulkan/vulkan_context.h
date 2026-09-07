@@ -150,7 +150,7 @@ namespace Vulkyrie {
         VulkanDescriptorHeap mHeap{};
         VkShaderModule mVkVertexShaderModule{ VK_NULL_HANDLE };
         VkShaderModule mVkFragmentShaderModule{ VK_NULL_HANDLE };
-        VkPipelineLayout mVkPipelineLayout{ VK_NULL_HANDLE };
+        // VkPipelineLayout mVkPipelineLayout{ VK_NULL_HANDLE };
         VkPipeline mVkGraphicsPipeline{ VK_NULL_HANDLE };
         VkPipelineCache mVkPipelineCache{ VK_NULL_HANDLE };
         std::array<FrameResources, 2> mFrameResources{}; // TODO: Change the size of this array to Backend::kFramesInFlight
@@ -170,7 +170,7 @@ namespace Vulkyrie {
         StatusCode createLogicalDevice();
         StatusCode initializeVulkanMemoryAllocator();
         StatusCode createSwapchain();
-        StatusCode createShaders();
+        StatusCode createGraphicsPipeline();
         StatusCode createSynchronizationResources();
         StatusCode createCommandBuffers();
 

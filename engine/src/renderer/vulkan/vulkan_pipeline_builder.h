@@ -34,7 +34,7 @@ namespace Vulkyrie {
          * @param allocator Host allocation callbacks, forwarded to every Vulkan object created here. */
         explicit VulkanPipelineBuilder(VulkanContext *context, VulkanHostAllocator *allocator) noexcept;
 
-        /** @brief Destroys every pipeline layout this builder handed out. */
+        /** @brief Calls `Destroy`. */
         ~VulkanPipelineBuilder();
 
         /** @brief Creates a graphics pipeline for dynamic rendering.
@@ -57,6 +57,13 @@ namespace Vulkyrie {
          * @param stage The compiled compute module.
          * @returns The pipeline, or an invalid `VulkanPipeline` if creation failed. */
         [[nodiscard]] VulkanPipeline BuildComputePipeline(const ComputePipelineDescriptor &descriptor, const VulkanShaderModule &stage);
+
+        /** @brief Destroys every pipeline layout this builder handed out.
+         *
+         * Safe to call more than once, and safe on a builder that was never bound to a device. Pipelines already
+         * built are not touched: their layout handles dangle from here on, so this is only called once nothing is
+         * still using them. The builder stays usable and creates layouts again on the next `Build*` call. */
+        void Destroy();
 
     private:
         /** @brief One cached pipeline layout and the push-constant size it was created for. */
