@@ -31,8 +31,24 @@ namespace Vulkyrie {
 
     struct VulkanBuffer final {};
     struct VulkanSampler final {};
-    struct VulkanPipeline final {};
-    struct VulkanShaderModule final {};
+
+    struct VulkanPipeline final {
+        VkPipeline PipelineHandle{ VK_NULL_HANDLE };
+        VkPipelineLayout LayoutHandle{ VK_NULL_HANDLE };
+        bool IsCompute{ false };
+
+        [[nodiscard]] VE_INLINE bool Valid() const noexcept {
+            return VK_NULL_HANDLE != PipelineHandle;
+        }
+    };
+
+    struct VulkanShaderModule final {
+        VkShaderModule ModuleHandle{ VK_NULL_HANDLE };
+
+        [[nodiscard]] VE_INLINE bool Valid() const noexcept {
+            return VK_NULL_HANDLE != ModuleHandle;
+        }
+    };
 
     static_assert(std::is_trivially_copyable_v<VulkanImage>, "VulkanImage must be trivially copyable");
     static_assert(std::is_trivially_copyable_v<VulkanBuffer>, "VulkanBuffer must be trivially copyable");
@@ -59,24 +75,6 @@ namespace Vulkyrie {
         // Shader debug printf — mutually exclusive with gpuav (layer-enforced)
         VkBool32 DebugPrintf = VK_FALSE;
     };
-
-    // -----------------------------------------------------------------------------
-    // Physical-device identity
-    // -----------------------------------------------------------------------------
-
-    // struct VulkanDeviceIdentity final {
-    //     char DeviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE]{};
-    //     char DriverInfo[VK_MAX_DRIVER_NAME_SIZE + VK_MAX_DRIVER_INFO_SIZE]{};
-    //
-    //     u32 VendorID = 0;
-    //     u32 DeviceID = 0;
-    //     u32 ApiVersion = VK_API_VERSION_1_0;
-    //     u32 DriverVersion = 0;
-    //
-    //     VkDriverId DriverId = VkDriverId{};
-    //     VkConformanceVersion ConformanceVersion{};
-    //     VkPhysicalDeviceType Type = VK_PHYSICAL_DEVICE_TYPE_OTHER;
-    // };
 
     // -----------------------------------------------------------------------------
     // Memory topology

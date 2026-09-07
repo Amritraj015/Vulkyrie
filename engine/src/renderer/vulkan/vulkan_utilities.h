@@ -32,7 +32,7 @@ namespace Vulkyrie {
         }                                                                                                                                                      \
     } while (false)
 
-    namespace Detail {
+    namespace detail {
 
         struct FormatPair final {
             Format rhi;
@@ -135,7 +135,7 @@ namespace Vulkyrie {
         // from 1000000000 and fall out through the bounds check in the lookup below.
         constexpr auto kReverseFormats = MakeReverse();
 
-    } // namespace Detail
+    } // namespace detail
 
     /**
      * @brief Maps an RHI format to the Vulkan format the backend creates resources with.
@@ -143,8 +143,8 @@ namespace Vulkyrie {
      * @returns The matching VkFormat; VK_FORMAT_UNDEFINED for Format::Undefined.
      */
     [[nodiscard]] VE_INLINE constexpr VkFormat FromVulkyrieToVulkanFormat(Format format) noexcept {
-        VASSERT(static_cast<usize>(format) < Detail::kFormatCount, "Format index {} is out of range", static_cast<usize>(format));
-        return Detail::kFormats[static_cast<usize>(format)].vk;
+        VASSERT(static_cast<usize>(format) < detail::kFormatCount, "Format index {} is out of range", static_cast<usize>(format));
+        return detail::kFormats[static_cast<usize>(format)].vk;
     }
 
     /**
@@ -154,8 +154,8 @@ namespace Vulkyrie {
      */
     [[nodiscard]] VE_INLINE constexpr Format FromVulkanToVulkyrieFormat(VkFormat format) noexcept {
         const auto v = static_cast<usize>(format);
-        if (v >= Detail::kReverseFormats.size()) return Format::Undefined;
-        return Detail::kReverseFormats[v];
+        if (v >= detail::kReverseFormats.size()) return Format::Undefined;
+        return detail::kReverseFormats[v];
     }
 
 } // namespace Vulkyrie

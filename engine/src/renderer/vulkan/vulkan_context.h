@@ -5,6 +5,7 @@
 #include "renderer/rhi/pipeline_types.h"
 #include "renderer/rhi/resource_types.h"
 #include "renderer/rhi/rhi_types.h"
+#include "renderer/vulkan/vulkan_descriptor_heap.h"
 #include "renderer/vulkan/vulkan_host_allocator.h"
 #include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_swapchain.h"
@@ -54,6 +55,10 @@ namespace Vulkyrie {
             return mCapabilities.ToDeviceCapabilities();
         }
 
+        [[nodiscard]] VE_INLINE const VulkanDeviceCapabilities &GetVulkanDeviceCapabilities() const noexcept {
+            return mCapabilities;
+        }
+
         [[nodiscard]] VE_INLINE VkDevice Device() const noexcept {
             return mVkDevice;
         }
@@ -64,6 +69,14 @@ namespace Vulkyrie {
 
         [[nodiscard]] VE_INLINE VkSurfaceKHR Surface() const noexcept {
             return mVkSurface;
+        }
+
+        [[nodiscard]] VE_INLINE VulkanDescriptorHeap Heap() const noexcept {
+            return mHeap;
+        }
+
+        [[nodiscard]] VE_INLINE VkPipelineCache PipelineCache() const noexcept {
+            return mVkPipelineCache;
         }
 
         StatusCode Initialize();
@@ -134,11 +147,12 @@ namespace Vulkyrie {
         VmaAllocation mVmaDepthImageAllocation{ VK_NULL_HANDLE };
 
         // TODO: Shader modules.
+        VulkanDescriptorHeap mHeap{};
         VkShaderModule mVkVertexShaderModule{ VK_NULL_HANDLE };
         VkShaderModule mVkFragmentShaderModule{ VK_NULL_HANDLE };
         VkPipelineLayout mVkPipelineLayout{ VK_NULL_HANDLE };
         VkPipeline mVkGraphicsPipeline{ VK_NULL_HANDLE };
-        // VkSemaphore mVkTimelineSemaphore;
+        VkPipelineCache mVkPipelineCache{ VK_NULL_HANDLE };
         std::array<FrameResources, 2> mFrameResources{}; // TODO: Change the size of this array to Backend::kFramesInFlight
 
         u64 frameIndex{ 0 };

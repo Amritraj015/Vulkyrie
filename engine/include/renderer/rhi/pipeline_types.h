@@ -34,63 +34,67 @@ namespace Vulkyrie {
     };
 
     struct RasterState final {
-        f32 DepthBiasConstant = 0.0f;
-        f32 DepthBiasSlope = 0.0f;
-        CullMode Cull = CullMode::Back;
-        FrontFace FrontFace = FrontFace::CounterClockwise;
-        PolygonFillMode FillMode = PolygonFillMode::Fill;
-        bool DepthClamp = false;
-        bool DepthBiasEnabled = false;
+        f32 DepthBiasConstant{ 0.0f };
+        f32 DepthBiasSlope{ 0.0f };
+        CullMode Cull{ CullMode::Back };
+        FrontFace FrontFace{ FrontFace::CounterClockwise };
+        PolygonFillMode FillMode{ PolygonFillMode::Fill };
+        bool DepthClamp{ false };
+        bool DepthBiasEnabled{ false };
     };
 
     struct DepthStencilState final {
-        bool DepthTest = true;
-        bool DepthWrite = true;
-        CompareOp DepthCompare = CompareOp::GreaterEqual;
-        bool StencilTest = false;
+        bool DepthTest{ true };
+        bool DepthWrite{ true };
+        CompareOp DepthCompare{ CompareOp::GreaterEqual };
+        bool StencilTest{ false };
     };
 
     struct BlendState final {
-        bool Enable = false;
-        BlendFactor SrcColor = BlendFactor::One;
-        BlendFactor DstColor = BlendFactor::Zero;
-        BlendOp ColorOp = BlendOp::Add;
-        BlendFactor SrcAlpha = BlendFactor::One;
-        BlendFactor DstAlpha = BlendFactor::Zero;
-        BlendOp AlphaOp = BlendOp::Add;
-        u8 WriteMask = 0xF;
+        bool Enable{ false };
+        BlendFactor SrcColor{ BlendFactor::One };
+        BlendFactor DstColor{ BlendFactor::Zero };
+        BlendOp ColorOp{ BlendOp::Add };
+        BlendFactor SrcAlpha{ BlendFactor::One };
+        BlendFactor DstAlpha{ BlendFactor::Zero };
+        BlendOp AlphaOp{ BlendOp::Add };
+        u8 WriteMask{ 0xF };
     };
 
-    inline constexpr u32 MAX_COLOR_ATTACHMENTS = 8;
+    inline constexpr u32 kMaxColorAttachments = 8;
 
     struct RenderTargetLayout final {
-        Format ColorFormats[MAX_COLOR_ATTACHMENTS]{};
-        u32 ColorCount = 0;
-        Format DepthFormat = Format::Undefined;
-        SampleCount Samples = SampleCount::None;
+        Format ColorFormats[kMaxColorAttachments]{};
+        u32 ColorCount{ 0 };
+        Format DepthFormat{ Format::Undefined };
+        SampleCount Samples{ SampleCount::None };
     };
 
     struct GraphicsPipelineDescriptor final {
         ShaderKey VertexShader{};
         ShaderKey FragmentShader{};
-        ShaderKey TaskShader{}; // optional, mesh pipeline
-        ShaderKey MeshShader{}; // optional, mesh pipeline
+        ShaderKey TaskShader{};
+        ShaderKey MeshShader{};
 
-        PrimitiveTopology Topology = PrimitiveTopology::TriangleList;
+        PrimitiveTopology Topology{ PrimitiveTopology::TriangleList };
         RasterState Raster{};
         DepthStencilState DepthStencil{};
-        BlendState Blends[MAX_COLOR_ATTACHMENTS]{};
+        BlendState Blends[kMaxColorAttachments]{};
         RenderTargetLayout RenderTargetLayout{};
-        u32 PushConstantBytes = 0;
+        u32 PushConstantBytes{ 0 };
 
-        // StaticString DebugName; // not hashed
+#if defined(VE_VK_ENABLE_VALIDATION)
+        StaticString DebugName{ "GraphicsPipeline" }; // not hashed
+#endif
     };
 
     struct ComputePipelineDescriptor final {
         ShaderKey ComputeShader{};
-        u32 PushConstantBytes = 0;
+        u32 PushConstantBytes{ 0 };
 
-        // StaticString DebugName; // not hashed
+#if defined(VE_VK_ENABLE_VALIDATION)
+        StaticString DebugName{ "ComputePipeline" }; // not hashed
+#endif
     };
 
     [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const GraphicsPipelineDescriptor &d) noexcept {
@@ -125,7 +129,7 @@ namespace Vulkyrie {
             .Value(d.DepthStencil.DepthCompare)
             .Value(d.DepthStencil.StencilTest);
 
-        for (usize i = 0; i < MAX_COLOR_ATTACHMENTS; ++i) {
+        for (usize i = 0; i < kMaxColorAttachments; ++i) {
             hb.Value(d.Blends[i].Enable)
                 .Value(d.Blends[i].SrcColor)
                 .Value(d.Blends[i].DstColor)
@@ -136,7 +140,7 @@ namespace Vulkyrie {
                 .Value(d.Blends[i].WriteMask);
         }
 
-        for (usize i = 0; i < MAX_COLOR_ATTACHMENTS; ++i) {
+        for (usize i = 0; i < kMaxColorAttachments; ++i) {
             hb.Value(d.RenderTargetLayout.ColorFormats[i]);
         }
 
