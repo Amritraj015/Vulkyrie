@@ -13,7 +13,7 @@ namespace Vulkyrie {
 
         [[maybe_unused]] VE_INLINE constexpr StaticString ToCommandPoolDebugName(QueueType queueType) {
             return kCommandPoolDebugNames[static_cast<usize>(queueType)];
-        };
+        }
 
     } // namespace
 

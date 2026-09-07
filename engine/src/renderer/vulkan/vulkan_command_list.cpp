@@ -14,7 +14,7 @@ namespace Vulkyrie {
 
         [[maybe_unused]] VE_INLINE constexpr StaticString ToCommandBufferDebugName(QueueType queueType) {
             return kCommandBufferNames[static_cast<usize>(queueType)];
-        };
+        }
 
     } // namespace
 

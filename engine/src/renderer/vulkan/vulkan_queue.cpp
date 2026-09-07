@@ -20,7 +20,7 @@ namespace Vulkyrie {
 
         [[maybe_unused]] VE_INLINE constexpr const std::array<StaticString, 2> &ToQueueTypesDebugNames(QueueType queueType) {
             return kQueueTypesDebugNames[static_cast<usize>(queueType)];
-        };
+        }
 
     } // namespace
 

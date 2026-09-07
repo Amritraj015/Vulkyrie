@@ -2,18 +2,43 @@
 
 #include "memory/allocators/tracked_std_allocator.h"
 #include "renderer/rhi/capabilities.h"
+#include "renderer/rhi/constants.h"
 #include <limits>
+#include <type_traits>
 #include <volk.h>
+#include <vk_mem_alloc.h>
 
 namespace Vulkyrie {
 
     template <typename T> using RendererVector = TrackedVector<T, MemoryTag::Rendering>;
 
-    struct VulkanImage {};
-    struct VulkanBuffer {};
-    struct VulkanSampler {};
-    struct VulkanPipeline {};
-    struct VulkanShaderModule {};
+    struct VulkanImage final {
+        VkImage ImageHandle{ VK_NULL_HANDLE };
+        VkImageView ImageViewHandle{ VK_NULL_HANDLE };
+        VmaAllocation ImageAllocation{ VK_NULL_HANDLE };
+        VkFormat Format{ VK_FORMAT_UNDEFINED };
+        u32 Width{ 0 };
+        u32 Height{ 0 };
+        u32 Depth{ 0 };
+        u32 BindlessIndex{ kInvalidRendererIndex };
+        u16 Mips{ 0 };
+        u16 Layers{ 0 };
+
+        [[nodiscard]] VE_INLINE bool Valid() const noexcept {
+            return VK_NULL_HANDLE != ImageHandle;
+        }
+    };
+
+    struct VulkanBuffer final {};
+    struct VulkanSampler final {};
+    struct VulkanPipeline final {};
+    struct VulkanShaderModule final {};
+
+    static_assert(std::is_trivially_copyable_v<VulkanImage>, "VulkanImage must be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<VulkanBuffer>, "VulkanBuffer must be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<VulkanSampler>, "VulkanSampler must be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<VulkanPipeline>, "VulkanPipeline must be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<VulkanShaderModule>, "VulkanShaderModule must be trivially copyable");
 
     struct ValidationConfig final {
         // Core correctness — cheap, on by default

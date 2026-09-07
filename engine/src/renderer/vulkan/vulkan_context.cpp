@@ -1515,7 +1515,8 @@ namespace Vulkyrie {
             VkSemaphoreCreateInfo semaphoreCreateInfo{};
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreCreateInfo, mHostAllocator.Callbacks(), &semaphore), StatusCode::FailedToCreateVulkanSemaphore);
+            VE_VK_CHECK(vkCreateSemaphore(mVkDevice, &semaphoreCreateInfo, mHostAllocator.Callbacks(), &semaphore),
+                        StatusCode::FailedToCreateVulkanPresentSemaphore);
         }
 
         // Try to create depth image.

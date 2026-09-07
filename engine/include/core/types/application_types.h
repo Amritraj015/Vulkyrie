@@ -45,7 +45,7 @@ namespace Vulkyrie {
     struct ValidationSettings {
         std::unordered_set<std::string> Features{
             // TODO: Read these from a config file instead.
-            // "gpuav" (int64, timeline semaphores, scalar block layout, 8/16-bit storage) 
+            // "gpuav" (int64, timeline semaphores, scalar block layout, 8/16-bit storage)
             "core", "thread_safety", "sync", "sync_submit_time", "best_practices",
         };
 

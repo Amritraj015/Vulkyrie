@@ -25,48 +25,6 @@ namespace Vulkyrie {
 
         ~VulkanContext();
 
-        [[nodiscard]] VE_INLINE const DeviceCapabilities &QueryCapabilities() const {
-            return mCapabilities.ToDeviceCapabilities();
-        }
-
-        [[nodiscard]] VE_INLINE VkDevice Device() const noexcept {
-            return mVkDevice;
-        }
-
-        StatusCode Initialize();
-
-        [[nodiscard]] VulkanImage CreateImage(const TextureDescriptor &descriptor);
-        [[nodiscard]] VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
-        [[nodiscard]] VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
-        [[nodiscard]] VulkanShaderModule CreateShaderModule(const ShaderBlob &blob);
-        [[nodiscard]] VulkanPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
-        [[nodiscard]] VulkanPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
-
-        void DestroyImage(VulkanImage image);
-        void DestroyBuffer(VulkanBuffer buffer);
-        void DestroySampler(VulkanSampler sampler);
-        void DestroyShaderModule(VulkanShaderModule shaderModule);
-        void DestroyPipeline(VulkanPipeline pipeline);
-
-#if defined(VE_VK_ENABLE_VALIDATION)
-        StatusCode SetDebugName(StaticString name, VkObjectType objectType, u64 objectHandle);
-#endif
-
-        /** @brief Returns what an image of this shape costs, straight from the driver.
-         *
-         * `vkGetDeviceImageMemoryRequirements` (Vulkan 1.3 / VK_KHR_maintenance4) answers this from a
-         * `VkImageCreateInfo` without creating an image, which is what makes it usable while the frame graph is
-         * still planning. It is also the only sound source: tiling, mip-tail packing and alignment are the
-         * driver's, and a packer fed a CPU-side guess places resources overlapping.
-         * @param descriptor The descriptor to size. */
-        [[nodiscard]] ResourceMemoryRequirements GetImageMemoryRequirements(const TextureDescriptor &descriptor) const;
-
-        /** @brief Returns what a buffer of this shape costs, via `vkGetDeviceBufferMemoryRequirements`.
-         * @param descriptor The descriptor to size. */
-        [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const;
-
-        void WaitIdle() const;
-
         [[nodiscard]] VE_INLINE bool ContextCreated() const noexcept {
             return mContextCreated;
         }
@@ -90,6 +48,56 @@ namespace Vulkyrie {
         VE_INLINE void MarkDeviceLost() {
             mDeviceLost = true;
         }
+
+        [[nodiscard]] VE_INLINE const DeviceCapabilities &QueryCapabilities() const {
+            return mCapabilities.ToDeviceCapabilities();
+        }
+
+        [[nodiscard]] VE_INLINE VkDevice Device() const noexcept {
+            return mVkDevice;
+        }
+
+        [[nodiscard]] VE_INLINE VkPhysicalDevice PhysicalDevice() const noexcept {
+            return mVkPhysicalDevice;
+        }
+
+        [[nodiscard]] VE_INLINE VkSurfaceKHR Surface() const noexcept {
+            return mVkSurface;
+        }
+
+        StatusCode Initialize();
+
+        [[nodiscard]] VulkanImage CreateImage(const TextureDescriptor &descriptor);
+        [[nodiscard]] VulkanBuffer CreateBuffer(const BufferDescriptor &descriptor);
+        [[nodiscard]] VulkanSampler CreateSampler(const SamplerDescriptor &descriptor);
+        [[nodiscard]] VulkanShaderModule CreateShaderModule(const ShaderBlob &blob);
+        [[nodiscard]] VulkanPipeline CreateGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor);
+        [[nodiscard]] VulkanPipeline CreateComputePipeline(const ComputePipelineDescriptor &descriptor);
+
+        void DestroyImage(VulkanImage image);
+        void DestroyBuffer(VulkanBuffer buffer);
+        void DestroySampler(VulkanSampler sampler);
+        void DestroyShaderModule(VulkanShaderModule shaderModule);
+        void DestroyPipeline(VulkanPipeline pipeline);
+
+        /** @brief Returns what an image of this shape costs, straight from the driver.
+         *
+         * `vkGetDeviceImageMemoryRequirements` (Vulkan 1.3 / VK_KHR_maintenance4) answers this from a
+         * `VkImageCreateInfo` without creating an image, which is what makes it usable while the frame graph is
+         * still planning. It is also the only sound source: tiling, mip-tail packing and alignment are the
+         * driver's, and a packer fed a CPU-side guess places resources overlapping.
+         * @param descriptor The descriptor to size. */
+        [[nodiscard]] ResourceMemoryRequirements GetImageMemoryRequirements(const TextureDescriptor &descriptor) const;
+
+        /** @brief Returns what a buffer of this shape costs, via `vkGetDeviceBufferMemoryRequirements`.
+         * @param descriptor The descriptor to size. */
+        [[nodiscard]] ResourceMemoryRequirements GetBufferMemoryRequirements(const BufferDescriptor &descriptor) const;
+
+        void WaitIdle() const;
+
+#if defined(VE_VK_ENABLE_VALIDATION)
+        StatusCode SetDebugName(StaticString name, VkObjectType objectType, u64 objectHandle);
+#endif
 
         // TODO: remove this.
         void test();
