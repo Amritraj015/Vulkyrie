@@ -1376,12 +1376,12 @@ namespace Vulkyrie {
                 .DepthBiasEnabled = false,
             },
             .DepthStencil = {
-                .DepthTest =  true,
-                .DepthWrite =  true,
-                .DepthCompare=  CompareOp::Less,
-                .StencilTest =  true,
+                .DepthTest = false,
+                .DepthWrite = false,
+                .DepthCompare = CompareOp::Less,
+                .StencilTest = false,
             },
-            .Blends = { },
+            .Blends = {},
             .RenderTargetLayout = {
                 .ColorFormats = { Format::BGRA8Unorm },
                 .ColorCount = 1,
@@ -1390,7 +1390,7 @@ namespace Vulkyrie {
             }, 
             .PushConstantBytes = 0,
 #if defined(VE_VK_ENABLE_VALIDATION)
-        .DebugName{ "GraphicsPipeline" },
+            .DebugName{ "GraphicsPipeline" },
 #endif
         };
 
