@@ -134,7 +134,7 @@ namespace Vulkyrie {
     void VulkanQueue::WaitValue(u64 value) const {
         const VkSemaphoreWaitInfo waitInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
-            .pNext = nullptr,
+            .pNext = VK_NULL_HANDLE,
             .flags = 0,
             .semaphoreCount = 1,
             .pSemaphores = &mVkTimelineSemaphore,
