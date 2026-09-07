@@ -6,8 +6,8 @@
 
 namespace Vulkyrie {
 
-    enum class PrimitiveTopology : u8 { PointList, LineList, LineStrip, TriangleList, TriangleStrip };
-    enum class CullMode : u8 { None, Front, Back };
+    enum class PrimitiveTopology : u8 { PointList, LineList, LineStrip, TriangleList, TriangleStrip, PatchList };
+    enum class CullMode : u8 { None, Front, Back, FrontAndBack };
     enum class FrontFace : u8 { CounterClockwise, Clockwise };
     enum class PolygonFillMode : u8 { Fill, Line, Point };
     enum class BlendOp : u8 { Add, Subtract, ReverseSubtract, Min, Max };
@@ -71,12 +71,15 @@ namespace Vulkyrie {
     };
 
     struct GraphicsPipelineDescriptor final {
-        ShaderKey VertexShader{};
-        ShaderKey FragmentShader{};
         ShaderKey TaskShader{};
         ShaderKey MeshShader{};
+        ShaderKey VertexShader{};
+        ShaderKey TessellationControlShader{};
+        ShaderKey TessellationEvaluationShader{};
+        ShaderKey FragmentShader{};
 
         PrimitiveTopology Topology{ PrimitiveTopology::TriangleList };
+        u32 PatchControlPoints{ 0 };
         RasterState Raster{};
         DepthStencilState DepthStencil{};
         BlendState Blends[kMaxColorAttachments]{};
@@ -100,15 +103,7 @@ namespace Vulkyrie {
     [[nodiscard]] VE_INLINE constexpr u64 HashDescriptor(const GraphicsPipelineDescriptor &d) noexcept {
         HashBuilder hb;
 
-        hb.Value(d.VertexShader.SourceHash)
-            .Value(d.VertexShader.DefineHash)
-            .Value(d.VertexShader.ShaderStage)
-            .Value(d.VertexShader.ShaderTarget)
-            .Value(d.FragmentShader.SourceHash)
-            .Value(d.FragmentShader.DefineHash)
-            .Value(d.FragmentShader.ShaderStage)
-            .Value(d.FragmentShader.ShaderTarget)
-            .Value(d.TaskShader.SourceHash)
+        hb.Value(d.TaskShader.SourceHash)
             .Value(d.TaskShader.DefineHash)
             .Value(d.TaskShader.ShaderStage)
             .Value(d.TaskShader.ShaderTarget)
@@ -116,7 +111,24 @@ namespace Vulkyrie {
             .Value(d.MeshShader.DefineHash)
             .Value(d.MeshShader.ShaderStage)
             .Value(d.MeshShader.ShaderTarget)
+            .Value(d.VertexShader.SourceHash)
+            .Value(d.VertexShader.DefineHash)
+            .Value(d.VertexShader.ShaderStage)
+            .Value(d.VertexShader.ShaderTarget)
+            .Value(d.TessellationControlShader.SourceHash)
+            .Value(d.TessellationControlShader.DefineHash)
+            .Value(d.TessellationControlShader.ShaderStage)
+            .Value(d.TessellationControlShader.ShaderTarget)
+            .Value(d.TessellationEvaluationShader.SourceHash)
+            .Value(d.TessellationEvaluationShader.DefineHash)
+            .Value(d.TessellationEvaluationShader.ShaderStage)
+            .Value(d.TessellationEvaluationShader.ShaderTarget)
+            .Value(d.FragmentShader.SourceHash)
+            .Value(d.FragmentShader.DefineHash)
+            .Value(d.FragmentShader.ShaderStage)
+            .Value(d.FragmentShader.ShaderTarget)
             .Value(d.Topology)
+            .Value(d.PatchControlPoints)
             .Value(d.Raster.DepthBiasConstant)
             .Value(d.Raster.DepthBiasSlope)
             .Value(d.Raster.Cull)

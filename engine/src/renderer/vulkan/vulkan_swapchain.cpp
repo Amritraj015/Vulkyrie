@@ -240,7 +240,7 @@ namespace Vulkyrie {
 #endif
 
         mVkSwapchain = newSwapchain;
-        mFormat = FromVulkanToVulkyrieFormat(surfaceFormat->format);
+        mFormat = ToRhiFormat(surfaceFormat->format);
         mWidth = imageExtents.width;
         mHeight = imageExtents.height;
         mVSync = vsync;

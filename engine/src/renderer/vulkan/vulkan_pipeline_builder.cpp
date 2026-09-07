@@ -6,11 +6,17 @@ namespace Vulkyrie {
 
     namespace {
 
-        constexpr inline std::array<VkDynamicState, 2> kDynamicStates{
+        // The state every pipeline this builder produces leaves to the command buffer.
+        // Anything named here is ignored in the corresponding create-info field.
+        constexpr std::array<VkDynamicState, 3> kDynamicStates{
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         };
 
+        /** @brief Maps a single RHI shader stage to the Vulkan stage bit.
+         * @param stage One stage, not a combination.
+         * @returns The matching bit; the vertex bit for anything that names no single stage. */
         [[nodiscard]] VkShaderStageFlagBits ToVkStage(ShaderStage stage) noexcept {
             switch (stage) {
                 case ShaderStage::Vertex:
@@ -31,13 +37,15 @@ namespace Vulkyrie {
                     return VK_SHADER_STAGE_MESH_BIT_EXT;
                 case ShaderStage::RayTracing:
                     return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+                // ShaderStage is a bitmask; a combination has no single bit to name.
                 default:
                     return VK_SHADER_STAGE_VERTEX_BIT;
             }
-
-            return VK_SHADER_STAGE_VERTEX_BIT;
         }
 
+        /** @brief Expands an RGBA write mask into Vulkan colour component flags.
+         * @param mask One bit per channel, red in the low bit.
+         * @returns The matching component flags. */
         [[nodiscard]] VkColorComponentFlags ToVkWriteMask(u8 mask) noexcept {
             VkColorComponentFlags out = 0;
 
@@ -54,7 +62,7 @@ namespace Vulkyrie {
     VulkanPipelineBuilder::VulkanPipelineBuilder(VulkanContext *context, VulkanHostAllocator *allocator) noexcept
         : pContext(context)
         , pHostAllocator(allocator) {
-        mLayouts.reserve(50);
+        mLayouts.reserve(kExpectedLayoutCount);
     }
 
     VulkanPipelineBuilder::~VulkanPipelineBuilder() {
@@ -71,32 +79,44 @@ namespace Vulkyrie {
         mLayouts.clear();
     }
 
-    VulkanPipeline VulkanPipelineBuilder::BuildGraphicsPipeline(const GraphicsPipelineDescriptor descriptor, std::span<const VulkanShaderModule> stages) {
+    VulkanPipeline VulkanPipelineBuilder::BuildGraphicsPipeline(const GraphicsPipelineDescriptor &descriptor, std::span<const VulkanShaderModule> stages) {
         VASSERT(nullptr != pContext, "VulkanContext cannot be nullptr.");
 
-        const ShaderKey *keys[] = {
-            &descriptor.VertexShader,
-            &descriptor.FragmentShader,
-            &descriptor.MeshShader,
-            &descriptor.TaskShader,
+        // Declaration order is the contract: it decides which module in `stages` each filled key claims.
+        struct StageSlot final {
+            const ShaderKey *Key;
+            ShaderStage Stage;
         };
 
-        VkPipelineShaderStageCreateInfo stageInfos[std::size(keys)]{};
+        const StageSlot slots[] = {
+            { &descriptor.TaskShader, ShaderStage::Task },
+            { &descriptor.MeshShader, ShaderStage::Mesh },
+            { &descriptor.VertexShader, ShaderStage::Vertex },
+            { &descriptor.TessellationControlShader, ShaderStage::TessellationControl },
+            { &descriptor.TessellationEvaluationShader, ShaderStage::TessellationEvaluation },
+            { &descriptor.FragmentShader, ShaderStage::Fragment },
+        };
+
+        VkPipelineShaderStageCreateInfo stageInfos[std::size(slots)]{};
         u32 stageCount = 0;
 
-        for (const ShaderKey *key : keys) {
-            if (!key->Valid()) {
+        for (const StageSlot &slot : slots) {
+            if (!slot.Key->Valid()) {
                 continue;
             }
 
-            VASSERT(stageCount < stages.size(), "Fewer modules than valid shader keys; see the contract on BuildGraphicsPipeline.");
-            VASSERT(stages[stageCount].Valid(), "ShaderStage invalid.");
+            VASSERT(slot.Key->ShaderStage == slot.Stage, "ShaderKey sits in a descriptor field that does not match its own stage.");
+
+            if (stageCount >= stages.size() || !stages[stageCount].Valid()) {
+                VERROR("Graphics pipeline: no valid shader module at index {}; modules must pair with the valid shader keys in slot order.", stageCount);
+                return {};
+            }
 
             stageInfos[stageCount] = VkPipelineShaderStageCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = VK_NULL_HANDLE,
                 .flags = 0,
-                .stage = ToVkStage(key->ShaderStage),
+                .stage = ToVkStage(slot.Stage),
                 .module = stages[stageCount].ModuleHandle,
                 .pName = "main",
                 .pSpecializationInfo = VK_NULL_HANDLE,
@@ -105,13 +125,29 @@ namespace Vulkyrie {
             stageCount++;
         }
 
-        VASSERT(stageCount == stages.size(), "More modules than valid shader keys; see the contract on BuildGraphics.");
-        VASSERT(stageCount > 0, "stageCount must be greater 0");
+        if (0 == stageCount || stageCount != stages.size()) {
+            VERROR("Graphics pipeline: {} shader modules supplied for {} valid shader keys.", stages.size(), stageCount);
+            return {};
+        }
+
+        const bool hasTessellation = descriptor.TessellationControlShader.Valid() || descriptor.TessellationEvaluationShader.Valid();
+
+        if (hasTessellation && (!descriptor.TessellationControlShader.Valid() || !descriptor.TessellationEvaluationShader.Valid() ||
+                                descriptor.PatchControlPoints == 0 || descriptor.Topology != PrimitiveTopology::PatchList)) {
+            VERROR("Graphics pipeline: tessellation needs both tessellation stages, a non-zero PatchControlPoints and PatchList topology.");
+            return {};
+        }
+
+        if (descriptor.RenderTargetLayout.ColorCount > kMaxColorAttachments) {
+            VERROR("Graphics pipeline: {} color attachments exceeds the {} supported.", descriptor.RenderTargetLayout.ColorCount, kMaxColorAttachments);
+            return {};
+        }
 
         const VkPipelineVertexInputStateCreateInfo vertexInput{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
+            // Geometry is read through the descriptor heap, so there is nothing to bind.
             .vertexBindingDescriptionCount = 0,
             .pVertexBindingDescriptions = VK_NULL_HANDLE,
             .vertexAttributeDescriptionCount = 0,
@@ -122,7 +158,7 @@ namespace Vulkyrie {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
-            .topology = static_cast<VkPrimitiveTopology>(ToVkTopology(descriptor.Topology)),
+            .topology = ToVkTopology(descriptor.Topology),
             .primitiveRestartEnable = VK_FALSE,
         };
 
@@ -130,6 +166,7 @@ namespace Vulkyrie {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
+            // Counts still have to be right; the values themselves arrive as dynamic state.
             .viewportCount = 1,
             .pViewports = VK_NULL_HANDLE,
             .scissorCount = 1,
@@ -142,9 +179,9 @@ namespace Vulkyrie {
             .flags = 0,
             .depthClampEnable = descriptor.Raster.DepthClamp ? VK_TRUE : VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = descriptor.Raster.FillMode == PolygonFillMode::Line ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL,
-            .cullMode = static_cast<VkCullModeFlags>(ToVkCullMode(descriptor.Raster.Cull)),
-            .frontFace = descriptor.Raster.FrontFace == FrontFace::Clockwise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE,
+            .polygonMode = ToVkPolygonMode(descriptor.Raster.FillMode),
+            .cullMode = ToVkCullMode(descriptor.Raster.Cull),
+            .frontFace = ToVkFrontFace(descriptor.Raster.FrontFace),
             .depthBiasEnable = descriptor.Raster.DepthBiasEnabled ? VK_TRUE : VK_FALSE,
             .depthBiasConstantFactor = descriptor.Raster.DepthBiasConstant,
             .depthBiasClamp = 0.0f,
@@ -156,7 +193,7 @@ namespace Vulkyrie {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
             .flags = 0,
-            .rasterizationSamples = static_cast<VkSampleCountFlagBits>(ToVkSampleCount(descriptor.RenderTargetLayout.Samples)),
+            .rasterizationSamples = ToVkSampleCount(descriptor.RenderTargetLayout.Samples),
             .sampleShadingEnable = VK_FALSE,
             .minSampleShading = 1.0f,
             .pSampleMask = VK_NULL_HANDLE,
@@ -165,6 +202,7 @@ namespace Vulkyrie {
         };
 
         const bool hasDepth = descriptor.RenderTargetLayout.DepthFormat != Format::Undefined;
+        const bool hasStencil = IsStencilFormat(descriptor.RenderTargetLayout.DepthFormat);
         const VkPipelineDepthStencilStateCreateInfo depthStencil{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
@@ -173,16 +211,15 @@ namespace Vulkyrie {
             // layout has the final say over what the desc asked for.
             .depthTestEnable = (hasDepth && descriptor.DepthStencil.DepthTest) ? VK_TRUE : VK_FALSE,
             .depthWriteEnable = (hasDepth && descriptor.DepthStencil.DepthWrite) ? VK_TRUE : VK_FALSE,
-            .depthCompareOp = static_cast<VkCompareOp>(ToVkCompareOp(descriptor.DepthStencil.DepthCompare)),
+            .depthCompareOp = ToVkCompareOp(descriptor.DepthStencil.DepthCompare),
             .depthBoundsTestEnable = VK_FALSE,
-            .stencilTestEnable = descriptor.DepthStencil.StencilTest ? VK_TRUE : VK_FALSE,
+            .stencilTestEnable = (hasStencil && descriptor.DepthStencil.StencilTest) ? VK_TRUE : VK_FALSE,
             .front = VkStencilOpState{},
             .back = VkStencilOpState{},
             .minDepthBounds = 0.0f,
             .maxDepthBounds = 1.0f,
         };
 
-        VASSERT(descriptor.RenderTargetLayout.ColorCount <= kMaxColorAttachments, "Color attachments must be <= kMaxColorAttachments");
         VkPipelineColorBlendAttachmentState blends[kMaxColorAttachments]{};
         VkFormat colorFormats[kMaxColorAttachments]{};
 
@@ -190,16 +227,23 @@ namespace Vulkyrie {
             const BlendState &b = descriptor.Blends[i];
             blends[i] = VkPipelineColorBlendAttachmentState{
                 .blendEnable = b.Enable ? VK_TRUE : VK_FALSE,
-                .srcColorBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.SrcColor)),
-                .dstColorBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.DstColor)),
-                .colorBlendOp = static_cast<VkBlendOp>(ToVkBlendOp(b.ColorOp)),
-                .srcAlphaBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.SrcAlpha)),
-                .dstAlphaBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.DstAlpha)),
-                .alphaBlendOp = static_cast<VkBlendOp>(ToVkBlendOp(b.AlphaOp)),
+                .srcColorBlendFactor = ToVkBlendFactor(b.SrcColor),
+                .dstColorBlendFactor = ToVkBlendFactor(b.DstColor),
+                .colorBlendOp = ToVkBlendOp(b.ColorOp),
+                .srcAlphaBlendFactor = ToVkBlendFactor(b.SrcAlpha),
+                .dstAlphaBlendFactor = ToVkBlendFactor(b.DstAlpha),
+                .alphaBlendOp = ToVkBlendOp(b.AlphaOp),
                 .colorWriteMask = ToVkWriteMask(b.WriteMask),
             };
-            colorFormats[i] = FromVulkyrieToVulkanFormat(descriptor.RenderTargetLayout.ColorFormats[i]);
+            colorFormats[i] = ToVkFormat(descriptor.RenderTargetLayout.ColorFormats[i]);
         }
+
+        const VkPipelineTessellationStateCreateInfo tessellation{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .patchControlPoints = descriptor.PatchControlPoints,
+        };
 
         const VkPipelineColorBlendStateCreateInfo colorBlend{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -222,7 +266,7 @@ namespace Vulkyrie {
 
         // Dynamic rendering: the attachment formats live here instead of in a
         // VkRenderPass, which is why RenderTargetLayout is part of the cache key.
-        const VkFormat depthFormat = hasDepth ? FromVulkyrieToVulkanFormat(descriptor.RenderTargetLayout.DepthFormat) : VK_FORMAT_UNDEFINED;
+        const VkFormat depthFormat = hasDepth ? ToVkFormat(descriptor.RenderTargetLayout.DepthFormat) : VK_FORMAT_UNDEFINED;
         const VkPipelineRenderingCreateInfo rendering{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
             .pNext = VK_NULL_HANDLE,
@@ -232,10 +276,10 @@ namespace Vulkyrie {
             .depthAttachmentFormat = depthFormat,
             // Only when the format actually carries stencil; naming a stencil
             // format the attachment does not have fails pipeline creation.
-            .stencilAttachmentFormat = IsStencilFormat(descriptor.RenderTargetLayout.DepthFormat) ? depthFormat : VK_FORMAT_UNDEFINED,
+            .stencilAttachmentFormat = hasStencil ? depthFormat : VK_FORMAT_UNDEFINED,
         };
 
-        const std::expected<VkPipelineLayout, StatusCode> layout = GetOrCreateLayout(descriptor.PushConstantBytes);
+        const std::expected<VkPipelineLayout, StatusCode> layout = getOrCreateLayout(descriptor.PushConstantBytes);
 
         if (!layout.has_value()) {
             return {};
@@ -249,7 +293,7 @@ namespace Vulkyrie {
             .pStages = stageInfos,
             .pVertexInputState = &vertexInput,
             .pInputAssemblyState = &inputAssembly,
-            .pTessellationState = nullptr,
+            .pTessellationState = hasTessellation ? &tessellation : nullptr,
             .pViewportState = &viewport,
             .pRasterizationState = &raster,
             .pMultisampleState = &multisample,
@@ -266,9 +310,10 @@ namespace Vulkyrie {
 
         VulkanPipeline out{};
 
-        const VkResult r = vkCreateGraphicsPipelines(pContext->Device(), pContext->PipelineCache(), 1, &info, nullptr, &out.PipelineHandle);
+        const VkResult r = vkCreateGraphicsPipelines(pContext->Device(), pContext->PipelineCache(), 1, &info, pHostAllocator->Callbacks(), &out.PipelineHandle);
 
-        if (r != VK_SUCCESS) {
+        if (VK_SUCCESS != r) {
+            VERROR("vkCreateGraphicsPipelines failed with Vulkan error code: {}", std::to_underlying(r));
             return {};
         }
 
@@ -282,11 +327,15 @@ namespace Vulkyrie {
         return out;
     }
 
-    VulkanPipeline VulkanPipelineBuilder::BuildComputePipeline(const ComputePipelineDescriptor descriptor, const VulkanShaderModule stage) {
+    VulkanPipeline VulkanPipelineBuilder::BuildComputePipeline(const ComputePipelineDescriptor &descriptor, const VulkanShaderModule &stage) {
         VASSERT(nullptr != pContext, "VulkanContext cannot be nullptr.");
-        VASSERT(stage.Valid(), "ShaderStage must be valid.");
 
-        const std::expected<VkPipelineLayout, StatusCode> layout = GetOrCreateLayout(descriptor.PushConstantBytes);
+        if (!stage.Valid()) {
+            VERROR("Compute pipeline: shader module is null.");
+            return {};
+        }
+
+        const std::expected<VkPipelineLayout, StatusCode> layout = getOrCreateLayout(descriptor.PushConstantBytes);
 
         if (!layout.has_value()) {
             return {};
@@ -316,6 +365,7 @@ namespace Vulkyrie {
         const VkResult r = vkCreateComputePipelines(pContext->Device(), pContext->PipelineCache(), 1, &info, pHostAllocator->Callbacks(), &out.PipelineHandle);
 
         if (VK_SUCCESS != r) {
+            VERROR("vkCreateComputePipelines failed with Vulkan error code: {}", std::to_underlying(r));
             return {};
         }
 
@@ -329,11 +379,14 @@ namespace Vulkyrie {
         return out;
     }
 
-    std::expected<VkPipelineLayout, StatusCode> VulkanPipelineBuilder::GetOrCreateLayout(u32 pushConstantBytes) {
+    std::expected<VkPipelineLayout, StatusCode> VulkanPipelineBuilder::getOrCreateLayout(u32 pushConstantBytes) {
         VASSERT(nullptr != pContext, "VulkanContext cannot be nullptr.");
-        VASSERT(pContext->GetVulkanDeviceCapabilities().Limits.MaxPushConstantBytes >= pushConstantBytes,
-                "Push constant block exceeds the device limit. The layout would fail to "
-                "create and every pipeline keyed on it with it.");
+        const u32 maxPushConstantBytes = pContext->GetVulkanDeviceCapabilities().Limits.MaxPushConstantBytes;
+
+        if (pushConstantBytes > maxPushConstantBytes) {
+            VERROR("Push constant block of {} bytes exceeds the device limit of {}.", pushConstantBytes, maxPushConstantBytes);
+            return std::unexpected(StatusCode::FailedToCreateVulkanPipelineLayout);
+        }
 
         for (const LayoutEntry &entry : mLayouts) {
             if (entry.PushConstantBytes == pushConstantBytes) {
@@ -342,6 +395,7 @@ namespace Vulkyrie {
         }
 
         const VkPushConstantRange range{
+            // Visible to every stage, so the layout depends on the block's size and nothing else.
             .stageFlags = VK_SHADER_STAGE_ALL,
             .offset = 0,
             .size = pushConstantBytes,

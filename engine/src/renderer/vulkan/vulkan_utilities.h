@@ -143,7 +143,7 @@ namespace Vulkyrie {
      * @param format Format to map.
      * @returns The matching VkFormat; VK_FORMAT_UNDEFINED for Format::Undefined.
      */
-    [[nodiscard]] VE_INLINE constexpr VkFormat FromVulkyrieToVulkanFormat(Format format) noexcept {
+    [[nodiscard]] VE_INLINE constexpr VkFormat ToVkFormat(Format format) noexcept {
         VASSERT(static_cast<usize>(format) < detail::kFormatCount, "Format index {} is out of range", static_cast<usize>(format));
         return detail::kFormats[static_cast<usize>(format)].vk;
     }
@@ -153,13 +153,18 @@ namespace Vulkyrie {
      * @param format Format to map, from a surface or capability query.
      * @returns The matching Format, or Format::Undefined for anything the RHI does not name.
      */
-    [[nodiscard]] VE_INLINE constexpr Format FromVulkanToVulkyrieFormat(VkFormat format) noexcept {
+    [[nodiscard]] VE_INLINE constexpr Format ToRhiFormat(VkFormat format) noexcept {
         const auto v = static_cast<usize>(format);
         if (v >= detail::kReverseFormats.size()) return Format::Undefined;
         return detail::kReverseFormats[v];
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkSampleCount(SampleCount s) noexcept {
+    /**
+     * @brief Maps an RHI sample count to the Vulkan sample-count bit.
+     * @param s Sample count to map.
+     * @returns The matching bit; VK_SAMPLE_COUNT_1_BIT for SampleCount::None.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkSampleCountFlagBits ToVkSampleCount(SampleCount s) noexcept {
         switch (s) {
             case SampleCount::X1:
                 return VK_SAMPLE_COUNT_1_BIT;
@@ -175,14 +180,18 @@ namespace Vulkyrie {
                 return VK_SAMPLE_COUNT_32_BIT;
             case SampleCount::X64:
                 return VK_SAMPLE_COUNT_64_BIT;
+            // A combination of bits, which no pipeline can be created with.
             default:
                 return VK_SAMPLE_COUNT_1_BIT;
         }
-
-        return VK_SAMPLE_COUNT_1_BIT;
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkCullMode(CullMode m) noexcept {
+    /**
+     * @brief Maps an RHI cull mode to the Vulkan cull-mode mask.
+     * @param m Cull mode to map.
+     * @returns The matching mask.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkCullModeFlags ToVkCullMode(CullMode m) noexcept {
         switch (m) {
             case CullMode::None:
                 return VK_CULL_MODE_NONE;
@@ -190,11 +199,18 @@ namespace Vulkyrie {
                 return VK_CULL_MODE_FRONT_BIT;
             case CullMode::Back:
                 return VK_CULL_MODE_BACK_BIT;
+            case CullMode::FrontAndBack:
+                return VK_CULL_MODE_FRONT_AND_BACK;
         }
         return VK_CULL_MODE_NONE;
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkCompareOp(CompareOp op) noexcept {
+    /**
+     * @brief Maps an RHI comparison to the Vulkan compare op.
+     * @param op Comparison to map.
+     * @returns The matching VkCompareOp.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkCompareOp ToVkCompareOp(CompareOp op) noexcept {
         switch (op) {
             case CompareOp::Never:
                 return VK_COMPARE_OP_NEVER;
@@ -216,7 +232,12 @@ namespace Vulkyrie {
         return VK_COMPARE_OP_ALWAYS;
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkBlendFactor(BlendFactor f) noexcept {
+    /**
+     * @brief Maps an RHI blend factor to the Vulkan blend factor.
+     * @param f Blend factor to map.
+     * @returns The matching VkBlendFactor.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkBlendFactor ToVkBlendFactor(BlendFactor f) noexcept {
         switch (f) {
             case BlendFactor::Zero:
                 return VK_BLEND_FACTOR_ZERO;
@@ -261,7 +282,12 @@ namespace Vulkyrie {
         return VK_BLEND_FACTOR_ONE;
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkBlendOp(BlendOp op) noexcept {
+    /**
+     * @brief Maps an RHI blend equation to the Vulkan blend op.
+     * @param op Blend equation to map.
+     * @returns The matching VkBlendOp.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkBlendOp ToVkBlendOp(BlendOp op) noexcept {
         switch (op) {
             case BlendOp::Add:
                 return VK_BLEND_OP_ADD;
@@ -278,7 +304,12 @@ namespace Vulkyrie {
         return VK_BLEND_OP_ADD;
     }
 
-    [[nodiscard]] VE_INLINE u32 ToVkTopology(PrimitiveTopology t) noexcept {
+    /**
+     * @brief Maps an RHI primitive topology to the Vulkan topology.
+     * @param t Topology to map.
+     * @returns The matching VkPrimitiveTopology.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkPrimitiveTopology ToVkTopology(PrimitiveTopology t) noexcept {
         switch (t) {
             case PrimitiveTopology::PointList:
                 return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
@@ -290,9 +321,45 @@ namespace Vulkyrie {
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             case PrimitiveTopology::TriangleStrip:
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+            case PrimitiveTopology::PatchList:
+                return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         }
 
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    }
+
+    /**
+     * @brief Maps an RHI fill mode to the Vulkan polygon mode.
+     * @param m Fill mode to map.
+     * @returns The matching VkPolygonMode.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkPolygonMode ToVkPolygonMode(PolygonFillMode m) noexcept {
+        switch (m) {
+            case PolygonFillMode::Fill:
+                return VK_POLYGON_MODE_FILL;
+            case PolygonFillMode::Line:
+                return VK_POLYGON_MODE_LINE;
+            case PolygonFillMode::Point:
+                return VK_POLYGON_MODE_POINT;
+        }
+
+        return VK_POLYGON_MODE_FILL;
+    }
+
+    /**
+     * @brief Maps an RHI winding order to the Vulkan front face.
+     * @param f Winding order to map.
+     * @returns The matching VkFrontFace.
+     */
+    [[nodiscard]] VE_INLINE constexpr VkFrontFace ToVkFrontFace(FrontFace f) noexcept {
+        switch (f) {
+            case FrontFace::CounterClockwise:
+                return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+            case FrontFace::Clockwise:
+                return VK_FRONT_FACE_CLOCKWISE;
+        }
+
+        return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     }
 
 } // namespace Vulkyrie
