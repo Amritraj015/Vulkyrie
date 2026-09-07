@@ -7,6 +7,7 @@
 #include "renderer/rhi/rhi_types.h"
 #include "renderer/vulkan/vulkan_descriptor_heap.h"
 #include "renderer/vulkan/vulkan_host_allocator.h"
+#include "renderer/vulkan/vulkan_pipeline_builder.h"
 #include "renderer/vulkan/vulkan_queue.h"
 #include "renderer/vulkan/vulkan_swapchain.h"
 #include "renderer/vulkan/vulkan_types.h"
@@ -24,6 +25,8 @@ namespace Vulkyrie {
     class VulkanContext final {
     public:
         explicit VulkanContext(const DeviceCreationInfo &info);
+
+        VE_DELETE_MOVE_AND_COPY(VulkanContext);
 
         ~VulkanContext();
 
@@ -135,13 +138,10 @@ namespace Vulkyrie {
         VulkanQueue mComputeQueue{};
         VmaAllocator mVmaAllocator{ VK_NULL_HANDLE };
         VulkanSwapchain mSwapchain{};
+        VulkanPipelineBuilder mPipelineBuilder{ this, &mHostAllocator };
 
         // ------------------------------------
         // TODO: Move to VulkanSwapchain class.
-        // VkSwapchainKHR mVkSwapchain{ VK_NULL_HANDLE };
-        // RendererVector<VkImage> mVkSwapchainImages{};
-        // RendererVector<VkImageView> mVkSwapchainImageViews{};
-        // RendererVector<VkSemaphore> mVkRenderCompleteSemaphores{};
         VkImage mVkDepthImage{ VK_NULL_HANDLE };
         VkImageView mVkDepthImageView{ VK_NULL_HANDLE };
         VmaAllocation mVmaDepthImageAllocation{ VK_NULL_HANDLE };

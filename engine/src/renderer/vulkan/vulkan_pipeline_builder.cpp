@@ -74,7 +74,212 @@ namespace Vulkyrie {
     VulkanPipeline VulkanPipelineBuilder::BuildGraphicsPipeline(const GraphicsPipelineDescriptor descriptor, std::span<const VulkanShaderModule> stages) {
         VASSERT(nullptr != pContext, "VulkanContext cannot be nullptr.");
 
-        return {};
+        const ShaderKey *keys[] = {
+            &descriptor.VertexShader,
+            &descriptor.FragmentShader,
+            &descriptor.MeshShader,
+            &descriptor.TaskShader,
+        };
+
+        VkPipelineShaderStageCreateInfo stageInfos[std::size(keys)]{};
+        u32 stageCount = 0;
+
+        for (const ShaderKey *key : keys) {
+            if (!key->Valid()) {
+                continue;
+            }
+
+            VASSERT(stageCount < stages.size(), "Fewer modules than valid shader keys; see the contract on BuildGraphicsPipeline.");
+            VASSERT(stages[stageCount].Valid(), "ShaderStage invalid.");
+
+            stageInfos[stageCount] = VkPipelineShaderStageCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = VK_NULL_HANDLE,
+                .flags = 0,
+                .stage = ToVkStage(key->ShaderStage),
+                .module = stages[stageCount].ModuleHandle,
+                .pName = "main",
+                .pSpecializationInfo = VK_NULL_HANDLE,
+            };
+
+            stageCount++;
+        }
+
+        VASSERT(stageCount == stages.size(), "More modules than valid shader keys; see the contract on BuildGraphics.");
+        VASSERT(stageCount > 0, "stageCount must be greater 0");
+
+        const VkPipelineVertexInputStateCreateInfo vertexInput{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .vertexBindingDescriptionCount = 0,
+            .pVertexBindingDescriptions = VK_NULL_HANDLE,
+            .vertexAttributeDescriptionCount = 0,
+            .pVertexAttributeDescriptions = VK_NULL_HANDLE,
+        };
+
+        const VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .topology = static_cast<VkPrimitiveTopology>(ToVkTopology(descriptor.Topology)),
+            .primitiveRestartEnable = VK_FALSE,
+        };
+
+        const VkPipelineViewportStateCreateInfo viewport{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .viewportCount = 1,
+            .pViewports = VK_NULL_HANDLE,
+            .scissorCount = 1,
+            .pScissors = VK_NULL_HANDLE,
+        };
+
+        const VkPipelineRasterizationStateCreateInfo raster{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .depthClampEnable = descriptor.Raster.DepthClamp ? VK_TRUE : VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = descriptor.Raster.FillMode == PolygonFillMode::Line ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL,
+            .cullMode = static_cast<VkCullModeFlags>(ToVkCullMode(descriptor.Raster.Cull)),
+            .frontFace = descriptor.Raster.FrontFace == FrontFace::Clockwise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE,
+            .depthBiasEnable = descriptor.Raster.DepthBiasEnabled ? VK_TRUE : VK_FALSE,
+            .depthBiasConstantFactor = descriptor.Raster.DepthBiasConstant,
+            .depthBiasClamp = 0.0f,
+            .depthBiasSlopeFactor = descriptor.Raster.DepthBiasSlope,
+            .lineWidth = 1.0f,
+        };
+
+        const VkPipelineMultisampleStateCreateInfo multisample{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .rasterizationSamples = static_cast<VkSampleCountFlagBits>(ToVkSampleCount(descriptor.RenderTargetLayout.Samples)),
+            .sampleShadingEnable = VK_FALSE,
+            .minSampleShading = 1.0f,
+            .pSampleMask = VK_NULL_HANDLE,
+            .alphaToCoverageEnable = VK_FALSE,
+            .alphaToOneEnable = VK_FALSE,
+        };
+
+        const bool hasDepth = descriptor.RenderTargetLayout.DepthFormat != Format::Undefined;
+        const VkPipelineDepthStencilStateCreateInfo depthStencil{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            // A depth test with no depth attachment is a validation error, so the
+            // layout has the final say over what the desc asked for.
+            .depthTestEnable = (hasDepth && descriptor.DepthStencil.DepthTest) ? VK_TRUE : VK_FALSE,
+            .depthWriteEnable = (hasDepth && descriptor.DepthStencil.DepthWrite) ? VK_TRUE : VK_FALSE,
+            .depthCompareOp = static_cast<VkCompareOp>(ToVkCompareOp(descriptor.DepthStencil.DepthCompare)),
+            .depthBoundsTestEnable = VK_FALSE,
+            .stencilTestEnable = descriptor.DepthStencil.StencilTest ? VK_TRUE : VK_FALSE,
+            .front = VkStencilOpState{},
+            .back = VkStencilOpState{},
+            .minDepthBounds = 0.0f,
+            .maxDepthBounds = 1.0f,
+        };
+
+        VASSERT(descriptor.RenderTargetLayout.ColorCount <= kMaxColorAttachments, "Color attachments must be <= kMaxColorAttachments");
+        VkPipelineColorBlendAttachmentState blends[kMaxColorAttachments]{};
+        VkFormat colorFormats[kMaxColorAttachments]{};
+
+        for (u32 i = 0; i < descriptor.RenderTargetLayout.ColorCount; ++i) {
+            const BlendState &b = descriptor.Blends[i];
+            blends[i] = VkPipelineColorBlendAttachmentState{
+                .blendEnable = b.Enable ? VK_TRUE : VK_FALSE,
+                .srcColorBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.SrcColor)),
+                .dstColorBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.DstColor)),
+                .colorBlendOp = static_cast<VkBlendOp>(ToVkBlendOp(b.ColorOp)),
+                .srcAlphaBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.SrcAlpha)),
+                .dstAlphaBlendFactor = static_cast<VkBlendFactor>(ToVkBlendFactor(b.DstAlpha)),
+                .alphaBlendOp = static_cast<VkBlendOp>(ToVkBlendOp(b.AlphaOp)),
+                .colorWriteMask = ToVkWriteMask(b.WriteMask),
+            };
+            colorFormats[i] = FromVulkyrieToVulkanFormat(descriptor.RenderTargetLayout.ColorFormats[i]);
+        }
+
+        const VkPipelineColorBlendStateCreateInfo colorBlend{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .logicOpEnable = VK_FALSE,
+            .logicOp = VK_LOGIC_OP_COPY,
+            .attachmentCount = descriptor.RenderTargetLayout.ColorCount,
+            .pAttachments = blends,
+            .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
+        };
+
+        const VkPipelineDynamicStateCreateInfo dynamic{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .flags = 0,
+            .dynamicStateCount = static_cast<u32>(kDynamicStates.size()),
+            .pDynamicStates = kDynamicStates.data(),
+        };
+
+        // Dynamic rendering: the attachment formats live here instead of in a
+        // VkRenderPass, which is why RenderTargetLayout is part of the cache key.
+        const VkFormat depthFormat = hasDepth ? FromVulkyrieToVulkanFormat(descriptor.RenderTargetLayout.DepthFormat) : VK_FORMAT_UNDEFINED;
+        const VkPipelineRenderingCreateInfo rendering{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .viewMask = 0,
+            .colorAttachmentCount = descriptor.RenderTargetLayout.ColorCount,
+            .pColorAttachmentFormats = colorFormats,
+            .depthAttachmentFormat = depthFormat,
+            // Only when the format actually carries stencil; naming a stencil
+            // format the attachment does not have fails pipeline creation.
+            .stencilAttachmentFormat = IsStencilFormat(descriptor.RenderTargetLayout.DepthFormat) ? depthFormat : VK_FORMAT_UNDEFINED,
+        };
+
+        const std::expected<VkPipelineLayout, StatusCode> layout = GetOrCreateLayout(descriptor.PushConstantBytes);
+
+        if (!layout.has_value()) {
+            return {};
+        }
+
+        const VkGraphicsPipelineCreateInfo info{
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .pNext = &rendering,
+            .flags = 0,
+            .stageCount = stageCount,
+            .pStages = stageInfos,
+            .pVertexInputState = &vertexInput,
+            .pInputAssemblyState = &inputAssembly,
+            .pTessellationState = nullptr,
+            .pViewportState = &viewport,
+            .pRasterizationState = &raster,
+            .pMultisampleState = &multisample,
+            .pDepthStencilState = &depthStencil,
+            .pColorBlendState = &colorBlend,
+            .pDynamicState = &dynamic,
+            .layout = *layout,
+            // No render pass: that is what VkPipelineRenderingCreateInfo replaces.
+            .renderPass = VK_NULL_HANDLE,
+            .subpass = 0,
+            .basePipelineHandle = VK_NULL_HANDLE,
+            .basePipelineIndex = -1,
+        };
+
+        VulkanPipeline out{};
+
+        const VkResult r = vkCreateGraphicsPipelines(pContext->Device(), pContext->PipelineCache(), 1, &info, nullptr, &out.PipelineHandle);
+
+        if (r != VK_SUCCESS) {
+            return {};
+        }
+
+        out.LayoutHandle = *layout;
+        out.IsCompute = false;
+
+#if defined(VE_VK_ENABLE_VALIDATION)
+        pContext->SetDebugName(descriptor.DebugName, VK_OBJECT_TYPE_PIPELINE, reinterpret_cast<u64>(out.PipelineHandle));
+#endif
+
+        return out;
     }
 
     VulkanPipeline VulkanPipelineBuilder::BuildComputePipeline(const ComputePipelineDescriptor descriptor, const VulkanShaderModule stage) {
