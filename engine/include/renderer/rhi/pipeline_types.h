@@ -44,8 +44,8 @@ namespace Vulkyrie {
     };
 
     struct DepthStencilState final {
-        bool DepthTest{ true };
-        bool DepthWrite{ true };
+        bool DepthTest{ false };
+        bool DepthWrite{ false };
         CompareOp DepthCompare{ CompareOp::GreaterEqual };
         bool StencilTest{ false };
     };
